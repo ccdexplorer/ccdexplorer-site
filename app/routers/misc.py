@@ -11,7 +11,7 @@ from pymongo import ASCENDING, DESCENDING
 import random
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 from app.jinja2_helpers import *
-from env import *
+from app.env import *
 from app.state.state import *
 from app.Recurring.recurring import Recurring
 from datetime import timedelta

@@ -9,7 +9,7 @@ from fastapi.responses import (
 from app.classes.dressingroom import TransactionClassifier
 from app.classes.Node_Baker import BakerStatus
 from app.jinja2_helpers import *
-from env import *
+from app.env import *
 from app.state.state import *
 import requests
 from bson.json_util import dumps
@@ -20,7 +20,7 @@ from ccdefundamentals.user_v2 import (
     UserV2,
     NotificationPreferences,
 )
-from env import ADMIN_CHAT_ID
+from app.env import ADMIN_CHAT_ID
 from typing import Iterable, cast
 import docker
 import json

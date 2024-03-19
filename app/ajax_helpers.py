@@ -3,7 +3,7 @@
 # ruff: noqa: F403, F405, E402, E501
 
 import math
-from env import *
+from app.env import *
 from app.classes.Enums import *
 from app.classes.dressingroom import QLPoolStatus, TransactionClassifier
 

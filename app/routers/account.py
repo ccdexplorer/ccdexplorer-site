@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 from app.classes.sankey import SanKey
 from app.jinja2_helpers import *
-from env import *
+from app.env import *
 from ccdefundamentals.GRPCClient import GRPCClient
 import copy
 from app.state.state import *

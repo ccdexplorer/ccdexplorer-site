@@ -33,7 +33,7 @@ from app.classes.Node_Baker import *
 
 
 from app.console import console
-from env import *
+from app.env import *
 from app.Recurring.recurring import Recurring
 from app.routers import (
     admin,

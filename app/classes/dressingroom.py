@@ -2,7 +2,7 @@
 
 from enum import Enum
 import datetime as dt
-from env import *
+from app.env import *
 from app.utils import *
 from app.classes.Enums import *
 from pydantic import BaseModel

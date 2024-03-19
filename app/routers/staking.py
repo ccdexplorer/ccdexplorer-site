@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.jinja2_helpers import *
-from env import *
+from app.env import *
 from ccdefundamentals.GRPCClient import GRPCClient
 
 from ccdefundamentals.mongodb import (

@@ -23,7 +23,7 @@ from app.ajax_helpers import (
 )
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 
-from env import *
+from app.env import *
 from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
 from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
