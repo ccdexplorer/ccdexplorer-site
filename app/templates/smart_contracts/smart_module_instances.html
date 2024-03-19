@@ -1,0 +1,28 @@
+<!-- <div class="table-responsive"> -->
+    <!-- - Module Contracts table -->
+<table class="table table-striped ms-1 me-1 small">
+   
+    <tbody>
+       <thead>
+        <tr>
+            <th>Address</th>
+            
+        </tr>
+
+       </thead>
+       {% if module.contracts %}
+        {% for contract_address in module.contracts|sort %}
+        <tr >
+            
+            <td>{{contract_address|instance_link_from_str(net)|safe}}</td>
+            
+        {% endfor %}
+        {% else %}
+        No instances found.
+        {% endif %}
+    </tr>    
+
+    </tbody>    
+    <!-- Module Contracts table-->
+</table>
+<!-- </div> -->

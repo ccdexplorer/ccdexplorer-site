@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+
+<h2>Docker Logs</h2>
+
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 active" id="mainnet-tab" data-bs-toggle="tab" data-bs-target="#mainnet" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Mainnet</small></button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="testnet-tab" data-bs-toggle="tab" data-bs-target="#testnet" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Testnet</small></button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="bot-tab" data-bs-toggle="tab" data-bs-target="#bot" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Bot</small></button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="paydays-tab" data-bs-toggle="tab" data-bs-target="#paydays" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Paydays</small></button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Message Log</small></button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="mongo-tab" data-bs-toggle="tab" data-bs-target="#mongo" type="button" role="tab" aria-controls="credentials" aria-selected="true"><small>Mongo</small></button>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show  active" style="padding-top: 10px;" id="mainnet" role="tabpanel" aria-labelledby="mainnet-tab">
+    <div hx-get="/ajax_admin_docker/heartbeat-MAINNET/40" hx-trigger="load, every 2s"></div>
+  </div>
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="testnet" role="tabpanel" aria-labelledby="testnet-tab">
+    <div hx-get="/ajax_admin_docker/heartbeat-TESTNET/20" hx-trigger="load, every 2s"></div>
+  </div>
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="bot" role="tabpanel" aria-labelledby="bot-tab">
+    <div hx-get="/ajax_admin_docker/concordium-bot-v2-PROD/40" hx-trigger="load, every 2s"></div>
+  </div>
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="paydays" role="tabpanel" aria-labelledby="paydays-tab">
+    <div hx-get="/ajax_admin_docker/paydays-MAINNET/50" hx-trigger="load, every 2s"></div>
+  </div>
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+    <div hx-get="/ajax_admin_mongo_message_log/" hx-trigger="load, every 2s"></div>
+  </div> 
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="mongo" role="tabpanel" aria-labelledby="mongo-tab">
+    <div hx-get="/ajax_admin_mongo/" hx-trigger="load, every 2s"></div>
+  </div> 
+</div>
+{% endblock content %}

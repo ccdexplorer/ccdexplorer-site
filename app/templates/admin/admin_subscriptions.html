@@ -1,0 +1,42 @@
+
+<b>Subscription Details</b>
+<table id="main" class="table table-striped ms-1  small">
+    <thead>
+     <tr>
+         <th class="small" >Key</th>
+         <th class="small text-end" scope="col" >Value</th>
+         
+         </tr>
+         
+   </thead>
+    <tbody>
+        <tr><td><small>Total paid amount all users</small></td><td class="ccd text-end">{{total_paid_all_users|baker_ccd}} CCD</td></tr>
+        {% for detail in subscription_details %}
+            <tr><td><small>{{detail.name}}</small></td>
+                <td class="text-end">
+                {% if detail.name == 'EXPLORER_CCD' %}
+                    {{detail.value|account_link(net, True, True, user, tags, app=request.app)|safe   }}
+                
+                {% elif detail.name == 'BAKER_ID' %}
+                    <a class="small" href ="/account/{{detail.value}}">{{detail.value}}</a>
+                
+                
+                {% elif detail.value is number %}
+            <small>{{detail.value| baker_ccd }} CCD</small>
+                {% endif %}
+            
+            
+            </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<b>Users</b><br/>
+{% for plan in user_categories.keys() %}
+    {% if user_categories[plan]|length > 0 %}
+        <i><small>{{plan}}</small></i>
+        {% for user in user_categories[plan] %}
+            {% include "admin/admin_subscription.html" %}
+        {% endfor %}
+    {% endif %}
+{% endfor %}

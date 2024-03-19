@@ -1,0 +1,145 @@
+<!-- <h6 class="text-muted ms-2">CNS Domains</h6> -->
+<div class="container m-2 p-4 me-2">
+    <div class="row">
+      {% if (fung_count == 0) and  (non_fung_count == 0) %}
+      <p><small>There are tokens associated with this account, however, these tokens are not verified.</small></p>
+      {% endif %}     
+{% if fung_count > 0 %}      
+<b>Fungible Tokens</b>
+        <table class="table table-striped table-hover table-sm">
+            <thead>
+              <tr>
+                <th class="small" scope="col" colspan="1" ></th>
+                <th class="small text-end" scope="col">Value (USD)</th>
+                <!-- <th class="small text-end" scope="col">Address</th> -->
+                
+              </tr>
+            </thead>
+            <tbody>
+        
+
+{% for token_address, item in tokens.items() %}
+{% if item.markup.tag_information.token_type == "fungible" %}
+    <tr>
+          <!-- This is a recognized token, and has a corresponding tag entry -->
+          {% if item.markup.tag_information %}
+              <!-- This is a fungible token, so needs value and value conversion -->
+              
+              <!-- First column with token_address -->
+                <td class=" text-start">
+                    <img src="{{item.markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+                    <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}"><span class="ccd">{{item.markup.tag_information.id}}</span></a>
+                    <br/>
+                    <span class="ccd_decimals">{{item.token_value|round(item.markup.tag_information.decimals)}} {{item.markup.tag_information.id}}</span>
+                  </small>
+                </td>
+
+                <!-- Second column with values -->
+                <td class="text-end">
+                  <small><span class="ccd">${{item.token_value_USD|baker_ccd}}
+                  </span>
+                  <br/>
+                  <span class="ccd_decimals">@{{item.markup.exchange_rate|commafy}}</span>
+                  </small>
+                </td>
+             
+
+
+          {% else %}      
+            <!-- Unreognized token -->
+              <td>
+                <small><a href="/{{net}}/tokens/_/{{item.contract}}-{{item.token_id}}"><span class="ccd">{{item.contract}}-{{item.token_id[:8]}}</span></a></small>
+              </td> 
+              <td class="text-end"><small><span class="ccd">
+                {{(item.token_amount|int)}} 
+                
+              </span></small>
+            </td>
+          
+          {% endif %}
+            
+            
+        </tr>
+        {%endif %}
+        {% endfor %}
+    </tbody>
+    
+</table>
+
+</div>
+<p><small><small>* <a href="/mainnet/exchange-rates">Exchange rates</a> used.</small></small></p>
+
+<br/>
+{% endif %}
+
+<div class="row">
+  {% if non_fung_count > 0 %}      
+  <b>Non-Fungible Tokens</b>
+
+    <table class="table table-striped table-hover table-sm">
+        <thead>
+          <tr>
+            <th class="small" scope="col" colspan="1" >Issuer</th>
+            <th class="small" scope="col" colspan="1" >Token</th>
+            <th class="small text-end" scope="col">Amount</th>
+            
+          </tr>
+        </thead>
+        <tbody>
+    
+
+{% for token_address, item in tokens.items() %}
+{% if item.markup.tag_information.token_type != "fungible" %}
+    <tr>
+      <!-- {{item}} -->
+      <!-- This is a recognized token, and has a corresponding tag entry -->
+      {% if item.markup.tag_information %}
+          
+          <!-- This is a NON fungible token -->     
+          
+              <!-- First column with token_address -->
+            <td class=" small text-start">
+              <img src="{{item.markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+              <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}">{{item.markup.tag_information.id}}</a></small></td>
+              <!-- <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}"><span class="ccd">{{item.markup.tag_information.id}}-{{item.token_id}}</span></a> -->
+              <td class="small">  <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}">{{item.markup.token_metadata.name}}</a>
+              <br/>
+              <span class="ccd_decimals">{{item.token_value}}</span>
+            </small>
+          </td>
+
+          <!-- Second column with values -->
+          <td class="text-end"> 
+            <small><span class="ccd">{{item.token_amount}}
+            </span>
+            <br/>
+            <span class="ccd_decimals"></span>
+            </small>
+          </td>
+
+
+
+      {% else %}      
+        <!-- Unrecognized token -->
+        <td class="small"><a href="/{{net}}/tokens/_/{{item.contract}}-{{item.token_id}}"><small>{{item.contract}}</small></a></td>  
+        <td class="small">
+            <small><a href="/{{net}}/tokens/_/{{item.contract}}-{{item.token_id}}"><span class="ccd"><small>{{item.token_id[:8]}}</small></span></a></small>
+          </td> 
+          <td class="text-end"><small><span class="ccd">
+            {{(item.token_amount|int)}} 
+            
+          </span></small>
+        </td>
+      
+      {% endif %}
+        
+        
+    </tr>
+{% endif%}
+    {% endfor %}
+</tbody>
+
+</table>
+{% endif %}
+</div>
+</div>

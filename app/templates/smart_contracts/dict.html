@@ -1,0 +1,26 @@
+<!-- <div class="table-responsive">
+    <table class="table table-striped ms-1 me-1 small"> -->
+        {% for k in the_dict.keys() %}
+        
+            {% if the_dict[k] is mapping %}
+                {% set the_dict = the_dict[k] %}
+                {% include 'smart_contracts/dict.html' %}
+            {% elif the_dict[k] is iterable and the_dict[k] is not string %}   
+            
+                {% set the_list = the_dict[k] %}
+                {% include 'smart_contracts/list.html' %}
+            {% else %}
+            <div class="card mb-2 ms-2 me-2"> 
+                <div class="card-body p-2" >
+            
+                    <div class="clearfix">
+                        <div class="card-text small float-start "><small>{{k|decide(user, tags)|safe}}</small></div>
+                        <div class="card-text small float-end"><b><small>{{ the_dict[k]|decide(user, tags)|safe }}</small></b></div>
+                    </div>
+                </div>
+            </div>
+                <!-- <tr><td>{{k}}</td><td>{{the_dict[k]}}</td></tr>   -->
+            {% endif %}
+        {% endfor %}
+    <!-- </table>
+</div> -->

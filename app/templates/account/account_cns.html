@@ -1,0 +1,35 @@
+<!-- <h6 class="text-muted ms-2">CNS Domains</h6> -->
+<div class="container">
+    <div class="row">
+{% for item in cns_domains_list.data.data %}
+    <div class="card low border-success m-2 p-2" style="width: 9rem;">
+        <div class="card-body m-0 p-0 text-center">
+            <small><small><b class="card-title text-center">
+                {% if item.owner == item.resolver_address %}    
+                {{item.name }}
+                {% else %}
+                <a  href="/{{net}}/account/{{item.resolver_address}}"><small>{{item.name}}</small></a>
+                
+                {% endif %}
+                
+            
+            </b></small></small>
+            <a class="stretched-link" href="/{{net}}/account/{{item.resolver_address}}"></a>
+
+        </div>
+        {% if item.sub_domains|length > 0 %}
+            <ul class="list-group list-group-flush">
+        {% endif %}
+        {% for sub_domain in item.sub_domains %}    
+            <li class="list-group-item small"><small>{{sub_domain.name}}</small></li>
+            
+        {% endfor %}
+        {% if item.sub_domains|length > 0 %}
+            </ul>
+        {% endif %}
+    </div>
+
+{% endfor %}
+
+</div>
+</div>

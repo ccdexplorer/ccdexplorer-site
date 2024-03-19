@@ -1,0 +1,55 @@
+<div class="row alert alert-warning" role="alert">
+    <div class="col"><i><small>Editing</small></i></div>
+    <div class="col"><small>{{contract.label}}</small></div>
+    <div class="col"><small>{{contract.contract.index}}</small></div>
+    <div class="col"><small>{{contract.contract_name}}</small></div>
+    
+</div>
+<div class="container px-2">
+<div class="row">
+    <div class="col text-start"><small>Label</small></div>
+    <div class="col-8">
+        <input                 class=" form-control form-control-sm small input-sm mb-1 text-end " 
+                type="text" name="label" {% if contract.label %}value="{{contract.label}}"{% endif %}>
+    </div>
+    <div class="col"></div>
+</div>
+
+{% set explanation_key = "contract-contract_update_issued" %}
+<span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+{% for field in contract_all_fields %}
+    {% if field in contract_all_fields_dict.keys() %}
+        <div class="row">
+            <div class="col">
+                
+                <label><small><b>{{field|format_preference_key}}</b></small></label> 
+            </div>
+        </div>
+        <div class="row  bg-light">
+            <div class="col text-end"><small>Telegram</small></div>
+            <div class="col">
+            <input class="form-check-input" type="checkbox" name="telegram-{{field}}" {% if contract_all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
+            </div>
+            
+        </div>
+
+        <div class="row  bg-light">
+            <div class="col  text-end">
+                <span><small>Email</small></span>
+            </div>
+            <div class="col">
+                <input class="form-check-input" type="checkbox" name="email-{{field}}" {% if contract_all_fields_dict[field].email_enabled%} checked {% endif %}></td>
+            </div>
+                    
+        </div>
+    
+    {% endif %}
+
+{% endfor %}
+
+
+
+    </div>
+    <!-- This is the if validator_all_fields_dict|length == 0 -->
+    
+</div>

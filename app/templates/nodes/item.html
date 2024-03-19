@@ -1,0 +1,11 @@
+<div class="card mb-2 ms-2 me-2">
+    <div class="card-body p-2">
+    {% if show_bakers %}
+        {% include "nodes/baker.html" %}
+        {% include "nodes/node.html" %}
+    {% else %}
+        {% include "nodes/node.html" %}
+        {% include "nodes/baker.html" %}
+    {% endif %}
+    </div>
+</div>

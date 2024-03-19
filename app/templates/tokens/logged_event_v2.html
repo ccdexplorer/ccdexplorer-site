@@ -1,0 +1,82 @@
+        
+       
+     
+    {% if event.result.tag in [255,254,253] %}
+        {% set amount =(event.result.token_amount|int)|token_amount_using_decimals(typed_tokens_tag.decimals) %}
+    {% endif %}
+    {% set tokens_tag ='' %}
+    {% if typed_tokens_tag %}
+        {% if typed_tokens_tag.single_use_contract %}
+            {% set tokens_tag = typed_tokens_tag.id %}
+        {% endif %}
+    {% endif %}
+    
+    {% if event.result.tag==251 %}
+        <!-- <td class="small text-end"></td>
+        <td class="small text-start"></td>
+        <td class="small text-start"></td> -->
+        {% if event.result.metadata.url[:4] == "ipfs" %}
+            {% set url = "https://ipfs.io/ipfs/"+event.result.metadata.url[7:] %}
+        {% else %}
+            {% set url = event.result.metadata.url %}
+        {% endif %}
+        {% set row_2 = '<td colspan="4" class="small text-center"><a href="{{url}}"><small>url</small></a></td>' %}
+    {% endif %}
+    {% if event.result.tag==253 %}
+        <td class="small text-end"><span class="ccd">{{amount}}{% if tag != "_"%} {{tokens_tag}}{% endif %}</span></td>
+        
+        <td class="small text-start">
+            {% if event.result.from_address|length == 50 %}
+              {{event.result.from_address|account_link(net, True, True, user, tags, app=request.app)|safe }}
+            {% else %}
+              {{event.result.from_address|instance_link_from_str(net)|safe }}
+            {% endif %}    
+        </td>
+        <td class="small text-start"></td>
+
+        <td class="small text-end"></td>
+    {% endif %}
+    {% if event.result.tag==254 %}
+        {% if event.result.to_address|length == 50 %}
+                  {% set to_ = event.result.to_address|account_link(net, True, True, user, tags, app=request.app)|safe %}
+                {% else %}
+                  {% set to_ = event.result.to_address|instance_link_from_str(net)|safe %}
+          {% endif %}    
+    {% set row_2 ='<td colspan="4" class="small text-muted">Minted <span class="ccd">{{amount}}{% if tag !="_"%} {{tokens_tag}}{% endif %}</span> to: {{to_}}</td>' %}
+    <!-- <td class="small text-end"></td>
+        <td class="small text-start"></td>
+
+        <td class="small text-start">
+            
+        </td>
+        <td class="small text-end"></td> -->
+    {% endif %}
+    {% if event.result.tag==255 %}
+    <td class="small text-end"><span class="ccd">{{amount}}{% if tag !="_"%} {{tokens_tag}}{% endif %}</span></td>
+        <td class="small text-start">{% if event.result.from_address|length == 50 %}
+            {{event.result.from_address|account_link(net, True, True, user, tags, app=request.app)|safe }}
+          {% else %}
+            {{event.result.from_address|instance_link_from_str(net)|safe }}
+          {% endif %}    </td>
+        <td class="small text-start">{% if event.result.to_address|length == 50 %}
+            {{event.result.to_address|account_link(net, True, True, user, tags, app=request.app)|safe }}
+          {% else %}
+            {{event.result.to_address|instance_link_from_str(net)|safe }}
+          {% endif %}    </td>
+        <td class="small text-end"></td>
+    {% endif %}
+
+
+    <tr>
+ 
+    <td class="small   text-start"><span class="ccd">{{event.block_height|block_height_link(net, True, no_text=True)|safe}}</span></td>
+    <td class="small text-start">{{event.tx_hash|tx_hash_link(net, None, True, True)|safe}}</td>
+    <td class="small   text-start"><small>{{event.event_type.split('_')[0]}}</small></td>
+    
+    <td class="small   text-end"><span class="ccd">{{event.slot_time|datetime_delta_format_since}} ago</span></td>
+    
+</tr>
+            
+<tr>
+ {{row_2|safe}}
+</tr>           

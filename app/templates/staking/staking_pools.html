@@ -1,0 +1,118 @@
+
+<table id="main" class="table table-striped ms-1  small">
+   <thead>
+    <tr>
+        <th class="small" scope="col"></th>
+        <th class="small text-end" scope="col" colspan="2">Delegator APY</th>
+        <th class="small text-end" scope="col"></th>
+        <th></th>
+        
+        </tr>
+        <tr>
+        <th class="small" scope="col">Validator ID</th>
+        <th class="small text-end" scope="col">7d</th>
+        <th class="small text-end" scope="col">30d</th>
+        
+        <th class="small text-end " scope="col">Total Stake</th>
+        <th class="small text-end " scope="col"></th>
+        <th></th>
+        
+        </tr>
+  </thead>
+  <tbody>
+    {% for row in pools %}
+    
+    {% set delegated = row.delegationPercentage*100 %}
+    {% set remaining = (1 - row.delegationPercentage)*100 %}
+
+    <tr>
+        <style>
+        .pie_{{row.bakerId}} {
+            width: 20px;
+            height: 20px;
+            background-image: conic-gradient(#AE7CF7 0%, #AE7CF7 {{delegated}}%, #70B785 0%, #70B785 {{remaining}}% );
+            border-radius: 50%
+          }
+        </style>
+          
+        <td class="small"><a href = "/account/{{row.bakerId}}" >{{row.bakerId}}</a> {% if  row.metadataUrl %}
+            <a href = "{{ row.metadataUrl }}"><small>(i)</small></a>
+        {% endif %}</td>
+        <td class="p-1 text-end"><small><i><small><span>{{ row.apy_7_delegators|ql_apy_perc}}</span></small></i></small></td>
+        <td class="p-1 text-end"><small><i><small><span>{{ row.apy_30_delegators|ql_apy_perc}}</span></small></i></small></td>
+        
+        <td class="p-1 text-end "><small><span class="small ccd">{{ row.totalStake | ccd_amount | baker_ccd}} CCD</span></small></td>    
+        <td class="p-1 align-end"><div class="pie_{{row.bakerId}}"></div></td>
+        <td class="p-1"><a class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" href="#baker-{{row.bakerId}}" role="button" aria-expanded="false" aria-controls="baker-{{row.bakerId}}">↧</a></td>
+    </tr>
+    <tr class="collapse" id="baker-{{row.bakerId}}">
+        <td colspan="5">
+
+            <table class="table table-striped ms-0  small">
+                <thead>
+                    <tr>
+                        <th class="small" scope="col">Rewards & APY</th>
+                        <th class="small text-end" scope="col">24h</th>
+                        <th class="small text-end" scope="col">7d</th>
+                        <th class="small text-end" scope="col">30d</th>
+                        <th class="small text-end" scope="col">Stake</th>
+                        
+                    </tr>
+                    </thead>
+                    <tbody>
+                <tr>
+                    <td class="p-1"><b><small>Validator: </small></b></td>
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last24_hoursBakerReward|ccd_amount|baker_ccd}} CCD</span></small></td>
+                    
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last7_daysBakerReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_7_baker|ql_apy_perc}}</span></small></i></small></td>
+            
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last30_daysBakerReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_30_baker|ql_apy_perc}}</span></small></i></small></td>
+                    <td class="text-end border-start"><small><span class="small ccd">{{ row.stakedAmount | ccd_amount | baker_ccd}} CCD</span></small></td>    
+                </tr>
+                <tr>
+                    <td class="p-1"><b><small>
+                    {% if row.delegatorCount  == 0 %}
+                        0 Delegators:
+                    {% elif row.delegatorCount > 1 %} 
+                        {{row.delegatorCount|round_0_decimal_with_comma}} Delegators:
+                    {% else %}
+                        1 Delegator:
+                    {% endif %}
+                </small></b></td>
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last24_hoursDelegatorsReward|ccd_amount|baker_ccd}} CCD</span></small></td>
+                    
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last7_daysDelegatorsReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_7_delegators|ql_apy_perc}}</span></small></i></small></td>
+            
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last30_daysDelegatorsReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_30_delegators|ql_apy_perc}}</span></small></i></small></td>
+                                        <td class="text-end  border-start"><small><span class="small ccd">{{ row.delegatedStake| ccd_amount | baker_ccd}} CCD</span></small></td>    
+                </tr>
+                <tr>
+                    <td class="p-1 "><b><small>Total: </small></b></td>
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last24_hoursTotalReward|ccd_amount|baker_ccd}} CCD</span></small></td>
+                    
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last7_daysTotalReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_7_total|ql_apy_perc}}</span></small></i></small></td>
+            
+                    <td class="p-1 text-end"><small><span class="small ccd">{{ row.last30_daysTotalReward|ccd_amount|baker_ccd}} CCD</span><br>
+                                        <i><small><span>{{ row.apy_30_total|ql_apy_perc}}</span></small></i></small></td>
+                                        <td class="text-end  border-start"><small><span class="small ccd">{{ row.totalStake | ccd_amount | baker_ccd}} CCD</span></small></td> 
+                </tr>
+                </tbody>
+            </table>    
+
+        </td>
+    </tr>
+    
+            
+        </div>
+    </tr> 
+    {% endfor %}
+</tbody>
+</table>    
+
+
+  

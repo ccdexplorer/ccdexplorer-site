@@ -1,0 +1,89 @@
+        
+       
+    {% set tt = event.event_type.split('_')[0]%}
+<tr>
+    <!-- <td class="small   text-start"><span class="ccd">{{event.block_height|block_height_link(net, True, no_text=True)|safe}}</span></td> -->
+    <td class="small text-start">{{event.tx_hash|tx_hash_link(net, None, True, True)|safe}}</td>
+    <td class="   text-center">
+    
+        {% if tt == 'mint' %}
+        🌱
+        {% endif %}
+        {% if tt == 'burn' %}
+        🔥
+        {% endif %}
+        {% if tt == 'transfer' %}
+        💸
+        {% endif %}
+        {% if tt == 'metadata' %}
+        🗂️
+        {% endif %}
+    </td>
+    
+    <td class="small   text-end"><span class="ccd"><small>{{event.slot_time|datetime_delta_format_since}}</small></span></td>
+      
+    {% if event.result.tag in [255,254,253] %}
+        {% set amount =(event.result.token_amount|int)|token_amount_using_decimals(decimals) %}
+    {% endif %}
+    {% set tokens_tag ='' %}
+    {% if typed_tokens_tag %}
+        {% if typed_tokens_tag.single_use_contract %}
+            {% set tokens_tag = typed_tokens_tag.id %}
+        {% endif %}
+    {% endif %}
+    
+    {% if event.result.tag==251 %}
+        <td class="small text-end"></td>
+        <td class="small text-start"></td>
+        <td class="small text-start"></td>
+        {% if not is_PTRT %}
+            <td class="small text-center"><a href="{{event.result.metadata.url}}"><small>url</small></a></td>
+        {% endif %}     
+    {% endif %}
+    {% if event.result.tag==253 %}
+        <td class="small text-end"><span class="ccd"><small>{{amount}}{% if tag != "_"%} {{tokens_tag}}{% endif %}</small></span></td>
+        {% if not is_PTRT %}
+            <td class="small text-start">
+                {% if event.result.from_address|length == 50 %}
+            <small>{{event.result.from_address|account_link(net, True, True, user, tags, app=request.app)|safe }}</small>
+                {% else %}
+            <small>{{event.result.from_address|instance_link_from_str(net, user, tags)|safe }}</small>
+                {% endif %}    
+            </td>
+        {% endif %}
+        <td class="small text-start"></td>
+
+        <td class="small text-end"></td>
+    {% endif %}
+    {% if event.result.tag==254 %}
+    <td class="small text-end"><span class="ccd"><small>{{amount}}{% if tag !="_"%} {{tokens_tag}}{% endif %}</small></span></td>
+        <td class="small text-start"></td>
+
+        <td class="small text-start">
+            {% if event.result.to_address|length == 50 %}
+            <small>{{event.result.to_address|account_link(net, True, True, user, tags, app=request.app)|safe }}</small>
+            {% else %}
+            <small>{{event.result.to_address|instance_link_from_str(net, user, tags)|safe }}</small>
+            {% endif %}    
+        </td>
+        <td class="small text-end"></td>
+    {% endif %}
+    {% if event.result.tag==255 %}
+    <td class="small text-end"><span class="ccd"><small>{{amount}}{% if tag !="_"%} {{tokens_tag}}{% endif %}</small></span></td>
+    {% if not is_PTRT %}    
+        <td class="small text-start">{% if event.result.from_address|length == 50 %}
+            <small>{{event.result.from_address|account_link(net, True, True, user, tags, app=request.app)|safe }}</small>
+          {% else %}
+        <small>{{event.result.from_address|instance_link_from_str(net, user, tags)|safe }}</small>
+          {% endif %}    </td>
+    {% endif %}
+        <td class="small text-start">{% if event.result.to_address|length == 50 %}
+        <small>{{event.result.to_address|account_link(net, True, True, user, tags, app=request.app)|safe }}</small>
+          {% else %}
+        <small>{{event.result.to_address|instance_link_from_str(net, user, tags)|safe }}</small>
+          {% endif %}    </td>
+        <td class="small text-end"></td>
+    {% endif %}
+</tr>
+            
+            

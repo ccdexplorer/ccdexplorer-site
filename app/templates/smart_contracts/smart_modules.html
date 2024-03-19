@@ -1,0 +1,34 @@
+<table id="main" class="table table-striped ms-1  small">
+
+    {% for display_month in modules %}
+        <tr>
+            <td>
+                <b  class="ccd" style="padding-left:10px;padding-top:6px;">{{display_month}}</b>
+            </td>
+            <td class="text-end">
+                {{modules[display_month]|length}} 
+                {% if modules[display_month]|length == 1%}
+                    new module
+                {% else %}
+                    new modules
+                {% endif %}
+            </td>
+            <td class="p-1"><a class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse"
+                href="#month-{{display_month}}" role="button" aria-expanded="false"
+                aria-controls="month-{{display_month}}">↧</a>
+            </td>
+        </tr>
+        <tr class="collapse" id="month-{{display_month}}">
+            <td colspan="2">
+                <table class="table   ms-0  small">
+            {% for module in modules[display_month] %}
+                {% include "smart_contracts/smart_modules_module.html" %}
+            {% endfor %}    
+            </table>
+        </td>
+        </tr>
+    {% endfor %}
+</table>
+
+
+

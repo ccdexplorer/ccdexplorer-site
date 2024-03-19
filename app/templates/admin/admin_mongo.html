@@ -1,0 +1,86 @@
+<div class="card mb-2 ms-2 me-2">
+    <div class="card-body p-2">
+        <small>{{output.date|regular_datetime_format}}</small><hr>
+        <table class="table small table-striped">
+            <thead>
+            <tr>
+                <th>Server</th>
+                <th>Health</th>
+                <th>Ping (ms)</th>
+            </tr>
+        </thead>
+        {% for member in output["members"]%}
+            <tr class="small">
+                <td>{{member.name}}<br/><i><small>{{member.stateStr}}</small></i></td>
+                <td>{{member.health*100}}%</td>
+                <td>{{member.pingMs}}</td>
+            </tr>
+        
+            {% endfor %}
+    </table>
+    <b>Mainnet</b>
+    <table class="table small table-striped">
+        <thead>
+        <tr>
+            <th>Key</th>
+            <th class="text-end">Value</th>
+            
+        </tr>
+    </thead>
+    {% for key, value in mainnet_stats.items()%}
+        <tr class="small">
+            {% if key=='$clusterTime' or key=='operationTime' %}
+            {% else %}
+            <td>{{key}}</td>
+            {% endif %}
+            {% if key == 'objects' %}
+                <td class="text-end">{{value|round_0_decimal_with_comma}}</td>
+            {% elif key == 'avgObjSize' %}
+            <td class="text-end">{{value|round_0_decimal_with_comma}} bytes</td>
+            {% elif key == 'dataSize' or key == 'storageSize' or key=='indexSize' or key=='fsUsedSize' or key=='fsTotalSize' or key == 'totalSize'   %}
+            <td class="text-end">{{(value/(1024*1024))|round_0_decimal_with_comma}} MB</td>
+            {% elif key=='$clusterTime' or key=='operationTime' %}
+               
+            
+
+            {% else %}
+            <td class="text-end">{{value|round_0_decimal_with_comma}}</td>
+            {% endif %}
+        </tr>
+        
+        {% endfor %}
+</table>
+<b>Testnet</b>
+    <table class="table small table-striped">
+        <thead>
+        <tr>
+            <th>Key</th>
+            <th class="text-end">Value</th>
+            
+        </tr>
+    </thead>
+    {% for key, value in testnet_stats.items()%}
+        <tr class="small">
+            {% if key=='$clusterTime' or key=='operationTime' %}
+            {% else %}
+            <td>{{key}}</td>
+            {% endif %}
+            {% if key == 'objects' %}
+                <td class="text-end">{{value|round_0_decimal_with_comma}}</td>
+            {% elif key == 'avgObjSize' %}
+            <td class="text-end">{{value|round_0_decimal_with_comma}} bytes</td>
+            {% elif key == 'dataSize' or key == 'storageSize' or key=='indexSize' or key=='fsUsedSize' or key=='fsTotalSize' or key == 'totalSize'   %}
+            <td class="text-end">{{(value/(1024*1024))|round_0_decimal_with_comma}} MB</td>
+            {% elif key=='$clusterTime' or key=='operationTime' %}
+               
+            
+
+            {% else %}
+            <td class="text-end">{{value|round_0_decimal_with_comma}}</td>
+            {% endif %}
+        </tr>
+        
+        {% endfor %}
+</table>
+</div>
+</div>

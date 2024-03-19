@@ -1,0 +1,76 @@
+<div class="container px-2">
+{% for field in all_fields %}
+{% if field in all_fields_dict.keys() %}
+    <div class="row">
+        <div class="col text-start">
+            {% set explanation_key = "other-"+field %}
+            <label><small><b>{{field|format_preference_key}}</b></small></label><br/> <span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+    </div>
+    </div>
+    <div class="row bg-light">
+        <div class="col text-end">
+            <span><small>Telegram</small></span>
+        </div>
+        <div class="col">
+            <input class="form-check-input" type="checkbox" name="telegram-{{field}}" {% if all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
+        </div>
+            
+        {% if field in ['validator_lowered_stake', 'account_transfer','transferred_with_schedule'] %}
+            {% set field_name = "telegram-{{field}}-limit" %}
+            <div class="col">
+                <input 
+                type="text" 
+                class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+                data-precision="0" 
+                name="telegram-{{field}}-limit"  
+                id="telegram-{{field}}-limit" 
+                placeholder="0 CCD" 
+                {% if all_fields_dict[field].telegram_limit %} value="{{((all_fields_dict[field].telegram_limit)/1_000_000)|int}} CCD" {% endif %} ></div>
+        {% else %}
+            <div class="col"> </div>
+        {% endif %}
+                
+    </div>
+
+
+    <div class="row  bg-light">
+        <div class="col  text-end">
+            <span><small>Email</small></span>
+        </div>
+        <div class="col">
+            <input class="form-check-input" type="checkbox" name="email-{{field}}" {% if all_fields_dict[field].email_enabled%} checked {% endif %}></td>
+        </div>
+            
+        {% if field in ['lowered_stake', 'account_transfer','transferred_with_schedule'] %}
+        {% set field_name = "email-{{field}}-limit" %}
+        <div class="col">
+            <input 
+            type="text" 
+            class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+            data-precision="0" 
+            name="email-{{field}}-limit"  
+            id="email-{{field}}-limit" 
+            placeholder="0 CCD" 
+            {% if all_fields_dict[field].email_limit %} value="{{((all_fields_dict[field].email_limit)/1_000_000)|int}} CCD" {% endif %} ></div>
+        {% else %}
+            <div class="col"> </div>
+        {% endif %}
+                
+    </div>
+
+{% endif %}
+
+{% endfor %}
+
+{% for field in all_fields %}
+    {% if field in ['validator_lowered_stake', 'account_transfer','transferred_with_schedule'] %}
+    <script>
+        $(function() {
+            $('#telegram-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+            $('#email-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+        })
+    </script>
+    {% endif %}
+
+{% endfor %}
+</div>

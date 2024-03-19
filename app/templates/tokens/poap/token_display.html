@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="padding-left:10px;">
+<h4  class="ms-1">Tokens{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+<h5  class="ms-1">{{tag[0]|upper}}{{tag[1:]}} <a href="/{{net}}/tokens/{{tag}}"><small>(Back to overview)</small></a></h5>
+<div class="card" style="width: 19rem;">
+  {% if metadata %}
+    {% if "thumbnail" in metadata %}
+        <img src="{{metadata.thumbnail.url}}" width="100px" class="card-img-top" alt="...">
+    {% endif %}
+    <div class="card-body">
+      <h5 class="card-title">{{metadata.name}}</h5>
+      <p class="card-text">{{metadata.description}}</p>
+    </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item"><small><b>Tag properties</b></small></li>
+      <li class="list-group-item"><small>{{metadata.attributes[0].name}}</small></li>
+      <li class="list-group-item ccd"><small>{{metadata.attributes[0].value}}</small></li>
+    </ul>
+  {% endif %}
+    <!-- <div class="card-body">
+      <a href="#" class="card-link">Card link</a>
+      <a href="#" class="card-link">Another link</a>
+    </div> -->
+  </div>
+
+</div>
+  {% endblock content %}

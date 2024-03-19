@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+
+{% if user %} 
+    {% if user.subscription.site_active %}
+      {% set disabled_status = ''%}
+    {% else %}
+      {% set disabled_status = ' text-secondary '%}
+    {% endif %}
+    
+      <h4 class="ms-1">User settings</h4>
+      <p><small>You are logged in as <a href="https://telegram.me/{{user.username}}">@{{user.username}}</a> (<a href="/settings/user/logout">logout</a>).</small></p>
+      <div class="container">
+        <div class="row">
+          <div class="card low border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b>Subscription</b></small>
+                <a class="stretched-link" href="/settings/user/subscription"></a>
+            </div>
+            <p class="card-text small"><small>View your subscription status and related information.</small></p>
+          </div>
+          <div class="card low  border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b><span class="{{disabled_status}}">Accounts and Bakers</span></b></small>
+                {% if user.subscription.site_active %}<a class="stretched-link " href="/settings/user/accounts-bakers"></a>{% endif %}
+            </div>
+            <p class="card-text small {{disabled_status}}"><small>Set labels and notifications for accounts and bakers.</small></p>
+          </div>
+          <div class="card low border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b><span class="{{disabled_status}}">Download Transactions</span></b></small>
+                {% if user.subscription.site_active %}<a class="stretched-link" href="/settings/user/transactions"></a>{% endif %}
+            </div>
+            <p class="card-text small {{disabled_status}}"><small>Download transactions for user labeled accounts.</small></p>
+          </div>
+          <div class="card low border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b><span class="{{disabled_status}}">Smart Contracts</span></b></small>
+                {% if user.subscription.site_active %}<a class="stretched-link" href="/settings/user/smart-contracts"></a>{% endif %}
+            </div>
+            <p class="card-text small {{disabled_status}}"><small>Get notified for smart contract activity, including new CNS Domains.</small></p>
+          </div>
+          <div class="card low border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b><span class="{{disabled_status}}">Transaction Limits</span></b></small>
+                {% if user.subscription.site_active %}<a class="stretched-link" href="/settings/user/transaction-limit"></a>{% endif %}
+            </div>
+            <p class="card-text small {{disabled_status}}"><small>Get notified for large transactions.</small></p>
+          </div>
+          <div class="card low border-success m-2 p-2" style="width: 10rem;">
+            <div class="card-body m-0 p-0 text-center">
+                <small><b><span class="{{disabled_status}}">Unstake Limits</span></b></small>
+                {% if user.subscription.site_active %}<a class="stretched-link" href="/settings/user/unstake-limit"></a>{% endif %}
+            </div>
+            <p class="card-text small {{disabled_status}}"><small>Get notified for large unstakes.</small></p>
+          </div>
+        </div>
+      </div>
+      
+<!-- <h4 class="ms-1">User settings</h4> -->
+<!-- <p><small>You are logged in as <a href="https://telegram.me/{{user.username}}">@{{user.username}}</a> (<a href="/user/logout">logout</a>).</small></p> -->
+    <!-- <p class="p-2"><small>If you would like to tag specific accounts, add them at <a href="/user/accounts-bakers">accounts and bakers</a>. Enable notifications for account transactions and/or baker activity if you want to be notified on your Telegram account.</small></p> -->
+    <!-- <p class="p-2"><small>If you would like to download transactions for an account, please go to the <a href="/user/transactions">transactions</a> page.</small></p> -->
+    <!-- <p class="p-2"><small>Do you want to be notified of large transactions? Please go to the <a href="/user/transaction-limit">transactions limit</a> page.</small></p> -->
+    <!-- <p class="p-2"><small>Do you want to be notified of smart contracts initializations and/or updates or newly registered CNS domains? Please go to the <a href="/user/smart-contracts">smart contracts</a> page.</small></p> -->
+  
+
+    
+{% else %} 
+    {% include "user/user_settings_logged_out.html" %}
+{% endif %}
+
+{% endblock content %}

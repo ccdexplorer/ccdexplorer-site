@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Nodes</h2>
+<p>There are {{nodes|length}} nodes registered.</p>
+{% for b in nodes %}
+            <div class="card mb-2 ms-2 me-2">    
+                <div class="card-body p-2" >
+                    <div class="clearfix">
+                        <div class="card-text small float-start">Node Name: <b>{{ b.nodeName}}</b> </div>
+                        <div class="card-text small float-end"><b>Node ID:</b> <a href="https://dashboard.mainnet.concordium.software/node/{{ b.nodeId }}">{{ b.nodeId[:6] }}</a></span></div>
+                    </div>
+                    <div class="clearfix">
+                        <div class="card-text small float-start">Client version: <b>{{ b.client}}</b> </div>
+                        <div class="card-text small float-end"><b>Uptime:</b> {{ b.uptime|uptime }}</span></div>
+                    </div>
+                    <div class="clearfix">
+                        {% if b.bakingCommitteeMember == "ActiveInCommittee"%}
+                        <div class="card-text small float-start">
+                            
+                            <i>Baker</i> <a href="/account/{{b.consensusBakerId}}">{{b.consensusBakerId}}</a> </div>
+                            {% endif %}
+                        <div class="card-text small float-end"><b>Up to date:</b> {{b.finalizedBlockHeight|block_compare(lastBlockHeight) }}</span></div>
+                    </div>
+                    
+
+                    
+
+                </div>
+            </div>
+{% endfor %}
+        
+{% endblock %}

@@ -1,0 +1,117 @@
+<!-- <div class="table-responsive"> -->
+<!--- Account Account table-->
+<table class="table table-striped ms-1 me-1 small">
+    
+    <tbody>
+        {% if account.schedule %}
+        {% set total_locked = account.schedule.total %}
+        {% else %}
+        {% set total_locked = 0 %}
+        {% endif %}
+        <tr>
+            <td>Address</td>
+            <td title="{{account.address}}" id="copy_me" class="account_id small text-end align-middle">
+                {{account.address | shorten_address(address=True)|safe}} <img onclick="copyToClipboard()"
+                    src="{{env.SITE_URL}}/static/clipboard-check.svg">
+            </td>
+        </tr>
+        <tr>
+            <td class=" align-middle">Amount</td>
+            <td class="small text-end">
+                {% if total_locked == 0 %}
+                
+                        {{account.amount | micro_ccd_display | safe}} 
+                
+                        {% else %}
+                
+                <table class="align-end">
+                    <tr  class="small text-end">
+                        <td></td>
+                        <td class="text-end">
+                            {{account.amount | micro_ccd_display | safe}} 
+                        </td>
+                        <td  class="text-end">
+                            {% if total_locked > 0 %}(total){% endif %}
+                        </td>
+                    </tr>
+                    {% if total_locked > 0 %}
+                        <tr>
+                            <td></td>
+                            <td class="text-end">
+                                {{(account.amount - total_locked) | micro_ccd_display | safe}}
+                            </td>
+                            <td class="text-end">
+                                 (unlocked)
+                            </td>
+                        </tr>
+
+                        <tr><td></td>
+                            <td class="text-end">
+                                    {{total_locked | micro_ccd_display | safe}}
+                            </td>
+                            <td class="text-end">
+                                <a data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false"
+                                    aria-controls="collapseExample">
+                                    (locked)</a>
+                                </td>
+                        </tr>
+
+                        {% for schedule in account.schedule.schedules %}
+                            <tr class="collapse px-0" id="collapseExample">
+
+
+                                <td class="ps-1 text-end">{{schedule.timestamp | regular_datetime_format}}</td>
+                                <td class="text-center">
+                                    {% for tx in schedule.transactions %}
+                                        {{tx |tx_hash_link (net, env, True)|safe }}  
+                                    {% endfor %}
+                                </td>
+                                
+                                <td ><span class="small text-end pe-1">{{schedule.amount | micro_ccd_display | safe}}</span></td>
+                                <td></td>    
+                        {% endfor %}
+                        </tr>
+                    {% endif %}
+                </table>
+                {% endif %}
+            </td>
+        </tr>
+
+
+        <tr>
+            <td>Nonce</td>
+            <td class="small text-end">{{account.sequence_number|baker_ccd }}</td>
+        </tr>
+        <tr>
+            <td>Index</td>
+            <td class="small text-end">{{account.index|baker_ccd }}</td>
+        </tr>
+    <!-- </tbody>
+</table>
+<table class="table table-striped ms-1 me-1 small"><tbody> -->
+    <tr><td></td><td></td></tr>
+    
+        <tr>
+            <td>Net Worth (CCD)</td>
+            <td  class="small text-end"><span class="ccd">${{(account.amount| ccd_amount * exchange_rates['CCD']['rate'])|baker_ccd}}</span></td>
+            
+        </tr>
+        {% if tokens_available %}
+        <tr>
+            <td>Net Worth (Tokens)</td>
+            <td  class="small text-end"><span class="ccd">${{tokens_value_USD|baker_ccd}}</span></td>
+        </tr>
+        <tr>
+            <td>Net Worth (Total)
+                
+            </td>
+            <td  class="small text-end"><span class="ccd">${{((account.amount| ccd_amount * exchange_rates['CCD']['rate'])+tokens_value_USD)|baker_ccd}}</span></td>
+        </tr>
+        
+        {% endif %}
+    </tbody>
+    
+    <!-- account account end table-->
+</table>
+<p><small><small>* Currency conversion based on the following <a href="/mainnet/exchange-rates">exchange rates</a>.</small></small></p>
+<!-- </div> -->

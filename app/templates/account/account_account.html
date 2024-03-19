@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+{% if show_tab %}
+{% set show_tab_list = show_tab.split('-') %}
+{% else %}
+{% set show_tab_list = [] %}
+
+{% endif %}
+<script>
+  // Create a new URL object
+let url = new URL(window.location.href);
+
+// Get the referrer, if there is one
+let ref = url.searchParams.get('ref');
+
+// If there's a referrer...
+if (ref) {
+
+	// store their ID as a cookie
+	document.cookie = `affiliate_id=${ref}; path=/; max-age=${60 * 60 * 24 * 28};`;
+
+	// Remove the query string parameter from the URL
+	url.searchParams.delete('ref');
+	history.replaceState(history.state, '', url.href);
+
+}
+
+</script>
+
+<!-- Get Transactions -->
+<script>
+  function getTransactions(requested_page, total_rows) {
+    transactions = document.getElementById('transactions');
+    var account_id = document.querySelector('.account_id').title;
+    url = base_url + '/ajax_account_html/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    transactions.innerHTML = '{% include "spinner.html" %}'
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        transactions.innerHTML = data;
+        // console.log('len data = ', data.length);
+        // console.log(data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_v2_txs(requested_page, total_rows) {
+    getTransactions(requested_page, total_rows)
+  };
+  function next_v2_txs(requested_page, total_rows) {
+    getTransactions(requested_page, total_rows)
+  };
+
+  
+</script>
+
+<script>
+  function getTokens(requested_page, total_rows) {
+    try {
+      tokens = document.getElementById('tokens');
+      var account_id = document.querySelector('.account_id').title;
+      url = base_url + '/ajax_account_tokens/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      tokens.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          tokens.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+  catch (error) {
+    
+}
+  }
+
+  function prev_v2_tokens(requested_page, total_rows) {
+    getTokens(requested_page, total_rows)
+  };
+  function next_v2_tokens(requested_page, total_rows) {
+    getTokens(requested_page, total_rows)
+  };
+
+  
+</script>
+
+
+<script>
+  function getDelegators_v2(requested_page, total_rows) {
+    try {
+      delegators = document.getElementById('delegators');
+      var account_id = document.querySelector('.account_id').title;
+      url = base_url + '/ajax_delegators_html_v2/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      // console.log('URL=', url);
+      delegators.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          delegators.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (eroor) {}
+  }
+
+  function prev_v2_delegators(requested_page, total_rows) {
+    getDelegators_v2(requested_page, total_rows)
+  };
+  function next_v2_delegators(requested_page, total_rows) {
+    getDelegators_v2(requested_page, total_rows)
+  };
+
+  
+</script>
+<!--Get baker tally -->
+<script>
+  function getBakerTally(before, after, current_page) {
+    try {
+      tally = document.getElementById('baker_tally');
+      var account_id = document.querySelector('.account_id').title;
+      // console.log("account_is_baker=", {{account}});
+      url = base_url + '/account/baker-tally/{{net}}/'+account_id;
+
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          tally.innerHTML = data;
+        })
+        .catch(function (error) {
+          // console.log(error);
+        });
+    } catch (error) {}
+  }
+
+
+  function prev_tally(before, current_page) {
+    console.log("___PREV:", before, current_page)
+    getBakerTally(before, null, current_page)
+  };
+  function next_dtally(after, current_page) {
+    console.log("___NEXT:", after, current_page)
+    getBakerTally(null, after, current_page)
+  };
+
+  
+</script>
+
+<div class="clearfix">
+  <div class="float-start">
+    <h2>Account{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h2>
+  </div>
+
+  <div class="ps-5"> {% if tag_found %}{{tag_label|safe}}{%endif %}</div>
+
+</div>
+
+{% if 'error' in transactions %}
+<p>An error occured: <b>{{transactions.errorMessage}}</b></p>
+{% else %}
+{% if possible_block != -1 %}
+<p class="small">Did you mean <a href="/{{net}}/block/{{possible_block}}?block_height={{possible_block}}">Block
+    {{possible_block}}</a>?</p>
+{% endif %}
+{% endif %}
+
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button
+      class="nav-link small ps-2 pe-2 {% if tabs['info'].active %}active{% endif %} "
+      id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info"
+      aria-selected="true">
+      <small>{{tabs["info"].display_name}}</small>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if tabs['identity'].active %}active{% endif %}"
+      id="credentials-tab" data-bs-toggle="tab" data-bs-target="#credentials" type="button" role="tab"
+      aria-controls="credentials" aria-selected="true">
+      <small>{{tabs["identity"].display_name}}</small>
+    </button>
+  </li>
+  {% if net == 'mainnet'%}
+          {% if delegation %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link small ps-2 pe-2 {% if tabs['delegation'].active %}active{% endif %}" id="delegation-tab"
+              data-bs-toggle="tab" data-bs-target="#delegation" type="button" role="tab" aria-controls="delegation"
+              aria-selected="true">
+              <small>{{tabs["delegation"].display_name}}</small>
+            </button>
+          </li>
+          {% endif %}
+          {% if rewards_no_stake %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link small ps-2 pe-2 {% if tabs['rewards-no-stake'].active %}active{% endif %}" id="rewards-no-stake-tab"
+              data-bs-toggle="tab" data-bs-target="#rewards-no-stake" type="button" role="tab" aria-controls="rewards-no-stake" aria-selected="true">
+              <small>{{tabs["rewards-no-stake"].display_name}}</small>
+            </button>
+          </li>
+          {% endif %}
+          {% if account_is_baker %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link small ps-2 pe-2 {% if tabs['validator'].active %}active{% endif %}" id="baker-tab"
+              data-bs-toggle="tab" data-bs-target="#baker" type="button" role="tab" aria-controls="baker" aria-selected="true">
+              <small>{{tabs["validator"].display_name}}</small>
+            </button>
+          </li>
+          {% endif %}
+          {% if pool %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link small ps-2 pe-2 {% if tabs['pool'].active %}active{% endif %}" id="pool-tab"
+              data-bs-toggle="tab" data-bs-target="#pool" type="button" role="tab" aria-controls="pool" aria-selected="true">
+              <small>{{tabs["pool"].display_name}}</small>
+            </button>
+          </li>
+          {% endif %}
+  {% endif %}
+  {% if tokens_available %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if tabs['tokens'].active %}active{% endif %}" id="tokens-tab"
+      data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab" aria-controls="tokens" aria-selected="true">
+      <small>{{tabs["tokens"].display_name}}</small>
+    </button>
+  </li>
+  {% endif %}
+  {% if net == 'mainnet'%}
+          {% if cns_domains_list %}
+          <li class="nav-item" role="presentation">
+            <button class="nav-link small ps-2 pe-2 {% if ['cns'] == show_tab_list %}active{% endif %}" id="cns-tab"
+              data-bs-toggle="tab" data-bs-target="#cns" type="button" role="tab" aria-controls="cns" aria-selected="true">
+              <small>CNS ({{cns_domains_list.data.data|length}})</small>
+            </button>
+          </li>
+          {% endif %}
+  {% endif %}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if tabs['txs'].active %}active{% endif %}" id="txs-tab"
+      data-bs-toggle="tab" data-bs-target="#txs" type="button" role="tab" aria-controls="txs" aria-selected="true">
+      <small>{{tabs["txs"].display_name}}
+        {% if user %}
+        {% if account.address in accounts_for_download %}
+        <img onclick="window.location.href = '{{env.SITE_URL}}/user/transactions';" height="16" width="16"
+          src="{{env.SITE_URL}}/static/download-button.svg">
+        {% endif %}
+        {% endif %}
+      </small>
+    </button>
+  </li>
+  
+
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div
+    class="tab-pane fade show {% if tabs['info'].active %}active{% endif %}"
+    style="padding-top: 10px;" id="info" role="tabpanel" aria-labelledby="info-tab">
+    {% include "account/account_info.html" %}
+  </div>
+  <div class="tab-pane fade show  {% if tabs['identity'].active %}active{% endif %}" style="padding-top: 10px;"
+    id="credentials" role="tabpanel" aria-labelledby="credentials-tab">
+    {% include "account/account_credentials.html" %}
+  </div>
+  {% if net == 'mainnet'%}
+      {% if delegation %}
+      <div class="tab-pane fade show {% if tabs['delegation'].active %}active{% endif %}" style="padding-top: 10px;"
+        id="delegation" role="tabpanel" aria-labelledby="delegation-tab">
+        {% include "account/account_delegation.html" %}
+      </div>
+      {% endif %}
+      {% if rewards_no_stake %}
+      <div class="tab-pane fade show {% if tabs['rewards-no-stake'].active %}active{% endif %} " style="padding-top: 10px;"
+        id="rewards-no-stake" role="tabpanel" aria-labelledby="rewards-no-stake-tab">
+        {% include "account/account_rewards_no_stake.html" %}
+      </div>
+      {% endif %}
+      {% if account_is_baker %}
+      <div class="tab-pane fade show {% if tabs['validator'].active %}active{% endif %} " style="padding-top: 10px;"
+        id="baker" role="tabpanel" aria-labelledby="baker-tab">
+        {% include "account/account_baker.html" %}
+      </div>
+      {% endif %}
+      {% if pool %}
+      <div class="tab-pane fade show {% if tabs['pool'].active %}active{% endif %}" style="padding-top: 10px;"
+        id="pool" role="tabpanel" aria-labelledby="pool-tab">
+        {% include "pool/pool.html" %}
+      </div>
+      {% endif %}
+  {% endif %}  
+  {% if tokens_available %}
+  <div class="tab-pane fade show {% if tabs['tokens'].active %}active{% endif %}" style="padding-top: 10px;"
+    id="tokens" role="tabpanel" aria-labelledby="tokens-tab">
+    <div id="tokens"></div>
+    
+  </div>
+  {% endif %}  
+  {% if net == 'mainnet'%}
+      {% if cns_domains_list %}
+      <div class="tab-pane fade show {% if ['cns'] == show_tab_list %}active{% endif %} " style="padding-top: 10px;"
+        id="cns" role="tabpanel" aria-labelledby="cns-tab">
+        {% include "account/account_cns.html" %}
+      </div>
+
+      {% endif %}
+  {%endif%}
+      <div class="tab-pane fade show {% if tabs['txs'].active %}active{% endif %}" style="padding-top: 10px;" id="txs"
+        role="tabpanel" aria-labelledby="txs-tab">
+        <div id="transactions"></div>
+      </div>
+
+</div>
+
+<script>
+window.addEventListener('load', (event) => {
+    getTransactions(0, 0);
+    getBakerTally(null, null, 0);
+    getTokens(0, 0);
+  });
+    window.addEventListener('load', (event) => {
+    getDelegators_v2(0, 0);
+    
+  });
+</script>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,92 @@
+<script>
+  function getAccountStatement(requested_page, previous_balance) {
+    account_statement = document.getElementById('account_statement');
+    var account_id = document.querySelector('.account_id').title;
+    if (requested_page == 0) {
+      previous_balance = {{account.amount}}
+    }
+    console.log("previous balance = ", previous_balance)
+    url = base_url + '/ajax_account_statement_v2/{{net}}/' + account_id + '/' + requested_page + '/' + previous_balance + '/' + api_key;
+    account_statement.innerHTML = '{% include "spinner.html" %}'
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        account_statement.innerHTML = data;
+        
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_v2_entries(requested_page) {
+    prev_balance = document.getElementById('next_balance').title;
+    getAccountStatement(requested_page, prev_balance)
+  };
+  function next_v2_entries(requested_page) {
+    prev_balance = document.getElementById('prev_balance').title;
+    getAccountStatement(requested_page, prev_balance)
+  };
+
+  // window.addEventListener('load', (event) => {
+  //   getAccountStatement(0, 0);
+  // });
+</script>
+
+
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if tabs['info'].children['general'].active %}active{% endif %}"
+      id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab"
+      aria-controls="general" aria-selected="true"><small>General</small></button>
+  </li>
+  <!-- <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2"
+      id="statement-tab" data-bs-toggle="tab" data-bs-target="#statement" type="button" role="tab"
+      aria-controls="statement" aria-selected="true"><small>Account Statement</small></button>
+  </li> -->
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if tabs['info'].children['flow'].active %}active{% endif %}" id="graph-tab"
+      data-bs-toggle="tab" data-bs-target="#graph" type="button" role="tab" aria-controls="graph" aria-selected="true">
+      <small>Flow Graph</small>
+    </button>
+  </li>
+
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show {% if tabs['info'].children['general'].active %}active{% endif %}"
+    style="padding-top: 10px;" id="general" role="tabpanel" aria-labelledby="general-tab">
+    {% include "account/account_info_general.html" %}
+  </div>
+  <!-- <div class="tab-pane fade show "
+    style="padding-top: 10px;" id="statement" role="tabpanel" aria-labelledby="statement-tab">
+    <div id="account_statement"></div>
+  </div> -->
+
+
+
+      
+  <div class="tab-pane fade show  {% if tabs['info'].children['flow'].active %}active{% endif %}" style="padding-top: 10px;"
+  id="graph" role="tabpanel" aria-labelledby="graph-tab">
+  {% if user %}  
+    {% if account.address != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD" %}
+        {% include "account/account_graph_header.html" %}
+    {% else %}
+    <p class="small">The graph for this account is too big to show, but as the name Airdropper suggests, you can pretty
+      much guess what it would look like.</p>
+    {% endif %}
+  {% else %} 
+    <p class="small">Users get access to flow graphs. Go <a href="/settings/user/overview">here</a> to learn more.</p>
+    
+  {% endif %}
+    
+</div>
+  
+</div>

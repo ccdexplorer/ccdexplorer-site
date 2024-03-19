@@ -1,0 +1,72 @@
+    {% if event.__typename == 'Transferred' %}
+        {% if event.from.__typename == 'AddressAccount' and event.to.__typename == 'AddressAccount' %} 
+            <tr><td class="small"><small><b>{{event.__typename}} </b></td>
+                <td class="small"><small>{{event.amount | micro_ccd_display|safe}} from <a href="/account/{{event.from.asString}}">{{event.from.asString[:4]}}</a> to <a href="/account/{{event.to.asString}}">{{event.to.asString[:4]}}</a></small></td></tr>
+        {% else %}
+            <tr><td class="small"><small><b>{{event.__typename}} </b></td>
+            <td class="small">{{event.amount | micro_ccd_display|safe}} from 
+                {% if event.from.__typename == 'AccountAddress' %}
+                    {{ event.from.asString|account_link(net, False, True, user, tags, app=request.app)|safe}}  
+                {% else %}
+                    Smart Contract {{event.from.asString}} 
+                {% endif %}
+                 to 
+                {% if event.to.__typename == 'AccountAddress' %}
+                    {{ event.to.asString|account_link(net, False, True, user, tags, app=request.app)|safe}}</small></td></tr>
+                {% else %}
+                    Smart Contract {{event.to.asString}} </small></td></tr>
+                {% endif %}
+        
+        {% endif %}
+    {% endif %}
+    {% if event.__typename == 'TransferredWithSchedule' %}
+        <tr><td class="small"><small><b>{{event.__typename}} </b></small></td>
+            <td>{{ event.fromAccountAddress.asString|account_link(net, True, True, user, tags, app=request.app)|safe}} {{ event.toAccountAddress.asString|account_link(net, False, True, user, tags, app=request.app)|safe}}</td></tr>
+            
+            <table class="table table-striped table-hover table-sm">
+                <thead>
+                    <tr>
+                    <th class="small" scope="col">Amount</th>
+                    <th class="small" scope="col">Unlock Date</th>
+                    
+                    </tr>
+                </thead>
+                <tbody>
+            {% for schedule in event.amountsSchedule.nodes %}
+            
+                    <tr><td class="small"><span class="small">{{schedule.amount | micro_ccd_no_decimals|safe}}</span> <span class="small"></td>
+                        <td class="small "><small class="ccd_small">{{schedule.timestamp|datetime_format_schedule_node}}</small></td></tr>
+                    
+            {% endfor %}
+                </tbody>
+            </table>
+
+    {% endif %}
+    {% if event.__typename == 'ContractUpdated' %}
+    <tr><td class="small"><small><b>{{event.receiveName}} </b></td><td class="small">
+                {% if event.instigator.__typename == 'AddressAccount' %}
+                    Instigator {{ event.instigator.asString|account_link(net, False, True, user, tags, app=request.app)|safe}}
+                {% else %}
+                    Instigator Smart Contract {{event.instigator.asString}}  
+                {% endif %}
+                updated Smart Contract {{event.contractAddress.asString|instance_link}}
+            </small></td></tr>
+                    
+    {% endif %}
+    {% if event.__typename == 'CredentialsUpdated' %}
+        <tr><td class="small"><small><b>{{event.__typename}}</b></td><td class="small">
+            for account: {{ event.account|account_link(net, False, True, user, tags, app=request.app)|safe}}
+        </small></td></tr>                
+    {% endif %}
+    {% if event.__typename == 'TransferMemo' %}
+        <tr><td class="small "><small><b>Memo</b></td><td class="small text-muted">
+            <small><i>{{event.memo |decode_memo}}</i></small>
+        </small></td></tr>                
+    {% endif %}
+    {% if 'type' in event.keys() %}
+        {% if event.__typename == 'transferToPublic' %}
+            <tr><td class="small"><small><b>transferToPublic</b></td><td class="small">
+                <i>transferToPublic</i>
+            </small></td></tr>                
+        {% endif %}
+{% endif %}

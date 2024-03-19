@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Smart Contract Usage{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h3>
+<!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/vega@5.21"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@4.17"></script>
+<!-- Import vega-embed -->
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.2"></script>
+<style>
+  .vega-embed {
+    width: 100%;
+    height:350px;
+    }
+  .vega-embed-small {
+    width: 100%;
+    height:150px;
+    }
+  </style>
+
+<script>
+  function get_module(selected_module) {
+    var width = Math.min(window.innerWidth, 675);
+
+  url = base_url+'/ajax_source_module/{{net}}/'+selected_module+'/60/'+width;
+
+  console.log(url);
+  fetch(url)
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+    var opt = {renderer: 'svg', actions: false};
+    vegaEmbed('#vis-source-module-graph', data, opt).then(function(result) { }).catch(console.error);
+    })
+    .catch(function(error) {
+      console.log(error);
+    });
+  }
+
+</script>
+
+<script type="text/javascript">
+    document.addEventListener('input', function (event) {
+
+      // Only run on our select menu
+      if (event.target.id !== 'modules') return;
+      selected_module = event.target.value
+      console.log("selected module = ", selected_module);
+      get_module(selected_module);
+      }, false);
+
+  </script>
+<p>Select a module...</p>
+<select id="modules" class="form-select form-select-sm mb-3" aria-label=".form-select-sm ">
+  {% for source_module in modules %}
+      
+        <option value="{{source_module.id}}">({{source_module.id[:4]}}) | {{source_module.module_name}}</option>
+      
+  {% endfor %}
+  
+</select>
+<div class="vega-embed" id="vis-source-module-graph"></div>
+
+
+{% endblock content %}

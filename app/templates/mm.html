@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+{{timestamp}}
+<table>
+{% for row in rows %}
+  <tr><td>{{row.type}}</td><td class="text-end">{{row.object|int|baker_ccd}}</td><td class="text-end">{{row.size}}</td></tr>
+{% endfor %}
+</table>
+{% endblock content %}

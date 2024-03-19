@@ -1,0 +1,49 @@
+        
+      <div class="card mb-2 ms-2 me-2">
+        <div class="card-body p-2">
+            <div class="clearfix mt-2">
+                <div class="card-header small ">
+                    <b>{{ note._id}}</b>  (<small>Release date: {{note.date}}</small>)</br>
+                    
+                        </br>
+                    {% if note.new %}
+                        <div><i>New: </i></div>
+                        <ul>
+                            {% for nn in note.new %}
+                            <li>{{nn|safe}}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if note.updated %}
+                        <div><i>Updated: </i></div>
+                        <ul>
+                            {% for nn in note.updated %}
+                            <li>{{nn|safe}}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if note.fixed %}
+                        <div><i>fixed: </i></div>
+                        <ul>
+                            {% for nn in note.fixed %}
+                            <li>{{nn|safe}}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    {% if note.removed %}
+                        <div><i>Removed: </i></div>
+                        <ul>
+                            {% for nn in note.removed %}
+                            <li>{{nn|safe}}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+            
+        </div>
+        <div class="clearfix mt-2">
+            
+    </div>
+    </div>
+    

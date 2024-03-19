@@ -1,0 +1,43 @@
+<!-- <div class="table-responsive"> -->
+    <!-- - Module Contracts table -->
+    
+    <p><small>The following modules are included in the report:</small></p>
+    <ul>
+        {% for sm, content in results.items() %}
+        <li><span class="ccd">{{content[0].display_name}}</span></li>
+        {% endfor %}
+    </ul>
+    
+    <h6 class="mt-2">All Selected Modules Combined</h6>
+    <table class="table table-striped ms-1 me-1 small">
+    {% for c in results_all|reverse %}
+        
+                
+            
+                <tr><td class="ccd">
+                    {% if period=='1W'%}
+                        Week
+                    {% endif %}
+                    {% if period=='1M'%}
+                        Month
+                    {% endif %}
+                    
+                    ending...</td>
+                    <td class="ccd text-start " >{{(c.date)|datetime_timestamp_reporting}}</td>
+                    <td class="ccd text-end" style="min-width:50px;">{{c.block_height|reporting_number}}</td></tr>
+            
+        
+        {% endfor %}
+    </table>
+    
+    {% for sm, content in results.items() %}
+        <small><span class="text-muted ">{{content[0].display_name}}</span></small>
+        <table class="table table-striped ms-1 me-1small">
+            {% include "smart_contracts/smart_contracts_reporting_individual.html" %}    
+        </table>
+       
+        {% endfor %}
+
+    <!-- Module Contracts table-->
+
+<!-- </div> -->

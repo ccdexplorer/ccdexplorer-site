@@ -1,0 +1,20 @@
+{% if show_bar %}
+<div class="tab-pane fade show" style="padding-top: 10px;" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+{% endif %}
+        
+        {%for transaction in transactions%}
+            {% include "intermediate/transaction.html" %}
+        {% endfor %}
+        
+        <div class="small text-muted p-2">
+            {% if transactions|length == 1 %}
+                {{ transactions|length}} transaction.
+            {% else %}
+                {{ transactions|length}} transactions.
+            {% endif %}
+        </div>
+      
+{% if show_bar %}
+    <!--class="tab-pane fade show "--> 
+    </div>   
+{% endif %}

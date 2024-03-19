@@ -1,0 +1,31 @@
+<div class="card mb-2 ms-2 me-2">
+  <div class="card-body p-2">
+    <table class="table table-striped table-hover table-sm">
+      <thead>
+        <tr>
+          <th class="small" scope="col">Time</th>
+          <th class="small text-end" scope="col">Type</th>
+          <th class="small text-end" scope="col">Amount</th>
+          <th class="small text-end" scope="col">Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in account_statement %}
+        <tr>
+          <td class="small"><small><small><span class="ccd">{{row.slot_time |regular_datetime_format}}</span></small></small></td>
+          <td class="text-end"><small><span class="ccd">{{row.entry_type}}</span>
+                </small></td>
+          <td class="text-end"><small>{{row.amount | micro_ccd_display|safe}}
+                </small></td>
+          <td class="text-end"><small>{{row.balance | micro_ccd_display|safe}}
+                </small></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <!--class="card-body p-2"-->
+  </div>
+  <div class="hidden" id="prev_balance" title="{{prev_balance}}"></div>
+  <div class="hidden" id="next_balance" title="{{next_balance}}"></div>
+  <!--class="card mb-2 ms-2 me-2"-->
+</div>

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<script>
+  function saveLimit() {
+      limit = document.getElementById('limit').value;
+      exch_only = document.getElementById('exch_only').checked;
+      console.log('saveLimit', limit)
+      git_message = document.getElementById('git-message');
+      git_message.innerHTML = '{% include "spinner.html" %}'
+      url = base_url+'/ajax_user_transaction_limit';
+      fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                chat_id: '{{user.chat_id}}',
+                limit: limit,
+                exch_only: exch_only
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+        })
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          git_message.innerHTML = 'Saved.';
+          setTimeout(function() { 
+            git_message.innerHTML = '';
+            
+        }, 2000);
+          
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    };
+
+</script>
+
+{% if user %} 
+<div class="ms-3 me-3">
+  <h4 class="ms-1">Set Transaction notification limit</h4>
+  <p><small>If you want to be notified of large transactions on the blockchain, select the value below above which you would want to receive a notification.</small></p>
+  <div class="col-xs-4 ">
+    <!-- <p>{{user.transaction_limit_notifier}}</p> -->
+    <select id="limit" class="form-select form-select-sm mb-3" aria-label=".form-select-sm ">
+      {% for l, v in limits.items() %}
+        {{v|safe}}
+      {% endfor %}
+      
+    </select>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="" id="exch_only" {% if user.transaction_limit_notifier_to_exchange_only %} checked {% endif %}>
+      <label class="form-check-label" for="exch_only">
+       <small>Notify only for transfers TO exchanges</small>
+      </label>
+    </div>
+    <br>
+    <button onclick='saveLimit()' type="button" id="save-button" class="btn btn-sm btn-primary">Save limit</button>
+      </form>
+    <div id="txs"></div>
+    <div class="ms-1 ps-2" id="git-message">
+      <!-- {% include "user/user_settings_message.html" %} -->
+    </div> 
+  </div>
+</div>
+{% else %} 
+{% include "user/user_settings_logged_out.html" %}
+{% endif %}
+{% endblock content %}

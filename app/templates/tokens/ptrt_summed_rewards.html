@@ -1,0 +1,25 @@
+<h4>Sum of EUROe PTRT Rewards</h4>
+<div style="padding-left:10px;">
+
+{% if summed_rewards_dict|length > 0%}
+  <table class="table table-striped table-hover table-sm">
+  <thead>
+    <tr>
+      <th class="small text-start"><small>Token Holder</small></th>
+      <th class="small text-end"><small>Amount</small></th>
+      
+      
+    </tr>
+  </thead>
+  <tbody>
+{% for receiver, reward in summed_rewards_dict.items() %}
+    {% include "tokens/ptrt_summed_reward.html" %}
+
+{% endfor %}
+</tbody>
+
+</table>
+{% endif %}
+</div>
+<br/>
+<h4>Individual Reward Txs</h4>

@@ -1,0 +1,130 @@
+<div class="tab-pane fade show active" style="padding-top: 10px;" id="events" role="tabpanel" aria-labelledby="events-tab">
+
+    {% set nodes = blockSummary.specialEvents.nodes %}
+    {% for node in nodes|reverse %}
+        <!--MINT-->
+        {% if node.__typename == 'MintSpecialEvent' %}
+        <div class="card mb-2 ms-2 me-2">    
+            <div class="card-body p-2" >
+                <div class="clearfix">
+                    <div class="card-text small float-start small text-muted">Mint</div>
+                    
+                </div>
+                
+                <table class="table table-striped table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th class="small" scope="col">Fee type</th>
+                        <th class="small" scope="col">Reward</th>
+                        
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="small"><small>Baking Reward</td><td>{{node.bakingReward | }}</small></td></tr>
+                        <tr><td class="small"><small>Finalization Reward</td><td>{{node.finalizationReward | micro_ccd_display|safe}}</small></td></tr>
+                        <tr><td class="small"><small>Platform Development Charge</td><td>{{node.platformDevelopmentCharge micro_ccd_display|safe}}</small></td></tr>
+               
+                    </tbody>
+                </table>
+                
+            <!--class="card-body p-2"-->
+            </div>
+        <!--class="card mb-2 ms-2 me-2"-->
+        </div>  
+        {% endif %}
+
+        <!--BlockAccrue-->
+        {% if node.__typename == 'BlockAccrueRewardSpecialEvent' %}
+        <div class="card mb-2 ms-2 me-2">    
+            <div class="card-body p-2" >
+                <div class="clearfix">
+                    <div class="card-text small float-start small text-muted">Mint</div>
+                    
+                </div>
+                
+                <table class="table table-striped table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th class="small" scope="col">Fee type</th>
+                        <th class="small" scope="col">Reward</th>
+                        
+                      </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="small"><small>Passive Reward</td><td>{{node.passiveReward |micro_ccd_display|safe}}></small></td></tr>
+                        <tr><td class="small"><small>Transaction Fees</td><td>{{node.transactionFees | micro_ccd_display|safe}}</small></td></tr>
+                        
+                    </tbody>
+                </table>
+                
+            <!--class="card-body p-2"-->
+            </div>
+        <!--class="card mb-2 ms-2 me-2"-->
+        </div>  
+        {% endif %}
+
+        <!--finalizationRewards-->
+        {% if node.__typename == 'BakingRewardsSpecialEvent' %}
+            <div class="card mb-2 ms-2 me-2">    
+                <div class="card-body p-2" >
+                    <div class="clearfix">
+                        <div class="card-text small float-start small text-muted">Baking Rewards</div>
+                    </div>
+                    <table class="table table-striped table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th class="small" scope="col">Baker ID</th>
+                        <th class="small" scope="col">Node Name</th>
+                        <th class="small" scope="col">Reward</th>
+                        
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in node.bakingRewards.nodes|sort_finalizers %}
+                        <tr>
+                            {{row.accountAddress.asString | find_baker_node_info (bakers_by_account_id, nodes_by_baker_id)|safe}}
+                            <td><small>{{row.amount | micro_ccd_display|safe}}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                <!--class="card-body p-2"-->
+                </div>
+            <!--class="card mb-2 ms-2 me-2"-->
+            </div> 
+        {% endif %} 
+
+            {% endfor %}
+        <!--finalizationRewards-->
+        {% if finalizers %}
+            <div class="card mb-2 ms-2 me-2">    
+                <div class="card-body p-2" >
+                    <div class="clearfix">
+                        <div class="card-text small float-start small text-muted">Finalization Rewards</div>
+                    </div>
+                    <table class="table table-striped table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th class="small" scope="col">Baker ID</th>
+                        <th class="small" scope="col">Node Name</th>
+                        <th class="small" scope="col">Reward</th>
+                        
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in finalizers|sort_finalizers %}
+                        <tr>
+                            {{row.accountAddress.asString | find_baker_node_info (bakers_by_account_id, nodes_by_baker_id)|safe}}
+                            <td><small>{{row.amount | micro_ccd_display|safe}}</small></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    </table>
+                <!--class="card-body p-2"-->
+                </div>
+            <!--class="card mb-2 ms-2 me-2"-->
+            </div> 
+        {% endif %} 
+
+<!--class="tab-pane fade show "-->
+</div> 

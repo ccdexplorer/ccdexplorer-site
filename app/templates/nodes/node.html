@@ -1,0 +1,24 @@
+<div class="card mb-2 ms-2 me-2">
+    <div class="card-body p-2">
+        {% if node %}
+        <div class="clearfix">
+            <div class="card-text small float-start">Node Name: <b><a href="/{{net}}/node/{{ node.nodeId}}">{{ node.nodeName}}</a></b> </div>
+            <div class="card-text small float-end"><b>Uptime:</b> {{ node.uptime|uptime }}</span></div>
+        </div>
+        <div class="clearfix">
+            <div class="card-text small float-start">Client version: <b>{{ node.client}}</b> </div>
+            <div class="card-text small float-end"><b>Ping:</b> {% if node.averagePing %}
+                    {{ node.averagePing|round_x_decimal_no_comma(2) }} ms
+                    {% else %}
+                    na
+                    {% endif %}
+                </div>
+        </div>
+        {% else %}
+        <div class="clearfix">
+            <div class="card-text small float-start"><small><b><i>Baker is not reporting to the Dashboard</i></b></small></div>
+           
+        </div>
+        {% endif %}
+    </div>
+</div>

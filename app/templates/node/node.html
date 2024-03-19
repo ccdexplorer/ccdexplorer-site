@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<style>
+        .htmx-indicator{
+        opacity:0;
+        transition: opacity 500ms ease-in-out;
+    }
+    .htmx-request .htmx-indicator{
+        opacity:1
+    }
+    .htmx-request.htmx-indicator{
+        opacity:1
+    }
+</style>
+<style>
+    .breathing.faded {
+      opacity:.1;
+    }
+
+    .breathing {
+      opacity:1;
+      transition: opacity ease-in 500ms;
+    }
+    </style>
+    
+<script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
+<h2>Node 
+    <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/green_dot.png"/></h2> 
+
+<div hx-get="/ajax_get_node/{{net}}/{{node_id}}" hx-trigger="load, every 2s">
+
+</div>
+        
+    
+
+{% endblock content %}

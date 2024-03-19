@@ -1,0 +1,27 @@
+
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<style>
+  .vega-embed {
+    width: 100%;
+    height: 350px;
+  }
+
+  .vega-embed-small {
+    width: 100%;
+    height: 150px;
+  }
+</style>
+
+
+<script type="text/javascript">
+
+  var width = Math.min(window.innerWidth, 675);
+  var spec = "{{env.SITE_URL}}/{{net}}/account/rewards-bucketed/{{account_id}}/{{account_index}}/" + width;
+  var opt = { renderer: 'svg', actions: false, 'theme':'light' };
+  vegaEmbed('#vis-rewards-bucketed', spec, opt).then(function (result) { }).catch(console.error);
+</script>
+
+<div class="vega-embed" id="vis-rewards-bucketed"></div>

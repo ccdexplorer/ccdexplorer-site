@@ -1,0 +1,23 @@
+<!-- <div class="table-responsive"> -->
+    <!--- Module Contracts table-->
+{% if module.methods %}
+    <table class="table table-striped ms-1 me-1 small">
+    
+    <tbody>
+       
+       
+            {% for method in module.methods %}
+            <tr >
+                
+            <td><small>{{method}}</small></td>
+                
+            {% endfor %}
+        
+    </tr>    
+
+    </tbody>    
+    
+    <!-- Module Contracts table-->
+</table>
+{% endif %}
+<!-- </div> -->

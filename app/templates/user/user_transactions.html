@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<script>
+  function gitPush() {
+      console.log('gitPush')
+      account_id_construct = document.getElementById('account_id').value.split('|');
+      account_id = account_id_construct[0]
+      // git_message = document.getElementById('git-message');
+      // git_message.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      url = base_url+'/ajax_download_transactions/{{user.chat_id}}/'+account_id;
+      
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          // console.log(data);
+          // download_button = document.getElementById('download-button');
+          
+        //   git_message.innerHTML = data;
+        //   setTimeout(function() { 
+        //     git_message.innerHTML = '';
+            
+        // }, 2000);
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+      };
+
+  function resetButtonText() {
+    download_button = document.getElementById('download-button');
+    download_button.innerHTML = 'Request Download'
+  }
+
+  
+
+function downloadTxs() {
+      console.log('downloadTxs')
+      account_id_construct = document.getElementById('account_id').value.split('|');
+      account_id = account_id_construct[0]
+      var label = '';
+      if ((account_id_construct.length)> 1) {
+        label = '-'+account_id_construct[1]
+      } 
+    
+      // period = document.getElementById('period').value;
+      download_button = document.getElementById('download-button');
+      download_button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      url = base_url+'/ajax_user_get_transactions/'+account_id+'/'+'ALL';//period;
+      txs = document.getElementById('txs');
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          
+          function download() {
+            var element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+            var timestamp = new Date().toISOString();
+            element.setAttribute('download', timestamp+'-'+account_id+label+'.csv');
+
+            element.style.display = 'none';
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+            download_button.innerHTML = 'File downloaded'
+          }
+          download();
+          gitPush();
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    };
+  
+</script>
+{% if user %} 
+<div class="ms-3 me-3">
+  <h4 class="ms-1">Download transactions</h4>
+  <p><small>Select an account for which you would like to download transactions.</small></p>
+  <div class="col-xs-4 ">
+    <select onchange="resetButtonText()" id="account_id" class="form-select form-select-sm mb-3" aria-label=".form-select-sm ">
+      {% for tag in accounts %}
+      <option value="-">{{tag[0]|upper}}{{tag[1:]}}</option>
+        {% for account in accounts[tag] %}
+        {% set label = accounts[tag][account|string] %}
+          <option  value="{{account}}{% if label %}|{{label}}{% endif %}">&nbsp;&nbsp;&nbsp;{% if label %}{{label}}{% endif %} --> {{account[:8]}}</option>
+      {% endfor %}
+    {% endfor %}
+    </select>
+    <!-- <select id="period" class="form-select form-select-sm" aria-label=".form-select-sm ">
+      <option selected>Select period</option>
+      <option value="CURRENT_MONTH">Current month</option>
+      <option value="CURRENT_YEAR">Current year</option>
+      <option value="ALL">All Time</option>
+    </select> -->
+    <button onclick='downloadTxs()' type="button" id="download-button" class="btn btn-sm btn-primary">Request Download</button>
+      </form>
+    <div id="txs"></div>
+    <div class="ms-1 ps-2" id="git-message">
+      <!-- {% include "user/user_settings_message.html" %} -->
+    </div> 
+  </div>
+</div>
+{% else %} 
+{% include "user/user_settings_logged_out.html" %}
+{% endif %}
+{% endblock content %}

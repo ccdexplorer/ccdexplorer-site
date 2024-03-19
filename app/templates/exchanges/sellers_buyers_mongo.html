@@ -1,0 +1,49 @@
+<table id="{{seller_buyer}}" class="table table-striped ms-1 me-5 small">
+    <thead>
+         <tr>
+            <th class="small" scope="col">Sellers</th>
+            <th class="small text-end" scope="col">Net amount moved to an exchange</th>
+            <th class="small text-end" scope="col"># Bought txs</th>
+            <th class="small text-end" scope="col"># Sold txs</th>
+         </tr>
+   </thead>
+   <tbody>
+    
+    {% for row in sellers[:10] %}
+    
+     <tr>
+         <td class="small"><a href = "/{{net}}/go/{{row.address_canonical}}" >{{row.address_canonical|account_link(net, False, True, user, tags, app=request.app)|safe}}</a> </td>
+         <td class="p-1 text-end"><small><span class="small">
+                {{ ((-1*row.total)*1000000)|micro_ccd_display|safe}}
+            </span></small></td>
+        <td class= "p-1 text-end"><small><span class="small ccd">{{row.bought_txs_count}}</span></small></td>
+        <td class= "p-1 text-end"><small><span class="small ccd">{{row.sold_txs_count}}</span></small></td>
+     </tr>
+             
+     {% endfor %}
+ </tbody>
+ </table>    
+
+ <table id="{{seller_buyer}}" class="table table-striped ms-1 me-2 small">
+    <thead>
+         <tr>
+            <th class="small" scope="col">Buyers</th>
+            <th class="small text-end" scope="col">Net amount moved from an exchange</th>
+            <th class="small text-end" scope="col"># Bought txs</th>
+            <th class="small text-end" scope="col"># Sold txs</th>
+         </tr>
+   </thead>
+   <tbody>
+    {% for row in buyers[:10] %}
+     <tr>
+         <td class="small"><a href = "/{{net}}/go/{{row.address_canonical}}" >{{row.address_canonical|account_link(net, False, True, user, tags, app=request.app)|safe}}</a> </td>
+         <td class="p-1 text-end"><small><span class="small">
+                {{ ((row.total)*1000000)|micro_ccd_display|safe}}
+            </span></small></td>
+        <td class= "p-1 text-end"><small><span class="small ccd">{{row.bought_txs_count}}</span></small></td>
+        <td class= "p-1 text-end"><small><span class="small ccd">{{row.sold_txs_count}}</span></small></td>
+     </tr>
+             
+     {% endfor %}
+ </tbody>
+ </table>    

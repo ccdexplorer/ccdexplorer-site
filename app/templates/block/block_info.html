@@ -1,0 +1,42 @@
+<!-- <div class="table-responsive"> -->
+<table class="table table-striped ms-1 w-auto small">
+
+    <tbody>
+
+        <tr>
+            <td>Hash</td>
+            <td title="{{block_info.hash}}" id="copy_me" class="small block_hash align-middle">
+                {{block_info.hash[:8]}} <img onclick="copyToClipboard()"
+                    src="{{env.SITE_URL}}/static/clipboard-check.svg"></td>
+        </tr>
+        <tr>
+            <td>Height</td>
+            <td title="{{block_info.height}}" class="small  align-middle">{{block_info.height }}
+
+                <a type="button" href='/{{net}}/block/{{ block_info.height + 1}}'
+                    class="btn pt-0 float-end pb-0 btn-sm btn-outline-primary">></a>
+                <a type="button" href='/{{net}}/block/{{ block_info.height - 1}}'
+                    class="btn pt-0 float-end pb-0 btn-sm btn-outline-primary">
+                    < </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Time</td>
+            <td title="{{block_info.slot_time}}" id="slot_time" class="small  align-middle">
+                {{block_info.slot_time|regular_datetime_format}}</td>
+        </tr>
+
+        <tr>
+            <td>Baker</td>
+            <td title="{{block_info.baker_id}}" class="small  align-middle"><a
+                    href="/{{net}}/account/{{block_info.baker}}">{{block_info.baker}}</a></td>
+        </tr>
+        <tr>
+            <td># Txs</td>
+            <td title="{{block_info.transaction_count}}" class="small  align-middle">{{block_info.transaction_count}}
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+<!-- </div> -->

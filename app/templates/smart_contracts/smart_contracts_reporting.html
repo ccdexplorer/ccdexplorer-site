@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block content %}
+{% if net %}
+    {% set net_url_string = '?net=testnet' %}
+{% else %}
+    {% set net_url_string = '' %}
+{% endif %}
+<style>
+    select.modules {
+        
+        width: auto;
+        margin: 10px;
+        height:200px;
+        
+    }
+    /* select:focus {
+        min-width: 150px;
+        min-height: 150px;
+        width: auto;
+    } */
+</style>
+
+<div style="padding-left:10px;">
+<h4  class="ms-1">Smart Contracts Reporting{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+{% if user %}
+            
+
+<p><small>Select the modules you would like to include in the reporting.</small></p>
+<select class="modules form-select form-select-sm" id="multiple-select-clear-field"  multiple>
+        {% for module in modules|reverse %}
+            <option value="{{module.id}}">{{module.id[:4]}} | {{module.module_name}}</option>
+        {% endfor %}    
+    
+</select>    
+<p><small>Select the reporting period.</small></p>
+<select class="form-select form-select-sm m-2" id="select_reporting_period"  >
+    {% for rp in reporting_periods %}
+        <option value="{{rp.value}}">{{rp.value}}</option>
+    {% endfor %}    
+
+</select>    
+<button type="button" class="btn btn-primary m-2 click-me">Generate Report</button>
+
+    </div>
+
+    
+
+<br/>
+<div id="reporting"></div>
+    
+
+{% else %} 
+<p class="small">Users get access to smart contract reporting. Go <a href="/settings/user/overview">here</a> to learn more.</p>
+
+{% endif %}
+
+<script>
+document.addEventListener('click', function (event) {
+
+// If the clicked element doesn't have the right selector, bail
+if (!event.target.matches('.click-me')) return;
+
+// Don't follow the link
+event.preventDefault();
+
+// Log the clicked element in the console
+selection = document.getElementById('multiple-select-clear-field');
+select_reporting_period = document.getElementById('select_reporting_period').value;
+
+source_modules = []
+for ( var i = 0; i < selection.selectedOptions.length; i++) {
+    console.log( selection.selectedOptions[i].value);
+    source_modules.push(selection.selectedOptions[i].value);
+  }
+
+  reporting = document.getElementById('reporting');
+    url = base_url + '/ajax_source_module_reporting/';
+    reporting.innerHTML = '{% include "spinner.html" %}'
+    fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                net: '{{net}}',
+                source_modules: source_modules,
+                period: select_reporting_period
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+        })
+        .then((response) => {
+            return response.text();
+        })
+        .then((data) => {
+            reporting.innerHTML = data;
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+
+
+
+
+
+}, false);
+
+
+    
+      r
+    
+  
+    window.addEventListener('load', (event) => {
+        $( '#multiple-select-clear-field' ).select2( {
+            theme: "bootstrap-5",
+            width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+            placeholder: $( this ).data( 'placeholder' ),
+            closeOnSelect: false,
+            allowClear: true,
+        } );
+    
+    });
+  </script>
+  
+
+  {% endblock content %}
+

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="ms-1 me-1">
+    {% if user %}
+        <h4 class="ms-1">User settings</h4>
+        <p>
+            <small>
+                {% if user.username %}
+                    You are logged in as <a href="https://telegram.me/{{user.username}}">@{{user.username}}</a> (<a href="/settings/user/logout">logout</a>).
+                {% elif user.first_name %}
+                You are logged in as {{user.first_name}} (<a href="/settings/user/logout">logout</a>).
+                {% else %}
+                You are logged in as {{user.chat_id}} (<a href="/settings/user/logout">logout</a>).
+                {% endif %}
+            </small>
+        </p>
+        {% include "userv2/user_email_address_start.html" %}      
+        
+        <br/><br/>
+        
+        <h5>General Notification Preferences</h5>
+        
+        <p>
+            <small>
+                Edit notification preferences for events on-chain that are not directly related to an account (such as validators lowering its stake, (large) account transfers, protocol updates, etc.). 
+            </small>
+        </p>
+        {% include "userv2/other_notification_preferences_start.html" %}      
+        
+        <br/><br/>
+        
+        <h5>Account Notification Preferences</h5>
+        
+        <p>
+            <small>
+                Edit notification preferences for your accounts below. Note that for all accounts you can edit the <i>account notification preferences</i>, while you can only edit the <i>validator notitification preferences</i> for validators.
+            </small>
+        </p>
+            
+        {% if user.accounts|length > 0 %}
+            {% for user_account_index, user_account in user.accounts.items() %}
+            
+                {% include "userv2/user_account_start.html" %}
+                
+            {% endfor %}
+        {% else %} 
+            <div class="alert alert-info" role="alert">
+                <small>
+                    (You have no accounts listed. Please add a new account below.)
+                </small>
+            </div>
+            <hr>
+        {% endif %}        
+        
+        <b>Add a new account</b>
+        {% include "userv2/user_new_account_start.html" %}   
+        
+        
+        
+        <h5>Contract Notification Preferences</h5>
+        
+        <p>
+            <small>
+                Edit notification preferences for your contracts by selecting the methods you want to be notified for. 
+            </small>
+        </p>
+            
+        {% if user.contracts|length > 0 %}
+            {% for contract_index, contract in user.contracts.items() %}
+            
+                {% include "userv2/user_contract_start.html" %}
+                
+            {% endfor %}
+        {% else %} 
+            <div class="alert alert-info" role="alert">
+                <small>
+                    (You have no contracts listed. Please add a new contract below.)
+                </small>
+            </div>
+            <hr>
+        {% endif %}        
+        
+        <h6>Add a new contract</h6>
+        {% include "userv2/user_new_contract_start.html" %}   
+        
+    {% else %} 
+        {% include "userv2/user_settings_logged_out.html" %}
+
+    {% endif %}
+</div>
+
+
+{% endblock content %}

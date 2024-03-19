@@ -1,0 +1,29 @@
+<div hx-target="this" hx-swap="outerHTML">
+    <p><small>All notifications by default will be sent to your Telegram account (if a particular notification event is enabled). If you also want to be notified by email 
+        for one or more notification events, enter your email address below and select the appropriate notification events. </small></p>
+        <div class="container px-2">
+
+        <div class="row">
+        <div class="col">
+            <label><small><h6>Email address</h6></small></label>
+        </div>
+        <div class="col">
+            {% if user.email_address %}
+            <input             disabled    class=" form-control form-control-sm small input-sm mb-1 text-end " 
+            type="text" name="email_address" {% if user.email_address %}value="{{user.email_address}}"{% else %} value="hello"{% endif %} {% if not user.email_address %}placeholder="Enter email"{% endif %}></td>
+            {% else %}
+            <input             disabled    class=" form-control form-control-sm small input-sm mb-1 text-end " 
+            type="text" name="email_address" value="Enter email"></td>
+            {% endif %}    
+        </div>
+
+        <div><button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/edit/email-address" >
+            Edit email address
+            </button>
+            
+        </div>
+    
+    </div>
+        </div>
+
+</div>

@@ -1,0 +1,109 @@
+<!-- <div class="clearfix">
+    <div class="card-text small float-start small"><span class="ccd">{{ transaction.start_1| safe }}</span></div>
+    <div class="card-text small float-end">{{ transaction.end_1| safe }}</div>
+</div>
+<div class="clearfix">
+    <div class="card-text small float-start small text-muted"><small>{{ transaction.start_2| safe }}</small></div>
+    <div class="card-text small float-end small text-muted"><small>{{ transaction.end_2| safe }}</small></div>
+</div>
+<div class="clearfix">
+    <div class="small card-text float-start p-0 m-0">{{ transaction.start_3| safe }}</div>    
+    <div class="small card-text float-end p-0 m-0">{{ transaction.end_3| safe }}</div>  
+</div>  
+<div class="clearfix">
+    <div class="small card-text float-start p-0 m-0">{{ transaction.start_4| safe }}</div>    
+    <div class="small card-text float-end p-0 m-0">{{ transaction.end_4| safe }}</div>  
+</div>  
+<div class="clearfix">
+    <div class="small card-text float-start p-0 m-0"><small>{{ transaction.start_5| safe }}</small></div>    
+    <div class="small card-text float-end p-0 m-0"><small>{{ transaction.end_5| safe }}</small></div>  
+</div>   -->
+
+<table class="table  p-0 ms-0 table-borderless small">
+<tr>
+    <td class="p-0"><span class="ccd">{{ transaction.start_1| safe }}</span></td>
+    <td class="p-0 float-end ">{{ transaction.end_1| safe }}</td>
+</tr>
+<tr>
+    <td class="p-0 small">{{ transaction.start_2| safe }}</td>
+    <td class="p-0 float-end text-muted">{{ transaction.end_2| safe }}</td>
+</tr>
+<tr>
+    <td class="p-0">{{ transaction.start_3| safe }}</td>
+    <td class="p-0 float-end">{{ transaction.end_3| safe }}</td>
+</tr>
+<tr>
+    <td class="p-0">{% if transaction.start_4%}{{ transaction.start_4| safe }}{%endif%}</td>
+    <td class="p-0 float-end">{% if transaction.end_4 %}{{ transaction.end_4| safe }}{%endif%}</td>
+</tr>
+<tr>
+    <td class="p-0"><small>{% if transaction.start_5%}{{ transaction.start_5| safe }}{%endif%}</small></td>
+    <td class="p-0 float-end"><small>{% if transaction.end_5 %}{{ transaction.end_5| safe }}{%endif%}</small></td>
+</tr>
+</table>
+
+
+{% if classified_tx.cns_domain.domain_name %}
+{% if classified_tx.cns_domain.action_message %}
+    <div class="clearfix">  
+        <div class="small card-footer text-white bg-success mt-2 small"><small>{% if classified_tx.cns_domain.action_message %} {{ classified_tx.cns_domain.action_message | safe}}{% endif%}</small></div>  
+    </div>
+    <br>
+{% endif %}
+{% endif %}
+<!-- {% if events_list|length > 0 %}
+    <b class="ms-2 pt-2 text-muted">Events</b>
+{% endif %} -->
+{% if events_list|length > 5 %}
+<span class="p-1 text-end"><a class="btn p-1 btn-outline-primary small btn-sm" data-bs-toggle="collapse" href="#tx-{{transaction.txHash}}" role="button" aria-expanded="false" aria-controls="tx-{{transaction.txHash}}"><small>Events</small> ↧</a></span>
+{% endif %}
+<table id="tx-{{transaction.txHash}}" class=" collapse 
+{% if events_list|length < 6 %}
+    show
+    {% endif %}
+
+table table-striped ms-1 me-1 small">
+    {% for event in events_list %}
+        
+            <tr class="low">
+                <td class="small text-end">
+                {% if events_list|length > 1 %}
+                    {{loop.index}}
+                {% endif %}
+                </td>
+                <td class="small text-start">{{event.event | safe}}
+                    {% if event.update %}
+                    <br><span class="text-muted">{{event.update | safe}}</span>
+                    {% endif %}
+                    {% if event.emit %}
+                    <br><span class="text-muted">{{event.emit | safe}}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if event.logged_events %}
+            {% for logged_event in event.logged_events %}
+            <tr class="low">
+                <td class="small text-end">
+                    
+                </td>
+                
+                <td class="small p2-4  text-start">&#8627; {{logged_event.event | safe}}
+                    {% if logged_event.update %}
+                    <br><span class="text-muted">{{logged_event.update | safe}}</span>
+                    {% endif %}
+                    {% if logged_event.emit %}
+                    <br><span class="text-muted">{{logged_event.emit | safe}}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% endif %}        
+    {% endfor %}
+</table>
+<!-- {% if transaction.memo %}
+<div class="clearfix">  
+    <div class="small card-footer text-muted mt-2 small"><small>{{ transaction.memo| safe }}</small></div>  
+</div>
+{% endif %} -->
+
+

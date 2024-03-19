@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+
+<h2>Exchange Rates{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h2>
+<table class="table table-small table-striped">
+{% for fx_name, fx in exchange_rates.items() %}
+<tr>
+  <td >{{fx_name}}<br/><small><span class="text-muted">Source: {{fx.source}}</span></small></td>
+  <td class="text-end"><span class="ccd">{{fx.rate}} USD</span><br/><small><small><span class="text-muted">Timestamp: {{fx.timestamp|datetime_delta_format_since}} ago</span></small></small></td>
+</tr>
+{%endfor%}
+</table>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,22 @@
+<tr>
+  {% if holder|length == 50 %}
+      <td class="small"><small>{{holder|account_link(net, True, True, user, tags, app=request.app)|safe }}</small></td>
+  {% else %}
+      <td class="small"><small>{{holder|instance_link_from_str(net, user, tags)|safe }}</small></td>
+  {% endif %}
+  {% if typed_tokens_tag %}
+        <td class="ccd text-end">
+          <span class="ccd">{{(amount|int)|token_amount_using_decimals(decimals)}}  
+            {% if typed_tokens_tag.single_use_contract %}{{typed_tokens_tag.id}}{%endif%}
+      
+          </span>
+        </td>
+    {% else %}
+    <td class="ccd text-end">
+      <span class="ccd">{{(amount|int|token_amount_using_decimals(decimals))}}  
+        {% if single_use_contract %}{{stored_tag}}{%endif%}
+      
+      </span>
+    </td>
+  {% endif %}
+</tr>

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h4  class="ms-4">Tokens{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+<p  class="ms-3"><small>Fungible tokens are sorted by the TVL. Non-fungible tokens are sorted by logged events. Note that only tokens from CIS-2 compliant contracts are shown that are verified. 
+    Contact me at <a href="https://telegram.me/sderuiter">@explorer.ccd</a> to get your token verified.</small></p>
+<div class="container">
+  
+    {% for owner, item in tokens_tags|groupby("token_type") %}
+    <div class="row mb-3">
+        <h5>{{ owner|capitalize }}</h5>
+        {% for token in item|sort(reverse=True, attribute="tvl_for_token_in_usd") %}
+        
+        <div class="card  low border-dark m-2 p-2" style="width: 7rem;">
+            {% if owner == 'fungible'%}
+            <div class="ccd card-title text-center text-muted m-0 pb-3"><small>TVL: {% if token.tvl_for_token_in_usd %}{{token.tvl_for_token_in_usd|human_format}}{% else %} 0{%endif%} USD</small></div>
+            {% endif%}
+
+          <img src="{{token.logo_url}}"  style="width: 50%; max-height: 50px;" class="mx-auto  card-img-top" alt="logo">
+            <div class="card-body  m-0 p-0 text-center">
+                <small><span class="card-title text-center">
+                    <small>
+                        {% if token.display_name %}
+                            {{token.display_name}}
+                        {% else %}
+                            {{token.id}}
+                        {% endif %}
+                        
+                    </small><br/>
+                    <!-- <span class="text-muted"><small><small>{{token.logged_events_count}} events</small></small></span> -->
+                
+                </span></small>
+                <a class="stretched-link" href="/{{net}}/tokens/{{token.id}}"></a>
+      
+            </div>
+        </div>          
+        {% endfor %}
+      </div>
+  
+
+{% endfor %}
+
+</div> 
+{% endblock content %}
+

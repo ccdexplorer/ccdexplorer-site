@@ -1,0 +1,12 @@
+<div hx-target="this" hx-swap="outerHTML" class="alert container px-4 alert-success" role="alert">
+    <div class="row ">
+        <div class="col ps-2"><button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/edit/contract/{{contract_index}}" >
+        Edit
+        </button></div>
+        <div class="col"><i><small>{{contract.label}}</small></i></div>
+        <div class="col"><a href="https://concordium-explorer.nl/mainnet/instance/{{contract.contract.index}}/{{contract.contract.subindex}}"><span class="ccd">{{contract.contract.index}}</span></a></div>
+        <div class="col"><span class="ccd">{{contract.contract_name}}</span></div>
+        
+    </div>
+    
+</div>

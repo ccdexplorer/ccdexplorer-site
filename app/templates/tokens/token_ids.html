@@ -1,0 +1,37 @@
+
+{% if token_ids|length > 0 %}
+<table class="table table-striped table-hover table-sm">
+  <thead>
+    <tr>
+      <th class="small" scope="col">Token</th>
+      <th class="small text-end" scope="col">Last block Modified</th>
+      <th class="small text-end" scope="col">Amount</th>
+      <!-- <th class="small text-end" scope="col">Address</th> -->
+      
+    </tr>
+  </thead>
+  <tbody>
+    
+        {% for item in token_ids %}
+        <tr>
+          {% if item.token_metadata.name %}
+            <td><small><a class="ccd" href="/{{net}}/tokens/{{tag}}/{{item.token_id}}">{{item.token_metadata.name}}</a></span></small></td>
+          {% else %}
+            <td><small><a class="ccd" href="/{{net}}/tokens/{{tag}}/{{item.token_id}}">{{item.token_id[:8]}}</a></span></small></td>
+          {% endif %}
+          <td class="text-end"><small><span class="ccd"><a class="small ccd" href = "/{{net}}/block/{{item.last_height_processed}}">{{item.last_height_processed}}</a></span>
+          <td class="text-end"><small><span class="ccd">
+            
+            {{item.token_amount}}
+            
+          </span></small></td>
+          <!-- <td class="text-end"><small><span class="ccd">{{item.token_address}}</span></small></td> -->
+          
+        </tr>
+        {% endfor %}
+
+</tbody>
+
+</table>
+{% endif %}
+</div>

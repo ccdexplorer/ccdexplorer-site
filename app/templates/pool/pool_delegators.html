@@ -1,0 +1,24 @@
+<div class="card mb-2 ms-2 me-2">    
+    <div class="card-body p-2" >
+        <div class="clearfix">
+            <div class="card-text small float-start small text-muted">Delegators</div>
+        </div>
+        <table class="table table-striped table-hover table-sm">
+        <thead>
+          <tr>
+            <th class="small" scope="col">Account</th>
+            <th class="small" scope="col">Staked Amount</th>
+            <th class="small" scope="col">Restake Earnings</th>
+            
+          </tr>
+        </thead>
+        <tbody>
+        {% for row in delegators.nodes|sort_finalizers %}
+            
+        {% endfor %}
+        </tbody>
+        </table>
+    <!--class="card-body p-2"-->
+    </div>
+<!--class="card mb-2 ms-2 me-2"-->
+</div> 

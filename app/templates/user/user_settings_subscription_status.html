@@ -1,0 +1,37 @@
+
+<table class="table table-striped ms-1 w-auto small">
+  <thead>
+      <tr>
+        <th class="" scope="col">Property</th>
+        <th class="text-end" scope="col">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><i>Current plan</i></td><td class="text-end"><i>{{user.subscription.plan.value}}</i></td></tr>
+      <!-- <tr><td>Site active</td><td class="text-end">{{user.subscription.site_active}}</td></tr> -->
+      <tr><td>Total amount paid</td><td class="ccd text-end">{{user.subscription.paid_amount|baker_ccd}} CCD</td></tr>
+      
+      <!-- <tr><td>Active delegator</td><td class="text-end">{{user.subscription.delegator_active}}</td></tr>
+      <tr><td>One-time Subscription fee paid</td><td class="text-end">{{user.subscription.subscription_active}}</td></tr> -->
+      {% if user.subscription.start_date %}
+        <tr><td>Subscription start date</td><td class="text-end">{{user.subscription.start_date|subscription_start_date}}</td></tr>
+      {% endif %}
+      <tr><td></td><td></td></tr>
+      <tr><td>Telegram Bot active</td><td class="text-end">{{user.subscription.bot_active}}</td></tr>
+      {% if user.subscription.bot_active %}
+      <tr><td>Messages received</td><td class="text-end">{{user.subscription.count_messages|baker_ccd}}</td></tr>
+        {% if user.subscription.unlimited %}
+          <tr><td>Message credits remaining</td><td class="text-end">unlimited</td></tr>
+          <tr><td>Unlimited end date</td><td>{{user.subscription.unlimited_end_date|subscription_end_date}}</td></tr>
+        {% else %}
+          <tr>
+            <td>Message credits remaining</td>
+            <td class="text-end">{{user.subscription.remaining_message_credits|baker_ccd}}</td>
+          </tr>
+        {% endif %}
+        {% else %}
+        <tr>
+          <td>Message credits remaining</td><td class="text-end">0</td>
+      {% endif %}
+    </tbody>
+</table>    

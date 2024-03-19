@@ -1,0 +1,29 @@
+<script>
+    function yourFunction(){
+        var value_to_search = document.getElementsByName("acc")[0].value;
+        if (value_to_search != '') {
+         
+        var action_src = "/{{net}}/go/" + value_to_search;
+        var your_form = document.getElementById('your_form');
+        document.getElementById('acc').disabled = true;
+        your_form.action = action_src ;
+        }
+    }
+
+    function yourFunction2(){
+      var action_src = "/random/";
+      your_form.action = action_src ;
+    }
+</script>
+{% if net != 'user'%}
+            <div class="col-xs-4 me-3" style="padding-left: 10px">
+            <form id="your_form" class="form-inline m-1" onsubmit="yourFunction()">
+                 <input type="text" class=" form-control form-control-sm small input-sm mb-0 " name="acc" id="acc" placeholder="Address | Baker id | Block | Tx | CNS domain...        " >  <br>
+              <input type="submit" class="btn small ms-1 mt-0 btn-sm btn-primary" value="Search">
+              <!-- <a class="btn small btn-sm btn-primary" href="/randombaker" role="button">Random Baker</a>
+              <a class="btn small btn-sm btn-primary" href="/randomaccount" role="button">Random Wallet</a> -->
+            </form>
+            
+          </div>
+          <br>
+           {% endif %} 

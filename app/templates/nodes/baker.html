@@ -1,0 +1,61 @@
+<div class="card mb-2 ms-2 me-2">
+    <div class="card-body p-2">
+    {% if baker %}    
+    <div class="clearfix mt-2">
+        
+        <div class="card-header small ">Validator ID: <a class="small" href ="/mainnet/account/{{baker.baker_id}}"><b>{{ baker.baker_id|int}}</b></a>  {% if tag_found %}{{tag_label|safe}}{%endif %}  <div class="card-text small float-end"> <i>#{{index}}</i></div></div>
+        
+    </div>
+    <div class="clearfix mt-2">
+        
+        <div class="card-text small float-end"> <b>Account Amount:</b> {{ baker.pool_status.equity_capital | micro_ccd_no_decimals|safe}}</div>
+    </div>
+        <div class="clearfix">
+            <div class="card-text small float-end"><b>
+                {% if baker.pool_status.pool_info.open_status == 'open_for_all' %}    
+                    Own Stake
+                {% else %}
+                    Staked
+                {% endif %}    
+                    :</b> {{ baker.pool_status.current_payday_info.baker_equity_capital  | micro_ccd_no_decimals|safe}}</div>
+            
+            
+        </div>
+        
+        <div class="clearfix">
+            <div class="card-text small float-start">Pool: <b>{{ baker.pool_status.pool_info.open_status}}</b></div>
+                {% if baker.pool_status.pool_info.open_status != 'closed_for_all' %}
+                    <div class="card-text small float-end"> <b>Delegated:</b> {{ baker.pool_status.current_payday_info.delegated_capital  | micro_ccd_no_decimals|safe}}</div>
+                {% endif %}
+            </div>
+            <div class="clearfix">
+                
+            <!-- </div> -->
+                    {% if baker.pool_status.pool_info.open_status != 'closed_for_all' %}
+                        <div class="card-text small float-end"> <b>Total Stake:</b> {{ baker.pool_status.current_payday_info.effective_stake | micro_ccd_no_decimals|safe}}</div>
+                    {% endif %}
+            </div>
+
+            <!-- <div class="clearfix"> -->
+                
+                <!-- <div class="small card-text small float-end"><small><b>Exp. Blocks py: </b>{{baker.baker_bpy}}</small></div> -->
+            <!-- </div>     -->
+        
+            <div class="clearfix">    
+                
+                <div class=" card-text small float-end"><small><b>Lottery Power: </b>{{"%.5f"|format(baker.pool_status.current_payday_info.lottery_power * 100)}}%</small></div>
+            </div>
+        
+            <!-- <hr/> -->
+            <div class="clearfix">
+                
+                {% if baker.reporting %}
+                <div class="card-text small float-end"><b>Up to date:</b> {{ baker.str_status }}</span></div>
+                {% endif %}
+            </div>
+            {% else %}
+                <small><span class="small text-muted">This node is not a baker</span></small>
+            {% endif %}   
+
+</div>
+</div>

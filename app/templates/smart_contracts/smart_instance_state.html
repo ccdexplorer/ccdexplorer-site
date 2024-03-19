@@ -1,0 +1,29 @@
+<div style="padding-left: 10px;"><small>{% if contract.state is mapping %} 
+    {% if contract.state.keys()|length == 0 %}
+    <small>No state to be displayed.</small>
+    {% endif %}
+    {% for level1 in contract.state.keys() %}
+        <b>{{level1}}</b><br>    
+        {% set value1=contract.state[level1] %}    
+        
+        {% if value1 is mapping %}
+            {% set the_dict = value1 %}
+           
+            {% include 'smart_contracts/dict.html' %}
+        {% elif value1 is iterable and value1 is not string %}    
+            {% set the_list = value1 %}
+            {% include 'smart_contracts/list.html' %}
+        {% else %}
+        <div class="card mb-2 ms-2 me-2"> 
+            <div class="card-body p-2" >
+        
+                <div class="clearfix">
+                    <div class="card-text small float-start "><small>{{level1|decide(user, tags)|safe}}</small></div>
+                    <div class="card-text small float-end"><b><small>{{ value1|decide(user, tags)|safe }}</small></b></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</small></div>

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div style="padding-left:10px;">
+
+
+    <div id="token_ids_for_tag"></div>
+
+</div>
+
+
+<script>
+  function getRewards(requested_page, total_rows) {
+    rewards = document.getElementById('rewards-payout');
+    url = base_url + '/{{net}}/tokens-special/PTRT/' + requested_page + '/' + total_rows + '/' + api_key;
+    rewards.innerHTML = '{% include "spinner.html" %}'
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        rewards.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_v2_rewards(requested_page, total_rows) {
+    getRewards(requested_page, total_rows)
+  };
+  function next_v2_rewards(requested_page, total_rows) {
+    getRewards(requested_page, total_rows)
+  };
+
+  
+</script>
+
+<script>
+  function getTokenHolders(requested_page, total_rows) {
+    token_holders = document.getElementById('token-holders');
+    url = base_url + '/ajax_token_holders_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+    token_holders.innerHTML = '{% include "spinner.html" %}'
+    console.log(url)
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        token_holders.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_v2_token_holders(requested_page, total_rows) {
+    getTokenHolders(requested_page, total_rows)
+  };
+  function next_v2_token_holders(requested_page, total_rows) {
+    getTokenHolders(requested_page, total_rows)
+  };
+
+ 
+</script>
+<script>
+  function getLoggedEvents(requested_page, total_rows) {
+    logged_events = document.getElementById('logged-events');
+    url = base_url + '/ajax_logged_events_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+    logged_events.innerHTML = '{% include "spinner.html" %}'
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        logged_events.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_v2_logged_events(requested_page, total_rows) {
+    getLoggedEvents(requested_page, total_rows)
+  };
+  function next_v2_logged_events(requested_page, total_rows) {
+    getLoggedEvents(requested_page, total_rows)
+  };
+
+
+</script>
+<script>
+  function get_token_ids_for_tag(requested_page, total_rows) {
+    try {
+      token_ids_for_tag = document.getElementById('token_ids_for_tag');
+      // var account_id = document.querySelector('.account_id').title;
+      url = base_url + '/{{ajax_url}}/{{net}}/{{tag}}/' + requested_page + '/' + total_rows + '/' + api_key;
+      
+      console.log('URL=', url);
+      token_ids_for_tag.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          token_ids_for_tag.innerHTML = data;
+          getTokenHolders(0, 0);
+          getLoggedEvents(0, 0);
+          getRewards(0, 0);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (error) {}
+  }
+
+  function prev_v2_token_ids(requested_page, total_rows) {
+    get_token_ids_for_tag(requested_page, total_rows)
+  };
+  function next_v2_token_ids(requested_page, total_rows) {
+    get_token_ids_for_tag(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_token_ids_for_tag(0, 0);
+    
+  });
+  
+</script>
+  {% endblock content %}

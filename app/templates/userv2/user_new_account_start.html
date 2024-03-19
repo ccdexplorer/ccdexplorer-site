@@ -1,0 +1,67 @@
+<script>
+    function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
+
+    function empty_fields() {
+        sleep(1000);
+        id_or_index = document.getElementById('id_or_index');
+        id_or_index.value = "";
+
+        label = document.getElementById('label');
+        label.value = "";
+        
+    }
+    function clear_error_message() {
+        
+        error_message = document.getElementById('error_message');
+        error_message.style.display = 'none';
+
+    }
+</script>
+<form 
+hx-put="/settings/userv2/save/new-account" 
+hx-ext='json-enc' 
+hx-target="this" 
+hx-swap="outerHTML"
+hx-on::after-request=" if(event.detail.successful) this.reset()">
+    <p><small>Enter an address or index and a label to add a new account. Adding a new account enbables no notification preferences. You can set these after adding your new account.</small></p>
+    <div class="container px-2">
+  
+    <div class="row">
+            <div class="col text-end">
+                <small><b>Address/Index</b></small>
+            </div>
+            <div class="col">
+                <input   onclick="clear_error_message()"            class=" form-control form-control-sm small input-sm mb-1 text-end " 
+                type="text" name="id_or_index" id="id_or_index" >
+                
+            </div>
+      </div>
+      <div class="row">
+        <div class="col text-end">
+            <small><b>Label</b></small>
+        </div>
+        <div class="col">
+            <input               class=" form-control form-control-sm small input-sm mb-1 text-end " 
+            type="text" name="label" id="label">
+            
+        </div>
+  </div>
+  {% if error_message %}
+  <div class="row alert alert-danger" id="error_message" role="alert"><small>{{error_message}}</small></div>
+{% endif %}
+    <div><button class="btn small ms-1 mt-0 btn-sm btn-link" >
+        Add account
+        </button>
+        
+    </div>
+    </div>
+</form>   
+    
+</div>
+<br/><br/><br/>

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+
+<script>
+  function get_account_transfer_actions(requested_page, total_rows) {
+    account_transfer = document.getElementById('content_account_transfer');
+      url = base_url + '/ajax_recent_actions/{{net}}/account_transfer/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      account_transfer.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            account_transfer.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_account_transfer_actions(requested_page, total_rows) {
+    get_account_transfer_actions(requested_page, total_rows)
+  };
+  function next_v2_account_transfer_actions(requested_page, total_rows) {
+    get_account_transfer_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_account_transfer_actions(0, 0);
+
+  });
+</script>
+
+<script>
+  function get_token_actions(requested_page, total_rows) {
+    token_events = document.getElementById('token_events');
+      url = base_url + '/ajax_token_events/{{net}}/5/' + requested_page + '/' + total_rows + '/' + api_key;
+      token_events.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            token_events.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_token_events(requested_page, total_rows) {
+    get_token_actions(requested_page, total_rows)
+  };
+  function next_v2_token_events(requested_page, total_rows) {
+    get_token_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_token_actions(0, 0);
+
+  });
+</script>
+
+
+<script>
+  function get_account_creation_actions(requested_page, total_rows) {
+    account_creation = document.getElementById('content_account_creation');
+      url = base_url + '/ajax_recent_actions/{{net}}/account_creation/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      account_creation.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            account_creation.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_account_creation_actions(requested_page, total_rows) {
+    get_account_creation_actions(requested_page, total_rows)
+  };
+  function next_v2_account_creation_actions(requested_page, total_rows) {
+    get_account_creation_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_account_creation_actions(0, 0);
+
+  });
+</script>
+<script>
+  function get_delegation_actions(requested_page, total_rows) {
+    delegation_actions = document.getElementById('content_delegation_actions');
+      url = base_url + '/ajax_recent_actions/{{net}}/delegation_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      delegation_actions.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            delegation_actions.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_delegation_configured_actions(requested_page, total_rows) {
+    get_delegation_actions(requested_page, total_rows)
+  };
+  function next_v2_delegation_configured_actions(requested_page, total_rows) {
+      get_delegation_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_delegation_actions(0, 0);
+
+  });
+</script>
+<script>
+  function get_baker_actions(requested_page, total_rows) {
+    baker_actions = document.getElementById('content_baker_actions');
+      url = base_url + '/ajax_recent_actions/{{net}}/baker_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      baker_actions.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            baker_actions.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_baker_configured_actions(requested_page, total_rows) {
+    get_baker_actions(requested_page, total_rows)
+  };
+  function next_v2_baker_configured_actions(requested_page, total_rows) {
+    get_baker_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_baker_actions(0, 0);
+    
+  });
+</script>
+<h2>Recent Actions{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h2>
+{% if net == 'mainnet'%}
+<p><small></small>This page shows delegation and baker actions, regular account transfers, logged events (tokens) and account creations for the last 5 days.</small></p>
+{%else%}
+<p><small></small>This page shows logged events (tokens) and account creations for the last 5 days.</small></p>
+{%endif%}
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+{% if net == 'mainnet'%}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if net == 'mainnet'%}active {%else%} {%endif%}" id="delegation_actions-tab" data-bs-toggle="tab" data-bs-target="#delegation_actions"
+      type="button" role="tab" aria-controls="delegation_actions" aria-selected="true"><small>Delegation</small></button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2  " id="baker_actions-tab" data-bs-toggle="tab" data-bs-target="#baker_actions"
+      type="button" role="tab" aria-controls="baker_actions" aria-selected="true"><small>Validator</small></button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2  " id="account_transfer-tab" data-bs-toggle="tab" data-bs-target="#account_transfer"
+      type="button" role="tab" aria-controls="account_transfer" aria-selected="true"><small>Transfer</small></button>
+  </li>
+  {%endif%}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if net == 'testnet'%}active {%else%} {%endif%} " id="tokens-tab" data-bs-toggle="tab" data-bs-target="#tokens"
+      type="button" role="tab" aria-controls="tokens" aria-selected="true"><small>Tokens</small></button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2  " id="account_creation-tab" data-bs-toggle="tab" data-bs-target="#account_creation"
+      type="button" role="tab" aria-controls="account_creation" aria-selected="true"><small>Accounts</small></button>
+  </li>
+  
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show {% if net == 'mainnet'%}active {%else%} {%endif%} " style="padding-top: 10px;" id="delegation_actions" role="tabpanel"
+    aria-labelledby="delegation_actions-tab">
+    <div id="content_delegation_actions"></div>
+  </div>
+
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="baker_actions" role="tabpanel"
+    aria-labelledby="baker_actions-tab">
+    <div id="content_baker_actions"></div>
+  </div>
+
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="account_transfer" role="tabpanel"
+  aria-labelledby="account_transfer-tab">
+  <div id="content_account_transfer"></div>
+</div>
+<div class="tab-pane fade show  {% if net == 'testnet'%}active{%else%}  {%endif%}" style="padding-top: 10px;" id="tokens" role="tabpanel"
+  aria-labelledby="tokens-tab">
+  <div id="token_events"></div>
+</div>
+<div class="tab-pane fade show  " style="padding-top: 10px;" id="account_creation" role="tabpanel"
+  aria-labelledby="account_creation-tab">
+  <div id="content_account_creation"></div>
+</div>
+</div>
+{% endif %}
+{% endblock content %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+  {% endif %}
+{% endblock content %}

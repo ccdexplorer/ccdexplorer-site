@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+<!-- 
+<script>
+  function get_account_transfer_actions(requested_page, total_rows) {
+    account_transfer = document.getElementById('content_account_transfer');
+      url = base_url + '/ajax_recent_actions/{{net}}/account_transfer/30' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      account_transfer.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            account_transfer.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_account_transfer_actions(requested_page, total_rows) {
+    get_account_transfer_actions(requested_page, total_rows)
+  };
+  function next_v2_account_transfer_actions(requested_page, total_rows) {
+    get_account_transfer_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_account_transfer_actions(0, 0);
+
+  });
+</script>
+
+<script>
+  function get_token_actions(requested_page, total_rows) {
+    token_events = document.getElementById('token_events');
+      url = base_url + '/ajax_token_events/{{net}}/30/' + requested_page + '/' + total_rows + '/' + api_key;
+      token_events.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            token_events.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_token_events(requested_page, total_rows) {
+    get_token_actions(requested_page, total_rows)
+  };
+  function next_v2_token_events(requested_page, total_rows) {
+    get_token_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_token_actions(0, 0);
+
+  });
+</script>
+
+
+<script>
+  function get_account_creation_actions(requested_page, total_rows) {
+    account_creation = document.getElementById('content_account_creation');
+      url = base_url + '/ajax_recent_actions/{{net}}/account_creation/30' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      account_creation.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            account_creation.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_account_creation_actions(requested_page, total_rows) {
+    get_account_creation_actions(requested_page, total_rows)
+  };
+  function next_v2_account_creation_actions(requested_page, total_rows) {
+    get_account_creation_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_account_creation_actions(0, 0);
+
+  });
+</script>
+<script>
+  function get_delegation_actions(requested_page, total_rows) {
+    delegation_actions = document.getElementById('content_delegation_actions');
+      url = base_url + '/ajax_recent_actions/{{net}}/delegation_configured/30' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      delegation_actions.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            delegation_actions.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_delegation_configured_actions(requested_page, total_rows) {
+    get_delegation_actions(requested_page, total_rows)
+  };
+  function next_v2_delegation_configured_actions(requested_page, total_rows) {
+      get_delegation_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_delegation_actions(0, 0);
+
+  });
+</script>
+<script>
+  function get_baker_actions(requested_page, total_rows) {
+    baker_actions = document.getElementById('content_baker_actions');
+      url = base_url + '/ajax_recent_actions/{{net}}/baker_configured/30' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      baker_actions.innerHTML = '{% include "spinner.html" %}'
+      fetch(url)
+          .then((response) => {
+              return response.text();
+          })
+          .then((data) => {
+            baker_actions.innerHTML = data;
+          })
+          .catch(function (error) {
+              console.log(error);
+          });
+  }
+
+  function prev_v2_baker_configured_actions(requested_page, total_rows) {
+    get_baker_actions(requested_page, total_rows)
+  };
+  function next_v2_baker_configured_actions(requested_page, total_rows) {
+    get_baker_actions(requested_page, total_rows)
+  };
+
+  window.addEventListener('load', (event) => {
+    get_baker_actions(0, 0);
+    
+  });
+</script> -->
+<h2>Chain Information</h2>
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+{% if net == 'mainnet'%}
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 {% if net == 'mainnet'%}active {%else%} {%endif%}" id="ip-tab" data-bs-toggle="tab" data-bs-target="#ip"
+      type="button" role="tab" aria-controls="ip" aria-selected="true"><small>Identity <br/>Providers</small></button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2  " id="ar-tab" data-bs-toggle="tab" data-bs-target="#ar"
+      type="button" role="tab" aria-controls="ar" aria-selected="true"><small>Anonymity <br/>Revokers</small></button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2  " id="po-tab" data-bs-toggle="tab" data-bs-target="#po"
+      type="button" role="tab" aria-controls="po" aria-selected="true"><small>Chain <br/>Updates</small></button>
+  </li>
+  {%endif%}
+  
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show {% if net == 'mainnet'%}active {%else%} {%endif%} " style="padding-top: 10px;" id="ip" role="tabpanel"
+    aria-labelledby="ip-tab">
+    {% for provider in ip %}
+      {% include "ip_ar.html" %}
+    {%endfor %}
+  </div>
+
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="ar" role="tabpanel"
+    aria-labelledby="ar-tab">
+    {% for provider in ar %}
+      {% include "ip_ar.html" %}
+    {%endfor %}
+  </div>
+
+  <div class="tab-pane fade show  " style="padding-top: 10px;" id="po" role="tabpanel"
+  aria-labelledby="po-tab">
+  {{protocol_updates |safe}}
+</div>
+
+</div>
+{% endif %}
+{% endblock content %}

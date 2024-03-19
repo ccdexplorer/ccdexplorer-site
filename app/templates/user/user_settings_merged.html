@@ -1,0 +1,121 @@
+
+<div  class="ms-1" id="items" class="table-responsive">
+    
+    <table class="table  ms-1 w-auto small">
+        <thead>
+            <!-- <tr>
+                <th class="small" scope="col"></th>
+                <th class="small" scope="col"></th>
+                <th class="small" scope="col"></th>
+                
+                <th class="small" scope="col"></th>
+            </tr> -->
+            <tr>
+              <th></th>
+                <th class="small" scope="col">Account</th>
+                <th class="small" scope="col">Baker ID</th>
+                <th class="small" scope="col">Label</th>
+                <!-- <th class="small" scope="col">Account</th>
+                <th class="small" scope="col">Baker</th> -->
+                <th class="small" scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for k, v in final_merge.items() %}
+            
+            <tr>
+              <td>{{loop.index}}</td>
+              <td>
+                <small><a href = "/account/{{v.account_id}}" id="{{user.chat_id}}-{{v.account_id}}-account_id" title="{{v.account_id}}">{{v.account_id[:4]}}</a></small>
+                <div class="form-check ">
+                  {% if v.account_notify %}
+                    <input class="form-check-input" type="checkbox"   disabled="true" id="{{user.chat_id}}-{{v.account_id}}-account-notify" checked="true"/>
+                  {% else %}
+                    <input class="form-check-input" type="checkbox"   disabled="true" id="{{user.chat_id}}-{{v.account_id}}-account-notify" />
+                  {% endif %}
+                  </div>
+                
+              </td>
+              <td>
+                <span id="{{user.chat_id}}-{{v.account_id}}-baker_id" title="{{v.baker_id}}"><small>{% if v.baker_id %}{{v.baker_id}}{% else %}{% endif %}</small></span>
+                {% if v.baker_id %}
+                <div class="form-check ">
+                  {% if v.baker_notify %} 
+                  <input class="form-check-input" type="checkbox"  disabled="true" id="{{user.chat_id}}-{{v.account_id}}-baker-notify" checked="true"/>
+                  {% else %}
+                  <input class="form-check-input" type="checkbox"  disabled="true" id="{{user.chat_id}}-{{v.account_id}}-baker-notify" />
+                  {% endif %}  
+                </div>
+                {% endif %}
+                
+              </td>
+              <td class="ps-0 pe-0">
+                <input type="text" class=" form-control form-control-sm small input-sm m-0 p-1" placeholder="Label" disabled name="item-label" id="{{user.chat_id}}-{{v.account_id}}-item-label" value = "{% if v.label%}{{v.label}}{% else %}{% endif %}" >
+              </td>
+              
+              <td>
+                <button onclick='editMode("{{user.chat_id}}-{{v.account_id}}")' id="{{user.chat_id}}-{{v.account_id}}-edit" type="button" class="btn btn-sm btn-primary">✏️</button><div id="br" class="visually-hidden"><br></div>
+                
+              </td>
+            </tr>
+            
+            <tr id="{{user.chat_id}}-{{v.account_id}}-edit-row" class="visually-hidden">
+              
+              <td class="align-end">
+                <button onclick='editSave("{{user.chat_id}}-{{v.account_id}}")' 
+                        id="{{user.chat_id}}-{{v.account_id}}-save" type="button" class="  btn btn-sm btn-primary align-end"><small>Save</small>
+                </button>
+              </td>
+              <td>
+                <button onclick='editCancel("{{user.chat_id}}-{{v.account_id}}")' 
+                        id="{{user.chat_id}}-{{v.account_id}}-cancel" type="button" class="btn btn-sm btn-primary"><small>Cancel</small>
+                </button>
+              </td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td>
+                <button onclick='deleteItem("{{user.chat_id}}-{{v.account_id}}", "{{v.account_id}}")' id="{{user.chat_id}}-{{v.account_id}}-delete" type="button" class=" btn btn-sm btn-danger"><small>🗑️</small>
+                </button>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>    
+      </table>
+      <br>
+    <div class="ms-1 ps-2" id="git-message">
+      {% include "user/user_settings_message.html" %}
+    </div>  
+
+      <div class="col-xs-4 ">
+       <small><b>Add Item</b></small>
+       <br>
+        <input type="text" class=" form-control form-control-sm small input-sm pb-0" name="itemId" id="itemId" placeholder="Account ID or Baker ID"><br>
+        <input type="text" class=" form-control form-control-sm small input-sm mb-1 " name="item--label" id="item-label" placeholder="Label"><br>
+        <!-- <div class="row">
+          <div class="col">
+            <input type="text" class=" form-control form-control-sm small input-sm mb-1 float-start" name="node_ip" id="node_ip" placeholder="Node IP address (Optional)"><br>
+          </div>
+          <div class="col">
+            <input type="text" class=" form-control form-control-sm small input-sm mb-1 float-end" name="node_port" id="node_port" placeholder="Node port (Optional)"><br>
+          </div>
+        </div>
+         -->
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="account-notify" checked>
+          <label class="form-check-label" for="account-notify">
+           <small>Notify for account transactions</small>
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="baker-notify" checked>
+          <label class="form-check-label" for="baker-notify">
+          <small>Notify for baker activity</small>
+          </label>
+        </div>
+        <button  onclick='addItem()' id="item-add-button" type="button" class="btn btn-sm mt-4 btn-primary">Add Item</button>
+          </form>
+        
+      </div>
+  </div>
+  

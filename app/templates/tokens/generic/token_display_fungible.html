@@ -1,0 +1,162 @@
+<script>
+    
+</script>
+
+<div style="padding-left:10px;">
+  {% if not is_PTRT %}
+    <!-- <h4  class="ms-1">Tokens{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4> -->
+  {% endif %}
+{% if tag !="_" %}
+  <h5  class="ms-1">{{tag[0]|upper}}{{tag[1:]}} <a href="
+    
+        {% if stored_tag.single_use_contract %}
+            /{{net}}/tokens/
+        {% else %}
+            /{{net}}/tokens/{{tag}}
+        {% endif %}
+        
+    
+    "><small>(Back to overview)</small></a></h5>
+{% else %}
+<h5  class="ms-1">{{contract}}-{{token_id}} <a href="/{{net}}/tokens"><small>(Back to overview)</small></a></h5>
+{% endif %}
+<div class="card" style="width: 15rem;">
+  {% if metadata %}
+    {% if metadata.display %}
+    {% if metadata.thumbnail %}
+        <img src="{{metadata.display.url}}"  style=" max-width: 150px; height:auto;" class="mx-auto card-img-top mt-2" alt="(Token image for {{tag}}-{{contract}}-{{token_id}})">
+         
+      {% endif %}
+    {% endif %}
+    <div class="card-body">
+      <h5 class="card-title">{{metadata.name|striptags}}</h5>
+      <p class="card-text">{{metadata.description|striptags}}</p>
+    </div>
+    <hr>
+    {% if metadata.attrbutes %}
+    <div class="card-body">
+      <span><small><b>Token attributes</b></small></span>
+      <table class="table   small ">
+      {% for a in metadata.attributes %}
+          <tr><td><small>{{a.name}}</small></td>
+          {% if a.type == 'date' %}
+              <td><small>{{a.value|int|datetime_delta_format_schedule_node}} ago</small></td>
+          {% else %}
+              <td><small>{{a.value}}</small></td>
+          {% endif %}
+        </tr>
+    {% endfor %}
+    </table>
+  </div>
+  {% endif %}
+  {% endif %}
+  
+    
+  </div>
+
+  
+  <br/>
+
+  <!-- {% if not metadata %}
+<p><small>Token metadata is malformed.</small></p>
+{% endif %} -->
+
+  <ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+    {% if is_PTRT %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 active" id="rewards-tab" data-bs-toggle="tab"
+          data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards"
+          aria-selected="true"><small>Rewards</small></button>
+  </li>
+  {% endif %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link small ps-2 pe-2 {% if not(is_PTRT) %}active{% endif %}" id="holders-tab" data-bs-toggle="tab" data-bs-target="#holders"
+            type="button" role="tab" aria-controls="holders" aria-selected="true"><small>Token Holders</small></button>
+    </li>
+
+    {% if owner_history_list %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="history-tab" data-bs-toggle="tab"
+          data-bs-target="#history" type="button" role="tab" aria-controls="history"
+          aria-selected="true"><small>Owner History</small></button>
+  </li>
+    {% endif %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link small ps-2 pe-2 " id="events-tab" data-bs-toggle="tab"
+            data-bs-target="#events" type="button" role="tab" aria-controls="events"
+            aria-selected="true"><small>Logged Events</small></button>
+    </li>
+    
+  
+    {% if not(is_PTRT) %}    
+<li class="nav-item" role="presentation">
+      <button class="nav-link small ps-2 pe-2 " id="contracts-tab" data-bs-toggle="tab"
+          data-bs-target="#contracts" type="button" role="tab" aria-controls="contracts"
+          aria-selected="true"><small>Contract(s)</small></button>
+  </li>    
+  {% endif %}
+</ul>
+
+
+<div class="tab-content" id="myTabContent">
+
+    <div class="tab-pane fade show  {% if not(is_PTRT) %}active{% endif %}" style="padding-top: 10px;" id="holders" role="tabpanel"
+        aria-labelledby="holders-tab">
+        <div id="token-holders"></div>
+    </div>
+    {% if owner_history_list %}
+    <div class="tab-pane fade show  " style="padding-top: 10px;" id="history" role="tabpanel"
+        aria-labelledby="history-tab">
+        {% for owner in owner_history_list %}
+        {% if loop.index > 1 %} <-- {% endif %} {% if owner|length == 50 %}
+        {% if loop.index == 1 %} <small>(current owner)</small> {% endif %} {{owner|account_link(net, True, True, user, tags, app=request.app)|safe }}
+            {% else %}
+            {% if loop.index == 1 %} <small>(current owner)</small> {% endif %} {{owner|instance_link_from_str(net)|safe }}
+            {% endif %}    
+        {% endfor %} 
+    </div>
+    {% endif %}
+    <div class="tab-pane fade show  " style="padding-top: 10px;" id="events" role="tabpanel"
+        aria-labelledby="events-tab">
+        <div id="logged-events"></div>
+    </div>
+    {% if is_PTRT %}
+    <div class="tab-pane fade show  active" style="padding-top: 10px;" id="rewards" role="tabpanel"
+        aria-labelledby="rewards-tab">
+        <div id="rewards-payout"></div>
+    </div>
+    {% else %}
+    <div class="tab-pane fade show  " style="padding-top: 10px;" id="contracts" role="tabpanel"
+        aria-labelledby="contracts-tab">
+  
+        <div style="padding-left:10px;">
+          <table class="table table-striped table-hover table-sm">
+            <thead>
+              <tr>
+                <!-- <th class="small text-start"><small>Block</small></th> -->
+                <th class="small text-start"><small>Smart Contract</small></th> 
+                <!-- <th class="small text-center"><small>Event</small></th>
+                <th class="small text-end"><small>Date</small></th>
+                
+                <th class="small text-end"><small>Amount</small></th>
+                <th class="small text-start"><small>From</small></th>
+                <th class="small text-start"><small>To</small></th>
+                <th class="small text-center"><small>Url</small></th> -->
+              </tr>
+            </thead>
+            <tbody>
+              {% for con in stored_tag["contracts"] %}
+              <tr><td><small>{{con|instance_link_from_str(net)|safe }}</small></td></tr>
+              {% endfor %}
+                      </tbody>
+          
+          </table>
+          </div>
+          
+   
+  </div>
+
+  {% endif %}
+</div>
+
+</div>

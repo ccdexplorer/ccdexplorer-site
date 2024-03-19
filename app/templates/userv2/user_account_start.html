@@ -1,0 +1,12 @@
+<div hx-target="this" hx-swap="outerHTML" class="alert alert-success" role="alert">
+    <div class="row ">
+        <div class="col"><button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/edit/{{user_account_index}}" >
+        Edit
+        </button></div>
+        <div class="col"><i><small>{{user_account.label}}</small></i></div>
+        <div class="col"><a href="https://concordium-explorer.nl/mainnet/account/{{user_account.account_index}}"><span class="ccd">{{user_account.account_index}}</span></a></div>
+        <div class="col"><span class="ccd">{{user_account.account_id[:6]}}</span></div>
+        
+    </div>
+    
+</div>

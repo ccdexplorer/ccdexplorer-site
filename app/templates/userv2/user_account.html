@@ -1,0 +1,145 @@
+<div class="row alert alert-warning" role="alert">
+    <div class="col"><i><small>Editing</small></i></div>
+    <div class="col"><small>{{user_account.label}}</small></div>
+    <div class="col"><small>{{user_account.account_index}}</small></div>
+    <div class="col"><small>{{user_account.account_id[:6]}}</small></div>
+    
+</div>
+<div class="container px-2">
+
+<div class="row">
+    <div class="col text-start"><small>Label</small></div>
+    <div class="col-8">
+        <input                 class=" form-control form-control-sm small input-sm mb-1 text-end " 
+                type="text" name="label" {% if user_account.label %}value="{{user_account.label}}"{% endif %}>
+    </div>
+    <!-- <div class="col"></div> -->
+</div>
+
+<button class="btn small ms-1 mt-0 btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{user_account.label|replace(' ', '')}}" aria-expanded="false" aria-controls="collapse-{{user_account.label|replace(' ', '')}}">
+    Show/Hide Account Preferences
+  </button>
+  <div class="collapse" id="collapse-{{user_account.label|replace(' ', '')}}">
+    
+{% for field in account_all_fields %}
+    {% if field in account_all_fields_dict.keys() %}
+        <div class="row">
+            <div class="col">
+                {% set explanation_key = "account-"+field %}
+                <label><small><b>{{field|format_preference_key}}</b></small></label> <br/><span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+            </div>
+        </div>
+        <div class="row  bg-light">
+            <div class="col text-end"><small>Telegram</small></div>
+            <div class="col">
+            <input class="form-check-input" type="checkbox" name="telegram-{{field}}" {% if account_all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
+            </div>
+                    
+            {% if field in ['account_transfer', 'transferred_with_schedule'] %}
+            {% set field_name = "telegram-{{field}}-limit" %}
+            <div class="col">
+                <input 
+                type="text" 
+                class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+                data-precision="0" 
+                name="telegram-{{field}}-limit"  
+                id="telegram-{{field}}-limit" 
+                placeholder="0 CCD" 
+                {% if account_all_fields_dict[field].telegram_limit %} value="{{((account_all_fields_dict[field].telegram_limit)/1_000_000)|int}} CCD" {% endif %} ></div>
+            {% else %}
+                <div class="col">
+                        
+                </div>        
+            {% endif %}
+        
+        </div>
+
+        <div class="row  bg-light">
+            <div class="col  text-end">
+                <span><small>Email</small></span>
+            </div>
+            <div class="col">
+                <input class="form-check-input" type="checkbox" name="email-{{field}}" {% if account_all_fields_dict[field].email_enabled%} checked {% endif %}></td>
+            </div>
+                
+            {% if field in ['lowered_stake', 'account_transfer','transferred_with_schedule'] %}
+            {% set field_name = "email-{{field}}-limit" %}
+            <div class="col">
+                <input 
+                type="text" 
+                class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+                data-precision="0" 
+                name="email-{{field}}-limit"  
+                id="email-{{field}}-limit" 
+                placeholder="0 CCD" 
+                {% if account_all_fields_dict[field].email_limit %} value="{{((account_all_fields_dict[field].email_limit)/1_000_000)|int}} CCD" {% endif %} ></div>
+            {% else %}
+                <div class="col"> </div>
+            {% endif %}
+                    
+        </div>
+    
+    {% endif %}
+
+{% endfor %}
+
+</div>
+
+{% if validator_all_fields_dict|length == 0 %}
+{% else %}
+    <button class="btn small ms-1 mt-0 btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-validator-{{user_account.label|replace(' ', '')}}" aria-expanded="false" aria-controls="collapse-validator-{{user_account.label|replace(' ', '')}}">
+        Show/Hide Validator Preferences
+    </button>
+    <div class="collapse" id="collapse-validator-{{user_account.label|replace(' ', '')}}">
+        
+        
+    {% for field in validator_all_fields %}
+        {% if field in validator_all_fields_dict.keys() %}
+            <div class="row">
+                <div class="col">
+                    {% set explanation_key = "validator-"+field %}
+                <label><small><b>{{field|format_preference_key}}</b></small></label> <br/><span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+                </div>
+            </div>
+            <div class="row  bg-light">
+                <div class="col text-end"><small>Telegram</small></div>
+                <div class="col">
+                    <input class="form-check-input" type="checkbox" name="validator-telegram-{{field}}" {% if validator_all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
+                </div>
+                        
+                
+            </div>
+
+            <div class="row  bg-light">
+                <div class="col  text-end">
+                    <span><small>Email</small></span>
+                </div>
+                <div class="col">
+                    <input class="form-check-input" type="checkbox" name="validator-email-{{field}}" {% if validator_all_fields_dict[field].email_enabled%} checked {% endif %}></td>
+                </div>
+                        
+            </div>
+        
+        {% endif %}
+
+    {% endfor %}
+
+
+    </div>
+    <!-- This is the if validator_all_fields_dict|length == 0 -->
+    {% endif %}
+
+{% for field in account_all_fields %}
+    {% if field in ['account_transfer', 'transferred_with_schedule'] %}
+    <script>
+        $(function() {
+            $('#telegram-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+            $('#email-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+            $('#validator-telegram-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+            $('#validator-email-{{field}}-limit').maskMoney({allowZero:true, suffix: ' CCD'});
+        })
+    </script>
+    {% endif %}
+
+{% endfor %}
+</div>

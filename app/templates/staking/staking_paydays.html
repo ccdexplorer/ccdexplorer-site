@@ -1,0 +1,34 @@
+
+<div class="card mb-2 ms-2 me-2">    
+  <div class="card-body p-2" >
+      <!-- <div class="clearfix">
+          <div class="card-text small float-start small text-muted">Paydays</div>
+      </div> -->
+      <table class="table table-striped table-hover table-sm">
+      <thead>
+        <tr>
+          <th class="small" scope="col">Height</th>
+          <th class="small" scope="col">Time</th>
+          <th class="small" scope="col">Block</th>
+          
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="ccd">Next Payday...</span></td>
+          <td class="text-start"><small><span class="ccd">{{nextPaydayTime|datetime_format_isoparse}}</span></small></td>
+          <td class="small text-start"><small>...</small></td>
+      </tr>
+      {% for row in paydays%}
+        <tr>
+          <td><span class="ccd">{{row.block.blockHeight|round_0_decimal_with_comma}}</span></td>
+          <td class="text-start"><small><span class="ccd">{{row.block.blockSlotTime|datetime_format_isoparse}}</span></small></td>
+          <td class="small text-start"><small><a class="small" href = "/block/{{row.block.blockHash}}">🝙{{row.block.blockHash[:8]}}</a></small></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+  <!--class="card-body p-2"-->
+  </div>
+<!--class="card mb-2 ms-2 me-2"-->
+</div> 

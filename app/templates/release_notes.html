@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h5>Release Notes</h5>
+<div style="padding-left:10px;">
+{% for note in release_notes %}
+    {% include "release_note.html" %}
+
+{% endfor %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<div  class="ms-1" id="bakers" class="table-responsive">
+    
+    <table class="table table-striped ms-1 w-auto small">
+        <thead>
+            <tr>
+                <th class="small" scope="col">Baker ID</th>
+                <th class="small" scope="col">Label</th>
+                <th class="small" scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for id in user.bakers_to_follow %}
+            {% set label = user.labels[id|string] %}
+        
+            <tr><td><small><a href = "/account/{{id}}">{{id}}</a></small><td>{{label}}</td><td><button onclick='deleteBaker("{{id}}")' id="{{user.chat_id}}-{{id}}" type="button" class="btn btn-sm btn-danger">x</button></td></tr>
+          {% endfor %}
+        </tbody>    
+      </table>
+      <br>
+      <div class="col-xs-4 ">
+       
+        <input type="text" class=" form-control form-control-sm small input-sm mb-1 " name="bakerId" id="bakerId" placeholder="Baker ID"><br>
+        <input type="text" class=" form-control form-control-sm small input-sm mb-1 " name="baker-label" id="baker-label" placeholder="Label"><br>
+        <button onclick='addBaker()' id="baker-add-button" type="button" class="btn btn-sm btn-primary">Add Baker</button>
+          </form>
+        
+      </div>
+  </div>
+  

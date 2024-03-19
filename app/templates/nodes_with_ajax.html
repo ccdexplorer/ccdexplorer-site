@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script>
+console.log('getNodes')
+
+function getNodes(key, direction) {
+
+
+    nodes = document.getElementById('nodes');
+    url = base_url+'/ajax_nodes_html_v2/{{net}}/'+key+'/'+direction+'/'+api_key;
+  
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        nodes.innerHTML = data;
+      
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  
+    
+  }
+
+  function val() {
+
+    // Get the select menu
+    var key = document.querySelector('#key');
+    var direction = document.querySelector('#direction');
+
+    // Returns the selected value
+    getNodes(key.value, direction.value);
+    }
+
+  window.addEventListener('load', (event) => {
+    getNodes('total_stake', 'descending');
+    console.log('page is fully loaded');
+  });
+</script> 
+
+<div id="nodes"></div>
+{% endblock %}

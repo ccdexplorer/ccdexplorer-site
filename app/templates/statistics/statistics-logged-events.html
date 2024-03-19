@@ -1,0 +1,28 @@
+<div style="padding-left:10px; ">
+<table class="table table-striped table-hover table-sm p-4">
+  <thead>
+    <tr>
+      <th class="small text-start"><small>Tx</small></th>
+      <th class="small text-center"><small>Event</small></th>
+      <th class="small text-end"><small>Date</small></th>
+      
+      <th class="small text-end"><small>Amount</small></th>
+      <th class="small text-end"><small>Token</small></th>      
+    </tr>
+  </thead>
+  <tbody>
+
+{% autoescape true %}
+<!-- hello -->
+    {% for event_dict in logged_events%}
+    {% set event = event_dict.logged_event %}
+    {% set date = event_dict.date %}
+
+    {% include "statistics/statistics-logged-event.html" %}
+    {% endfor %}
+    {% endautoescape %}
+  </tbody>
+
+</table>
+</div>
+</div>

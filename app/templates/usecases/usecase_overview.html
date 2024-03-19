@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Usecase: {{usecase.display_name}}</h3>
+<p><small>Go to <a href="{{usecase.url}}">{{usecase.url}}</a> to learn more.</small></p>
+<br/><br/>
+<table class="table  small ">
+    <tr>
+    <th>Address</th>
+    <th>Index</th>
+</tr>
+<h5>Account Addresses</h5>
+{% for address in mainnet_usecase_addresses%}
+<tr><td class="ccd"><a href="/mainnet/account/{{address.account_address}}" class="ccd"><small>{{address.account_address}}</small></a></td><td><small>{{address.account_index}}</small></td></tr>
+
+{%endfor%}
+</table>
+{% endblock content %}

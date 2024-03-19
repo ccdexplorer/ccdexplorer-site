@@ -1,0 +1,23 @@
+        
+       
+    
+<tr>
+    {% set tokens_tag ='' %}
+    {% if typed_tokens_tag %}
+        {% if typed_tokens_tag.single_use_contract %}
+            {% set tokens_tag = typed_tokens_tag.id %}
+        {% endif %}
+    {% endif %}
+    {% set amount =(reward|int)|token_amount_using_decimals(decimals) %}
+    <td class="small text-start">
+        {% if receiver|length == 50 %}
+    <small>{{receiver|account_link(net, True, True, user, tags, app=request.app)|safe }}</small>
+        {% else %}
+    <small>{{receiver|instance_link_from_str(net, user, tags)|safe }}</small>
+        {% endif %}    
+    </td>
+    <td class="small text-end"><span class="ccd"><small>{{amount}}{% if tag !="_"%} {{tokens_tag}}{% endif %}</small></span></td>
+    
+</tr>
+            
+            
