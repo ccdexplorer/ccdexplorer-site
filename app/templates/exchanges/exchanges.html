@@ -5,7 +5,7 @@
 
     function retrieveSellerBuyer() {
         period = document.getElementById('period').value;
-        url = base_url+'/{{net}}/ajax_seller_buyer_mongo/'+period;
+        url = '/{{net}}/ajax_seller_buyer_mongo/'+period;
         ddiv = document.getElementById('sellers-buyers');
         ddiv.innerHTML = '{% include "spinner.html" %}'
         

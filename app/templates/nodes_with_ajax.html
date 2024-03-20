@@ -8,7 +8,7 @@ function getNodes(key, direction) {
 
 
     nodes = document.getElementById('nodes');
-    url = base_url+'/ajax_nodes_html_v2/{{net}}/'+key+'/'+direction+'/'+api_key;
+    url = '/ajax_nodes_html_v2/{{net}}/'+key+'/'+direction+'/'+api_key;
   
     fetch(url)
       .then((response) => {

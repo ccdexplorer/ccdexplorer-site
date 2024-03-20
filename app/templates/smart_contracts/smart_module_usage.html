@@ -20,7 +20,7 @@
   function get_module(selected_module) {
     var width = Math.min(window.innerWidth, 675);
     
-    url = base_url+'/ajax_source_module/{{net}}/'+selected_module+'/60/'+width+'?net=testnet';
+    url = '/ajax_source_module/{{net}}/'+selected_module+'/60/'+width+'?net=testnet';
     
   console.log(url);
   fetch(url)

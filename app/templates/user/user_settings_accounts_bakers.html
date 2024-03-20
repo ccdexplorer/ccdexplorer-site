@@ -66,7 +66,7 @@
       }
       items = document.getElementById('items');
       git_message = document.getElementById('git-message');
-      url = base_url+'/ajax_user_add_item';
+      url = '/ajax_user_add_item';
             fetch(url, {
             method: 'POST',
             body: JSON.stringify({
@@ -113,7 +113,7 @@
       items = document.getElementById('items');
       git_message = document.getElementById('git-message');
       
-            url = base_url+'/ajax_user_add_item';
+            url = '/ajax_user_add_item';
             fetch(url, {
             method: 'POST',
             body: JSON.stringify({
@@ -157,7 +157,7 @@
       // console.log(id, url_string)
       item_del_button = document.getElementById(id+'-delete');
       item_del_button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
-      url = base_url+'/ajax_user_delete_item';
+      url = '/ajax_user_delete_item';
       items = document.getElementById('items');
       s = JSON.stringify({
                 chat_id: '{{user.chat_id}}',

@@ -6,7 +6,7 @@
       console.log('saveLimit', limit)
       git_message = document.getElementById('git-message');
       git_message.innerHTML = '{% include "spinner.html" %}'
-      url = base_url+'/ajax_user_unstake_limit';
+      url = '/ajax_user_unstake_limit';
       fetch(url, {
             method: 'POST',
             body: JSON.stringify({

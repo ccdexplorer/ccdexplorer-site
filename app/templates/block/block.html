@@ -16,7 +16,7 @@
     function getTransactions(requested_page, total_rows) {
         transactions = document.getElementById('txs');
         var block_hash = document.querySelector('.block_hash').title;
-        url = base_url + '/ajax_block_transactions_html_v2/{{net}}/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + api_key ;
+        url =  '/ajax_block_transactions_html_v2/{{net}}/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + api_key ;
 
         fetch(url)
             .then((response) => {
@@ -63,7 +63,7 @@
     function getSpecialEvents() {
         se = document.getElementById('special_events');
         var block_hash = document.querySelector('.block_hash').title;
-        url = base_url + '/ajax_special_events_html_v2/{{net}}/' + block_hash + '/' + api_key ;
+        url =  '/ajax_special_events_html_v2/{{net}}/' + block_hash + '/' + api_key ;
 
         fetch(url)
             .then((response) => {
@@ -87,7 +87,7 @@
         
         cp = document.getElementById('chain_parameters');
         var block_hash = document.querySelector('.block_hash').title;
-        url = base_url + '/ajax_chain_parameters_html_v2/{{net}}/' + block_hash + '/' + api_key ;
+        url =  '/ajax_chain_parameters_html_v2/{{net}}/' + block_hash + '/' + api_key ;
         console.log('url===', url);
         fetch(url)
             .then((response) => {
@@ -113,7 +113,7 @@
         block_hash = document.getElementById('copy_me').title;
         slot_time = document.getElementById('slot_time').title.split(' ')[0];
 
-        url = base_url + '/ajax_payday_account_rewards_html_v2/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + slot_time + '/' + api_key;
+        url =  '/ajax_payday_account_rewards_html_v2/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + slot_time + '/' + api_key;
 
         fetch(url)
             .then((response) => {
@@ -156,7 +156,7 @@
         pool_rewards = document.getElementById('pool_rewards');
         block_hash = document.getElementById('copy_me').title;
         slot_time = document.getElementById('slot_time').title.split(' ')[0];
-        url = base_url + '/ajax_payday_pool_rewards_html_v2/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + slot_time + '/' + api_key;
+        url =  '/ajax_payday_pool_rewards_html_v2/' + block_hash + '/' + requested_page + '/' + total_rows + '/' + slot_time + '/' + api_key;
 
         fetch(url)
             .then((response) => {

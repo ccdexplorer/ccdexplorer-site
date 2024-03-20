@@ -9,7 +9,7 @@
       account_id = account_id_construct[0]
       // git_message = document.getElementById('git-message');
       // git_message.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
-      url = base_url+'/ajax_download_transactions/{{user.chat_id}}/'+account_id;
+      url = '/ajax_download_transactions/{{user.chat_id}}/'+account_id;
       
       fetch(url)
         .then((response) => {
@@ -49,7 +49,7 @@ function downloadTxs() {
       // period = document.getElementById('period').value;
       download_button = document.getElementById('download-button');
       download_button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
-      url = base_url+'/ajax_user_get_transactions/'+account_id+'/'+'ALL';//period;
+      url = '/ajax_user_get_transactions/'+account_id+'/'+'ALL';//period;
       txs = document.getElementById('txs');
       fetch(url)
         .then((response) => {

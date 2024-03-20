@@ -59,7 +59,7 @@
           search_result.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
           // console.log("start_date=", start_date);
         //   var account_id = document.querySelector('.account_id').title;
-          url = base_url+'/ajax_transactions_search/{{net}}/transfer/'+gte+'/'+lte+'/'+start_date+'/'+end_date+'/'+go_to_page+'/'+sort_on+'/'+sort_direction+'/'+all+'/'+memo_only+'/'+scheduled+'/'+memo_contains;
+          url = '/ajax_transactions_search/{{net}}/transfer/'+gte+'/'+lte+'/'+start_date+'/'+end_date+'/'+go_to_page+'/'+sort_on+'/'+sort_direction+'/'+all+'/'+memo_only+'/'+scheduled+'/'+memo_contains;
           console.log("FETCH: ", url);
           fetch(url)
             .then((response) => {

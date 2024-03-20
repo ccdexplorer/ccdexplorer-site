@@ -8,7 +8,7 @@
       git_message = document.getElementById('git-message');
       git_message.innerHTML = '{% include "spinner.html" %}'
       console.log('saveSmarts', init, updates)
-      url = base_url+'/ajax_user_smart_contracts';
+      url = '/ajax_user_smart_contracts';
       
       fetch(url, {
             method: 'POST',

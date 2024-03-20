@@ -12,7 +12,7 @@
   function getLoggedEvents(requested_page, total_rows) {
       // console.log("getloggevents")
     logged_events = document.getElementById('logged-events');
-    url = base_url + '/ajax_events/{{net}}/statistics/{{reporting_subject}}/'+requested_page +"/" +total_rows; 
+    url =  '/ajax_events/{{net}}/statistics/{{reporting_subject}}/'+requested_page +"/" +total_rows; 
   //   + requested_page + '/' + total_rows ;
     logged_events.innerHTML = '{% include "spinner.html" %}'
     fetch(url)

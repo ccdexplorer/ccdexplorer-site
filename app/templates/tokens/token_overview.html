@@ -13,7 +13,7 @@
 <script>
   function getRewards(requested_page, total_rows) {
     rewards = document.getElementById('rewards-payout');
-    url = base_url + '/{{net}}/tokens-special/PTRT/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/{{net}}/tokens-special/PTRT/' + requested_page + '/' + total_rows + '/' + api_key;
     rewards.innerHTML = '{% include "spinner.html" %}'
     fetch(url)
       .then((response) => {
@@ -40,7 +40,7 @@
 <script>
   function getTokenHolders(requested_page, total_rows) {
     token_holders = document.getElementById('token-holders');
-    url = base_url + '/ajax_token_holders_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/ajax_token_holders_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
     token_holders.innerHTML = '{% include "spinner.html" %}'
     console.log(url)
     fetch(url)
@@ -67,7 +67,7 @@
 <script>
   function getLoggedEvents(requested_page, total_rows) {
     logged_events = document.getElementById('logged-events');
-    url = base_url + '/ajax_logged_events_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/ajax_logged_events_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
     logged_events.innerHTML = '{% include "spinner.html" %}'
     fetch(url)
       .then((response) => {
@@ -95,7 +95,7 @@
     try {
       token_ids_for_tag = document.getElementById('token_ids_for_tag');
       // var account_id = document.querySelector('.account_id').title;
-      url = base_url + '/{{ajax_url}}/{{net}}/{{tag}}/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/{{ajax_url}}/{{net}}/{{tag}}/' + requested_page + '/' + total_rows + '/' + api_key;
       
       console.log('URL=', url);
       token_ids_for_tag.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'

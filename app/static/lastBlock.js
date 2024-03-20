@@ -17,7 +17,7 @@
   }
   
   function getState() {
-    url = base_url+'/state/'+api_key+'/'+Math.floor(Date.now() / 1000);
+    url = '/state/'+api_key+'/'+Math.floor(Date.now() / 1000);
 
     fetch(url)
       .then((response) => {
@@ -52,7 +52,7 @@
 
   function startStream() {
     console.log('startStream...');
-    url = base_url+'/stream-new-block';
+    url = '/stream-new-block';
 
     fetch(url)
       .then((response) => {

@@ -7,7 +7,7 @@
 <script>
   function getPayDays(requested_page, total_rows) {
     paydays = document.getElementById('paydays');
-    url = base_url + '/ajax_paydays_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/ajax_paydays_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
 
     fetch(url)
       .then((response) => {
@@ -41,7 +41,7 @@
   // "/ajax_pools_html/{key}/{direction}/{limit}/{current_page}/{next_page}/{row_count}/{api_key}"
   function getPools_v2(status, key, direction, requested_page, total_rows) {
     pools = document.getElementById('pools_v2');
-    url = base_url + '/ajax_pools_html_v2/' + status + '/' + key + '/' + direction + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/ajax_pools_html_v2/' + status + '/' + key + '/' + direction + '/' + requested_page + '/' + total_rows + '/' + api_key;
     // console.log(url);
     pools.innerHTML = '{% include "spinner.html" %}'
     fetch(url)
@@ -96,7 +96,7 @@
 <script>
   function getDelegators(requested_page, total_rows) {
     delegators = document.getElementById('delegators');
-    url = base_url + '/ajax_passive_delegators_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/ajax_passive_delegators_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
 
     fetch(url)
       .then((response) => {

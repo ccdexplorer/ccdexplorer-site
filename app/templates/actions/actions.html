@@ -7,7 +7,7 @@
 <script>
   function get_account_transfer_actions(requested_page, total_rows) {
     account_transfer = document.getElementById('content_account_transfer');
-      url = base_url + '/ajax_recent_actions/{{net}}/account_transfer/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/ajax_recent_actions/{{net}}/account_transfer/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
       account_transfer.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
           .then((response) => {
@@ -37,7 +37,7 @@
 <script>
   function get_token_actions(requested_page, total_rows) {
     token_events = document.getElementById('token_events');
-      url = base_url + '/ajax_token_events/{{net}}/5/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/ajax_token_events/{{net}}/5/' + requested_page + '/' + total_rows + '/' + api_key;
       token_events.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
           .then((response) => {
@@ -68,7 +68,7 @@
 <script>
   function get_account_creation_actions(requested_page, total_rows) {
     account_creation = document.getElementById('content_account_creation');
-      url = base_url + '/ajax_recent_actions/{{net}}/account_creation/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/ajax_recent_actions/{{net}}/account_creation/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
       account_creation.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
           .then((response) => {
@@ -97,7 +97,7 @@
 <script>
   function get_delegation_actions(requested_page, total_rows) {
     delegation_actions = document.getElementById('content_delegation_actions');
-      url = base_url + '/ajax_recent_actions/{{net}}/delegation_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/ajax_recent_actions/{{net}}/delegation_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
       delegation_actions.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
           .then((response) => {
@@ -126,7 +126,7 @@
 <script>
   function get_baker_actions(requested_page, total_rows) {
     baker_actions = document.getElementById('content_baker_actions');
-      url = base_url + '/ajax_recent_actions/{{net}}/baker_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url =  '/ajax_recent_actions/{{net}}/baker_configured/5' + '/' + requested_page + '/' + total_rows + '/' + api_key;
       baker_actions.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
           .then((response) => {

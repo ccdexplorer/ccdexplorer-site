@@ -74,7 +74,7 @@ for ( var i = 0; i < selection.selectedOptions.length; i++) {
   }
 
   reporting = document.getElementById('reporting');
-    url = base_url + '/ajax_source_module_reporting/';
+    url =  '/ajax_source_module_reporting/';
     reporting.innerHTML = '{% include "spinner.html" %}'
     fetch(url, {
             method: 'POST',

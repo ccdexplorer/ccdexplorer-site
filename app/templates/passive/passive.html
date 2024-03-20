@@ -26,7 +26,7 @@
           <script>
             function getDelegators(before, after, current_page) {
                 delegators = document.getElementById('delegators');
-                  url = base_url+'/ajax_passive_delegators_html/'+before+'/'+after+'/'+current_page+'/'+api_key;
+                  url = '/ajax_passive_delegators_html/'+before+'/'+after+'/'+current_page+'/'+api_key;
                   
                   fetch(url)
                     .then((response) => {
