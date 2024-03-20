@@ -36,7 +36,7 @@ if (ref) {
   function getTransactions(requested_page, total_rows) {
     transactions = document.getElementById('transactions');
     var account_id = document.querySelector('.account_id').title;
-    url = base_url + '/ajax_account_html/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    url = '/ajax_account_html/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
     transactions.innerHTML = '{% include "spinner.html" %}'
     fetch(url)
       .then((response) => {
@@ -67,7 +67,7 @@ if (ref) {
     try {
       tokens = document.getElementById('tokens');
       var account_id = document.querySelector('.account_id').title;
-      url = base_url + '/ajax_account_tokens/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url = '/ajax_account_tokens/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
       tokens.innerHTML = '{% include "spinner.html" %}'
       fetch(url)
         .then((response) => {
@@ -101,7 +101,7 @@ if (ref) {
     try {
       delegators = document.getElementById('delegators');
       var account_id = document.querySelector('.account_id').title;
-      url = base_url + '/ajax_delegators_html_v2/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      url = '/ajax_delegators_html_v2/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
       // console.log('URL=', url);
       delegators.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
       fetch(url)
@@ -133,7 +133,7 @@ if (ref) {
       tally = document.getElementById('baker_tally');
       var account_id = document.querySelector('.account_id').title;
       // console.log("account_is_baker=", {{account}});
-      url = base_url + '/account/baker-tally/{{net}}/'+account_id;
+      url = '/account/baker-tally/{{net}}/'+account_id;
 
       fetch(url)
         .then((response) => {
