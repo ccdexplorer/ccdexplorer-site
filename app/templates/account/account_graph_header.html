@@ -46,7 +46,7 @@
         var account_id = document.querySelector('.account_id').title;
         
         if (account_id != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD") {
-          url = base_url+'/ajax_sankey/{{net}}/'+account_id+'/'+gte+'/'+start_date+'/'+end_date;
+          url = '/ajax_sankey/{{net}}/'+account_id+'/'+gte+'/'+start_date+'/'+end_date;
           
           
           fetch(url)
