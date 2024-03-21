@@ -12,8 +12,8 @@ from app.state.state import *
 
 from app.classes.Enums import *
 from fastapi.encoders import jsonable_encoder
-from ccdefundamentals.mongodb import MongoDB, MongoTypeInstance
-from ccdefundamentals.user_v2 import (
+from ccdexplorer_fundamentals.mongodb import MongoDB, MongoTypeInstance
+from ccdexplorer_fundamentals.user_v2 import (
     UserV2,
     AccountForUser,
     ContractForUser,
@@ -25,13 +25,13 @@ from ccdefundamentals.user_v2 import (
     OtherNotificationPreferences,
 )
 from typing import Union
-from ccdefundamentals.tooter import Tooter
-from ccdefundamentals.GRPCClient import GRPCClient
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.tooter import Tooter
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from pymongo import ReplaceOne
 
 
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 
 router = APIRouter()
 

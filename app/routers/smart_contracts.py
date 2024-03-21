@@ -6,18 +6,18 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 from dateutil.relativedelta import relativedelta
 from datetime import timedelta
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 from sortedcontainers import SortedDict
 from app.Recurring.recurring import Recurring
 from app.jinja2_helpers import *
 from pymongo import DESCENDING
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from app.env import *
 from app.state.state import *
 from pydantic import BaseModel
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     Collections,
     MongoTypeModule,
@@ -639,7 +639,7 @@ async def smart_contract_instance_full_address(
             "contract": contract,
             "user": user,
             "tags": tags,
-            "net": net,
+            
         },
     )
 

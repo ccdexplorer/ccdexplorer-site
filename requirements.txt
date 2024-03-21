@@ -24,7 +24,7 @@ sentry-sdk[fastapi]
 vegafusion[embed]
 altair
 pymongo
-ccdefundamentals
+ccdexplorer-fundamentals
 pympler
 apprise
 docker

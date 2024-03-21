@@ -6,15 +6,15 @@ from app.env import *
 from app.utils import *
 from app.classes.Enums import *
 from pydantic import BaseModel
-from ccdefundamentals.cns import CNSEvent, CNSDomain, CNSActions
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
-from ccdefundamentals.GRPCClient import GRPCClient
-from ccdefundamentals.GRPCClient.CCD_Types import *
-from ccdefundamentals.mongodb import MongoDB, Collections
+from ccdexplorer_fundamentals.cns import CNSEvent, CNSDomain, CNSActions
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.mongodb import MongoDB, Collections
 from pymongo import ReplaceOne
 import typing
 
-# from ccdefundamentals.cis import (
+# from ccdexplorer_fundamentals.cis import (
 #     CIS,
 #     StandardIdentifiers,
 #     mintEvent,

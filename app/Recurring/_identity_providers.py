@@ -1,5 +1,5 @@
-from ccdefundamentals.GRPCClient import GRPCClient
-from ccdefundamentals.enums import NET
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.enums import NET
 
 
 class Mixin:

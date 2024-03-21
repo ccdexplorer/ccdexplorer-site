@@ -2,9 +2,9 @@ from app.console import console
 from app.classes.Enums import *
 from app.classes.Node_Baker import *
 
-from ccdefundamentals.node import ConcordiumNodeFromDashboard
+from ccdexplorer_fundamentals.node import ConcordiumNodeFromDashboard
 
-from ccdefundamentals.mongodb import MongoDB, Collections, MongoTypePayday
+from ccdexplorer_fundamentals.mongodb import MongoDB, Collections, MongoTypePayday
 
 # from typing import TYPE_CHECKING
 

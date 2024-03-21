@@ -3,9 +3,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.jinja2_helpers import *
 from app.env import *
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     MongoMotor,
     Collections,
@@ -21,8 +21,8 @@ from app.ajax_helpers import (
     process_sorted_pools_to_HTML_v2,
 )
 import math
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 
 router = APIRouter()
 

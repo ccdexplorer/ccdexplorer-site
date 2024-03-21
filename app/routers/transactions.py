@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-from ccdefundamentals.transaction import Transaction
+from ccdexplorer_fundamentals.transaction import Transaction
 from app.utils import user_string
 from app.ajax_helpers import (
     transactions_html_footer,
@@ -13,18 +13,18 @@ from app.env import *
 from typing import Union
 from app.state.state import *
 import datetime as dt
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     Collections,
     MongoTypeBlockPerDay,
     MongoMotor,
 )
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 
-# from ccdefundamentals.transaction import Transaction
-from ccdefundamentals.GRPCClient.CCD_Types import *
+# from ccdexplorer_fundamentals.transaction import Transaction
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 
 from app.Recurring.recurring import Recurring
 

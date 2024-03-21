@@ -7,13 +7,13 @@ from app.env import *
 from app.state.state import *
 from pymongo import DESCENDING
 from app.ajax_helpers import process_nodes_to_HTML
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
-from ccdefundamentals.node import ConcordiumNodeFromDashboard
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.node import ConcordiumNodeFromDashboard
 
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdefundamentals.mongodb import MongoDB, Collections, MongoTypePayday
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.mongodb import MongoDB, Collections, MongoTypePayday
 import aiohttp
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 
 router = APIRouter()

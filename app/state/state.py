@@ -1,13 +1,13 @@
 from fastapi import Request
 
-from ccdefundamentals.user_v2 import UserV2
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from ccdexplorer_fundamentals.mongodb import (
     Collections,
     CollectionsUtilities,
     MongoTypeBlockPerDay,
     MongoTypePayday,
 )
-from ccdefundamentals.cis import MongoTypeTokensTag, MongoTypeTokenAddress
+from ccdexplorer_fundamentals.cis import MongoTypeTokensTag, MongoTypeTokenAddress
 from pymongo import ReplaceOne
 
 import datetime as dt

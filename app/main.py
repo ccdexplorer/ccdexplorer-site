@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_restful.tasks import repeat_every
 from contextlib import asynccontextmanager
-from ccdefundamentals.mongodb import MongoDB, MongoMotor
+from ccdexplorer_fundamentals.mongodb import MongoDB, MongoMotor
 from prometheus_fastapi_instrumentator import Instrumentator
 
 # from app.Recurring import account
@@ -25,8 +25,8 @@ from app.state.state import *
 
 urllib3.disable_warnings()
 
-from ccdefundamentals.ccdscan import CCDScan
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.ccdscan import CCDScan
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from app.ajax_helpers import *
 from app.classes.dressingroom import *
 from app.classes.Node_Baker import *
@@ -52,11 +52,10 @@ from app.routers import (
     usersv2,
 )
 
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 
 grpcclient = GRPCClient()
 tooter = Tooter()
-
 mongodb = MongoDB(tooter)
 motormongo = MongoMotor(tooter)
 

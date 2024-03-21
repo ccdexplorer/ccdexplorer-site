@@ -7,24 +7,24 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 import operator
 from datetime import timedelta
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 from app.Recurring.recurring import Recurring
 from app.jinja2_helpers import *
 from pymongo import ASCENDING, DESCENDING
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from app.env import *
 from app.state.state import *
 from app.console import console
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdefundamentals.cis import (
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.cis import (
     CIS,
     TokenMetaData,
     MongoTypeLoggedEvent,
     transferEvent,
     MongoTypeTokenAddress,
 )
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     MongoMotor,
     Collections,

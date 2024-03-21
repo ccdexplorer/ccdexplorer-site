@@ -10,17 +10,17 @@ import pytz
 from enum import Enum
 import io
 from typing import Optional
-from ccdefundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
-from ccdefundamentals.mongodb import Collections, CollectionsUtilities, MongoDB
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
+from ccdexplorer_fundamentals.mongodb import Collections, CollectionsUtilities, MongoDB
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
 from uuid import UUID, uuid4
-from ccdefundamentals.enums import NET
+from ccdexplorer_fundamentals.enums import NET
 from rich.console import Console
 from pydantic import BaseModel
 from pymongo.collection import Collection
 import math
 import typing
-from ccdefundamentals.cis import (
+from ccdexplorer_fundamentals.cis import (
     CIS,
     LoggedEvents,
     MongoTypeTokenAddress,
@@ -79,10 +79,10 @@ class EventType:
 from datetime import timezone
 
 # This modules should NEVER import from app., or app.classes.
-# from ccdefundamentals.user import SubscriptionDetails
+# from ccdexplorer_fundamentals.user import SubscriptionDetails
 
 # from app.Recurring.recurring import Recurring
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
 import requests
 
 

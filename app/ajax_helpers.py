@@ -7,7 +7,7 @@ from app.env import *
 from app.classes.Enums import *
 from app.classes.dressingroom import QLPoolStatus, TransactionClassifier
 
-# from ccdefundamentals.account import (
+# from ccdexplorer_fundamentals.account import (
 #     AccountBakerPoolStatus,
 #     ConcordiumAccount,
 #     ConcordiumAccountFromClient,

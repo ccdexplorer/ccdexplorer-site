@@ -8,24 +8,24 @@ from app.classes.dressingroom import (
     MakeUpRequest,
     RequestingRoute,
 )
-from ccdefundamentals.transaction import Transaction
+from ccdexplorer_fundamentals.transaction import Transaction
 
-# from ccdefundamentals.ccdscan import CCDScan
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
+# from ccdexplorer_fundamentals.ccdscan import CCDScan
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 
 # import requests
 # import json
-from ccdefundamentals.enums import NET
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.enums import NET
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     Collections,
     MongoTypePayday,
     MongoTypePaydayAPYIntermediate,
     MongoTypeModule,
 )
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from app.jinja2_helpers import *
 from app.env import *
 from app.state.state import *

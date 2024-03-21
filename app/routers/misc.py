@@ -15,11 +15,11 @@ from app.env import *
 from app.state.state import *
 from app.Recurring.recurring import Recurring
 from datetime import timedelta
-from ccdefundamentals.cns import CNSDomain
+from ccdexplorer_fundamentals.cns import CNSDomain
 
-from ccdefundamentals.mongodb import MongoDB, Collections, MongoMotor
-from ccdefundamentals.GRPCClient.CCD_Types import *
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.mongodb import MongoDB, Collections, MongoMotor
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 import requests
 from app.ajax_helpers import (
@@ -27,7 +27,7 @@ from app.ajax_helpers import (
     transactions_html_footer,
     mongo_transactions_html_header,
 )
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 
 router = APIRouter()
 

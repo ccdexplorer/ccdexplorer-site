@@ -1,7 +1,7 @@
 from enum import Enum
 import plotly.graph_objects as go
 from ..utils import account_tag
-from ccdefundamentals.mongodb import MongoImpactedAddress
+from ccdexplorer_fundamentals.mongodb import MongoImpactedAddress
 
 
 class WhoHasLinkInfo(Enum):

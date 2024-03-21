@@ -6,7 +6,7 @@ from app.state.state import *
 import datetime as dt
 import pytz
 from app.classes.Enums import *
-from ccdefundamentals.mongodb import MongoDB, Collections
+from ccdexplorer_fundamentals.mongodb import MongoDB, Collections
 
 from app.Recurring.recurring import Recurring
 

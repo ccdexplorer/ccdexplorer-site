@@ -14,13 +14,13 @@ import numpy as np
 from bisect import bisect_right
 from app.utils import user_string
 from pydantic import ConfigDict
-from ccdefundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
 from app.Recurring.recurring import Recurring
-from ccdefundamentals.cis import MongoTypeLoggedEvent
-from ccdefundamentals.mongodb import MongoDB
+from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
+from ccdexplorer_fundamentals.mongodb import MongoDB
 from pymongo import ASCENDING, DESCENDING
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdefundamentals.GRPCClient.CCD_Types import CCD_PoolInfo, CCD_CurrentPaydayStatus
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_PoolInfo, CCD_CurrentPaydayStatus
 from altair import Chart
 import altair as alt
 

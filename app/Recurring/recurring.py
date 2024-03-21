@@ -2,10 +2,10 @@ from app.Recurring.bakers_nodes_updates import Mixin as baker_nodes
 
 from app.Recurring._identity_providers import Mixin as _identity_providers
 
-from ccdefundamentals.enums import NET
-from ccdefundamentals.ccdscan import CCDScan
-from ccdefundamentals.GRPCClient import GRPCClient
-from ccdefundamentals.mongodb import MongoDB, MongoMotor
+from ccdexplorer_fundamentals.enums import NET
+from ccdexplorer_fundamentals.ccdscan import CCDScan
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.mongodb import MongoDB, MongoMotor
 
 
 class Recurring(

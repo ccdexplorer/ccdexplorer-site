@@ -6,14 +6,14 @@ from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpReques
 from app.classes.sankey import SanKey
 from app.jinja2_helpers import *
 from app.env import *
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 import copy
 from app.state.state import *
-from ccdefundamentals.credential import Identity
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.credential import Identity
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from app.utils import earliest
 from pymongo import ASCENDING, DESCENDING
-from ccdefundamentals.mongodb import (
+from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     Collections,
     MongoMotor,
@@ -23,7 +23,7 @@ from ccdefundamentals.mongodb import (
     MongoTypeAccountReward,
 )
 import json
-from ccdefundamentals.tooter import Tooter
+from ccdexplorer_fundamentals.tooter import Tooter
 
 from app.Recurring.recurring import Recurring
 

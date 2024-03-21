@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 ##
-from ccdefundamentals.enums import NET
+from ccdexplorer_fundamentals.enums import NET
 
-from ccdefundamentals.mongodb import *
-from ccdefundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.mongodb import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 
 
 from app.ajax_helpers import (
@@ -26,9 +26,9 @@ from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpReques
 from app.env import *
 from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
-from ccdefundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 from app.state.state import *
-from ccdefundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 
 router = APIRouter()
