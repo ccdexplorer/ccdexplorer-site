@@ -36,7 +36,7 @@ from app.console import console
 from app.env import *
 from app.Recurring.recurring import Recurring
 from app.routers import (
-    admin,
+    
     account,
     block,
     exchanges,
@@ -81,17 +81,11 @@ async def lifespan(app: FastAPI):
     app.tooter = tooter
     app.ccdscan = ccdscan
     app.recurring = recurring
-    console.log(
-        f"startup_initial before mongo: {(dt.datetime.now().astimezone(dt.timezone.utc)-s).total_seconds():,.4} s"
-    )
-    s = dt.datetime.now().astimezone(dt.timezone.utc)
+    
     app.mongodb = mongodb
     app.motormongo = motormongo
     app.env["API_KEY"] = str(uuid.uuid1())
-    console.log(
-        f"startup_initial mongo / server: {(dt.datetime.now().astimezone(dt.timezone.utc)-s).total_seconds():,.4} s"
-    )
-    s = dt.datetime.now().astimezone(dt.timezone.utc)
+    
     app.release = await find_release()
     app.user_last_requested = dt.datetime.now().astimezone(dt.timezone.utc) - timedelta(
         seconds=10
@@ -154,18 +148,10 @@ async def lifespan(app: FastAPI):
         NET.TESTNET: 0,
     }
 
-    s = dt.datetime.now().astimezone(dt.timezone.utc)
     recurring.refresh_nodes_from_collection()
-    console.log(
-        f"refresh_nodes_from_collection: {(dt.datetime.now().astimezone(dt.timezone.utc)-s).total_seconds():,.4} s"
-    )
-
-    s = dt.datetime.now().astimezone(dt.timezone.utc)
+    
     await get_nightly_accounts(app)
-    console.log(
-        f"refresh_nightly: {(dt.datetime.now().astimezone(dt.timezone.utc)-s).total_seconds():,.4} s"
-    )
-
+    
     app.grpcclient.check_connection()
     yield
     print("END")
@@ -179,7 +165,6 @@ instrumentator = Instrumentator().instrument(app)
 
 app.include_router(smart_contracts.router)
 app.include_router(block.router)
-app.include_router(admin.router)
 app.include_router(usecases.router)
 app.include_router(misc.router)
 app.include_router(account.router)

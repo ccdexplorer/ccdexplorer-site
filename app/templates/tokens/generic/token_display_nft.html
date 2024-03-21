@@ -116,7 +116,7 @@
             const imageUrl = URL.createObjectURL(blob);
             const imageElement = new Image();
             imageElement.src = imageUrl;
-            imageElement.alt = 'API Image';
+            imageElement.alt = "{{metadata.name}}";
 
             // Set the maximum width and height for the image
             const maxWidth = 350; // Adjust this value as needed
