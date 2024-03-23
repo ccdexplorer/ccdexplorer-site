@@ -204,11 +204,17 @@ async def exchange_rates(
     )
 
 
-@router.get("/mainnet/chain-information", response_class=HTMLResponse)
-async def chain_information(
+@router.get(
+    "/ajax_protocol_updates/mainnet/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def ajax_protocol_updates(
     request: Request,
-    # recurring: Recurring = Depends(get_recurring),
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
     mongodb: MongoDB = Depends(get_mongo_db),
+    mongomotor: MongoMotor = Depends(get_mongo_motor),
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
@@ -219,24 +225,37 @@ async def chain_information(
     credential_issuers: list = Depends(get_credential_issuers),
 ):
     user: UserV2 = get_user_detailsv2(request)
-
-    ip = grpcclient.get_identity_providers("last_final")
-    ar = grpcclient.get_anonymity_revokers("last_final")
-    pipeline = [
-        # {"$sort": {"block_info.height": DESCENDING}},
-        {"$match": {"update": {"$exists": True}}},
-        {"$match": {"update.payload.micro_ccd_per_euro_update": {"$exists": False}}},
-        # {"$match": {"update.payload.protocol_update": {"$exists": True}}},
-    ]
-    result = mongodb.mainnet[Collections.transactions].aggregate(pipeline)
-    protocol_updates = [CCD_BlockItemSummary(**x) for x in result]
-    protocol_updates.sort(key=lambda x: x.block_info.height, reverse=True)
+    limit = 500
 
     tx_tabs: dict[TransactionClassifier, list] = {}
     tx_tabs_active: dict[TransactionClassifier, bool] = {}
 
     for tab in TransactionClassifier:
         tx_tabs[tab] = []
+
+    # requested page = 0 indicated the first page
+    # requested page = -1 indicates the last page
+    if requested_page > -1:
+        skip = requested_page * limit
+    else:
+        nr_of_pages, _ = divmod(total_rows, limit)
+        skip = nr_of_pages * limit
+        # special case if total_rows equals a limt multiple
+        if skip == total_rows:
+            skip = (nr_of_pages - 1) * limit
+
+    pipeline = [
+        {"$sort": {"block_info.height": DESCENDING}},
+        {"$match": {"update": {"$exists": True}}},
+        {"$match": {"update.payload.micro_ccd_per_euro_update": {"$exists": False}}},
+    ]
+    result = (
+        await mongomotor.mainnet[Collections.transactions]
+        .aggregate(pipeline)
+        .to_list(1_000_000)
+    )
+    protocol_updates = [CCD_BlockItemSummary(**x) for x in result]
+    protocol_updates.sort(key=lambda x: x.block_info.height, reverse=True)
 
     for transaction in protocol_updates:
         makeup_request = MakeUpRequest(
@@ -248,7 +267,6 @@ async def chain_information(
                 "user": user,
                 "contracts_with_tag_info": contracts_with_tag_info,
                 "ccd_historical": ccd_historical,
-                # "token_addresses_with_markup": token_addresses_with_markup,
                 "credential_issuers": credential_issuers,
                 "app": request.app,
             }
@@ -273,15 +291,36 @@ async def chain_information(
         html += process_transactions_to_HTML(
             tx_tabs[tab], tab.value, tx_tabs_active[tab], tags
         )
+    return html
+
+
+@router.get("/mainnet/chain-information", response_class=HTMLResponse)
+async def chain_information(
+    request: Request,
+    # recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+    tags: dict = Depends(get_labeled_accounts),
+    exchange_rates: dict = Depends(get_exchange_rates),
+    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
+    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
+    credential_issuers: list = Depends(get_credential_issuers),
+):
+    user: UserV2 = get_user_detailsv2(request)
+
+    ip = grpcclient.get_identity_providers("last_final")
+    ar = grpcclient.get_anonymity_revokers("last_final")
+
     return templates.TemplateResponse(
-        "chain_information.html",
+        "chain-information/chain_information.html",
         {
             "env": request.app.env,
             "request": request,
             "user": user,
             "ar": ar,
             "ip": ip,
-            "protocol_updates": html,
             "net": "mainnet",
         },
     )

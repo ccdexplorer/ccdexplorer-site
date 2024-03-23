@@ -19,8 +19,12 @@ from app.Recurring.recurring import Recurring
 from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
 from ccdexplorer_fundamentals.mongodb import MongoDB
 from pymongo import ASCENDING, DESCENDING
+from datetime import timedelta
 from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_PoolInfo, CCD_CurrentPaydayStatus
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_PoolInfo,
+    CCD_CurrentPaydayStatus,
+)
 from altair import Chart
 import altair as alt
 
@@ -379,7 +383,8 @@ def get_analytics_for_platform(
 ):
     if (
         (
-            dt.datetime.utcnow() - request.app.reporting_output_last_requested
+            dt.datetime.now().astimezone(dt.timezone.utc)
+            - request.app.reporting_output_last_requested
         ).total_seconds()
         < 60 * 5
     ) and (request.app.reporting_output.get(reporting_subject)):
@@ -416,7 +421,9 @@ def get_analytics_for_platform(
         )
 
         request.app.reporting_output[reporting_subject] = reporting_output
-        request.app.reporting_output_last_requested = dt.datetime.utcnow()
+        request.app.reporting_output_last_requested = dt.datetime.now().astimezone(
+            dt.timezone.utc
+        )
     return reporting_output
 
 
@@ -622,7 +629,7 @@ async def statistics_ajax_reporting_subject(
                     "subtitle": f"Grouped {period}",
                 },
             )
-            .to_json()
+            .to_json(format="vega")
         )
         return chart_by_action_type
 
@@ -658,7 +665,7 @@ async def statistics_ajax_reporting_subject(
                     "subtitle": f"Grouped {period}",
                 },
             )
-        ).to_json()
+        ).to_json(format="vega")
 
         return chart_by_token
 
@@ -876,6 +883,32 @@ def get_all_data_for_analysis(analysis: str, mongodb: MongoDB) -> list[str]:
         .find({"type": analysis}, {"_id": 0, "type": 0})
         .sort("date", ASCENDING)
     ]
+
+
+def generate_dates_from_start_until_end(start: str, end: str):
+    start_date = dateutil.parser.parse(start)
+    end_date = dateutil.parser.parse(end)
+    date_range = []
+
+    current_date = start_date
+    while current_date <= end_date:
+        date_range.append(current_date.strftime("%Y-%m-%d"))
+        current_date += timedelta(days=1)
+
+    return date_range
+
+
+def get_all_data_for_analysis_limited(
+    analysis: str, mongodb: MongoDB, dates_to_include: list[str]
+) -> list[str]:
+    pipeline = [
+        {"$match": {"date": {"$in": dates_to_include}}},
+        {"$match": {"type": analysis}},
+        {"$project": {"_id": 0, "type": 0}},
+        {"$sort": {"date": 1}},
+    ]
+    result = mongodb.mainnet[Collections.statistics].aggregate(pipeline)
+    return [x for x in result]
 
 
 def get_statistics_date(mongodb: MongoDB) -> str:
@@ -2237,3 +2270,212 @@ async def statistics_exchange_wallets(
         },
     )
     return chart.to_json(format="vega")
+
+
+@router.get(
+    "/{net}/ajax_statistics/statistics_transaction_fees/{width}",
+    response_class=Response,
+)
+async def statistics_transaction_fees(
+    request: Request,
+    net: str,
+    width: int,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    analysis = "statistics_transaction_fees"
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+                "user": user,
+            },
+        )
+
+    all_data = get_all_data_for_analysis(analysis, mongodb)
+    d_date = get_statistics_date(mongodb)
+    df = pd.DataFrame(all_data)
+    df.fillna(0)
+    df["fee_for_day"] = df["fee_for_day"] / 1_000_000
+
+    base = (
+        alt.Chart(df)
+        .mark_line(color="#EE9B54", opacity=0.99)
+        .encode(
+            y=alt.Y(
+                "fee_for_day:Q",
+                title="Transaction Fees (in CCD)",
+                # scale=alt.Scale(zero=False, type="log"),
+            ),
+            x=alt.X("date:T", title=None),
+            tooltip=[
+                alt.Tooltip("date:T", title="Date"),
+                alt.Tooltip(
+                    "fee_for_day:Q", title="Transaction Fees (CCD)", format=",.0f"
+                ),
+            ],
+        )
+    )
+
+    chart = base.properties(
+        width="container",
+        # width=400,
+        height=350,
+        title={
+            "text": "Transaction Fees per Day",
+            "subtitle": f"{d_date}",
+        },
+    )
+    return chart.to_json(format="vega")
+
+
+def dates_to_blocks(
+    start_date: str, end_date: str, blocks_per_day: dict[str, MongoTypeBlockPerDay]
+):
+    amended_start_date = (
+        f"{(dateutil.parser.parse(start_date)-dt.timedelta(days=1)):%Y-%m-%d}"
+    )
+    start_block = blocks_per_day.get(amended_start_date)
+    if start_block:
+        start_block = start_block.height_for_first_block
+    else:
+        start_block = 0
+
+    end_block = blocks_per_day.get(end_date)
+    if end_block:
+        end_block = end_block.height_for_last_block
+    else:
+        end_block = 1_000_000_000
+
+    return start_block, end_block
+
+
+@router.get(
+    "/ajax_transaction_fees_graph/{start_date}/{end_date}/{period}/{type}/{width}",
+    response_class=JSONResponse,
+)
+async def statistics_transaction_fees_ajax(
+    request: Request,
+    start_date: str,
+    end_date: str,
+    period: str,
+    type: str,
+    width: int,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    tooter: Tooter = Depends(get_tooter),
+    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
+    exchange_rates: dict = Depends(get_historical_rates),
+    blocks_per_day: dict[str, MongoTypeBlockPerDay] = Depends(get_blocks_per_day),
+):
+    # user: UserV2 = get_user_detailsv2(request)
+    net = "mainnet"
+
+    try:
+        statistics_transaction_fees_last_time = (
+            request.app.statistics_transaction_fees_last_time
+        )
+    except AttributeError:
+        statistics_transaction_fees_last_time = dt.datetime.now().astimezone(
+            dt.timezone.utc
+        )
+    try:
+        all_data = request.app.fees_all_data
+    except AttributeError:
+        all_data = None
+
+    if (
+        dt.datetime.now().astimezone(dt.timezone.utc)
+        - statistics_transaction_fees_last_time
+    ).total_seconds() < 3 and all_data:
+
+        all_data = request.app.fees_all_data
+    else:
+        dates_to_include = generate_dates_from_start_until_end(start_date, end_date)
+        all_data = get_all_data_for_analysis_limited(
+            "statistics_transaction_fees", mongodb, dates_to_include
+        )
+        request.app_fees_all_data = all_data
+        df = pd.DataFrame(all_data)
+
+        if len(df) > 0:
+            df["date"] = pd.to_datetime(df["date"])
+            df["fee_for_day"] = df["fee_for_day"] / 1_000_000
+            if period == "Daily":
+                letter = "D"
+                tooltip = "Day"
+            if period == "Weekly":
+                letter = "W"
+                tooltip = "Week"
+            if period == "Monthly":
+                letter = "ME"
+                tooltip = "Month"
+
+            df_group = (
+                df.groupby([pd.Grouper(key="date", axis=0, freq=letter)])
+                .sum()
+                .reset_index()
+            )
+            df_group.sort_values(by="date", ascending=False, inplace=True)
+
+            if type == "graph":
+                melt = pd.melt(
+                    df_group,
+                    id_vars=["date"],
+                    value_vars=["fee_for_day"],
+                )
+
+                base = alt.Chart(melt)
+
+                bar = base.mark_bar(
+                    cornerRadiusTopLeft=3,
+                    cornerRadiusTopRight=3,
+                    size=15 if width < 400 else 15,
+                ).encode(
+                    alt.X("date:T", scale=alt.Scale(nice=True)),
+                    y=alt.Y(
+                        "value:Q",
+                        title="Transaction Fees (CCD)",
+                        scale=alt.Scale(nice=True),
+                        axis=alt.Axis(
+                            grid=False,
+                            #    offset=10,
+                            format=".2s",
+                        ),
+                    ),
+                    # color=alt.Color(
+                    #     "variable:N", title="Reward Type", scale=alt.Scale(range=rng)
+                    # ),
+                    tooltip=[
+                        alt.Tooltip("date:T", title=f"{tooltip} Ending"),
+                        alt.Tooltip(
+                            "value:Q", title="Transaction Fees (CCD)", format=",.0f"
+                        ),
+                    ],
+                )
+                chart = bar.properties(
+                    # width='container',
+                    width=width * 0.80 if width < 400 else width,
+                    height=200,
+                    title={
+                        "text": f"Transaction Fees {period}",
+                        # "subtitle": f"Account {account_index}",
+                    },
+                ).configure_legend(
+                    orient="bottom",
+                    direction="horizontal",
+                    fillColor="white",
+                    padding=15,
+                    labelPadding=15,
+                    strokeColor="gray",
+                    labelFontSize=9,
+                )
+
+                return Response(chart.to_json(format="vega"))
+            else:
+
+                return df_group.to_dict("records")

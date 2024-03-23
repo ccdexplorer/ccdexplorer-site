@@ -205,11 +205,17 @@ button, input, optgroup, select, textarea {
     
     <!-- <div class="vega-embed-small" id="vis-transaction-bubble"></div> -->
     <br><br><br><br><br><br><br><br>
-    <h5 class="p-2">Transaction costs -  Fee stabilization</h5>
+    <h5 class="p-2">Transaction costs - Fee stabilization</h5>
     <p class="small p-2"><i>"Transactions costs are designed to be stable in EUR terms, thereby enabling businesses and other users to predict and plan the costs of blockchain transactions."</i><br><br>On the chain this is expressed in micro CCD per EUR.
     Below we graph the cost of a regular transfer (with an energy cost of 501) over time in CCD.</p>
     <div class="vega-embed" id="vis-statistics_microccd"></div>
     <script type="text/javascript">get_chart("statistics_microccd");</script>
+    
+    <br><br><br><br><br><br><br><br>
+    <h5 class="p-2">Transaction Fees</h5>
+    
+    <div class="vega-embed" id="vis-statistics_transaction_fees"></div>
+    <script type="text/javascript">get_chart("statistics_transaction_fees");</script>
     
     <!-- <div class="vega-embed" id="vis-microccd"></div> -->
     <br><br><br><br><br>
