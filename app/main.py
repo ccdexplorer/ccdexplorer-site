@@ -36,7 +36,6 @@ from app.console import console
 from app.env import *
 from app.Recurring.recurring import Recurring
 from app.routers import (
-    
     account,
     block,
     exchanges,
@@ -80,11 +79,11 @@ async def lifespan(app: FastAPI):
     app.tooter = tooter
     app.ccdscan = ccdscan
     app.recurring = recurring
-    
+
     app.mongodb = mongodb
     app.motormongo = motormongo
     app.env["API_KEY"] = str(uuid.uuid1())
-    
+
     app.release = await find_release()
     app.user_last_requested = dt.datetime.now().astimezone(dt.timezone.utc) - timedelta(
         seconds=10
@@ -148,9 +147,9 @@ async def lifespan(app: FastAPI):
     }
 
     recurring.refresh_nodes_from_collection()
-    
+
     await get_nightly_accounts(app)
-    
+
     app.grpcclient.check_connection()
     yield
     print("END")

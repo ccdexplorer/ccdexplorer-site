@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+
+<h2>API</h2>
+<p class="small">CCDExplorer.io has an API environment deployed at:</p>
+  <table class="table table-small table-striped">
+    <tr>
+      <th class="small">Use</th>
+      <th class="small">Url</th>
+      <th class="small">Documentation</th>
+    </tr>
+    <tr>
+      <td class="small">Production</td>
+      <td class="small">https://api.ccdexplorer.io</td>
+      <td class="small"><a href="https://api.ccdexplorer.io/redoc">Link</a></td>
+    </tr>
+    <tr>
+      <td class="small">Development</td>
+      <td class="small">https://dev-api.ccdexplorer.io</td>
+      <td class="small"><a href="https://dev-api.ccdexplorer.io/redoc">Link</a>
+      </td></tr>
+    
+  </table>
+<br/><br/>
+  <h5>Example endpoints</h5>
+  <div class="card mb-2 ms-2 me-2">
+    <div class="card-body p-2">
+            <div class="card-title small ">Name: Get Transaction<b></b>  
+            <div class="card-text small ">Description: This endpoint gets information from a transaction using its hash.</div>
+            <br/>
+            <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/transaction/{tx_hash}</b></a></div>
+            <div>Example: <a href="https://api.ccdexplorer.io/v1/mainnet/transaction/6159f5bbe77b1a6544448ca17b33a1bb33280182a651094921e5641c6966b572"><b>https://api.ccdexplorer.io/v1/mainnet/transaction/6159f...66b572</b></a></div>
+            <br/>
+            <div>Parameters: </div>
+            <div>* {net} is <i>mainnet</i> or <i>testnnet</i><br/>
+              * {tx_hash} is the <i>transaction hash</i></div>
+            </div>
+        
+    </div>
+        
+</div>
+<!-- </div> -->
+<div class="card mb-2 ms-2 me-2">
+  <div class="card-body p-2">
+          <div class="card-title small ">Name: Get Transaction Logged Events<b></b>  
+          <div class="card-text small ">Description: This endpoint gets logged events for a transaction as stored in MongoDB collection <i>tokens_logged_events</i>. Note that only logged events are stored that are relevant for token accounting, so mint, transfer, burn and metadata. See <a href="http://proposals.concordium.software/CIS/cis-2.html">http://proposals.concordium.software/CIS/cis-2.html</a> for further details on these events. </div>
+          <br/>
+          <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/transaction/{tx_hash}/logged_events</b></a></div>
+          <div>Example: <a href="https://api.ccdexplorer.io/v1/mainnet/transaction/2c0a2e67766c41c8d4c2484db5a9804f937ab862f8528639522d2cb1bb152e18/logged_events"><b>https://api.ccdexplorer.io/v1/mainnet/transaction/2c0a2...152e18</b></a></div>
+          <br/>
+          <div>Parameters: </div>
+          <div>* {net} is <i>mainnet</i> or <i>testnnet</i><br/>
+            * {tx_hash} is the <i>transaction hash</i></div>
+          </div>
+      
+  </div>
+      
+</div>
+<!-- </div> -->
+  
+<div class="card mb-2 ms-2 me-2">
+  <div class="card-body p-2">
+          <div class="card-title small ">Name: Get Account Tokens<b></b>  
+          <div class="card-title small ">Description: This endpoint gets all tokens for a given account, as stored in MongoDB collection <i>tokens_links_v2.</i></div>
+          <br/>
+          <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/account/{account_address}/tokens</b></a></div>
+          <div>Example: <a href="https://api.ccdexplorer.io/v1/{net}/account/32EwmG2aJCRAmEDKY6AEYoF4SpxrChQKh1hChECtCc7jQnrRpe/tokens"><b>https://api.ccdexplorer.io/v1/{net}/account/32EwmG2...jQnrRpe/tokens</b></a></div>
+          <br/>
+          <div>Parameters: </div>
+          <div>* {net} is <i>mainnet</i> or <i>testnnet</i><br/>
+            * {account_address} is the <i>account address</i></div>
+          </div>
+      
+  </div>
+      
+</div>
+<!-- </div> -->
+
+
+{% endif %}
+{% endblock content %}

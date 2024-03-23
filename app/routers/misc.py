@@ -1,7 +1,13 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
 
 from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
+from fastapi.responses import (
+    HTMLResponse,
+    RedirectResponse,
+    JSONResponse,
+    FileResponse,
+    Response,
+)
 
 from typing import Optional, Union
 
@@ -150,6 +156,28 @@ async def recent_actions(
             "user": user,
             "tags": tags,
             "net": net,
+        },
+    )
+
+
+@router.get("/api", response_class=HTMLResponse)
+async def api(
+    request: Request,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+    exchange_rates: dict = Depends(get_exchange_rates),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    return templates.TemplateResponse(
+        "api-docs.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "exchange_rates": exchange_rates,
+            "net": "mainnet",
         },
     )
 
