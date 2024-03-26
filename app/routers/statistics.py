@@ -88,11 +88,11 @@ class ReportingAddresses(BaseModel):
 class ReportingOutput(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     txs_by_action_type: dict  # [ReportingActionType: list[ClassifiedTransaction]]
-    output: list
-    df_accounts: dict
-    df_raw: pd.DataFrame
-    df_output_action_types: dict  # [str:pd.DataFrame]
-    df_output_fungible_token: dict  # [str:pd.DataFrame]
+    # output: list
+    # df_accounts: dict
+    # df_raw: pd.DataFrame
+    # df_output_action_types: dict  # [str:pd.DataFrame]
+    # df_output_fungible_token: dict  # [str:pd.DataFrame]
 
 
 def address_exists_and_is_account(address: Union[None, str]):
@@ -153,143 +153,143 @@ def add_date_to_tx(tx: ClassifiedTransaction, heights, block_end_of_day_dict):
     return tx
 
 
-def process_txs_for_analytics(
-    txs_by_action_type, token_addresses_with_markup, exchange_rates
-):
-    # token_addresses_with_markup = get_token_addresses_with_markup()
-    output = []
-    accounts = []
+# def process_txs_for_analytics(
+#     txs_by_action_type, token_addresses_with_markup, exchange_rates
+# ):
+#     # token_addresses_with_markup = get_token_addresses_with_markup()
+#     output = []
+#     accounts = []
 
-    for action_type in ReportingActionType:
-        txs_per_action_type = txs_by_action_type[action_type]
-        for tx in txs_per_action_type:
-            tx: ClassifiedTransaction
-            r = tx.logged_events[0]
-            output, accounts = append_logged_event(
-                token_addresses_with_markup,
-                output,
-                accounts,
-                action_type,
-                tx,
-                r,
-                exchange_rates,
-            )
+#     for action_type in ReportingActionType:
+#         txs_per_action_type = txs_by_action_type[action_type]
+#         for tx in txs_per_action_type:
+#             tx: ClassifiedTransaction
+#             r = tx.logged_events[0]
+#             output, accounts = append_logged_event(
+#                 token_addresses_with_markup,
+#                 output,
+#                 accounts,
+#                 action_type,
+#                 tx,
+#                 r,
+#                 exchange_rates,
+#             )
 
-            if tx.action_type == ReportingActionType.withdraw:
-                r = tx.logged_events[1]
-                output, accounts = append_logged_event(
-                    token_addresses_with_markup,
-                    output,
-                    accounts,
-                    action_type,
-                    tx,
-                    r,
-                    exchange_rates,
-                )
+#             if tx.action_type == ReportingActionType.withdraw:
+#                 r = tx.logged_events[1]
+#                 output, accounts = append_logged_event(
+#                     token_addresses_with_markup,
+#                     output,
+#                     accounts,
+#                     action_type,
+#                     tx,
+#                     r,
+#                     exchange_rates,
+#                 )
 
-    df = pd.DataFrame([x.model_dump() for x in output])
-    df["date"] = pd.to_datetime(df["date"])
+#     df = pd.DataFrame([x.model_dump() for x in output])
+#     df["date"] = pd.to_datetime(df["date"])
 
-    df_a = pd.DataFrame([x.model_dump() for x in accounts])
-    df_a["date"] = pd.to_datetime(df_a["date"])
+#     df_a = pd.DataFrame([x.model_dump() for x in accounts])
+#     df_a["date"] = pd.to_datetime(df_a["date"])
 
-    df_output_action_types = {}
-    df_output_fungible_token = {}
-    df_accounts = {}
-    for letter in ["D", "W", "M"]:
-        df_output_action_types[letter] = (
-            df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "action_type"])
-            .sum()
-            .reset_index()
-        )
-        # df_output_action_types[letter]["date"] = str(
-        #     df_output_action_types[letter]["date"]
-        # )
+#     df_output_action_types = {}
+#     df_output_fungible_token = {}
+#     df_accounts = {}
+#     for letter in ["D", "W", "M"]:
+#         df_output_action_types[letter] = (
+#             df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "action_type"])
+#             .sum()
+#             .reset_index()
+#         )
+#         # df_output_action_types[letter]["date"] = str(
+#         #     df_output_action_types[letter]["date"]
+#         # )
 
-        df_output_fungible_token[letter] = (
-            df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "fungible_token"])
-            .sum()
-            .reset_index()
-        )
-        # df_output_fungible_token[letter]["date"] = str(
-        #     df_output_fungible_token[letter]["date"]
-        # )
+#         df_output_fungible_token[letter] = (
+#             df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "fungible_token"])
+#             .sum()
+#             .reset_index()
+#         )
+#         # df_output_fungible_token[letter]["date"] = str(
+#         #     df_output_fungible_token[letter]["date"]
+#         # )
 
-        df_accounts[letter] = (
-            df_a.groupby([pd.Grouper(key="date", axis=0, freq=letter)])["addresses"]
-            .agg(",".join)
-            .reset_index()
-        )
-        df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].str.split(
-            ","
-        )
-        df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].apply(set)
-        df_accounts[letter]["addresses_unique"] = df_accounts[letter][
-            "addresses"
-        ].apply(len)
-        columns = ["date", "addresses_unique"]
-        df_accounts[letter] = pd.DataFrame(df_accounts[letter], columns=columns)
-        # df_accounts[letter]["date"] = str(df_accounts[letter]["date"])
+#         df_accounts[letter] = (
+#             df_a.groupby([pd.Grouper(key="date", axis=0, freq=letter)])["addresses"]
+#             .agg(",".join)
+#             .reset_index()
+#         )
+#         df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].str.split(
+#             ","
+#         )
+#         df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].apply(set)
+#         df_accounts[letter]["addresses_unique"] = df_accounts[letter][
+#             "addresses"
+#         ].apply(len)
+#         columns = ["date", "addresses_unique"]
+#         df_accounts[letter] = pd.DataFrame(df_accounts[letter], columns=columns)
+#         # df_accounts[letter]["date"] = str(df_accounts[letter]["date"])
 
-        # df.groupby('col')['val'].agg('-'.join)
-    return ReportingOutput(
-        df_raw=df,
-        txs_by_action_type=txs_by_action_type,
-        output=output,
-        df_accounts=df_accounts,
-        df_output_action_types=df_output_action_types,
-        df_output_fungible_token=df_output_fungible_token,
-    )
+#         # df.groupby('col')['val'].agg('-'.join)
+#     return ReportingOutput(
+#         df_raw=df,
+#         txs_by_action_type=txs_by_action_type,
+#         output=output,
+#         df_accounts=df_accounts,
+#         df_output_action_types=df_output_action_types,
+#         df_output_fungible_token=df_output_fungible_token,
+#     )
 
 
-def append_logged_event(
-    token_addresses_with_markup,
-    output: list[ReportingUnit],
-    accounts: list[ReportingAddresses],
-    action_type: ReportingActionType,
-    tx: ClassifiedTransaction,
-    r: MongoTypeLoggedEvent,
-    exchange_rates,
-):
-    token_address_with_markup: MongoTypeTokenAddress = token_addresses_with_markup.get(
-        r.token_address
-    )
-    if not token_address_with_markup:
-        console.log(f"Can't find {r.token_address} in token_addresses_with_markup!!!")
-        return output, accounts
+# def append_logged_event(
+#     token_addresses_with_markup,
+#     output: list[ReportingUnit],
+#     accounts: list[ReportingAddresses],
+#     action_type: ReportingActionType,
+#     tx: ClassifiedTransaction,
+#     r: MongoTypeLoggedEvent,
+#     exchange_rates,
+# ):
+#     token_address_with_markup: MongoTypeTokenAddress = token_addresses_with_markup.get(
+#         r.token_address
+#     )
+#     if not token_address_with_markup:
+#         console.log(f"Can't find {r.token_address} in token_addresses_with_markup!!!")
+#         return output, accounts
 
-    fungible_token = token_address_with_markup.tag_information.id
-    if fungible_token[0] == "w":
-        fungible_token = fungible_token[1:]
-    if int(r.result["token_amount"]) > 0:
-        real_token_amount = int(r.result["token_amount"]) * (
-            math.pow(10, -token_address_with_markup.tag_information.decimals)
-        )
+#     fungible_token = token_address_with_markup.tag_information.id
+#     if fungible_token[0] == "w":
+#         fungible_token = fungible_token[1:]
+#     if int(r.result["token_amount"]) > 0:
+#         real_token_amount = int(r.result["token_amount"]) * (
+#             math.pow(10, -token_address_with_markup.tag_information.decimals)
+#         )
 
-        if exchange_rates.get(fungible_token):
-            if tx.date in exchange_rates[fungible_token]:
-                exchange_rate_for_day = exchange_rates[fungible_token][tx.date]
-                dd = {
-                    "tx_hash": tx.tx_hash,
-                    "date": tx.date,
-                    "fungible_token": fungible_token,
-                    "amount_in_local_currency": real_token_amount,
-                    "amount_in_usd": real_token_amount * exchange_rate_for_day,
-                    "action_type": action_type.value,
-                }
-                # print (dd)
-                output.append(ReportingUnit(**dd))
-                if len(tx.addresses) > 0:
-                    accounts.append(
-                        ReportingAddresses(
-                            **{
-                                "tx_hash": tx.tx_hash,
-                                "date": tx.date,
-                                "addresses": ", ".join(tx.addresses),
-                            }
-                        )
-                    )
-    return output, accounts
+#         if exchange_rates.get(fungible_token):
+#             if tx.date in exchange_rates[fungible_token]:
+#                 exchange_rate_for_day = exchange_rates[fungible_token][tx.date]
+#                 dd = {
+#                     "tx_hash": tx.tx_hash,
+#                     "date": tx.date,
+#                     "fungible_token": fungible_token,
+#                     "amount_in_local_currency": real_token_amount,
+#                     "amount_in_usd": real_token_amount * exchange_rate_for_day,
+#                     "action_type": action_type.value,
+#                 }
+#                 # print (dd)
+#                 output.append(ReportingUnit(**dd))
+#                 if len(tx.addresses) > 0:
+#                     accounts.append(
+#                         ReportingAddresses(
+#                             **{
+#                                 "tx_hash": tx.tx_hash,
+#                                 "date": tx.date,
+#                                 "addresses": ", ".join(tx.addresses),
+#                             }
+#                         )
+#                     )
+#     return output, accounts
 
 
 def add_tx_addresses(event: MongoTypeLoggedEvent, addresses: set):
@@ -412,14 +412,11 @@ def get_analytics_for_platform(
 
         (
             txs_by_action_type,
-            tx_hashes_from_events,
+            _,
         ) = process_txs_for_action_type_classification(
             tx_hashes, reporting_subject, mongodb, heights, block_end_of_day_dict
         )
-        reporting_output = process_txs_for_analytics(
-            txs_by_action_type, token_addresses_with_markup, exchange_rates
-        )
-
+        reporting_output = ReportingOutput(txs_by_action_type=txs_by_action_type)
         request.app.reporting_output[reporting_subject] = reporting_output
         request.app.reporting_output_last_requested = dt.datetime.now().astimezone(
             dt.timezone.utc
@@ -477,55 +474,102 @@ async def statistics(
         )
 
 
+#########################
+### TAKE 2
+
+
+def replace_short_strings(string):
+    if len(string) < 5:
+        return ""
+    else:
+        return string
+
+
 @router.get(
-    "/ajax/{net}/statistics/{reporting_subject}/{output_type}/{period}/{width}",
+    "/ajax_bridges_and_dexes/{rep_subject}/{output_type}/{period}/{width}",
     response_class=Response,
 )
-async def statistics_ajax_reporting_subject(
+async def bridges_and_dexes_graph(
     request: Request,
-    net: str,
-    reporting_subject: str,
+    rep_subject: str,
     output_type: str,
     period: str,
     width: int,
     recurring: Recurring = Depends(get_recurring),
     mongodb: MongoDB = Depends(get_mongo_db),
     tooter: Tooter = Depends(get_tooter),
-    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    exchange_rates: dict = Depends(get_historical_rates),
 ):
     # user: UserV2 = get_user_detailsv2(request)
 
-    reporting_subject = ReportingSubject(reporting_subject.capitalize())
-    reporting_output = get_analytics_for_platform(
-        reporting_subject, mongodb, token_addresses_with_markup, exchange_rates, request
+    reporting_subject = ReportingSubject(rep_subject.capitalize())
+    all_data = get_all_data_for_bridges_and_dexes(
+        "statistics_bridges_and_dexes", rep_subject, mongodb
     )
+    d_date = get_statistics_date(mongodb)
 
-    selection = alt.selection_point(fields=["series"], bind="legend")
+    action_types_list = []
+    fungible_tokens_list = []
+    unique_addresses_list = []
+    tvl_list = []
+    tvl = 0
+    start_date = all_data[0]["date"]
+    end_date = all_data[-1]["date"]
+    domain = [
+        dateutil.parser.parse(start_date),
+        dateutil.parser.parse(end_date),
+    ]
 
-    # TVL calculation
-    dd = reporting_output.df_output_fungible_token[period[0]]
-    tvl_source = (
-        dd[["date", "action_type", "amount_in_usd"]]
-        .groupby(["date", "action_type"])
-        .sum()
-        .reset_index()
-    )
-    tvl_source_dict = tvl_source.to_dict("records")
-    if reporting_subject == ReportingSubject.Arabella:
-        type_in = ReportingActionType.mint.value
-        type_out = ReportingActionType.burn.value
-    else:
-        type_in = ReportingActionType.deposit.value
-        type_out = ReportingActionType.withdraw.value
+    for day in all_data:
+        if len(day["action_types_for_day"]) > 0:
+            for action_type in day["action_types_for_day"]:
+                action_types_list.append(
+                    {
+                        "date": day["date"],
+                        "action_type": action_type["action_type"],
+                        "amount_in_usd": action_type["amount_in_usd"],
+                    }
+                )
+                # TVL
+                if reporting_subject == ReportingSubject.Arabella:
+                    if action_type["action_type"] == "Mint":
+                        tvl += action_type["amount_in_usd"]
+                    if action_type["action_type"] == "Withdraw":
+                        tvl -= action_type["amount_in_usd"]
 
-    # days in tvl_source["date"].to_list().unique()
-    tvl_dict = {}
+                if reporting_subject == ReportingSubject.Concordex:
+                    if action_type["action_type"] == "Deposit":
+                        tvl += action_type["amount_in_usd"]
+                    if action_type["action_type"] == "Withdraw":
+                        tvl -= action_type["amount_in_usd"]
 
-    # for entry in tvl_source_dict:
-    #     if not tvl_dict.get(entry['date']):
-    #         tvl_dict[entry['date']] =
+            tvl_list.append({"date": day["date"], "tvl_in_usd": tvl})
+
+        if len(day["fungible_tokens_for_day"]) > 0:
+            for fungible_token in day["fungible_tokens_for_day"]:
+                fungible_tokens_list.append(
+                    {
+                        "date": day["date"],
+                        "fungible_token": fungible_token["fungible_token"],
+                        "amount_in_usd": fungible_token["amount_in_usd"],
+                    }
+                )
+        if len(day["unique_addresses_for_day"]) > 0:
+            for address in day["unique_addresses_for_day"]:
+                unique_addresses_list.append(
+                    {"date": day["date"], "unique_address": address}
+                )
+        # else:
+        #     unique_addresses_list.append({"date": day["date"], "unique_address": None})
+
+    if period == "Daily":
+        letter = "D"
+        tooltip = "Day"
+    if period == "Weekly":
+        letter = "W"
+        tooltip = "Week"
+    if period == "Monthly":
+        letter = "ME"
+        tooltip = "Month"
 
     rng_action_types = [
         "#AE7CF7",
@@ -533,13 +577,6 @@ async def statistics_ajax_reporting_subject(
         "#6E97F7",
         "#EE9B54",
     ]
-
-    # rng_action_types = [
-    #     "#005A78",
-    #     "#FFFDE4",
-    #     "#052535",
-    #     "#EBF0F0",
-    # ]
 
     rng_tokens = [
         "#DC5050",
@@ -555,12 +592,25 @@ async def statistics_ajax_reporting_subject(
     ]
 
     if output_type == "action-type":
-
-        base = alt.Chart(reporting_output.df_output_action_types[period[0]]).encode(
-            x=alt.X("date:T")
+        df_action_types = pd.DataFrame(action_types_list)
+        df_action_types["date"] = pd.to_datetime(df_action_types["date"])
+        df_output_action_types = (
+            df_action_types.groupby(
+                [pd.Grouper(key="date", axis=0, freq=letter), "action_type"]
+            )
+            .sum()
+            .reset_index()
+        )
+        dates = df_output_action_types["date"].to_list()
+        domain = [
+            dates[0],
+            dates[-1],
+        ]
+        base = alt.Chart(df_output_action_types).encode(
+            x=alt.X("date:T", scale=alt.Scale(domain=domain))
         )
 
-        chart = base.mark_area().encode(
+        chart = base.mark_area(interpolate="monotone").encode(
             y=alt.Y("amount_in_usd:Q", title="USD"),
             tooltip=[
                 alt.Tooltip("date:T", title="Date"),
@@ -577,34 +627,35 @@ async def statistics_ajax_reporting_subject(
                 ),
             ),
         )
-
-        tbl_line = (
-            alt.Chart(tvl_source)
-            .mark_line(point=True, opacity=0.6)
-            .encode(
-                x=alt.X("date:T"),
-                y=alt.Y("addresses_unique:Q", title=f"Unique {period} Addresses"),
-                tooltip=[
-                    alt.Tooltip("date:T", title="Date"),
-                    alt.Tooltip(
-                        "addresses_unique:Q",
-                        title=f"Unique {period} Addresses",
-                        format=",.0f",
-                    ),
-                ],
-            )
+        df_unique_addresses = pd.DataFrame(unique_addresses_list)
+        df_unique_addresses["date"] = pd.to_datetime(df_unique_addresses["date"])
+        df_unique_addresses.fillna("", inplace=True)
+        df_accounts = (
+            df_unique_addresses.groupby([pd.Grouper(key="date", axis=0, freq=letter)])[
+                "unique_address"
+            ]
+            .agg(",".join)
+            .reset_index()
+        )
+        df_accounts["unique_address"] = df_accounts["unique_address"].str.split(",")
+        df_accounts["unique_address"] = df_accounts["unique_address"].apply(set)
+        df_accounts["unique_address"] = df_accounts["unique_address"].apply(list)
+        df_accounts["unique_address"] = df_accounts["unique_address"].apply(
+            lambda x: "" if x == [""] else x
         )
 
+        df_accounts["unique_address"] = df_accounts["unique_address"].apply(len)
+
         users_line = (
-            alt.Chart(reporting_output.df_accounts[period[0]])
-            .mark_line(point=True, opacity=0.6)
+            alt.Chart(df_accounts.interpolate())
+            .mark_line(point=True, opacity=0.6, interpolate="monotone")
             .encode(
-                x=alt.X("date:T"),
-                y=alt.Y("addresses_unique:Q", title=f"Unique {period} Addresses"),
+                x=alt.X("date:T", scale=alt.Scale(domain=domain)),
+                y=alt.Y("unique_address:Q", title=f"Unique {period} Addresses"),
                 tooltip=[
                     alt.Tooltip("date:T", title="Date"),
                     alt.Tooltip(
-                        "addresses_unique:Q",
+                        "unique_address:Q",
                         title=f"Unique {period} Addresses",
                         format=",.0f",
                     ),
@@ -626,7 +677,7 @@ async def statistics_ajax_reporting_subject(
                 width=width * 0.75 if width < 400 else width,
                 title={
                     "text": f"{reporting_subject.value} Usage by Action Type (with {UA})",
-                    "subtitle": f"Grouped {period}",
+                    "subtitle": f"Grouped {period}, {d_date}",
                 },
             )
             .to_json(format="vega")
@@ -634,12 +685,27 @@ async def statistics_ajax_reporting_subject(
         return chart_by_action_type
 
     if output_type == "token":
-
+        df_fungible_tokens = pd.DataFrame(fungible_tokens_list)
+        df_fungible_tokens["date"] = pd.to_datetime(df_fungible_tokens["date"])
+        df_output_fungible_token = (
+            df_fungible_tokens.groupby(
+                [pd.Grouper(key="date", axis=0, freq=letter), "fungible_token"]
+            )
+            .sum()
+            .reset_index()
+        )
+        dates = df_output_fungible_token["date"].to_list()
+        domain = [
+            dates[0],
+            dates[-1],
+        ]
         chart_by_token = (
-            alt.Chart(reporting_output.df_output_fungible_token[period[0]])
-            .mark_area()
+            alt.Chart(df_output_fungible_token)
+            .mark_area(interpolate="monotone")
             .encode(
-                x=alt.X("date:T"),  # , scale=alt.Scale(domain=list(domain_pd))),
+                x=alt.X(
+                    "date:T", scale=alt.Scale(domain=domain)
+                ),  # , scale=alt.Scale(domain=list(domain_pd))),
                 tooltip=[
                     alt.Tooltip("date:T", title="Date"),
                     alt.Tooltip("amount_in_usd:Q", title="Amount (USD)", format=",.0f"),
@@ -662,24 +728,58 @@ async def statistics_ajax_reporting_subject(
                 width=width * 0.75 if width < 400 else width,
                 title={
                     "text": f"{reporting_subject.value} Usage by Fungible Token",
-                    "subtitle": f"Grouped {period}",
+                    "subtitle": f"Grouped {period}, {d_date}",
                 },
             )
         ).to_json(format="vega")
 
         return chart_by_token
 
-    if output_type == "users":
-        html = templates.get_template(
-            "statistics/statistics-bridge-dex-users.html"
-        ).render(
-            {
-                "users": reporting_output.df_accounts[period[0]].to_dict("records"),
-                "txs_by_action_type": reporting_output.txs_by_action_type,
-            }
+    if output_type == "tvl":
+        df_tvl = pd.DataFrame(tvl_list)
+        df_tvl["date"] = pd.to_datetime(df_tvl["date"])
+        # now find all dates in the grouped dfs. This list of dates will be the list we use
+        # to lookup the correct TVL values.
+        # grouped_dates = df_output_action_types["date"].to_list()
+        # mask = df_tvl["date"].isin(grouped_dates)
+        # df_tvl = df_tvl[mask]
+        df_tvl_for_chart = (
+            df_tvl.groupby([pd.Grouper(key="date", axis=0, freq=letter)])
+            .mean()
+            .reset_index()
         )
 
-        return html
+        dates = df_tvl_for_chart["date"].to_list()
+        domain = [
+            dates[0],
+            dates[-1],
+        ]
+        chart_by_tvl = (
+            alt.Chart(df_tvl_for_chart.interpolate())
+            .mark_line(point=True, interpolate="monotone", color="#AE7CF7", size=3)
+            .encode(
+                x=alt.X(
+                    "date:T", scale=alt.Scale(domain=domain)
+                ),  # , scale=alt.Scale(domain=list(domain_pd))),
+                tooltip=[
+                    alt.Tooltip("date:T", title="Date"),
+                    alt.Tooltip("tvl_in_usd:Q", title="TVL (USD)", format=",.0f"),
+                ],
+                y=alt.Y("tvl_in_usd:Q", title="USD"),
+            )
+            .properties(
+                width=width * 0.75 if width < 400 else width,
+                title={
+                    "text": f"{reporting_subject.value} Mean Total Value Locked (TVL)",
+                    "subtitle": f"Grouped {period}, {d_date}",
+                },
+            )
+        ).to_json(format="vega")
+
+        return chart_by_tvl
+
+
+#########################
 
 
 def mongo_logged_events_html_header(
@@ -728,7 +828,7 @@ def process_logged_events_to_HTML(rows, tab_string: str, active: bool):
     "/ajax_events/{net}/statistics/{reporting_subject}/{requested_page}/{total_rows}",
     response_class=Response,
 )
-async def statistics_ajax_reporting_subject_events(
+async def statistics_ajax_reporting_subject_events_logged_events(
     request: Request,
     net: str,
     reporting_subject: str,
@@ -841,11 +941,6 @@ async def statistics_reporting_subject(
     # exchange_rates: dict = Depends(get_historical_rates),
 ):
     user: UserV2 = get_user_detailsv2(request)
-    tooter.send(
-        channel=TooterChannel.NOTIFIER,
-        message=f"{user_string(user)} visited /statistics/{reporting_subject}.",
-        notifier_type=TooterType.INFO,
-    )
     if net != "mainnet":
         return templates.TemplateResponse(
             "testnet/not-available.html",
@@ -858,7 +953,7 @@ async def statistics_reporting_subject(
         )
     print(f"{net=}")
     return templates.TemplateResponse(
-        "statistics/statistics-bridge-dex.html",
+        "statistics/statistics-bridge-dex-v2.html",
         {
             "env": request.app.env,
             "net": net,
@@ -883,6 +978,24 @@ def get_all_data_for_analysis(analysis: str, mongodb: MongoDB) -> list[str]:
         .find({"type": analysis}, {"_id": 0, "type": 0})
         .sort("date", ASCENDING)
     ]
+
+
+def get_all_data_for_bridges_and_dexes(
+    analysis: str, reporting_subject: str, mongodb: MongoDB
+) -> list[str]:
+    pipeline = [
+        {"$match": {"type": analysis}},
+        {"$match": {"reporting_subject": reporting_subject}},
+        {
+            "$project": {
+                "_id": 0,
+                "type": 0,
+                "reporting_subject": 0,
+            }
+        },
+        {"$sort": {"date": 1}},
+    ]
+    return list(mongodb.mainnet[Collections.statistics].aggregate(pipeline))
 
 
 def generate_dates_from_start_until_end(start: str, end: str):
