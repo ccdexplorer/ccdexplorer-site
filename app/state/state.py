@@ -253,6 +253,7 @@ def get_user_detailsv2(req: Request, token: str = None, force: bool = False):
             < 60
         )
         and (req.app.user)
+        and (str(req.app.user.token) == token)
     ):
         user = req.app.user
 
