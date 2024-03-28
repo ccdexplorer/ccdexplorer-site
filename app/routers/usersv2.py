@@ -75,7 +75,7 @@ def user_settings_all(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if user:
         if not isinstance(user, UserV2):
             user = UserV2(**user)
@@ -537,7 +537,7 @@ def delete_user_account_response(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -571,7 +571,7 @@ def delete_contract_response(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -606,7 +606,7 @@ def save_contract_response(
     tooter: Tooter = Depends(get_tooter),
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -678,7 +678,7 @@ def save_contract_response(
             )
         ]
     )
-    # user: UserV2 = get_user_detailsv2(request, force=True)
+    # user: UserV2 = get_user_detailsv2(request)
     # if not isinstance(user, UserV2):
     #     user = UserV2(**user)
     # if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -702,7 +702,7 @@ def save_user_account_response(
     tooter: Tooter = Depends(get_tooter),
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -828,7 +828,7 @@ def save_user_account_response(
             )
         ]
     )
-    user: UserV2 = get_user_detailsv2(request, force=True)
+    user: UserV2 = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -849,7 +849,7 @@ def edit_email_address(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tooter: Tooter = Depends(get_tooter),
 ):
-    user = get_user_detailsv2(request, force=True)
+    user = get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
