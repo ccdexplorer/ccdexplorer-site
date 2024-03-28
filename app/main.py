@@ -85,9 +85,9 @@ async def lifespan(app: FastAPI):
     app.env["API_KEY"] = str(uuid.uuid1())
 
     app.release = await find_release()
-    app.user_last_requested = dt.datetime.now().astimezone(dt.timezone.utc) - timedelta(
-        seconds=10
-    )
+    app.users_last_requested = dt.datetime.now().astimezone(
+        dt.timezone.utc
+    ) - timedelta(seconds=10)
     app.tokens_tags_last_requested = dt.datetime.now().astimezone(
         dt.timezone.utc
     ) - timedelta(seconds=10)

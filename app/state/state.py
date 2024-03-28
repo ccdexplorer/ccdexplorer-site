@@ -240,44 +240,28 @@ def get_historical_rates(
     return req.app.exchange_rates_historical
 
 
-def get_user_detailsv2(req: Request, token: str = None, force: bool = False):
+def get_and_save_user_from_collection(req: Request):
+    if (
+        dt.datetime.now().astimezone(dt.timezone.utc) - req.app.users_last_requested
+    ).total_seconds() > 15:
+
+        result = req.app.mongodb.utilities[CollectionsUtilities.users_v2_prod].find({})
+        req.app.users_from_collection = {x["token"]: UserV2(**x) for x in list(result)}
+        req.app.users_last_requested = dt.datetime.now().astimezone(dt.timezone.utc)
+
+
+def get_user_detailsv2(req: Request, token: str = None):
+    get_and_save_user_from_collection(req=req)
     if not token:
         token = req.cookies.get("access-token")
-    if (
-        (not force)
-        and (
-            (
-                dt.datetime.now().astimezone(dt.timezone.utc)
-                - req.app.user_last_requested
-            ).total_seconds()
-            < 60
-        )
-        and (req.app.user)
-        and (str(req.app.user.token) == token)
-    ):
-        user = req.app.user
 
-    else:
-        coll = req.app.mongodb.utilities[CollectionsUtilities.users_v2_prod]
+    users_from_collection = req.app.users_from_collection
+    user = users_from_collection.get(token)
 
-        user = coll.find_one({"token": token})
-        if user:
-            req.app.user_last_requested = dt.datetime.now().astimezone(dt.timezone.utc)
-            req.app.user = UserV2(**user)
+    if user:
+        if not type(user) == UserV2:
+            user = UserV2(**user)
 
-            # save back to collection
-            req.app.user.last_seen_on_site = dt.datetime.now().astimezone(
-                tz=dt.timezone.utc
-            )
-            req.app.mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-                [
-                    ReplaceOne(
-                        {"token": str(req.app.user.token)},
-                        req.app.user.model_dump(exclude_none=True),
-                        upsert=True,
-                    )
-                ]
-            )
     return user
 
 
