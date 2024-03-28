@@ -26,6 +26,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_CurrentPaydayStatus,
 )
 from altair import Chart
+import pandas as pd
 import altair as alt
 
 alt.data_transformers.enable("vegafusion")

@@ -1,8 +1,7 @@
 # ruff: noqa: F403, F405, E402, E501, E722
-from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 ##
 from ccdexplorer_fundamentals.enums import NET
@@ -12,13 +11,10 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 
 
 from app.ajax_helpers import (
-    process_payday_account_rewards_to_HTML,
     process_payday_account_rewards_to_HTML_v2,
-    process_payday_pool_rewards_to_HTML,
     process_payday_pool_rewards_to_HTML_v2,
     process_transactions_to_HTML,
     transactions_html_footer,
-    mongo_pagination_html_header,
     mongo_transactions_html_header,
 )
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
@@ -26,7 +22,7 @@ from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpReques
 from app.env import *
 from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.tooter import Tooter
 from app.state.state import *
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 

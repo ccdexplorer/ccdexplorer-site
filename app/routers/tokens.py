@@ -24,6 +24,7 @@ from ccdexplorer_fundamentals.cis import (
     transferEvent,
     MongoTypeTokenAddress,
 )
+from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.mongodb import (
     MongoDB,
     MongoMotor,
@@ -200,7 +201,7 @@ async def ajax_token_events(
         tx_tabs,
         tx_tabs_active,
         block_transactions=False,
-        word=f"token_event",
+        word="token_event",
     )
 
     for tab in TransactionClassifier:
@@ -492,7 +493,7 @@ async def tokens_tag_token_id(
 
     if not tokens_tag:
         return templates.TemplateResponse(
-            f"tokens/generic/token_display_nft.html", template_dict
+            "tokens/generic/token_display_nft.html", template_dict
         )
     else:
         if tokens_tag["tag_template"]:
@@ -501,7 +502,7 @@ async def tokens_tag_token_id(
             )
         else:
             return templates.TemplateResponse(
-                f"tokens/generic/token_display_nft.html", template_dict
+                "tokens/generic/token_display_nft.html", template_dict
             )
 
 

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-from ccdexplorer_fundamentals.transaction import Transaction
 from app.utils import user_string
 from app.ajax_helpers import (
     transactions_html_footer,
@@ -10,7 +9,6 @@ from app.ajax_helpers import (
 )
 from app.jinja2_helpers import *
 from app.env import *
-from typing import Union
 from app.state.state import *
 import datetime as dt
 from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel

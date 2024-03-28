@@ -1,23 +1,21 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
 import datetime as dt
-from datetime import timedelta
-import logging
-import uuid
 import resource
-import uvicorn
+import uuid
+from contextlib import asynccontextmanager
+from datetime import timedelta
+
 import urllib3
+from ccdexplorer_fundamentals.enums import NET
+from ccdexplorer_fundamentals.mongodb import MongoDB, MongoMotor
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_restful.tasks import repeat_every
-from contextlib import asynccontextmanager
-from ccdexplorer_fundamentals.mongodb import MongoDB, MongoMotor
 from prometheus_fastapi_instrumentator import Instrumentator
 
 # from app.Recurring import account
-
-
 from app.jinja2_helpers import *
 
 # from app.__chain import *
@@ -27,11 +25,11 @@ urllib3.disable_warnings()
 
 from ccdexplorer_fundamentals.ccdscan import CCDScan
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+
 from app.ajax_helpers import *
 from app.classes.dressingroom import *
 from app.classes.Node_Baker import *
-
-
 from app.console import console
 from app.env import *
 from app.Recurring.recurring import Recurring
@@ -50,8 +48,6 @@ from app.routers import (
     usecases,
     usersv2,
 )
-
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 
 grpcclient = GRPCClient()
 tooter = Tooter()

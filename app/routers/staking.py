@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 
 from app.jinja2_helpers import *
 from app.env import *
@@ -20,9 +20,8 @@ from app.ajax_helpers import (
     process_passive_delegators_to_HTML_v2,
     process_sorted_pools_to_HTML_v2,
 )
-import math
-from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from ccdexplorer_fundamentals.tooter import Tooter
 
 router = APIRouter()
 

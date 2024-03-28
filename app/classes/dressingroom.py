@@ -7,7 +7,7 @@ from app.utils import *
 from app.classes.Enums import *
 from pydantic import BaseModel
 from ccdexplorer_fundamentals.cns import CNSEvent, CNSDomain, CNSActions
-from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.user_v2 import UserV2
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import MongoDB, Collections

@@ -1,32 +1,36 @@
 import datetime as dt
-import dateutil.parser
-import chardet
-from fastapi import Request
-import pytz
-import altair as alt
-import pandas as pd
-import datetime as dt
-import pytz
-from enum import Enum
 import io
-from typing import Optional
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
-from ccdexplorer_fundamentals.mongodb import Collections, CollectionsUtilities, MongoDB
-from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
-from uuid import UUID, uuid4
-from ccdexplorer_fundamentals.enums import NET
-from rich.console import Console
-from pydantic import BaseModel
-from pymongo.collection import Collection
 import math
 import typing
+
+# from app.Recurring.recurring import Recurring
+from datetime import timezone
+from enum import Enum
+from typing import Optional
+from uuid import UUID
+
+import dateutil.parser
+import pytz
+import requests
+
 from ccdexplorer_fundamentals.cis import (
     CIS,
     LoggedEvents,
     MongoTypeTokenAddress,
-    TokenMetaData,
     MongoTypeTokensTag,
+    TokenMetaData,
 )
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
+from ccdexplorer_fundamentals.mongodb import Collections, CollectionsUtilities, MongoDB
+
+# This modules should NEVER import from app., or app.classes.
+# from ccdexplorer_fundamentals.user import SubscriptionDetails
+# from app.Recurring.recurring import Recurring
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from fastapi import Request
+from pydantic import BaseModel
+from pymongo.collection import Collection
+from rich.console import Console
 
 console = Console()
 
@@ -73,17 +77,6 @@ class EventType:
 
     def __repr__(self):
         return f"{self.event}, {self.update}, {self.emit}"
-
-
-# from app.Recurring.recurring import Recurring
-from datetime import timezone
-
-# This modules should NEVER import from app., or app.classes.
-# from ccdexplorer_fundamentals.user import SubscriptionDetails
-
-# from app.Recurring.recurring import Recurring
-from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
-import requests
 
 
 def format_preference_key(value: str):
@@ -147,7 +140,7 @@ def cns_domains_registered(account_id):
 
 
 def memory_profiler():
-    from pympler import summary, muppy
+    from pympler import muppy, summary
 
     mem_summary = summary.summarize(muppy.get_objects())
     rows = summary.format_(mem_summary)
@@ -797,7 +790,6 @@ def decode_memo(hex):
     # return bytes.decode(bs[1:], 'UTF-8')
     try:
         bs = io.BytesIO(bytes.fromhex(hex))
-        n = int.from_bytes(bs.read(1), byteorder="little")
         value = bs.read(256)
         try:
             memo = bytes.decode(value, "UTF-8")
@@ -939,7 +931,7 @@ def find_baker_node_info(value, bakers_by_account_id, nodes_by_baker_id):
         node_str = f'<td><a class="small" href ="/node/{node.nodeId}"><small>{node.nodeName}</small><a></td>'
     else:
         node_str = (
-            f'<td><span class="small"><small>No Dashboard Entry</small><span></td>'
+            '<td><span class="small"><small>No Dashboard Entry</small><span></td>'
         )
 
     return baker_str + node_str

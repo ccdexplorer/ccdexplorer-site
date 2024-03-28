@@ -8,7 +8,7 @@ from ccdexplorer_fundamentals.mongodb import (
     MongoTypePayday,
 )
 from ccdexplorer_fundamentals.cis import MongoTypeTokensTag, MongoTypeTokenAddress
-from pymongo import ReplaceOne
+from ccdexplorer_fundamentals.enums import NET
 
 import datetime as dt
 
@@ -255,8 +255,11 @@ def get_user_detailsv2(req: Request, token: str = None):
     if not token:
         token = req.cookies.get("access-token")
 
-    users_from_collection = req.app.users_from_collection
-    user = users_from_collection.get(token)
+    try:
+        users_from_collection = req.app.users_from_collection
+        user = users_from_collection.get(token)
+    except AttributeError:
+        user = None
 
     if user:
         if not type(user) == UserV2:

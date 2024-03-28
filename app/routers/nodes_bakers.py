@@ -1,16 +1,15 @@
 # ruff: noqa: F403, F405, E402
 from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from app.Recurring.recurring import Recurring
 from app.jinja2_helpers import *
 from app.env import *
 from app.state.state import *
-from pymongo import DESCENDING
 from app.ajax_helpers import process_nodes_to_HTML
-from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
+from ccdexplorer_fundamentals.user_v2 import UserV2
 from ccdexplorer_fundamentals.node import ConcordiumNodeFromDashboard
 
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+from ccdexplorer_fundamentals.tooter import Tooter
 from ccdexplorer_fundamentals.mongodb import MongoDB, Collections, MongoTypePayday
 import aiohttp
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient

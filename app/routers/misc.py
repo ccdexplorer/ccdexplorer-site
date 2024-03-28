@@ -10,9 +10,9 @@ from fastapi.responses import (
 )
 
 from typing import Optional, Union
+from ccdexplorer_fundamentals.enums import NET
 
 # from app.__chain import Chain
-from typing import Optional
 from pymongo import ASCENDING, DESCENDING
 import random
 from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
@@ -50,7 +50,7 @@ async def grant_proposal(
     user: UserV2 = get_user_detailsv2(request)
     tooter.send(
         channel=TooterChannel.NOTIFIER,
-        message=f"(Site): Grant proposal requested!",
+        message="(Site): Grant proposal requested!",
         notifier_type=TooterType.INFO,
     )
     return FileResponse("persist/grant-proposal-dec-2022.pdf")
@@ -127,7 +127,7 @@ async def labeled_accounts(
 
 
 @router.get(
-    f"/delegate-to-72723-for-free-access",
+    "/delegate-to-72723-for-free-access",
     response_class=RedirectResponse,
 )
 async def redirect_delegator():
@@ -244,10 +244,15 @@ async def ajax_protocol_updates(
         if skip == total_rows:
             skip = (nr_of_pages - 1) * limit
 
+    tx_hashes = [
+        x["tx_hash"]
+        for x in mongodb.mainnet[Collections.pre_render].find(
+            {"recurring_type": "protocol_updates"}
+        )
+    ]
     pipeline = [
         {"$sort": {"block_info.height": DESCENDING}},
-        {"$match": {"update": {"$exists": True}}},
-        {"$match": {"update.payload.micro_ccd_per_euro_update": {"$exists": False}}},
+        {"$match": {"_id": {"$in": tx_hashes}}},
     ]
     result = (
         await mongomotor.mainnet[Collections.transactions]

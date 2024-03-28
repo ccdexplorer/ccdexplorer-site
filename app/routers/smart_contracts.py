@@ -1,37 +1,38 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-
-from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-from dateutil.relativedelta import relativedelta
-from datetime import timedelta
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
-
-from sortedcontainers import SortedDict
-from app.Recurring.recurring import Recurring
-from app.jinja2_helpers import *
-from pymongo import DESCENDING
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from app.env import *
-from app.state.state import *
-from pydantic import BaseModel
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdexplorer_fundamentals.mongodb import (
-    MongoDB,
-    Collections,
-    MongoTypeModule,
-    MongoTypeInstance,
-    MongoMotor,
-)
+import collections
 from bisect import bisect_right
+from datetime import timedelta
+
+import altair as alt
+import pandas as pd
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.mongodb import (
+    Collections,
+    MongoDB,
+    MongoMotor,
+    MongoTypeInstance,
+    MongoTypeModule,
+)
+from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+from dateutil.relativedelta import relativedelta
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import BaseModel
+from pymongo import DESCENDING
+from sortedcontainers import SortedDict
+
 from app.ajax_helpers import (
+    mongo_transactions_html_header,
     process_transactions_to_HTML,
     transactions_html_footer,
-    mongo_transactions_html_header,
 )
-import collections
-
+from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
+from app.env import *
+from app.jinja2_helpers import *
+from app.Recurring.recurring import Recurring
+from app.state.state import *
 
 router = APIRouter()
 
@@ -639,7 +640,6 @@ async def smart_contract_instance_full_address(
             "contract": contract,
             "user": user,
             "tags": tags,
-            
         },
     )
 

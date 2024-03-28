@@ -15,8 +15,6 @@ from app.classes.dressingroom import QLPoolStatus, TransactionClassifier
 
 # from app.db import *
 from app.jinja2_helpers import *
-from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
 
 # db = DB()
 

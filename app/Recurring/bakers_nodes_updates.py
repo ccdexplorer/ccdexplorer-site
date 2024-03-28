@@ -4,7 +4,7 @@ from app.classes.Node_Baker import *
 
 from ccdexplorer_fundamentals.node import ConcordiumNodeFromDashboard
 
-from ccdexplorer_fundamentals.mongodb import MongoDB, Collections, MongoTypePayday
+from ccdexplorer_fundamentals.mongodb import Collections
 
 # from typing import TYPE_CHECKING
 

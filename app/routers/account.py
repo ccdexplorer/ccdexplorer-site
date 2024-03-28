@@ -1,42 +1,45 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
 from __future__ import annotations
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-from app.classes.sankey import SanKey
-from app.jinja2_helpers import *
-from app.env import *
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+
 import copy
-from app.state.state import *
+import json
+import math
+import altair as alt
+import pandas as pd
 from ccdexplorer_fundamentals.credential import Identity
+from ccdexplorer_fundamentals.enums import NET
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from app.utils import earliest
-from pymongo import ASCENDING, DESCENDING
 from ccdexplorer_fundamentals.mongodb import (
-    MongoDB,
-    Collections,
-    MongoMotor,
-    MongoImpactedAddress,
     AccountStatementEntry,
     AccountStatementEntryType,
+    Collections,
+    MongoDB,
+    MongoImpactedAddress,
+    MongoMotor,
     MongoTypeAccountReward,
 )
-import json
 from ccdexplorer_fundamentals.tooter import Tooter
-
-from app.Recurring.recurring import Recurring
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from pymongo import ASCENDING, DESCENDING
 
 # from rich import print
 from app.ajax_helpers import (
-    transactions_html_footer,
-    process_transactions_to_HTML,
-    process_delegators_to_HTML_v2,
     mongo_transactions_html_header,
-    process_tokens_to_HTML_v2,
     process_account_statement_to_HTML_v2,
+    process_delegators_to_HTML_v2,
+    process_tokens_to_HTML_v2,
+    process_transactions_to_HTML,
+    transactions_html_footer,
 )
-import math
+from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
+from app.classes.sankey import SanKey
+from app.env import *
+from app.jinja2_helpers import *
+from app.Recurring.recurring import Recurring
+from app.state.state import *
+from app.utils import earliest
 
 router = APIRouter()
 
