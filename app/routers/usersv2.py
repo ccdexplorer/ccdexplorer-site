@@ -43,7 +43,7 @@ async def slash_token(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
-    user: UserV2 = get_user_detailsv2(request, token, force=True)
+    user: UserV2 = get_user_detailsv2(request, token)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if user:
