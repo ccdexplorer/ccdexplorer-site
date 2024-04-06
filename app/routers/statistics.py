@@ -154,145 +154,6 @@ def add_date_to_tx(tx: ClassifiedTransaction, heights, block_end_of_day_dict):
     return tx
 
 
-# def process_txs_for_analytics(
-#     txs_by_action_type, token_addresses_with_markup, exchange_rates
-# ):
-#     # token_addresses_with_markup = get_token_addresses_with_markup()
-#     output = []
-#     accounts = []
-
-#     for action_type in ReportingActionType:
-#         txs_per_action_type = txs_by_action_type[action_type]
-#         for tx in txs_per_action_type:
-#             tx: ClassifiedTransaction
-#             r = tx.logged_events[0]
-#             output, accounts = append_logged_event(
-#                 token_addresses_with_markup,
-#                 output,
-#                 accounts,
-#                 action_type,
-#                 tx,
-#                 r,
-#                 exchange_rates,
-#             )
-
-#             if tx.action_type == ReportingActionType.withdraw:
-#                 r = tx.logged_events[1]
-#                 output, accounts = append_logged_event(
-#                     token_addresses_with_markup,
-#                     output,
-#                     accounts,
-#                     action_type,
-#                     tx,
-#                     r,
-#                     exchange_rates,
-#                 )
-
-#     df = pd.DataFrame([x.model_dump() for x in output])
-#     df["date"] = pd.to_datetime(df["date"])
-
-#     df_a = pd.DataFrame([x.model_dump() for x in accounts])
-#     df_a["date"] = pd.to_datetime(df_a["date"])
-
-#     df_output_action_types = {}
-#     df_output_fungible_token = {}
-#     df_accounts = {}
-#     for letter in ["D", "W", "M"]:
-#         df_output_action_types[letter] = (
-#             df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "action_type"])
-#             .sum()
-#             .reset_index()
-#         )
-#         # df_output_action_types[letter]["date"] = str(
-#         #     df_output_action_types[letter]["date"]
-#         # )
-
-#         df_output_fungible_token[letter] = (
-#             df.groupby([pd.Grouper(key="date", axis=0, freq=letter), "fungible_token"])
-#             .sum()
-#             .reset_index()
-#         )
-#         # df_output_fungible_token[letter]["date"] = str(
-#         #     df_output_fungible_token[letter]["date"]
-#         # )
-
-#         df_accounts[letter] = (
-#             df_a.groupby([pd.Grouper(key="date", axis=0, freq=letter)])["addresses"]
-#             .agg(",".join)
-#             .reset_index()
-#         )
-#         df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].str.split(
-#             ","
-#         )
-#         df_accounts[letter]["addresses"] = df_accounts[letter]["addresses"].apply(set)
-#         df_accounts[letter]["addresses_unique"] = df_accounts[letter][
-#             "addresses"
-#         ].apply(len)
-#         columns = ["date", "addresses_unique"]
-#         df_accounts[letter] = pd.DataFrame(df_accounts[letter], columns=columns)
-#         # df_accounts[letter]["date"] = str(df_accounts[letter]["date"])
-
-#         # df.groupby('col')['val'].agg('-'.join)
-#     return ReportingOutput(
-#         df_raw=df,
-#         txs_by_action_type=txs_by_action_type,
-#         output=output,
-#         df_accounts=df_accounts,
-#         df_output_action_types=df_output_action_types,
-#         df_output_fungible_token=df_output_fungible_token,
-#     )
-
-
-# def append_logged_event(
-#     token_addresses_with_markup,
-#     output: list[ReportingUnit],
-#     accounts: list[ReportingAddresses],
-#     action_type: ReportingActionType,
-#     tx: ClassifiedTransaction,
-#     r: MongoTypeLoggedEvent,
-#     exchange_rates,
-# ):
-#     token_address_with_markup: MongoTypeTokenAddress = token_addresses_with_markup.get(
-#         r.token_address
-#     )
-#     if not token_address_with_markup:
-#         console.log(f"Can't find {r.token_address} in token_addresses_with_markup!!!")
-#         return output, accounts
-
-#     fungible_token = token_address_with_markup.tag_information.id
-#     if fungible_token[0] == "w":
-#         fungible_token = fungible_token[1:]
-#     if int(r.result["token_amount"]) > 0:
-#         real_token_amount = int(r.result["token_amount"]) * (
-#             math.pow(10, -token_address_with_markup.tag_information.decimals)
-#         )
-
-#         if exchange_rates.get(fungible_token):
-#             if tx.date in exchange_rates[fungible_token]:
-#                 exchange_rate_for_day = exchange_rates[fungible_token][tx.date]
-#                 dd = {
-#                     "tx_hash": tx.tx_hash,
-#                     "date": tx.date,
-#                     "fungible_token": fungible_token,
-#                     "amount_in_local_currency": real_token_amount,
-#                     "amount_in_usd": real_token_amount * exchange_rate_for_day,
-#                     "action_type": action_type.value,
-#                 }
-#                 # print (dd)
-#                 output.append(ReportingUnit(**dd))
-#                 if len(tx.addresses) > 0:
-#                     accounts.append(
-#                         ReportingAddresses(
-#                             **{
-#                                 "tx_hash": tx.tx_hash,
-#                                 "date": tx.date,
-#                                 "addresses": ", ".join(tx.addresses),
-#                             }
-#                         )
-#                     )
-#     return output, accounts
-
-
 def add_tx_addresses(event: MongoTypeLoggedEvent, addresses: set):
     _to = event.result.get("to_address")
     if _to:
@@ -999,19 +860,6 @@ def get_all_data_for_bridges_and_dexes(
     return list(mongodb.mainnet[Collections.statistics].aggregate(pipeline))
 
 
-def generate_dates_from_start_until_end(start: str, end: str):
-    start_date = dateutil.parser.parse(start)
-    end_date = dateutil.parser.parse(end)
-    date_range = []
-
-    current_date = start_date
-    while current_date <= end_date:
-        date_range.append(current_date.strftime("%Y-%m-%d"))
-        current_date += timedelta(days=1)
-
-    return date_range
-
-
 def get_all_data_for_analysis_limited(
     analysis: str, mongodb: MongoDB, dates_to_include: list[str]
 ) -> list[str]:
@@ -1648,10 +1496,40 @@ async def statistics_validator_staking(
                 "stakeType",
                 sort="descending",
             ),
+            tooltip=[
+                alt.Tooltip("Validator ID:O", title="Validator"),
+                alt.Tooltip("value:Q", title="Staked Amount (CCD)", format=",.0f"),
+                alt.Tooltip("stakeType:O", title="StakeType"),
+            ],
         )
     )
+    # Create a selection that chooses the nearest point & selects based on x-value
+    nearest = alt.selection_point(
+        nearest=True, on="mouseover", fields=["x"], empty=False
+    )
 
-    chart = (bar).properties(
+    # Transparent selectors across the chart. This is what tells us
+    # the x-value of the cursor
+    selectors = (
+        alt.Chart(melt)
+        .mark_point()
+        .encode(
+            x="x:Q",
+            opacity=alt.value(0),
+        )
+        .add_params(nearest)
+    )
+
+    # Draw a rule at the location of the selection
+    rules = (
+        alt.Chart(melt)
+        .mark_rule(color="gray")
+        .encode(
+            x="x:Q",
+        )
+        .transform_filter(nearest)
+    )
+    chart = alt.layer(bar, selectors, rules).properties(
         width="container",
         # width=700,
         height=500,

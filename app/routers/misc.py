@@ -131,9 +131,7 @@ async def labeled_accounts(
     response_class=RedirectResponse,
 )
 async def redirect_delegator():
-    response = RedirectResponse(
-        url="/settings/user/subscription/plans", status_code=302
-    )
+    response = RedirectResponse(url="/donate", status_code=302)
     return response
 
 

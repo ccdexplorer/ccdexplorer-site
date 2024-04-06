@@ -44,9 +44,15 @@ async def get_usecase_route(
     usecase = mongodb.utilities[CollectionsUtilities.usecases].find_one(
         {"usecase_id": usecase_id}
     )
-    mainnet_usecase_addresses = mongodb.mainnet[Collections.usecases].find(
-        {"usecase_id": usecase_id}
+    mainnet_usecase_addresses = list(
+        mongodb.mainnet[Collections.usecases].find({"usecase_id": usecase_id})
     )
+    mainnet_accounts = [
+        x for x in mainnet_usecase_addresses if x["type"] == "account_address"
+    ]
+    mainnet_contracts = [
+        x for x in mainnet_usecase_addresses if x["type"] == "contract_address"
+    ]
     if usecase:
         return templates.TemplateResponse(
             "usecases/usecase_overview.html",
@@ -56,7 +62,8 @@ async def get_usecase_route(
                 "usecase": usecase,
                 "usecase_id": usecase_id,
                 "display_name": usecase["usecase_id"],
-                "mainnet_usecase_addresses": mainnet_usecase_addresses,
+                "mainnet_accounts": mainnet_accounts,
+                "mainnet_contracts": mainnet_contracts,
                 "net": "mainnet",
             },
         )

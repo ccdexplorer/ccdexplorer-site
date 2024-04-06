@@ -4,7 +4,7 @@ import math
 import typing
 
 # from app.Recurring.recurring import Recurring
-from datetime import timezone
+from datetime import timedelta, timezone
 from enum import Enum
 from typing import Optional
 from uuid import UUID
@@ -12,7 +12,6 @@ from uuid import UUID
 import dateutil.parser
 import pytz
 import requests
-
 from ccdexplorer_fundamentals.cis import (
     CIS,
     LoggedEvents,
@@ -77,6 +76,19 @@ class EventType:
 
     def __repr__(self):
         return f"{self.event}, {self.update}, {self.emit}"
+
+
+def generate_dates_from_start_until_end(start: str, end: str):
+    start_date = dateutil.parser.parse(start)
+    end_date = dateutil.parser.parse(end)
+    date_range = []
+
+    current_date = start_date
+    while current_date <= end_date:
+        date_range.append(current_date.strftime("%Y-%m-%d"))
+        current_date += timedelta(days=1)
+
+    return date_range
 
 
 def format_preference_key(value: str):

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block content %}
+  
+  <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
+  <!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<!-- Import vega-embed -->
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+
+<script>
+
+  function Search() {
+      
+      const type_daily = document.getElementById("daily");
+      const type_weekly = document.getElementById("weekly");
+      const type_monthly = document.getElementById("monthly");
+
+      if (type_daily.checked) {
+        type = "Daily"
+      }
+      if (type_weekly.checked) {
+        type = "Weekly"
+      }
+      if (type_monthly.checked) {
+        type = "Monthly"
+      }
+
+      type_usecase = document.getElementById("usecase_id").value;
+      var width = Math.min(window.innerWidth, 675);
+      
+      
+      var start_date = document.getElementById("start_date").value;
+      var end_date = document.getElementById("end_date").value;
+      spec = '/ajax_transaction_fees_graph/'+start_date+'/'+end_date+"/"+type+'/graph/'+width;
+      // Log the clicked element in the console
+      tx_types = document.getElementById('tx_types');
+      
+      tx_types_out = []
+      for ( var i = 0; i < tx_types.selectedOptions.length; i++) {
+          console.log( tx_types.selectedOptions[i].value);
+          tx_types_out.push(tx_types.selectedOptions[i].value);
+        }
+      
+        count_table = document.getElementById('count_table');
+          url =  '/ajax_transaction_types_reporting/';
+          count_table.innerHTML = '{% include "spinner.html" %}'
+          fetch(url, {
+                  method: 'POST',
+                  body: JSON.stringify({
+                      net: '{{net}}',
+                      start_date: start_date,
+                      end_date: end_date,
+                      usecase_id: type_usecase,
+                      group_by: type,
+                      tx_types: tx_types_out
+                  }),
+                  headers: {
+                      'Content-type': 'application/json; charset=UTF-8'
+                  }
+              })
+              .then((response) => {
+                  return response.text();
+              })
+              .then((data) => {
+                
+                count_table.innerHTML = data; //generateHTMLTable(data, type);
+              })
+              .catch(function (error) {
+                  console.log(error);
+              });
+    
+  };
+  
+  
+    </script>
+    
+
+
+
+
+<script>
+
+
+
+</script>
+ 
+<br/>
+<h4>Transaction Types Count</h4>
+<br/>
+<div class="row ps-3 pe-3">
+  <label for="usecase" class="small">Select a usecase:</label>
+
+  <select name="usecase" id="usecase_id" class=" form-select form-select-sm small">
+    <option value="all">None</option>
+    <option value="provenance">Provenance Tags</option>
+    <option value="aesirx">AesirX</option>
+    <option value="dsid">DISD</option>
+  </select> 
+<br/>
+</div>
+<div class="row ps-3 mt-4 pe-3">
+  <label for="tx_types" class="small">Select transaction types:</label>
+
+  <select name="tx_types" id="tx_types" multiple class=" form-select form-select-sm small">
+    <option value="all">All</option>
+    {% for tx_type in all_transaction_effects %}
+        <option value="{{tx_type}}">{{tx_type}}</option>
+    {% endfor %}
+    
+    
+  </select> 
+<br/>
+</div>
+<div class="row ps-3 pe-3">
+  <p class="mt-3 small">Select date range: </p>
+  <div class="col">
+    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="start_date" id="start_date" placeholder="Start Date"><br>
+  </div>
+  <div class="col small text-center"><span class="ccd">≤ Date ≤</span>
+  </div>
+  <div class="col">
+    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
+  </div>
+</div>
+<div class="text-start ps-3 pe-3">
+  <p class="small">Group by: </p>
+  <div class="btn-group btn-group-sm text-center ms-2"   role="group" >
+    <input type="radio" class="btn-check " name="btnradio_gb_d" id="daily" autocomplete="off" >
+    <label class="btn btn-outline-primary" for="daily">Daily</label>
+  
+    <input type="radio" class="btn-check" name="btnradio_gb_w" id="weekly" autocomplete="off" >
+    <label class="btn btn-outline-primary" for="weekly">Weekly</label>
+  
+    <input type="radio" class="btn-check" name="btnradio_gb_m" id="monthly" autocomplete="off" checked>
+    <label class="btn btn-outline-primary" for="monthly">Monthly</label>
+  </div>
+</div>
+<br/><br/><br/>
+<button onclick='Search()' type="button" id="account-add-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Show Transaction Type Counts</button>
+    <!-- </form> -->
+  
+
+
+<div id="count_table" class="ps-3 pt-3"></div>
+
+
+
+<script>
+function addHoursToDate(objDate, intHours) {
+
+  var numberOfMlSeconds = objDate;
+
+  var addMlSeconds = (intHours * 60) * 60 * 1000;
+
+  var newDateObj = new Date(numberOfMlSeconds + addMlSeconds);
+
+  return newDateObj;
+
+}
+
+flatpickr("#start_date", {defaultDate:"2021-06-09"});
+let now = new Date().toISOString()//.split('T')[0]
+// let last_month = addHoursToDate(Date.now(), -24*30)
+flatpickr("#end_date", {defaultDate: now});
+</script>
+
+<script>
+  const btn_daily = document.getElementById("daily");
+  const btn_weekly = document.getElementById("weekly");
+  const btn_monthly = document.getElementById("monthly");
+  
+  document.querySelector("#daily").addEventListener("click",function() {
+    btn_daily.checked = true;
+    btn_weekly.checked = false;
+    btn_monthly.checked = false;
+  })
+
+  document.querySelector("#weekly").addEventListener("click",function() {
+    btn_daily.checked = false;
+    btn_weekly.checked = true;
+    btn_monthly.checked = false;
+  })
+
+  document.querySelector("#monthly").addEventListener("click",function() {
+    btn_daily.checked = false;
+    btn_weekly.checked = false;
+    btn_monthly.checked = true;
+  })
+</script>
+
+
+
+
+{% endblock content %}
+
+
+
+
+
+
+
+
+

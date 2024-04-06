@@ -1,7 +1,6 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
 import datetime as dt
-import resource
 import uuid
 from contextlib import asynccontextmanager
 from datetime import timedelta
@@ -194,9 +193,6 @@ app.add_middleware(
 )
 
 
-console.log(
-    f"Memory usage before mongo: {(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024):,.0f} Mb"
-)
 recurring = Recurring(ccdscan, mongodb, motormongo, grpcclient)
 
 
