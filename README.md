@@ -20,23 +20,13 @@ The site is built on [FastAPI](https://fastapi.tiangolo.com/), with data stored 
 pip install -r requirements.txt
 ```
 3. Set ENV variables
-```
-NOTIFIER_API_TOKEN (API token for notifier bot)
-API_TOKEN (API token for actual bot)
-FASTMAIL_TOKEN (I use Fastmail to send email, leave blank, won't send email)
-MONGO_URI (MongoDB URI)
-ADMIN_CHAT_ID (Telegram admin chat ID)
-MAILTO_LINK (I use Fastmail to send email, leave blank, won't send email)
-MAILTO_USER (I use Fastmail to send email, leave blank, won't send email)
-GRPC_MAINNET (A list of dicts with GPRC hosts) (Example: [{"host": "localhost", "port": 20000}, {"host": "my.validator.com", "port": 20000}])
-GRPC_TESTNET (Same as GPRC_MAINNET)
-```
+Copy the `.env.sample` to `.env` and adjust the MongoDB and GRPC values if needed. These defaults assume MongoDB and a mainnet and testnet node are running on your local machine. 
 2. Start FastAPI process
 ```zsh
-uvicorn app.main:app --host 0.0.0.0 --port 80
+uvicorn app.main:app --loop asyncio --host 0.0.0.0 --port 8000
 ```
 3. Open a browser window at [http://localhost:8000](http://localhost:8000).
-4. [CAVEAT]: This has not been tested to work flawlessly if the DB doesn't exist, if the correct collections aren't present, if the collections are empty, if the GRPC server isn't present, etc. It works on my machine, but your milage may vary. Happy to make changes to make this work better...
+4. [CAVEAT]: This site depends heavily on data being present in the expected collections. With an ampty DB, the above runs the frontpage of the site. Still working on a feasible way to deliver a pre-filled test db or script to generate this. 
 
 
 ## Deployment

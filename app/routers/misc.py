@@ -761,24 +761,12 @@ async def ajax_last_table(
     accounts_response = mongodb.mainnet_db["pre_render"].find_one(
         {"_id": "accounts_table"}
     )
-
-    for key, response in accounts_response.items():
-        if "largest" in key:
-            if "amount" in key:
-                response = f'<span class="small ccd">Ͼ{response["amount"]:,.2f} M</span> ({tx_hash_link(response["tx_hash"], "mainnet", schedule=True, icon_only=True)})'
-            else:
-                response = account_link(
-                    response,
-                    "mainnet",
-                    from_=False,
-                    nothing_=True,
-                    user=None,
-                    tags=tags,
-                    app=request.app,
-                )
-        if "active" in key:
-            if "tx" not in key:
-                if len(response) == 50:
+    if accounts_response:
+        for key, response in accounts_response.items():
+            if "largest" in key:
+                if "amount" in key:
+                    response = f'<span class="small ccd">Ͼ{response["amount"]:,.2f} M</span> ({tx_hash_link(response["tx_hash"], "mainnet", schedule=True, icon_only=True)})'
+                else:
                     response = account_link(
                         response,
                         "mainnet",
@@ -788,9 +776,21 @@ async def ajax_last_table(
                         tags=tags,
                         app=request.app,
                     )
-                else:
-                    response = f'<a class="small" href="/usecase/{usecase_ids[response]}">🎯{response}</a>'
-        accounts_response[key] = response
+            if "active" in key:
+                if "tx" not in key:
+                    if len(response) == 50:
+                        response = account_link(
+                            response,
+                            "mainnet",
+                            from_=False,
+                            nothing_=True,
+                            user=None,
+                            tags=tags,
+                            app=request.app,
+                        )
+                    else:
+                        response = f'<a class="small" href="/usecase/{usecase_ids[response]}">🎯{response}</a>'
+            accounts_response[key] = response
 
     return templates.TemplateResponse(
         "accounts_table_htmx.html",

@@ -274,38 +274,36 @@ async def get_txs_for_account_from_ia(
     return txs_for_account
 
 
-async def get_get_account_rewards_pre_payday_sum_for_graph(
-    account_id: str, mongomotor: MongoMotor
-):
-    pipeline = [
-        {
-            "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
-        },
-        {"$match": {"effect_type": "Account Reward"}},
-        {
-            "$group": {
-                "_id": "$impacted_address",
-                "sum_finalization_reward": {
-                    "$sum": "$balance_movement.finalization_reward",
-                },
-                "sum_baker_reward": {
-                    "$sum": "$balance_movement.baker_reward",
-                },
-                "sum_transaction_fee_reward": {
-                    "$sum": "$balance_movement.transaction_fee_reward",
-                },
-            },
-        },
-    ]
-    # result = list(
-    #     mongodb.mainnet[Collections.impacted_addresses_pre_payday].aggregate(pipeline)
-    # )
-    result = (
-        await mongomotor.mainnet[Collections.impacted_addresses_pre_payday]
-        .aggregate(pipeline)
-        .to_list(1_000_000_000)
-    )
-    return result
+# async def get_get_account_rewards_pre_payday_sum_for_graph(
+#     account_id: str, mongomotor: MongoMotor
+# ):
+#     pipeline = [
+#         {
+#             "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
+#         },
+#         {"$match": {"effect_type": "Account Reward"}},
+#         {
+#             "$group": {
+#                 "_id": "$impacted_address",
+#                 "sum_finalization_reward": {
+#                     "$sum": "$balance_movement.finalization_reward",
+#                 },
+#                 "sum_baker_reward": {
+#                     "$sum": "$balance_movement.baker_reward",
+#                 },
+#                 "sum_transaction_fee_reward": {
+#                     "$sum": "$balance_movement.transaction_fee_reward",
+#                 },
+#             },
+#         },
+#     ]
+
+#     result = (
+#         await mongomotor.mainnet[Collections.impacted_addresses_pre_payday]
+#         .aggregate(pipeline)
+#         .to_list(1_000_000_000)
+#     )
+#     return result
 
 
 async def get_get_account_rewards_sum_for_graph(
@@ -342,88 +340,88 @@ async def get_get_account_rewards_sum_for_graph(
     return result
 
 
-def get_txs_for_account_from_ia_for_account_statement(account_id, mongodb: MongoDB):
-    pipeline = [
-        {
-            "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
-        }
-    ]
-    txs_for_account = list(
-        mongodb.mainnet[Collections.impacted_addresses].aggregate(pipeline)
-    )
-    return txs_for_account
+# def get_txs_for_account_from_ia_for_account_statement(account_id, mongodb: MongoDB):
+#     pipeline = [
+#         {
+#             "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
+#         }
+#     ]
+#     txs_for_account = list(
+#         mongodb.mainnet[Collections.impacted_addresses].aggregate(pipeline)
+#     )
+#     return txs_for_account
 
 
-def get_txs_for_account_as_receiver_with_params(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
-        account_id, start_block, end_block
-    )
-    txs_as_receiver = list(
-        mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
-    )
-    return txs_as_receiver
+# def get_txs_for_account_as_receiver_with_params(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_receiver = list(
+#         mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
+#     )
+#     return txs_as_receiver
 
 
-def get_txs_for_account_as_sender_with_params(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
-        account_id, start_block, end_block
-    )
-    txs_as_sender = list(
-        mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
-    )
-    return txs_as_sender
+# def get_txs_for_account_as_sender_with_params(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_sender = list(
+#         mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
+#     )
+#     return txs_as_sender
 
 
-def get_txs_for_account_as_receiver_with_params_all(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
-        account_id, start_block, end_block
-    )
-    txs_as_receiver = list(
-        mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-    )
-    return txs_as_receiver
+# def get_txs_for_account_as_receiver_with_params_all(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_receiver = list(
+#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
+#     )
+#     return txs_as_receiver
 
 
-def get_txs_for_account_as_sender_with_params_all(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
-        account_id, start_block, end_block
-    )
-    txs_as_sender = list(
-        mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-    )
-    return txs_as_sender
+# def get_txs_for_account_as_sender_with_params_all(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_sender = list(
+#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
+#     )
+#     return txs_as_sender
 
 
-def get_txs_for_account_as_receiver_with_params_all_id_only(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params_id_only(
-        account_id, start_block, end_block
-    )
-    txs_as_receiver = list(
-        mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-    )
-    return txs_as_receiver
+# def get_txs_for_account_as_receiver_with_params_all_id_only(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params_id_only(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_receiver = list(
+#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
+#     )
+#     return txs_as_receiver
 
 
-def get_txs_for_account_as_sender_with_params_all_id_only(
-    account_id, start_block, end_block, mongodb: MongoDB
-):
-    pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params_id_only(
-        account_id, start_block, end_block
-    )
-    txs_as_sender = list(
-        mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-    )
-    return txs_as_sender
+# def get_txs_for_account_as_sender_with_params_all_id_only(
+#     account_id, start_block, end_block, mongodb: MongoDB
+# ):
+#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params_id_only(
+#         account_id, start_block, end_block
+#     )
+#     txs_as_sender = list(
+#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
+#     )
+#     return txs_as_sender
 
 
 @router.get(
@@ -1575,14 +1573,15 @@ async def get_ajax_account_html(
                 {  # this filters out account rewards, as they are special events
                     "$match": {"tx_hash": {"$exists": True}},
                 },
-                # {
-                #     "$match": {
-                #         "$or": [
-                #             {"balance_movement.transfer_in": {"$exists": True}},
-                #             {"balance_movement.transfer_out": {"$exists": True}},
-                #         ]
-                #     }
-                # },
+                {
+                    "$unionWith": {
+                        "coll": "tokens_impacted_addresses",
+                        "pipeline": [
+                            {"$match": {"impacted_address_canonical": account_id[:29]}},
+                            {"$sort": {"block_height": -1}},
+                        ],
+                    },
+                },
                 {"$sort": {"block_height": DESCENDING}},
                 {"$project": {"_id": 0, "tx_hash": 1}},
                 {
@@ -1618,13 +1617,23 @@ async def get_ajax_account_html(
                 {  # this filters out account rewards, as they are special events
                     "$match": {"tx_hash": {"$exists": True}},
                 },
+                # {
+                #     "$unionWith": {
+                #         "coll": "tokens_impacted_addresses",
+                #         "pipeline": [
+                #             {"$match": {"impacted_address_canonical": account_id[:29]}},
+                #             {"$sort": {"block_height": -1}},
+                #         ],
+                #     },
+                # },
                 {"$sort": {"block_height": DESCENDING}},
                 {"$skip": skip},
                 {"$limit": limit},
                 {"$project": {"tx_hash": 1}},
             ]
             result = (
-                await db_to_use[Collections.impacted_addresses]
+                # await db_to_use[Collections.impacted_addresses]
+                await mongomotor.mainnet_db["view_impacted_addresses"]
                 .aggregate(pipeline)
                 .to_list(limit)
             )

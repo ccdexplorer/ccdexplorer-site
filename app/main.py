@@ -58,17 +58,18 @@ ccdscan = CCDScan(tooter)
 
 async def find_release():
     pp = [{"$sort": {"date": -1}}, {"$limit": 1}]
-    release = list(mongodb.utilities[CollectionsUtilities.release_notes].aggregate(pp))[
-        0
-    ]
-
-    return release["_id"]
+    result = list(mongodb.utilities[CollectionsUtilities.release_notes].aggregate(pp))
+    if len(result) > 0:
+        release = result[0]
+        return release["_id"]
+    else:
+        release = "No Release Found"
+        return release
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     instrumentator.expose(app, endpoint="/api/v1/metrics")
-    s = dt.datetime.now().astimezone(dt.timezone.utc)
     app.env = environment
     app.grpcclient = grpcclient
     app.tooter = tooter
