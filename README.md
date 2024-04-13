@@ -10,7 +10,7 @@ The site is built on [FastAPI](https://fastapi.tiangolo.com/), with data stored 
 
 ### Prerequisites
 
-1. MongoDB install (you will need to know the Mongo URI and place thata in an ENV)
+1. MongoDB (successfully tested on version 6+). You will need to know the Mongo URI and place that in an ENV.
 2. Concordium Nodes for mainnet and testnet (you will need to know the IP and ports for both mainnet and testnet)
 
 ### Install and Run
