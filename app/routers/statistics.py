@@ -1567,10 +1567,9 @@ async def statistics_ccd_on_exchanges(
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     source = pd.DataFrame(all_data)
-
-    source = source[
-        ["date", "bitfinex", "bitglobal", "mexc", "ascendex", "kucoin", "coinex"]
-    ]
+    columns_to_be_removed = ["total_supply", "staked", "unstaked", "delegated"]
+    columns_to_stay = list(set(source.columns) - set(columns_to_be_removed))
+    source = source[columns_to_stay]
     islands = (source["bitfinex"] != 0).groupby(level=0).cumsum()
     source = source[islands != 0]
     source2 = source.copy()
