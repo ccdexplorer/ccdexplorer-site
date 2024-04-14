@@ -1539,7 +1539,6 @@ async def get_ajax_account_html(
     limit = 20
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    # grpcclient.switch_to_net(env["NET"])
 
     if api_key != request.app.env["API_KEY"]:
         return "No valid api key supplied."
@@ -1572,15 +1571,6 @@ async def get_ajax_account_html(
                 },
                 {  # this filters out account rewards, as they are special events
                     "$match": {"tx_hash": {"$exists": True}},
-                },
-                {
-                    "$unionWith": {
-                        "coll": "tokens_impacted_addresses",
-                        "pipeline": [
-                            {"$match": {"impacted_address_canonical": account_id[:29]}},
-                            {"$sort": {"block_height": -1}},
-                        ],
-                    },
                 },
                 {"$sort": {"block_height": DESCENDING}},
                 {"$project": {"_id": 0, "tx_hash": 1}},
@@ -1617,23 +1607,13 @@ async def get_ajax_account_html(
                 {  # this filters out account rewards, as they are special events
                     "$match": {"tx_hash": {"$exists": True}},
                 },
-                # {
-                #     "$unionWith": {
-                #         "coll": "tokens_impacted_addresses",
-                #         "pipeline": [
-                #             {"$match": {"impacted_address_canonical": account_id[:29]}},
-                #             {"$sort": {"block_height": -1}},
-                #         ],
-                #     },
-                # },
                 {"$sort": {"block_height": DESCENDING}},
                 {"$skip": skip},
                 {"$limit": limit},
                 {"$project": {"tx_hash": 1}},
             ]
             result = (
-                # await db_to_use[Collections.impacted_addresses]
-                await mongomotor.mainnet_db["view_impacted_addresses"]
+                await db_to_use[Collections.impacted_addresses]
                 .aggregate(pipeline)
                 .to_list(limit)
             )

@@ -526,21 +526,38 @@ async def ajax_instance_txs_html_v2(
     limit = 20
     instance_address = f"<{instance_index},{instance_subindex}>"
     user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-
+    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
     tx_tabs: dict[TransactionClassifier, list] = {}
     tx_tabs_active: dict[TransactionClassifier, bool] = {}
 
     for tab in TransactionClassifier:
         tx_tabs[tab] = []
 
-    txs_hashes = [
-        x["tx_hash"]
-        for x in db_to_use[Collections.impacted_addresses].find(
-            {"impacted_address_canonical": instance_address}
-            # {"contract": instance_address}
-        )
-    ]
+    # txs_hashes = [
+    #     x["tx_hash"]
+    #     for x in db_to_use[Collections.impacted_addresses].find(
+    #         {"impacted_address_canonical": instance_address}
+    #         # {"contract": instance_address}
+    #     )
+    # ]
+
+    # # requested page = 0 indicated the first page
+    # # requested page = -1 indicates the last page
+    # if requested_page > -1:
+    #     skip = requested_page * limit
+    # else:
+    #     nr_of_pages, _ = divmod(total_rows, limit)
+    #     skip = nr_of_pages * limit
+
+    # tx_result = [
+    #     CCD_BlockItemSummary(**x)
+    #     for x in db_to_use[Collections.transactions]
+    #     .find({"_id": {"$in": txs_hashes}})
+    #     .skip(skip)
+    #     .limit(limit)
+    #     .sort("block_info.height", DESCENDING)
+    # ]
 
     # requested page = 0 indicated the first page
     # requested page = -1 indicates the last page
@@ -549,17 +566,79 @@ async def ajax_instance_txs_html_v2(
     else:
         nr_of_pages, _ = divmod(total_rows, limit)
         skip = nr_of_pages * limit
+        # special case if total_rows equals a limt multiple
+        if skip == total_rows:
+            skip = (nr_of_pages - 1) * limit
 
-    tx_result = [
-        CCD_BlockItemSummary(**x)
-        for x in db_to_use[Collections.transactions]
-        .find({"_id": {"$in": txs_hashes}})
-        .skip(skip)
-        .limit(limit)
+    top_list_member = await db_to_use[
+        Collections.impacted_addresses_all_top_list
+    ].find_one({"_id": instance_address})
+
+    if not top_list_member:
+        pipeline = [
+            {
+                "$match": {"impacted_address_canonical": {"$eq": instance_address}},
+            },
+            {  # this filters out account rewards, as they are special events
+                "$match": {"tx_hash": {"$exists": True}},
+            },
+            {"$sort": {"block_height": DESCENDING}},
+            {"$project": {"_id": 0, "tx_hash": 1}},
+            {
+                "$facet": {
+                    "metadata": [{"$count": "total"}],
+                    "data": [{"$skip": skip}, {"$limit": limit}],
+                }
+            },
+            {
+                "$project": {
+                    "data": 1,
+                    "total": {"$arrayElemAt": ["$metadata.total", 0]},
+                }
+            },
+        ]
+        result = (
+            await db_to_use[Collections.impacted_addresses]
+            .aggregate(pipeline)
+            .to_list(limit)
+        )
+        all_txs_hashes = [x["tx_hash"] for x in result[0]["data"]]
+        if "total" in result[0]:
+            total_tx_count = result[0]["total"]
+        else:
+            total_tx_count = 0
+
+    else:
+        #### This is a TOP_TX_COUNT account
+        pipeline = [
+            {
+                "$match": {"impacted_address_canonical": {"$eq": instance_address}},
+            },
+            {  # this filters out account rewards, as they are special events
+                "$match": {"tx_hash": {"$exists": True}},
+            },
+            {"$sort": {"block_height": DESCENDING}},
+            {"$skip": skip},
+            {"$limit": limit},
+            {"$project": {"tx_hash": 1}},
+        ]
+        result = (
+            await db_to_use[Collections.impacted_addresses]
+            .aggregate(pipeline)
+            .to_list(limit)
+        )
+        all_txs_hashes = [x["tx_hash"] for x in result]
+        total_tx_count = top_list_member["count"]
+
+    int_result = (
+        await db_to_use[Collections.transactions]
+        .find({"_id": {"$in": all_txs_hashes}})
         .sort("block_info.height", DESCENDING)
-    ]
+        .to_list(limit)
+    )
+    tx_result = [CCD_BlockItemSummary(**x) for x in int_result]
 
-    if len(txs_hashes) > 0:
+    if len(tx_result) > 0:
         for transaction in tx_result:
             makeup_request = MakeUpRequest(
                 **{
@@ -590,7 +669,7 @@ async def ajax_instance_txs_html_v2(
 
     html = mongo_transactions_html_header(
         None,
-        len(txs_hashes),
+        total_tx_count,
         requested_page,
         tx_tabs,
         tx_tabs_active,
