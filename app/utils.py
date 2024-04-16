@@ -266,6 +266,8 @@ def get_token_addresses_with_markup_for_addresses(
     exchange_rates = {x["token"]: x for x in coll.find({})}
     exchange_rates["wBTC"] = exchange_rates["BTC"]
     exchange_rates["wCCD"] = exchange_rates["CCD"]
+    exchange_rates["tETH"] = exchange_rates["ETH"]
+    exchange_rates["tMATIC"] = exchange_rates["MATIC"]
 
     # now onto the token_addresses
     token_addresses_with_markup = {
