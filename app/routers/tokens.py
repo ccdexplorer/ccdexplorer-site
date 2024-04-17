@@ -892,6 +892,7 @@ async def ajax_token_ids_for_tag(
         result = list(
             db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline)
         )
+        token_address_for_tag = None
         if len(result) > 0:
             token_address_for_tag = MongoTypeTokenAddress(**result[0])
 
