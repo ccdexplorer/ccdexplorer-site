@@ -43,7 +43,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for k, v in row.items() %}
+                        {% for k, v in row|dictsort(false, 'key') %}
+                        
                             {% if k not in ["date", "total_tx_count", "last_block_processed", "based_on_addresses"]%}
                                 {% if v > 0 %}
                                     <tr>

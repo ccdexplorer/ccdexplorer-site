@@ -46,6 +46,13 @@ def get_all_data_for_analysis_and_usecase(
     return [x for x in result]
 
 
+def get_all_usecases(mongodb: MongoDB) -> list[str]:
+    return {
+        x["_id"]: x["display_name"]
+        for x in mongodb.utilities[CollectionsUtilities.usecases].find()
+    }
+
+
 class TXCountReportingRequest(BaseModel):
     net: str
     start_date: str
@@ -101,12 +108,29 @@ async def ajax_transaction_types_reporting(
             cols_to_drop = cols - set(reporting_request.tx_types)
             df_group.drop(cols_to_drop, axis=1, inplace=True)
 
-        # now ready to add a totals column
-        cols = list(
-            set(df_group.columns)
-            - set(["date", "last_block_processed", "based_on_addresses"])
+            # df_group.drop(
+            #     ["last_block_processed", "based_on_addresses"], axis=1, inplace=True
+            # )
+        # now ready to add a totals column for succesfull txs
+        success_columns = list(
+            (
+                set(CCD_AccountTransactionEffects.model_fields.keys())
+                - set(["none", "date"])
+            )
+            & set(df_group.columns)
         )
-        df_group["total_tx_count"] = df_group[cols].sum(axis=1)
+        rejected_columns = list(
+            (set(CCD_RejectReason.model_fields.keys()) - set(["date"]))
+            & set(df_group.columns)
+        )
+        # cols = list(set(df_group.columns) - set(["date"]))
+        # df_group["total_success_count"] = df_group[success_columns].sum(axis=1)
+        df_group["tx_rejected"] = df_group[rejected_columns].sum(axis=1)
+        df_group["total_tx_count"] = df_group[success_columns].sum(axis=1) + df_group[
+            rejected_columns
+        ].sum(axis=1)
+
+        df_group.drop(rejected_columns, axis=1, inplace=True)
 
         if reporting_request.group_by == "Daily":
             letter = "D"
@@ -157,7 +181,7 @@ async def request_block_node(
         set(CCD_AccountTransactionEffects.__dict__["model_fields"].keys())
         - set(["none"])
     )
-
+    all_usecases = get_all_usecases(mongodb)
     return templates.TemplateResponse(
         "transactions_search/transaction_count.html",
         {
@@ -165,6 +189,7 @@ async def request_block_node(
             "env": request.app.env,
             "user": user,
             "net": net,
+            "all_usecases": all_usecases,
             "all_transaction_effects": all_transaction_effects,
         },
     )
