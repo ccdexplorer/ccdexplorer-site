@@ -14,6 +14,6 @@ COPY ./app /code/app
 COPY ./app/templates/ /code/app/templates/
 COPY ./app/templates/tmp /code/app/templates/tmp
 COPY ./app/static/ /code/app/static/
-COPY ./tmp /code/tmp
+COPY ./app/tmp /code/app/tmp
 
 CMD ["uvicorn", "app.main:app",  "--log-level", "info", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
