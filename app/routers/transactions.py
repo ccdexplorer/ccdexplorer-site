@@ -151,7 +151,7 @@ async def ajax_transaction_types_reporting(
         df_grouped["date"] = df_grouped["date"].dt.strftime("%Y-%m-%d")
         # return df_grouped.to_dict("records")
         records = df_grouped.to_dict("records")
-        filename = f"tmp/transactions count - {dt.datetime.now():%Y-%m-%d %H-%M-%S} for {reporting_request.usecase_id} grouped {reporting_request.group_by.lower()} - {uuid.uuid4()}.csv"
+        filename = f"/tmp/transactions count - {dt.datetime.now():%Y-%m-%d %H-%M-%S} for {reporting_request.usecase_id} grouped {reporting_request.group_by.lower()} - {uuid.uuid4()}.csv"
         if "based_on_addresses" in df_grouped.columns:
             df_grouped.drop("based_on_addresses", axis=1, inplace=True)
         if "last_block_processed" in df_grouped.columns:

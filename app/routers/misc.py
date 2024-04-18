@@ -297,6 +297,12 @@ async def ajax_protocol_updates(
     return html
 
 
+@router.get("/tmp/{filename}", response_class=FileResponse)
+async def tmp_files(request: Request, filename: str):
+    headers = {"Content-Disposition": f'attachment; filename="/tmp/{filename}"'}
+    return FileResponse(f"/tmp/{filename}", headers=headers, media_type="text/csv")
+
+
 @router.get("/mainnet/chain-information", response_class=HTMLResponse)
 async def chain_information(
     request: Request,

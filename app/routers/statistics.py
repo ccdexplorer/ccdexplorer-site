@@ -2471,7 +2471,7 @@ async def statistics_transaction_fees_ajax(
             else:
                 df_group["date"] = df_group["date"].dt.strftime("%Y-%m-%d")
                 records = df_group.to_dict("records")
-                filename = f"tmp/transaction fees - {dt.datetime.now():%Y-%m-%d %H-%M-%S} grouped {period.lower()} - {uuid.uuid4()}.csv"
+                filename = f"/tmp/transaction fees - {dt.datetime.now():%Y-%m-%d %H-%M-%S} grouped {period.lower()} - {uuid.uuid4()}.csv"
                 df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
                 df_group.to_csv(filename, index=False)
 
