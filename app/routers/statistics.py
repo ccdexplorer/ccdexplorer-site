@@ -28,6 +28,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
 from altair import Chart
 import pandas as pd
 import altair as alt
+import uuid
 
 alt.data_transformers.enable("vegafusion")
 
@@ -2346,7 +2347,7 @@ def dates_to_blocks(
 
 @router.get(
     "/ajax_transaction_fees_graph/{start_date}/{end_date}/{period}/{type}/{width}",
-    response_class=JSONResponse,
+    # response_class=JSONResponse | HTMLResponse,
 )
 async def statistics_transaction_fees_ajax(
     request: Request,
@@ -2468,5 +2469,22 @@ async def statistics_transaction_fees_ajax(
 
                 return Response(chart.to_json(format="vega"))
             else:
+                df_group["date"] = df_group["date"].dt.strftime("%Y-%m-%d")
+                records = df_group.to_dict("records")
+                filename = f"tmp/transaction fees - {dt.datetime.now():%Y-%m-%d %H-%M-%S} grouped {period.lower()} - {uuid.uuid4()}.csv"
+                df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
+                df_group.to_csv(filename, index=False)
 
-                return df_group.to_dict("records")
+                html = templates.get_template(
+                    "/chain-information/transaction_fees_table.html"
+                ).render(
+                    {
+                        "env": request.app.env,
+                        "net": net,
+                        "request": request,
+                        "records": records,
+                        "period": period,
+                        "filename": filename,
+                    },
+                )
+                return html

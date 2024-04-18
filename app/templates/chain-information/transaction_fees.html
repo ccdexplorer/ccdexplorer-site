@@ -13,37 +13,6 @@
 
 
 <script>
-function generateHTMLTable(data, type) {
-  const numberFormatter = new Intl.NumberFormat('en-US', {
-  style: 'decimal',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0
-});
-    let tableHTML = '<table class="table table-striped">';
-    // Add table header
-    if (type == "Daily") {
-      type_str = "Day"
-    }
-    if (type == "Weekly") {
-      type_str = "Week Ending"
-    }
-    if (type == "Monthly") {
-      type_str = "Month Ending"
-    }
-    tableHTML += '<thead><tr class="small"><th>'+type_str+'</th><th class="text-end">Sum of Fees (CCD)</th></tr></thead>';
-    // Add table body
-    tableHTML += '<tbody>';
-    data.forEach(item => {
-      const formattedNumber = numberFormatter.format(item.fee_for_day);
-        tableHTML += '<tr>';
-        tableHTML += `<td class="small ccd">${item.date.split('T')[0]}</td>`;
-        tableHTML += `<td class="small ccd number-separator text-end">${formattedNumber}</td>`;
-        tableHTML += '</tr>';
-    });
-    tableHTML += '</tbody>';
-    tableHTML += '</table>';
-    return tableHTML;
-}
 
   function Search() {
     const type_daily = document.getElementById("daily");
@@ -81,10 +50,7 @@ function generateHTMLTable(data, type) {
             return response.json();
           })
           .then((data) => {
-            const htmlTable = generateHTMLTable(data, type);
-            fee_table.innerHTML = htmlTable
-            // console.log(data);
-            // fee_table.innerHTML = data
+            fee_table.innerHTML = data
           })
           .catch(function(error) {
             console.log(error);

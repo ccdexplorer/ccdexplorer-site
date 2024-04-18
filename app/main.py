@@ -172,6 +172,7 @@ app.include_router(transactions.router)
 app.include_router(usersv2.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/tmp", StaticFiles(directory="tmp"), name="tmp")
 
 origins = [
     "http://127.0.0.1:8000",

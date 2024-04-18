@@ -1,33 +1,33 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
 
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import HTMLResponse, JSONResponse
-from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-from app.utils import user_string
+import csv
+import datetime as dt
+import uuid
+import pandas as pd
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.mongodb import (
+    Collections,
+    MongoDB,
+    MongoMotor,
+    MongoTypeBlockPerDay,
+)
+from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, FileResponse
+from rich import print
+
 from app.ajax_helpers import (
-    transactions_html_footer,
     mongo_transactions_html_header,
     process_transactions_to_HTML,
+    transactions_html_footer,
 )
-from app.jinja2_helpers import *
+from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
 from app.env import *
-from app.state.state import *
-import datetime as dt
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
-from ccdexplorer_fundamentals.mongodb import (
-    MongoDB,
-    Collections,
-    MongoTypeBlockPerDay,
-    MongoMotor,
-)
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
-import pandas as pd
-
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-
+from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
-
-from rich import print
+from app.state.state import *
+from app.utils import user_string
 
 router = APIRouter()
 
@@ -151,6 +151,13 @@ async def ajax_transaction_types_reporting(
         df_grouped["date"] = df_grouped["date"].dt.strftime("%Y-%m-%d")
         # return df_grouped.to_dict("records")
         records = df_grouped.to_dict("records")
+        filename = f"tmp/transactions count - {dt.datetime.now():%Y-%m-%d %H-%M-%S} for {reporting_request.usecase_id} grouped {reporting_request.group_by.lower()} - {uuid.uuid4()}.csv"
+        if "based_on_addresses" in df_grouped.columns:
+            df_grouped.drop("based_on_addresses", axis=1, inplace=True)
+        if "last_block_processed" in df_grouped.columns:
+            df_grouped.drop("last_block_processed", axis=1, inplace=True)
+        df_grouped.to_csv(filename, index=False)
+
     else:
         records = []
     html = templates.get_template(
@@ -163,6 +170,7 @@ async def ajax_transaction_types_reporting(
             "records": records,
             "reporting_request": reporting_request,
             "type": reporting_request.group_by,
+            "filename": filename,
         },
     )
     return html
