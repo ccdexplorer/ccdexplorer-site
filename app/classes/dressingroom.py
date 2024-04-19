@@ -478,6 +478,10 @@ class MakeUp:
                                 schema,
                                 source_module_name,
                                 event,
+                                self.net,
+                                user=self.user,
+                                tags=self.tags,
+                                app=self.makeup_request.app,
                             )
 
                     new_event = EventType(
@@ -530,6 +534,10 @@ class MakeUp:
                                                 schema,
                                                 source_module_name,
                                                 event,
+                                                self.net,
+                                                user=self.user,
+                                                tags=self.tags,
+                                                app=self.makeup_request.app,
                                             )
                                         )
 
@@ -544,7 +552,7 @@ class MakeUp:
                             new_event = EventType(
                                 f"Updated contract with address {instance_link_v2(effect.updated.address, self.user, self.tags, self.net)}",
                                 f"Contract: {effect.updated.receive_name.split('.')[0]}<br>Function: {effect.updated.receive_name.split('.')[1]}{amount_str}",
-                                f"Parameter: {shorten_address(effect.updated.parameter) if not parameter_json else print_parameter_dict(parameter_json, self.net, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                f"Parameter: {shorten_address(effect.updated.parameter) if not parameter_json else print_schema_dict(parameter_json, self.net, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
                                 logged_events,
                             )
                             self.smart_contracts_updated.append(effect.updated.address)
@@ -575,6 +583,10 @@ class MakeUp:
                                             schema,
                                             source_module_name,
                                             event,
+                                            self.net,
+                                            user=self.user,
+                                            tags=self.tags,
+                                            app=self.makeup_request.app,
                                         )
                                     )
 
@@ -1186,7 +1198,15 @@ class MakeUp:
         return logged_events, success
 
     def try_schema_parsing_for_event(
-        self, logged_events: list, schema: Schema, source_module_name: str, event: str
+        self,
+        logged_events: list,
+        schema: Schema,
+        source_module_name: str,
+        event: str,
+        net,
+        user,
+        tags,
+        app,
     ):
         success = False
         if not schema:
@@ -1197,13 +1217,14 @@ class MakeUp:
                 source_module_name,
                 bytes.fromhex(event),
             )
-            logged_events.append(
-                EventType(
-                    "Schema Parsed",
-                    json.dumps(event_json),
-                    None,
+            for k, v in event_json.items():
+                logged_events.append(
+                    EventType(
+                        f"Schema Parsed for {k}",
+                        print_schema_dict(v, net, user, tags, app),
+                        None,
+                    )
                 )
-            )
             success = True
         except ValueError:
             success = False

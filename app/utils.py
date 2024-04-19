@@ -998,7 +998,7 @@ def thousands(value):
 
 
 def parse_account_or_contract(key, value, net, user, tags, app):
-    out = f"{key}: {value}<br/>"
+    out = ""
     if isinstance(value, dict):
         sec_key = list(value.keys())[0]
         if sec_key == "Account":
@@ -1014,7 +1014,7 @@ def parse_account_or_contract(key, value, net, user, tags, app):
             )
             out = f"{key}: {account_}<br/>"
 
-        if sec_key == "Contract":
+        elif sec_key == "Contract":
             contract_id = value[sec_key][0]
             contract = CCD_ContractAddress.from_index(
                 contract_id["index"], contract_id["subindex"]
@@ -1022,10 +1022,19 @@ def parse_account_or_contract(key, value, net, user, tags, app):
             contract_ = instance_link_v2(contract, net)
             out = f"{key}: {contract_}<br/>"
 
-        if list(value.keys()) == ["index", "subindex"]:
+        elif list(value.keys()) == ["index", "subindex"]:
             contract = CCD_ContractAddress.from_index(value["index"], value["subindex"])
             contract_ = instance_link_v2(contract, net)
             out = f"{key}: {contract_}<br/>"
+
+        elif sec_key == "metadata_url":
+            if "url" in value[sec_key]:
+                out = f"{key}: <a href='{value[sec_key]['url']}'>{value[sec_key]['url']}</a><br/>"
+
+        elif "url" in list(value.keys()):
+            out = f"{key}: <a href='{value['url']}'>{value['url']}</a><br/>"
+        else:
+            out = f"{key}: {value}<br/>"
 
     if isinstance(value, str):
         if len(value) < 29:
@@ -1040,17 +1049,20 @@ def parse_account_or_contract(key, value, net, user, tags, app):
                 tags=tags,
                 app=app,
             )
-            out = f"{key}: {account_}<br/>"
+            out += f"{key}: {account_}<br/>"
+
+    if out == "":
+        out = f"{key}: {value}<br/>"
     return out
 
 
-def print_parameter_dict(parameter_dict, net, user, tags, app):
-    if not isinstance(parameter_dict, dict):
-        if isinstance(parameter_dict, list):
-            parameter_dict = parameter_dict[0]
-    if isinstance(parameter_dict, dict):
+def print_schema_dict(schema_dict, net, user, tags, app):
+    if not isinstance(schema_dict, dict):
+        if isinstance(schema_dict, list):
+            schema_dict = schema_dict[0]
+    if isinstance(schema_dict, dict):
         out = '<div class="ps-4 pe-2">'
-        for key, value in parameter_dict.items():
+        for key, value in schema_dict.items():
             if isinstance(value, dict):
                 out += parse_account_or_contract(key, value, net, user, tags, app)
             elif isinstance(value, list) and len(value) > 0:
@@ -1063,13 +1075,16 @@ def print_parameter_dict(parameter_dict, net, user, tags, app):
             elif key == "data":
                 if value != "":
                     out += f"{key}: {shorten_address(value)}"
+            elif key == "url":
+                if value != "":
+                    out += f"{key}: <a href='{value}'>{value}</a>"
             else:
                 if value != "":
                     out += f"{key}: {value}<br/>"
 
         out += "</div>"
     else:
-        out = parameter_dict
+        out = schema_dict
     return out
 
 
