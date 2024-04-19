@@ -25,6 +25,8 @@ vegafusion[embed]
 altair
 pymongo
 ccdexplorer-fundamentals
+ccdexplorer-schema-parser
+
 pympler
 apprise
 docker

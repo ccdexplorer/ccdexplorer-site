@@ -167,7 +167,7 @@ def get_exchange_rates(
             dt.datetime.now().astimezone(dt.timezone.utc)
             - req.app.exchange_rates_last_requested
         ).total_seconds()
-        < 60
+        < 10
     ) and (req.app.exchange_rates):
         pass
         # print("exchange_rates from cache.")
@@ -175,10 +175,6 @@ def get_exchange_rates(
         coll = req.app.mongodb.utilities[CollectionsUtilities.exchange_rates]
 
         req.app.exchange_rates = {x["token"]: x for x in coll.find({})}
-        req.app.exchange_rates["wBTC"] = req.app.exchange_rates["BTC"]
-        req.app.exchange_rates["wCCD"] = req.app.exchange_rates["CCD"]
-        req.app.exchange_rates["tETH"] = req.app.exchange_rates["ETH"]
-        req.app.exchange_rates["tMATIC"] = req.app.exchange_rates["MATIC"]
 
         req.app.exchange_rates_last_requested = dt.datetime.now().astimezone(
             dt.timezone.utc
@@ -360,10 +356,6 @@ def get_token_addresses_with_markup(req: Request):
     coll = req.app.mongodb.utilities[CollectionsUtilities.exchange_rates]
 
     exchange_rates = {x["token"]: x for x in coll.find({})}
-    exchange_rates["wBTC"] = exchange_rates["BTC"]
-    exchange_rates["wCCD"] = exchange_rates["CCD"]
-    exchange_rates["tETH"] = exchange_rates["ETH"]
-    exchange_rates["tMATIC"] = exchange_rates["MATIC"]
 
     # find fungible tokens
     fungible_contracts = [
@@ -386,9 +378,12 @@ def get_token_addresses_with_markup(req: Request):
                 token_address_class.contract
             ]
             if token_address_class.tag_information.token_type == "fungible":
-                if token_address_class.tag_information.id in exchange_rates.keys():
+                if (
+                    token_address_class.tag_information.get_price_from
+                    in exchange_rates.keys()
+                ):
                     token_address_class.exchange_rate = exchange_rates[
-                        token_address_class.tag_information.id
+                        token_address_class.tag_information.get_price_from
                     ]["rate"]
                 else:
                     token_address_class.exchange_rate = 0

@@ -1,18 +1,25 @@
 # ruff: noqa: F403, F405, E402, E501
 
-from enum import Enum
 import datetime as dt
-from app.env import *
-from app.utils import *
-from app.classes.Enums import *
-from pydantic import BaseModel
-from ccdexplorer_fundamentals.cns import CNSEvent, CNSDomain, CNSActions
-from ccdexplorer_fundamentals.user_v2 import UserV2
+import typing
+from enum import Enum
+from ccdexplorer_fundamentals.enums import NET
+
+import pprint
+import json
+from ccdexplorer_fundamentals.cns import CNSActions, CNSDomain, CNSEvent
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from ccdexplorer_fundamentals.mongodb import MongoDB, Collections
+from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
+from ccdexplorer_fundamentals.mongodb import Collections, MongoDB
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from ccdexplorer_schema_parser.Schema import Schema
+from pydantic import BaseModel
 from pymongo import ReplaceOne
-import typing
+
+from app.classes.Enums import *
+from app.env import *
+from app.utils import *
 
 # from ccdexplorer_fundamentals.cis import (
 #     CIS,
@@ -130,6 +137,26 @@ class MakeUp:
         self.csv = {}
 
         self.smart_contracts_updated = []
+
+    def get_schema_from_source(self, contract_address: CCD_ContractAddress):
+        result = self.db_to_use[Collections.instances].find_one(
+            {"_id": contract_address.to_str()}
+        )
+        module_ref = (
+            result["v1"]["source_module"]
+            if result.get("v1")
+            else result["v0"]["source_module"]
+        )
+        source_module_name = (
+            result["v1"]["name"][5:] if result.get("v1") else result["v0"]["name"][5:]
+        )
+        self.grpcclient: GRPCClient
+        ms: VersionedModuleSource = self.grpcclient.get_module_source_original_classes(
+            module_ref, "last_final", net=NET(self.makeup_request.net)
+        )
+        schema = Schema(ms.v1.value, 1) if ms.v1 else Schema(ms.v0.value, 0)
+
+        return schema, source_module_name
 
     def prepare_for_display(self, transaction, account_id, account_view):
         self._classify_transaction(transaction, account_id, account_view=account_view)
@@ -430,28 +457,28 @@ class MakeUp:
                     self.classifier = TransactionClassifier.Smart_Contract
 
                     logged_events = []
-                    for event in effects.contract_initialized.events:
-                        if (  # only look for logged events to display if we know the tag.
-                            effects.contract_initialized.address.to_str()
-                            in self.contracts_with_tag_info.keys()
-                        ):
-                            process_event_request = ProcessEventRequest(
-                                **{
-                                    "contract_address": effects.contract_initialized.address,
-                                    "event": event,
-                                    "net": self.net,
-                                    "user": self.user,
-                                    "tags": self.tags,
-                                    "db_to_use": self.db_to_use,
-                                    "contracts_with_tag_info": self.contracts_with_tag_info,
-                                    # "token_addresses_with_markup": self.token_addresses_with_markup,
-                                    "app": self.makeup_request.app,
-                                }
-                            )
-                            result = process_event_for_makeup(req=process_event_request)
+                    try:
+                        schema, source_module_name = self.get_schema_from_source(
+                            effects.contract_initialized.address
+                        )
+                    except ValueError:
+                        schema = None
+                        source_module_name = None
 
-                            if result:
-                                logged_events.append(result)
+                    for event in effects.contract_initialized.events:
+                        success = False
+                        logged_events, success = self.try_logged_event_parsing(
+                            logged_events,
+                            event,
+                            effects.contract_initialized.address,
+                        )
+                        if not success:
+                            logged_events, success = self.try_schema_parsing_for_event(
+                                logged_events,
+                                schema,
+                                source_module_name,
+                                event,
+                            )
 
                     new_event = EventType(
                         f"Contract Initialized {instance_link_v2(effects.contract_initialized.address, self.user, self.tags, self.net)}",
@@ -464,51 +491,48 @@ class MakeUp:
                     for effect in effects.contract_update_issued.effects:
                         if effect.updated:
                             logged_events = []
-                            if (  # only look for logged events to display if we know the tag.
-                                effect.updated.address.to_str()
-                                in self.contracts_with_tag_info.keys()
-                            ) or (
-                                effect.updated.address.to_str()
-                                in self.credential_issuers
-                            ):
-                                process_events = len(effect.updated.events) < 100
+                            try:
+                                schema, source_module_name = (
+                                    self.get_schema_from_source(effect.updated.address)
+                                )
+                                parameter_json, _ = (
+                                    self.try_schema_parsing_for_parameter(
+                                        schema,
+                                        source_module_name,
+                                        effect.updated.receive_name.split(".")[1],
+                                        effect.updated.parameter,
+                                    )
+                                )
+                            except ValueError:
+                                schema = None
+                                source_module_name = None
+                                parameter_json = None
 
-                                if self.makeup_request.requesting_route:
-                                    if (len(effect.updated.events) > 100) and (
-                                        self.makeup_request.requesting_route
-                                        == RequestingRoute.transaction
-                                    ):
-                                        process_events = True
+                            # don't show logged events if we are not specifically looking at 1 tx.
+                            process_events = self.determine_if_we_show_events(
+                                effect.updated.events
+                            )
 
-                                if process_events:
-                                    for event in effect.updated.events:
-                                        process_event_request = ProcessEventRequest(
-                                            **{
-                                                "contract_address": effect.updated.address,
-                                                "event": event,
-                                                "net": self.net,
-                                                "user": self.user,
-                                                "tags": self.tags,
-                                                "db_to_use": self.db_to_use,
-                                                "contracts_with_tag_info": self.contracts_with_tag_info,
-                                                # "token_addresses_with_markup": self.token_addresses_with_markup,
-                                                "app": self.makeup_request.app,
-                                            }
-                                        )
-                                        result = process_event_for_makeup(
-                                            req=process_event_request
-                                        )
-
-                                        if result:
-                                            logged_events.append(result)
-                                else:
-                                    logged_events.append(
-                                        EventType(
-                                            "Logged Events",
-                                            "> 100 events...view individual tx to see details.",
-                                            None,
+                            if process_events:
+                                for event in effect.updated.events:
+                                    success = False
+                                    logged_events, success = (
+                                        self.try_logged_event_parsing(
+                                            logged_events,
+                                            event,
+                                            effect.updated.address,
                                         )
                                     )
+                                    if not success:
+                                        logged_events, success = (
+                                            self.try_schema_parsing_for_event(
+                                                logged_events,
+                                                schema,
+                                                source_module_name,
+                                                event,
+                                            )
+                                        )
+
                             if t.block_info.height < 6_000_000:
                                 self.set_possible_cns_domain_from_update(effect.updated)
                                 self.set_cns_action_message(effect.updated)
@@ -520,37 +544,39 @@ class MakeUp:
                             new_event = EventType(
                                 f"Updated contract with address {instance_link_v2(effect.updated.address, self.user, self.tags, self.net)}",
                                 f"Contract: {effect.updated.receive_name.split('.')[0]}<br>Function: {effect.updated.receive_name.split('.')[1]}{amount_str}",
-                                f"Message: {shorten_address(effect.updated.parameter)}",
+                                f"Parameter: {shorten_address(effect.updated.parameter) if not parameter_json else print_parameter_dict(parameter_json, self.net, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
                                 logged_events,
                             )
                             self.smart_contracts_updated.append(effect.updated.address)
 
                         if effect.interrupted:
                             logged_events = []
-                            if (  # only look for logged events to display if we know the tag.
-                                effect.interrupted.address.to_str()
-                                in self.contracts_with_tag_info.keys()
-                            ):
-                                for event in effect.interrupted.events:
-                                    process_event_request = ProcessEventRequest(
-                                        **{
-                                            "contract_address": effect.interrupted.address,
-                                            "event": event,
-                                            "net": self.net,
-                                            "user": self.user,
-                                            "tags": self.tags,
-                                            "db_to_use": self.db_to_use,
-                                            "contracts_with_tag_info": self.contracts_with_tag_info,
-                                            # "token_addresses_with_markup": self.token_addresses_with_markup,
-                                            "app": self.makeup_request.app,
-                                        }
+                            try:
+                                schema, source_module_name = (
+                                    self.get_schema_from_source(
+                                        effect.interrupted.address
                                     )
-                                    result = process_event_for_makeup(
-                                        req=process_event_request
-                                    )
+                                )
+                            except ValueError:
+                                schema = None
+                                source_module_name = None
 
-                                    if result:
-                                        logged_events.append(result)
+                            for event in effect.interrupted.events:
+                                success = False
+                                logged_events, success = self.try_logged_event_parsing(
+                                    logged_events,
+                                    event,
+                                    effect.interrupted.address,
+                                )
+                                if not success:
+                                    logged_events, success = (
+                                        self.try_schema_parsing_for_event(
+                                            logged_events,
+                                            schema,
+                                            source_module_name,
+                                            event,
+                                        )
+                                    )
 
                             self.set_possible_cns_domain_from_interrupt(
                                 effect.interrupted
@@ -1122,6 +1148,91 @@ class MakeUp:
             self.classifier = TransactionClassifier.Chain
 
             self.dct = dct
+
+    def determine_if_we_show_events(self, events: list):
+        process_events = len(events) < 100
+        if self.makeup_request.requesting_route:
+            if (len(events) > 100) and (
+                self.makeup_request.requesting_route == RequestingRoute.transaction
+            ):
+                process_events = True
+        return process_events
+
+    def try_logged_event_parsing(
+        self, logged_events: list, event, contract_address: CCD_ContractAddress
+    ):
+        success = False
+        if (  # only look for logged events to display if we know the tag.
+            contract_address.to_str() in self.contracts_with_tag_info.keys()
+        ) or (contract_address.to_str() in self.credential_issuers):
+            process_event_request = ProcessEventRequest(
+                **{
+                    "contract_address": contract_address,
+                    "event": event,
+                    "net": self.net,
+                    "user": self.user,
+                    "tags": self.tags,
+                    "db_to_use": self.db_to_use,
+                    "contracts_with_tag_info": self.contracts_with_tag_info,
+                    # "token_addresses_with_markup": self.token_addresses_with_markup,
+                    "app": self.makeup_request.app,
+                }
+            )
+            result = process_event_for_makeup(req=process_event_request)
+
+            if result:
+                success = True
+                logged_events.append(result)
+        return logged_events, success
+
+    def try_schema_parsing_for_event(
+        self, logged_events: list, schema: Schema, source_module_name: str, event: str
+    ):
+        success = False
+        if not schema:
+            return logged_events, success
+        try:
+
+            event_json = schema.event_to_json(
+                source_module_name,
+                bytes.fromhex(event),
+            )
+            logged_events.append(
+                EventType(
+                    "Schema Parsed",
+                    json.dumps(event_json),
+                    None,
+                )
+            )
+            success = True
+        except ValueError:
+            success = False
+
+        return logged_events, success
+
+    def try_schema_parsing_for_parameter(
+        self,
+        schema: Schema,
+        source_module_name: str,
+        function_name: str,
+        parameter: str,
+    ):
+        success = False
+        if not schema:
+            return None, success
+        try:
+
+            parameter_json = schema.parameter_to_json(
+                source_module_name,
+                function_name,
+                bytes.fromhex(parameter),
+            )
+            success = True
+        except ValueError:
+            parameter_json = None
+            success = False
+
+        return parameter_json, success
 
     def _prepare(self, transaction: CCD_BlockItemSummary):
         if transaction.type.type == TransactionClass.AccountTransaction.value:

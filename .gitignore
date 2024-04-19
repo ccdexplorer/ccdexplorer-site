@@ -1,6 +1,6 @@
 .venv/*
 .DS_Store
-/tmp
+/app/tmp
 *.pyc
 .env
 .vscode/launch.json

@@ -997,9 +997,85 @@ def thousands(value):
     return f"{value:,.0f}"
 
 
+def parse_account_or_contract(key, value, net, user, tags, app):
+    out = f"{key}: {value}<br/>"
+    if isinstance(value, dict):
+        sec_key = list(value.keys())[0]
+        if sec_key == "Account":
+            account_id = value[sec_key][0]
+            account_ = account_link(
+                account_id,
+                net,
+                from_=False,
+                nothing_=True,
+                user=user,
+                tags=tags,
+                app=app,
+            )
+            out = f"{key}: {account_}<br/>"
+
+        if sec_key == "Contract":
+            contract_id = value[sec_key][0]
+            contract = CCD_ContractAddress.from_index(
+                contract_id["index"], contract_id["subindex"]
+            )
+            contract_ = instance_link_v2(contract, net)
+            out = f"{key}: {contract_}<br/>"
+
+        if list(value.keys()) == ["index", "subindex"]:
+            contract = CCD_ContractAddress.from_index(value["index"], value["subindex"])
+            contract_ = instance_link_v2(contract, net)
+            out = f"{key}: {contract_}<br/>"
+
+    if isinstance(value, str):
+        if len(value) < 29:
+            out = f"{key}: {value}<br/>"
+        else:
+            account_ = account_link(
+                value,
+                net,
+                from_=False,
+                nothing_=True,
+                user=user,
+                tags=tags,
+                app=app,
+            )
+            out = f"{key}: {account_}<br/>"
+    return out
+
+
+def print_parameter_dict(parameter_dict, net, user, tags, app):
+    if not isinstance(parameter_dict, dict):
+        if isinstance(parameter_dict, list):
+            parameter_dict = parameter_dict[0]
+    if isinstance(parameter_dict, dict):
+        out = '<div class="ps-4 pe-2">'
+        for key, value in parameter_dict.items():
+            if isinstance(value, dict):
+                out += parse_account_or_contract(key, value, net, user, tags, app)
+            elif isinstance(value, list) and len(value) > 0:
+                out += parse_account_or_contract(key, value[0], net, user, tags, app)
+            elif key in ["owner", "from", "to", "winner"]:
+                out += parse_account_or_contract(key, value, net, user, tags, app)
+            elif key == "amount":
+                if value != "":
+                    out += f"{key}: <span class='ccd'>{value}</span><br/>"
+            elif key == "data":
+                if value != "":
+                    out += f"{key}: {shorten_address(value)}"
+            else:
+                if value != "":
+                    out += f"{key}: {value}<br/>"
+
+        out += "</div>"
+    else:
+        out = parameter_dict
+    return out
+
+
 def shorten_address(value, address=None):
     if len(value) < 17:
-        return f"{value}"
+        return f"<div class='ccd'>{value}</div>"
 
     else:
         if address:

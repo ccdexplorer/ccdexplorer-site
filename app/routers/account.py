@@ -56,7 +56,7 @@ def add_metadata_to_single_tokens(tokens_dict: dict, db_to_use, exchange_rates):
         if contract in tokens_tags.keys():
             # it's a single use contract
             d.update({"decimals": tokens_tags[contract]["decimals"]})
-            d.update({"token_symbol": tokens_tags[contract]["_id"].replace("w", "")})
+            d.update({"token_symbol": tokens_tags[contract]["get_price_from"]})
             d.update(
                 {"token_value": int(d["token_amount"]) * (math.pow(10, -d["decimals"]))}
             )
@@ -2046,25 +2046,6 @@ async def get_ajax_tokens_nft(
         tokens = {
             x["token_holding"]["token_address"]: x["token_holding"] for x in result_list
         }
-        # if len(result_list) == 0:
-        #     result = None
-
-        # if len(result_list) == 1:
-        #     result = result_list[0]
-
-        # merged_result = {}
-        # if len(result_list) > 1:
-        #     for r in result_list:
-        #         for r_token, token_struct in r["tokens"].items():
-        #             if not merged_result.get(r_token):
-        #                 merged_result[r_token] = token_struct
-        #             else:
-        #                 merged_result[r_token]["token_amount"] = str(
-        #                     int(merged_result[r_token]["token_amount"])
-        #                     + int(token_struct["token_amount"])
-        #                 )
-        #     result = {}
-        #     result["tokens"] = merged_result
 
         if tokens:
             token_addresses = list(tokens.keys())
@@ -2113,12 +2094,9 @@ async def get_ajax_tokens_nft(
             tokens = {}
             len_tokens = 0
 
-        fung_count = 0
         non_fung_count = 0
         for token in tokens.values():
             if token["markup"].tag_information:
-                if token["markup"].tag_information.token_type == "fungible":
-                    fung_count += 1
                 if token["markup"].tag_information.token_type == "non-fungible":
                     non_fung_count += 1
         html = process_tokens_to_HTML_v2(
