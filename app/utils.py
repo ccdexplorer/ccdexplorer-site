@@ -1067,7 +1067,15 @@ def print_schema_dict(schema_dict, net, user, tags, app):
                 out += parse_account_or_contract(key, value, net, user, tags, app)
             elif isinstance(value, list) and len(value) > 0:
                 out += parse_account_or_contract(key, value[0], net, user, tags, app)
-            elif key in ["owner", "from", "to", "winner"]:
+            elif key in [
+                "owner",
+                "from",
+                "to",
+                "winner",
+                "account",
+                "signer",
+                "witness",
+            ]:
                 out += parse_account_or_contract(key, value, net, user, tags, app)
             elif key == "amount":
                 if value != "":
