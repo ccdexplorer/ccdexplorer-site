@@ -1,7 +1,7 @@
 <nav class="navbar navbar-light ">
     <div class="container p-3 pt-0 pb-0 m-0">
       <a class="navbar-brand" href="/">
-        <img id='logo' src="/static/logo_white_bg.jpg" alt="" width="250" >
+        <img id='logo' src="/static/logo_white_bg_io.jpg" alt="" width="250" >
       </a>
       <!-- {{net}}
       {{request.url}} -->
@@ -74,6 +74,12 @@
                 {% endif %}
                 " href="/mainnet/statistics/concordex">Concordex
             </a></li>
+            <!-- <li class="nav-item"><a class="nav-link 
+              {%  if (request.url|string).endswith('tricorn') %}
+                 active
+              {% endif %}
+              " href="/mainnet/statistics/tricorn">Tricorn
+          </a></li> -->
             </ul>
           </li>
           {% endif %}
