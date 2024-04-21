@@ -1787,64 +1787,42 @@ async def get_ajax_tokens(
             nr_of_pages, _ = divmod(total_rows, limit)
             skip = nr_of_pages * limit
 
-        # result = db_to_use[Collections.tokens_accounts].find_one({"_id": address})
-        result_list = list(
-            db_to_use[Collections.tokens_links_v2].aggregate(
-                [
-                    {"$match": {"account_address_canonical": address[:29]}},
-                    {"$sort": {"token_holding.token_address": DESCENDING}},
-                    {
-                        "$facet": {
-                            # "metadata": [{"$count": "total"}],
-                            "data": [{"$skip": skip}, {"$limit": limit}],
-                        }
-                    },
-                ]
-            )
+        total_count_row = db_to_use[Collections.pre_tokens_by_address].find_one(
+            {"_id": address[:29]}
         )
+        if total_count_row:
+            total_pipeline_query = {
+                "$facet": {"data": [{"$skip": skip}, {"$limit": limit}]}
+            }
+        else:
+            total_pipeline_query = {
+                "$facet": {
+                    "metadata": [{"$count": "total"}],
+                    "data": [{"$skip": skip}, {"$limit": limit}],
+                }
+            }
+
+        pipeline = [
+            {"$match": {"account_address_canonical": address[:29]}},
+            {"$sort": {"token_holding.token_address": DESCENDING}},
+        ]
+        pipeline.append(total_pipeline_query)
+
+        result_list = list(db_to_use[Collections.tokens_links_v2].aggregate(pipeline))
+        if not total_count_row:
+            total_count = result_list[0]["metadata"][0]["total"]
+        else:
+            total_count = total_count_row["count"]
         tokens = {
             x["token_holding"]["token_address"]: x["token_holding"]
             for x in result_list[0]["data"]
         }
-
-        token_count_result = list(
-            db_to_use[Collections.pre_tokens_by_address].find({"_id": address[:29]})
-        )
-
-        # if len(result_list) == 0:
-        #     result = None
-
-        # if len(result_list) == 1:
-        #     result = result_list[0]
-
-        # merged_result = {}
-        # if len(result_list) > 1:
-        #     for r in result_list:
-        #         for r_token, token_struct in r["tokens"].items():
-        #             if not merged_result.get(r_token):
-        #                 merged_result[r_token] = token_struct
-        #             else:
-        #                 merged_result[r_token]["token_amount"] = str(
-        #                     int(merged_result[r_token]["token_amount"])
-        #                     + int(token_struct["token_amount"])
-        #                 )
-        #     result = {}
-        #     result["tokens"] = merged_result
 
         if tokens:
             token_addresses = list(tokens.keys())
             token_addresses_with_markup = get_token_addresses_with_markup_for_addresses(
                 token_addresses, request, db_to_use
             )
-            # tokens: dict = result["tokens"]
-            # len_tokens = len(tokens)
-
-            # token_addresses_to_display = token_addresses#[skip : (skip + limit)]
-            # t_all = set(token_addresses)
-            # t_display = set(token_addresses_to_display)
-            # t_adr_to_remove = list(t_all - t_display)
-            # for k in t_adr_to_remove:
-            #     tokens.pop(k, None)
 
             for token_address, token in tokens.items():
                 # this needs to be a lookup in pre_ for all tokens at once and then locally generate this dict
@@ -1888,7 +1866,7 @@ async def get_ajax_tokens(
                     non_fung_count += 1
         html = process_tokens_to_HTML_v2(
             tokens,
-            int(token_count_result[0]["count"] if len(token_count_result) > 0 else 0),
+            total_count,
             requested_page,
             None,
             None,

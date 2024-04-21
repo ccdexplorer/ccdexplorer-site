@@ -262,12 +262,7 @@ def get_token_addresses_with_markup_for_addresses(
     contracts_with_tag_info = req.app.contracts_with_tag_info
     # get exchange rates
     coll = req.app.mongodb.utilities[CollectionsUtilities.exchange_rates]
-
     exchange_rates = {x["token"]: x for x in coll.find({})}
-    exchange_rates["wBTC"] = exchange_rates["BTC"]
-    exchange_rates["wCCD"] = exchange_rates["CCD"]
-    exchange_rates["tETH"] = exchange_rates["ETH"]
-    exchange_rates["tMATIC"] = exchange_rates["MATIC"]
 
     # now onto the token_addresses
     token_addresses_with_markup = {
@@ -284,9 +279,12 @@ def get_token_addresses_with_markup_for_addresses(
                 token_address_class.contract
             ]
             if token_address_class.tag_information.token_type == "fungible":
-                if token_address_class.tag_information.id in exchange_rates.keys():
+                if (
+                    token_address_class.tag_information.get_price_from
+                    in exchange_rates.keys()
+                ):
                     token_address_class.exchange_rate = exchange_rates[
-                        token_address_class.tag_information.id
+                        token_address_class.tag_information.get_price_from
                     ]["rate"]
                 else:
                     token_address_class.exchange_rate = 0
