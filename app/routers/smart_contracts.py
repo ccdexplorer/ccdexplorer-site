@@ -81,39 +81,17 @@ async def request_ajax_source_module(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
 
-    result = list(
-        db_to_use[Collections.blocks_per_day].find(
-            filter={},
-            projection={
-                "_id": 0,
-                "date": 1,
-                "height_for_last_block": 1,
-                "slot_time_for_last_block": 1,
-            },
-        )
-    )
-    print(f"Count #txs = {len(result)}")
-    block_end_of_day_dict = {x["height_for_last_block"]: x["date"] for x in result}
-    heights = list(block_end_of_day_dict.keys())
-
-    module_name = MongoTypeModule(
+    module_class = MongoTypeModule(
         **db_to_use[Collections.modules].find_one({"_id": source_module})
-    ).module_name
-
-    result = list(
-        db_to_use[Collections.involved_contracts].find(
-            filter={"source_module": source_module},
-            projection={"_id": 0, "block_height": 1},
-        )
     )
-    block_heights_for_contract_transactions = [x["block_height"] for x in result]
-    days = [
-        find_date_for_height(heights, block_end_of_day_dict, x)
-        for x in block_heights_for_contract_transactions
+    module_name = module_class.module_name
+    modules_instances = module_class.contracts
+    pipeline = [
+        {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
+        {"$group": {"_id": "$date", "count": {"$sum": 1}}},
     ]
-    counter = dict(collections.Counter(days))
-    # print (counter)
-    df = pd.DataFrame.from_dict(counter, orient="index").reset_index()
+    result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
+    df = pd.DataFrame(result)
     days_alive = (
         dt.datetime.now() - dt.datetime(2021, 6, 9, 10, 0, 0)
     ).total_seconds() / (60 * 60 * 24)
@@ -127,10 +105,6 @@ async def request_ajax_source_module(
     df.columns = ["date", "transaction_count"]
     df["date"] = pd.to_datetime(df["date"])
 
-    df["transaction_cumsum"] = df["transaction_count"].cumsum()
-    # df.head()
-    # limit = 60
-
     line = (
         alt.Chart(df)
         .mark_bar(
@@ -142,16 +116,6 @@ async def request_ajax_source_module(
             x=alt.X("date:T", scale=alt.Scale(domain=list(domain_pd))),
             y="transaction_count",
         )
-    )
-
-    cumsum = (
-        alt.Chart(df)
-        .mark_area(
-            color="lightblue",
-            # interpolate='step-after',
-            line=True,
-        )
-        .encode(x="date:T", y="transaction_cumsum")
     )
 
     chart = (
@@ -377,12 +341,7 @@ async def smart_contracts(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
-    tooter.send(
-        channel=TooterChannel.NOTIFIER,
-        message=f"{user_string(user)} visited /smart-contracts/usage.",
-        notifier_type=TooterType.INFO,
-    )
-    print(f"{module=}")
+
     return templates.TemplateResponse(
         "smart_contracts/source_module_graph.html",
         {
@@ -410,11 +369,7 @@ async def smart_contracts_reporting(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
-    tooter.send(
-        channel=TooterChannel.NOTIFIER,
-        message=f"{user_string(user)} visited /smart-contracts/reporting.",
-        notifier_type=TooterType.INFO,
-    )
+
     return templates.TemplateResponse(
         "smart_contracts/smart_contracts_reporting.html",
         {
@@ -442,12 +397,6 @@ async def smart_contracts(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
-
-    tooter.send(
-        channel=TooterChannel.NOTIFIER,
-        message=f"{user_string(user)} visited /smart-contracts/usage.",
-        notifier_type=TooterType.INFO,
-    )
 
     return templates.TemplateResponse(
         "smart_contracts/source_module_graph.html",
