@@ -620,7 +620,7 @@ async def smart_contracts_tokens_overview(
         for contract in tt.contracts:
             if contract in logged_events_by_contract.keys():
                 tt.logged_events_count += logged_events_by_contract[contract]
-    print(token_addresses_with_markup)
+    print(f"{token_addresses_with_markup=}")
     return templates.TemplateResponse(
         "tokens/tokens.html",
         {
