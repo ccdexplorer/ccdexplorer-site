@@ -313,12 +313,12 @@ async def token_ptrt(
             decimals = metadata.decimals
 
     ptrt_all_tx_hashes = [
-        x["_id"].split("-")[0]
-        for x in db_to_use[Collections.involved_contracts].find(
-            {"index": ptrt_contract_for_tag.index}, projection={"_id": 1}
+        x["tx_hash"]
+        for x in db_to_use[Collections.impacted_addresses].find(
+            {"impacted_address_canonical": ptrt_contract_for_tag.to_str()},
+            projection={"_id": 0, "tx_hash": 1},
         )
     ]
-
     # first get events for summed view
     pipeline = [
         {"$match": {"tx_hash": {"$in": ptrt_all_tx_hashes}}},
