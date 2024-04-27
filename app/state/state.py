@@ -343,7 +343,7 @@ def get_token_addresses_with_markup(req: Request):
         contracts_with_tag_info = get_contracts_with_tag_info(req)
     else:
         contracts_with_tag_info = req.app.contracts_with_tag_info
-
+    print(f"{contracts_with_tag_info=}")
     if "net" in req.path_params:
         db_to_use = (
             req.app.mongodb.testnet
@@ -363,6 +363,7 @@ def get_token_addresses_with_markup(req: Request):
         for contract, token_tag in contracts_with_tag_info.items()
         if token_tag.token_type == "fungible"
     ]
+    print(f"{fungible_contracts=}")
     # now onto the token_addresses
     token_addresses_with_markup = {
         x["_id"]: MongoTypeTokenAddress(**x)
@@ -401,6 +402,7 @@ def get_token_addresses_with_markup(req: Request):
         # )
         # queue.append(queue_item)
     # _ = db_to_use[Collections.pre_token_addresses_with_markup].bulk_write(queue)
+    print(f"{token_addresses_with_markup=}")
     return token_addresses_with_markup
 
 
