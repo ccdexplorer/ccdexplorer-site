@@ -3,8 +3,8 @@
     
     <p><small>The following modules are included in the report:</small></p>
     <ul>
-        {% for sm, content in results.items() %}
-        <li><span class="ccd">{{content[0].display_name}}</span></li>
+        {% for sm in results.keys() %}
+        <li><span class="ccd">{{source_to_name[sm]}}</span></li>
         {% endfor %}
     </ul>
     
@@ -24,14 +24,14 @@
                     
                     ending...</td>
                     <td class="ccd text-start " >{{(c.date)|datetime_timestamp_reporting}}</td>
-                    <td class="ccd text-end" style="min-width:50px;">{{c.block_height|reporting_number}}</td></tr>
+                    <td class="ccd text-end" style="min-width:50px;">{{c.count|reporting_number}}</td></tr>
             
         
         {% endfor %}
     </table>
     
     {% for sm, content in results.items() %}
-        <small><span class="text-muted ">{{content[0].display_name}}</span></small>
+        <small><span class="text-muted ">{{source_to_name[sm]}}</span></small>
         <table class="table table-striped ms-1 me-1small">
             {% include "smart_contracts/smart_contracts_reporting_individual.html" %}    
         </table>

@@ -10,7 +10,7 @@
         
         ending...</td>
         <td class="text-start ccd">{{(c.date)|datetime_timestamp_reporting}}</td>
-        <td class="text-end ccd" style="min-width:50px;">{{c.block_height|reporting_number|safe}}</td>
+        <td class="text-end ccd" style="min-width:50px;">{{c.count|reporting_number|safe}}</td>
         
     </tr>
     {% endfor %}

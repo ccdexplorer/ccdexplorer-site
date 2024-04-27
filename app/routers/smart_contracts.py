@@ -137,6 +137,13 @@ class ReportingPeriods(Enum):
     M1 = "1M"
 
 
+def flatten_extend(matrix):
+    flat_list = []
+    for row in matrix:
+        flat_list.extend(row)
+    return flat_list
+
+
 @router.post(
     "/ajax_source_module_reporting/",
     response_class=HTMLResponse,
@@ -154,66 +161,56 @@ async def ajax_source_module_reporting(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
 
-    result = list(
-        db_to_use[Collections.blocks_per_day].find(
-            filter={},
-            projection={
-                "_id": 0,
-                "date": 1,
-                "height_for_last_block": 1,
-                "slot_time_for_last_block": 1,
-            },
-        )
-    )
-    print(f"Count #txs = {len(result)}")
-    block_end_of_day_dict = {x["height_for_last_block"]: x["date"] for x in result}
-    heights = list(block_end_of_day_dict.keys())
-
-    module_names = [
-        MongoTypeModule(**x).module_name
-        for x in db_to_use[Collections.modules].find(
-            {"_id": {"$in": reporting_request.source_modules}}
+    module_classes = [
+        MongoTypeModule(**x)
+        for x in list(
+            db_to_use[Collections.modules].find(
+                {"_id": {"$in": reporting_request.source_modules}}
+            )
         )
     ]
-    modules_dict = {
-        MongoTypeModule(**x).id: MongoTypeModule(**x)
-        for x in db_to_use[Collections.modules].find()
-    }
-    result = list(
-        db_to_use[Collections.involved_contracts].find(
-            filter={"source_module": {"$in": reporting_request.source_modules}},
-            projection={"_id": 0, "block_height": 1, "source_module": 1},
-        )
-    )
-
-    for r in result:
-        r.update(
-            {
-                "display_name": f'{r["source_module"][:4]} | {modules_dict[r["source_module"]].module_name}',
-                "date": dateutil.parser.parse(
-                    find_date_for_height(
-                        heights, block_end_of_day_dict, r["block_height"]
-                    )
-                ),
+    source_to_name = {x.id: x.module_name for x in module_classes}
+    instance_to_source = {}
+    for module_class in module_classes:
+        for instance in module_class.contracts:
+            instance_to_source[instance] = module_class.id
+    # module_name = module_class.module_name
+    modules_instances = [x.contracts for x in module_classes]
+    modules_instances = flatten_extend(modules_instances)
+    pipeline = [
+        {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
+        {
+            "$group": {
+                "_id": {"date": "$date", "instance": "$impacted_address_canonical"},
+                "count": {"$sum": 1},
             }
-        )
+        },
+    ]
+    result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
+    new_result = []
+    for r in result:
+        source_module = instance_to_source[r["_id"]["instance"]]
+        r.update({"source_module": source_module, "date": r["_id"]["date"]})
+        del r["_id"]
+        new_result.append(r)
 
-    df = pd.DataFrame(result)
+    df = pd.DataFrame(new_result)
+    df["date"] = pd.to_datetime(df["date"])
     df_group = (
         df.groupby(
             [
                 "source_module",
-                "display_name",
+                # "display_name",
                 pd.Grouper(key="date", freq=reporting_request.period),
             ]
         )
-        .count()
+        .sum()
         .reset_index()
     )
 
     df_group_all = (
         df.groupby([pd.Grouper(key="date", freq=reporting_request.period)])
-        .count()
+        .sum()
         .reset_index()
     )
     results_all = df_group_all.to_dict("records")
@@ -229,6 +226,7 @@ async def ajax_source_module_reporting(
         {
             "env": request.app.env,
             "request": request,
+            "source_to_name": source_to_name,
             "net": net,
             "results": dict_to_send,
             "results_all": results_all,
