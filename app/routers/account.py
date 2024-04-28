@@ -1538,6 +1538,10 @@ async def get_ajax_tokens(
                         tokens[token_address].update(
                             {"exchange_rate": token_address_with_markup.exchange_rate}
                         )
+                    else:
+                        tokens[token_address].update(
+                            {"token_value": 0, "token_value_USD": 0, "exchange_rate": 0}
+                        )
         else:
             tokens = {}
             len_tokens = 0

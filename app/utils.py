@@ -359,7 +359,7 @@ def process_event_for_makeup(req: ProcessEventRequest):
         req.user = UserV2(**req.user)
     contract_address_as_str = req.contract_address.to_str()
     if contract_address_as_str in req.contracts_with_tag_info:
-        token_tag = req.contracts_with_tag_info[contract_address_as_str].id
+        token_tag = req.contracts_with_tag_info[contract_address_as_str].token_tag_id
         single_use_contract = req.contracts_with_tag_info[
             contract_address_as_str
         ].single_use_contract
