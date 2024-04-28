@@ -28,7 +28,7 @@
               <!-- First column with token_address -->
                 <td class=" text-start">
                     <img src="{{item.tag_info.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-                    <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}"><span class="ccd">{{item.tag_info.token_tag_id}}</span></a>
+                    <small><a href="/{{net}}/tokens/{{item.tag_info.token_tag_id}}"><span class="ccd">{{item.tag_info.token_tag_id}}</span></a>
                     <br/>
                     <span class="ccd_decimals">{{item.token_value|round(item.tag_info.decimals)}} {{item.tag_info.token_tag_id}}</span>
                   </small>
@@ -100,10 +100,10 @@
               <!-- First column with token_address -->
             <td class=" small text-start">
               <img src="{{item.tag_info.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-              <small><a href="/{{net}}/tokens/{{item.tag_info.id}}">{{item.tag_info.token_tag_id}}</a></small>
+              <small><a href="/{{net}}/tokens/{{item.tag_info.token_tag_id}}">{{item.tag_info.token_tag_id}}</a></small>
             </td>
               <!-- <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}"><span class="ccd">{{item.tag_info.id}}-{{item.token_id}}</span></a> -->
-              <td class="small">  <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}">{{item.token_metadata.name}}</a>
+              <td class="small">  <small><a href="/{{net}}/tokens/{{item.tag_info.token_tag_id}}">{{item.token_metadata.name}}</a>
               <br/>
               <span class="ccd_decimals">{{item.token_value}}</span>
             </small>
