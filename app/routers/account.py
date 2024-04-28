@@ -1592,7 +1592,6 @@ async def get_ajax_tokens_fungible(
             nr_of_pages, _ = divmod(total_rows, limit)
             skip = nr_of_pages * limit
 
-        # result = db_to_use[Collections.tokens_accounts].find_one({"_id": address})
         result_list = list(
             db_to_use[Collections.tokens_links_v2].find(
                 {"account_address_canonical": address[:29]}
