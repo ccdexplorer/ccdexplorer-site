@@ -1540,7 +1540,11 @@ async def get_ajax_tokens(
                         )
                     else:
                         tokens[token_address].update(
-                            {"token_value": 0, "token_value_USD": 0, "exchange_rate": 0}
+                            {
+                                # "token_value": None,
+                                # "token_value_USD": 0,
+                                "exchange_rate": 0,
+                            }
                         )
         else:
             tokens = {}
