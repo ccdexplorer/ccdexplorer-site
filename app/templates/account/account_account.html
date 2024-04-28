@@ -309,19 +309,10 @@ if (ref) {
     
   </div>
   {% endif %}  
-  {% if net == 'mainnet'%}
-      {% if cns_domains_list %}
-      <div class="tab-pane fade show {% if ['cns'] == show_tab_list %}active{% endif %} " style="padding-top: 10px;"
-        id="cns" role="tabpanel" aria-labelledby="cns-tab">
-        {% include "account/account_cns.html" %}
-      </div>
-
-      {% endif %}
-  {%endif%}
-      <div class="tab-pane fade show {% if tabs['txs'].active %}active{% endif %}" style="padding-top: 10px;" id="txs"
-        role="tabpanel" aria-labelledby="txs-tab">
-        <div id="transactions"></div>
-      </div>
+    <div class="tab-pane fade show {% if tabs['txs'].active %}active{% endif %}" style="padding-top: 10px;" id="txs"
+      role="tabpanel" aria-labelledby="txs-tab">
+      <div id="transactions"></div>
+    </div>
 
 </div>
 

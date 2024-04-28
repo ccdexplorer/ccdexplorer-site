@@ -19,18 +19,18 @@
         
 
 {% for token_address, item in tokens.items() %}
-{% if item.markup.tag_information.token_type == "fungible" %}
+{% if item.tag_info.token_type == "fungible" %}
     <tr>
           <!-- This is a recognized token, and has a corresponding tag entry -->
-          {% if item.markup.tag_information %}
+          {% if item.tag_info %}
               <!-- This is a fungible token, so needs value and value conversion -->
               
               <!-- First column with token_address -->
                 <td class=" text-start">
-                    <img src="{{item.markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-                    <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}"><span class="ccd">{{item.markup.tag_information.id}}</span></a>
+                    <img src="{{item.tag_info.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+                    <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}"><span class="ccd">{{item.tag_info.token_tag_id}}</span></a>
                     <br/>
-                    <span class="ccd_decimals">{{item.token_value|round(item.markup.tag_information.decimals)}} {{item.markup.tag_information.id}}</span>
+                    <span class="ccd_decimals">{{item.token_value|round(item.tag_info.decimals)}} {{item.tag_info.token_tag_id}}</span>
                   </small>
                 </td>
 
@@ -39,7 +39,7 @@
                   <small><span class="ccd">${{item.token_value_USD|baker_ccd}}
                   </span>
                   <br/>
-                  <span class="ccd_decimals">@{{item.markup.exchange_rate|commafy}}</span>
+                  <span class="ccd_decimals">@{{item.exchange_rate|commafy}}</span>
                   </small>
                 </td>
              
@@ -81,7 +81,7 @@
           <tr>
             <th class="small" scope="col" colspan="1" >Issuer</th>
             <th class="small" scope="col" colspan="1" >Token</th>
-            <th class="small text-end" scope="col">Amount</th>
+            <th class="small text-end" scope="col">Balance</th>
             
           </tr>
         </thead>
@@ -89,20 +89,21 @@
     
 
 {% for token_address, item in tokens.items() %}
-{% if item.markup.tag_information.token_type != "fungible" %}
+{% if item.tag_info.token_type != "fungible" %}
     <tr>
       <!-- {{item}} -->
       <!-- This is a recognized token, and has a corresponding tag entry -->
-      {% if item.markup.tag_information %}
+      {% if item.tag_info %}
           
           <!-- This is a NON fungible token -->     
           
               <!-- First column with token_address -->
             <td class=" small text-start">
-              <img src="{{item.markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-              <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}">{{item.markup.tag_information.id}}</a></small></td>
-              <!-- <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}"><span class="ccd">{{item.markup.tag_information.id}}-{{item.token_id}}</span></a> -->
-              <td class="small">  <small><a href="/{{net}}/tokens/{{item.markup.tag_information.id}}/{{item.token_id}}">{{item.markup.token_metadata.name}}</a>
+              <img src="{{item.tag_info.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+              <small><a href="/{{net}}/tokens/{{item.tag_info.id}}">{{item.tag_info.token_tag_id}}</a></small>
+            </td>
+              <!-- <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}"><span class="ccd">{{item.tag_info.id}}-{{item.token_id}}</span></a> -->
+              <td class="small">  <small><a href="/{{net}}/tokens/{{item.tag_info.id}}/{{item.token_id}}">{{item.token_metadata.name}}</a>
               <br/>
               <span class="ccd_decimals">{{item.token_value}}</span>
             </small>

@@ -49,6 +49,13 @@ def get_txs_for_impacted_address_arabella(mongodb: MongoDB):
     return [x["tx_hash"] for x in list(result)]
 
 
+def get_txs_for_impacted_address_tricorn(mongodb: MongoDB):
+    result = mongodb.mainnet_db["impacted_addresses"].find(
+        {"impacted_address_canonical": "<9427,0>"}, projection={"_id": 0, "tx_hash": 1}
+    )
+    return [x["tx_hash"] for x in list(result)]
+
+
 class ReportingActionType(str, Enum):
     deposit = "Deposit"
     swap = "Swap"
@@ -61,6 +68,7 @@ class ReportingActionType(str, Enum):
 class ReportingSubject(str, Enum):
     Concordex = "Concordex"
     Arabella = "Arabella"
+    Tricorn = "Tricorn"
 
 
 class ClassifiedTransaction(BaseModel):
@@ -272,6 +280,8 @@ def get_analytics_for_platform(
             tx_hashes = get_txs_for_impacted_address_cdex(mongodb)
         elif reporting_subject == ReportingSubject.Arabella:
             tx_hashes = get_txs_for_impacted_address_arabella(mongodb)
+        elif reporting_subject == ReportingSubject.Tricorn:
+            tx_hashes = get_txs_for_impacted_address_tricorn(mongodb)
 
         (
             txs_by_action_type,

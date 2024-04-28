@@ -226,7 +226,7 @@
         <div hx-get="/{{net}}/ajax_stream_table" hx-trigger="load, every 2s" ></div>
         {% endif %}
       {% if net == 'mainnet' and (request.url|string).endswith('mainnet')%}
-      <div hx-get="/ajax_txs_table" hx-trigger="load, every 30s" ></div>
+      <div hx-get="/mainnet/ajax_txs_table" hx-trigger="load, every 30s" ></div>
       
       {% endif %}
       <hr>
@@ -240,7 +240,7 @@
       {%  if not 'statistics' in (request.url|string) %}
       {% if net == 'mainnet' and (request.url|string).endswith('mainnet')%}
           
-          <div hx-get="/ajax_last_table" hx-trigger="load, every 30s" ></div>
+          <div hx-get="/mainnet/ajax_last_table" hx-trigger="load, every 30s" ></div>
           {% endif %}
             {% endif %}
       {% endif %}

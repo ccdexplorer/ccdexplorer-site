@@ -303,38 +303,26 @@ def get_credential_issuers(
 def get_contracts_with_tag_info(
     req: Request,
 ):
-    if (
-        (
-            dt.datetime.now().astimezone(dt.timezone.utc)
-            - req.app.tokens_tags_last_requested
-        ).total_seconds()
-        < 60
-    ) and (req.app.contracts_with_tag_info):
-        contracts_with_tag_info: dict[str, MongoTypeTokensTag] = (
-            req.app.contracts_with_tag_info
+
+    if "net" in req.path_params:
+        db_to_use = (
+            req.app.mongodb.testnet
+            if req.path_params["net"] == "testnet"
+            else req.app.mongodb.mainnet
         )
-        # print("Tokens_tags from cache.")
     else:
-        if "net" in req.path_params:
-            db_to_use = (
-                req.app.mongodb.testnet
-                if req.path_params["net"] == "testnet"
-                else req.app.mongodb.mainnet
-            )
-        else:
-            db_to_use = req.app.mongodb.mainnet
-        contracts_with_tag_info = {}
-        token_tags = db_to_use[Collections.tokens_tags].find({})
-        for token_tag in token_tags:
-            for contract in token_tag["contracts"]:
-                contracts_with_tag_info[contract] = MongoTypeTokensTag(**token_tag)
+        db_to_use = req.app.mongodb.mainnet
 
-        req.app.tokens_tags_last_requested = dt.datetime.now().astimezone(
-            dt.timezone.utc
+    contracts_with_tag_info = {
+        x["contract"]: MongoTypeTokensTag(**x)
+        for x in db_to_use[Collections.pre_render].find(
+            {"recurring_type": "contracts_to_tokens"}
         )
-        req.app.contracts_with_tag_info = contracts_with_tag_info
+    }
+    req.app.tokens_tags_last_requested = dt.datetime.now().astimezone(dt.timezone.utc)
+    req.app.contracts_with_tag_info = contracts_with_tag_info
 
-        print("Tokens_tags from mongodb.")
+    print(f"{len(contracts_with_tag_info.keys())} Tokens_tags from mongodb.")
     return contracts_with_tag_info
 
 

@@ -340,343 +340,6 @@ async def get_get_account_rewards_sum_for_graph(
     return result
 
 
-# def get_txs_for_account_from_ia_for_account_statement(account_id, mongodb: MongoDB):
-#     pipeline = [
-#         {
-#             "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
-#         }
-#     ]
-#     txs_for_account = list(
-#         mongodb.mainnet[Collections.impacted_addresses].aggregate(pipeline)
-#     )
-#     return txs_for_account
-
-
-# def get_txs_for_account_as_receiver_with_params(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_receiver = list(
-#         mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
-#     )
-#     return txs_as_receiver
-
-
-# def get_txs_for_account_as_sender_with_params(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_sender = list(
-#         mongodb.mainnet[Collections.involved_accounts_transfer].aggregate(pipeline)
-#     )
-#     return txs_as_sender
-
-
-# def get_txs_for_account_as_receiver_with_params_all(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_receiver = list(
-#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-#     )
-#     return txs_as_receiver
-
-
-# def get_txs_for_account_as_sender_with_params_all(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_sender = list(
-#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-#     )
-#     return txs_as_sender
-
-
-# def get_txs_for_account_as_receiver_with_params_all_id_only(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_receiver_with_params_id_only(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_receiver = list(
-#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-#     )
-#     return txs_as_receiver
-
-
-# def get_txs_for_account_as_sender_with_params_all_id_only(
-#     account_id, start_block, end_block, mongodb: MongoDB
-# ):
-#     pipeline = mongodb.search_txs_hashes_for_account_as_sender_with_params_id_only(
-#         account_id, start_block, end_block
-#     )
-#     txs_as_sender = list(
-#         mongodb.mainnet[Collections.involved_accounts_all].aggregate(pipeline)
-#     )
-#     return txs_as_sender
-
-
-@router.get(
-    "/ajax_account_statement/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_ajax_account_statement(
-    request: Request,
-    net: str,
-    account_id: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    tags: dict = Depends(get_labeled_accounts),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    credential_issuers: list = Depends(get_credential_issuers),
-):
-    """ """
-    limit = 20
-    user: UserV2 = get_user_detailsv2(request)
-
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        # requested page = 0 indicated the first page
-        # requested page = -1 indicates the last page
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
-            # special case if total_rows equals a limt multiple
-            if skip == total_rows:
-                skip = (nr_of_pages - 1) * limit
-
-        pipeline = [
-            {
-                "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
-            },
-            {"$sort": {"block_height": ASCENDING}},
-        ]
-        result = (
-            await mongomotor.mainnet_db["impacted_addresses"]
-            .aggregate(pipeline)
-            .to_list(1_000_000_000)
-        )
-
-        ia_entries = [MongoImpactedAddress(**x) for x in result]
-
-        block_heights = [x.block_height for x in ia_entries]
-        slot_times = {
-            x["height"]: x["slot_time"]
-            for x in list(
-                mongodb.mainnet[Collections.blocks].find(
-                    {"height": {"$in": block_heights}},
-                    projection={"_id": False, "slot_time": True, "height": True},
-                )
-            )
-        }
-
-        #     for block_height in block_heights
-        # }
-
-        account_statement = []
-        balance = 0
-        for ia in ia_entries:
-            if ia.balance_movement:
-                for field_set in ia.balance_movement.model_fields_set:
-                    if field_set in ["transfer_in", "transfer_out"]:
-                        amount = sum(
-                            [x.amount for x in getattr(ia.balance_movement, field_set)]
-                        )
-                    else:
-                        amount = getattr(ia.balance_movement, field_set)
-
-                    # if field_set in [
-                    #     "transfer_in",
-                    #     "baker_reward",
-                    #     "transaction_fee_reward",
-                    #     "finalization_reward",
-                    #     "amount_decrypted",
-                    #     "foundation_reward",
-                    # ]:
-
-                    if field_set in [
-                        "transfer_out",
-                        "transaction_fee",
-                        "amount_encrypted",
-                    ]:
-                        amount = -1 * amount
-
-                    balance += amount
-
-                    if amount != 0:
-                        entry = AccountStatementEntry(
-                            block_height=ia.block_height,
-                            slot_time=slot_times[ia.block_height],
-                            entry_type=field_set,
-                            amount=amount,
-                            balance=balance,
-                        )
-                        account_statement.append(entry)
-
-        account_statement.reverse()
-        calculated_balance = account_statement[0].balance
-        account_info = grpcclient.get_account_info(
-            block_hash="last_final", hex_address=account_id, net=NET(net)
-        )
-        actual_balance = account_info.amount
-        statement_check = actual_balance == calculated_balance
-        html = process_account_statement_to_HTML_v2(
-            account_statement[skip : (skip + limit)],
-            len(account_statement),
-            requested_page,
-            user,
-            tags,
-            statement_check,
-        )
-
-    return html
-
-
-@router.get(
-    "/ajax_account_statement_v2/{net}/{account_id}/{requested_page}/{previous_balance}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_ajax_account_statement_v2(
-    request: Request,
-    net: str,
-    account_id: str,
-    requested_page: int,
-    previous_balance: microCCD,
-    api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    tags: dict = Depends(get_labeled_accounts),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-):
-    """ """
-    limit: int = 20
-    user: UserV2 = get_user_detailsv2(request)
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip: int = requested_page * limit
-
-        pipeline = [
-            {
-                "$match": {"impacted_address_canonical": {"$eq": account_id[:29]}},
-            },
-            {"$sort": {"block_height": DESCENDING}},
-            {
-                "$facet": {
-                    "data": [{"$skip": skip}, {"$limit": limit}],
-                }
-            },
-        ]
-        result = (
-            await mongomotor.mainnet_db["impacted_addresses"]
-            .aggregate(pipeline)
-            .to_list(limit)
-        )
-
-        ia_entries = [MongoImpactedAddress(**x) for x in result[0]["data"]]
-        no_more_next_page = len(ia_entries) < limit
-
-        block_heights = [x.block_height for x in ia_entries]
-        slot_times = {
-            x["height"]: x["slot_time"]
-            for x in list(
-                mongodb.mainnet[Collections.blocks].find(
-                    {"height": {"$in": block_heights}},
-                    projection={"_id": False, "slot_time": True, "height": True},
-                )
-            )
-        }
-
-        #     for block_height in block_heights
-        # }
-
-        # amount_decrypted: Optional[microCCD] = None
-        #     amount_encrypted: Optional[microCCD] = None
-        #     baker_reward: Optional[microCCD] = None
-        #     finalization_reward: Optional[microCCD] = None
-        #     foundation_reward: Optional[microCCD] = None
-        #     transaction_fee: Optional[microCCD] = None
-        #     transaction_fee_reward: Optional[microCCD] = None
-        #     transfer_in: Optional[list[AccountStatementTransferType]] = None
-        #     transfer_out: Optional[list[AccountStatementTransferType]] = None
-
-        account_statement = []
-        balance = previous_balance
-        for ia in ia_entries:
-            if ia.balance_movement:
-                # for field in [
-                #     "transfer_in",
-                #     "transfer_out",
-                #     "foundation_reward",
-                #     "finalization_reward",
-                #     "baker_reward",
-                #     "transaction_fee",
-                #     "amount_encrypted",
-                #     "amount_decrypted",
-                #     "transaction_fee",
-                # ]:
-                for field in ia.balance_movement.model_fields_set:
-                    if field in ["transfer_in", "transfer_out"]:
-                        amount = sum(
-                            [x.amount for x in getattr(ia.balance_movement, field)]
-                        )
-                    else:
-                        amount = getattr(ia.balance_movement, field)
-
-                    if field in [
-                        "transfer_out",
-                        "transaction_fee",
-                        "amount_encrypted",
-                    ]:
-                        amount = -1 * amount
-
-                    if amount != 0:
-                        entry = AccountStatementEntry(
-                            block_height=ia.block_height,
-                            slot_time=slot_times[ia.block_height],
-                            entry_type=field,
-                            amount=amount,
-                            balance=balance,
-                        )
-                        account_statement.append(entry)
-
-                    balance -= amount
-
-        # account_statement.reverse()
-
-        html = process_account_statement_to_HTML_v2(
-            # account_statement[skip : (skip + limit)],
-            account_statement,
-            len(account_statement),
-            requested_page,
-            user,
-            tags,
-            # account_statement[skip : (skip + limit)][-1].balance,
-            account_statement[-1].balance - account_statement[-1].amount,
-            account_statement[0].balance - account_statement[0].amount,
-            no_more_next_page,
-        )
-
-    return html
-
-
 @router.get(
     "/ajax_sankey/{net}/{account_id}/{gte}/{start_date}/{end_date}",
     response_class=HTMLResponse,
@@ -1819,20 +1482,40 @@ async def get_ajax_tokens(
         }
 
         if tokens:
-            token_addresses = list(tokens.keys())
-            token_addresses_with_markup = get_token_addresses_with_markup_for_addresses(
-                token_addresses, request, db_to_use
-            )
+            token_addresses_with_markup = {
+                x["_id"]: x
+                for x in db_to_use[Collections.tokens_token_addresses_v2].find(
+                    {"_id": {"$in": list(tokens.keys())}}
+                )
+            }
 
             for token_address, token in tokens.items():
                 # this needs to be a lookup in pre_ for all tokens at once and then locally generate this dict
-                token_address_with_markup = token_addresses_with_markup[token_address]
-                tokens[token_address].update({"markup": token_address_with_markup})
-                if token_address_with_markup.tag_information:
-                    if (
-                        token_address_with_markup.tag_information.token_type
-                        == "fungible"
-                    ):
+                token_address_with_markup: MongoTypeTokenAddress | None = (
+                    token_addresses_with_markup.get(token_address)
+                )
+                if not isinstance(token_address_with_markup, MongoTypeTokenAddress):
+                    token_address_with_markup = MongoTypeTokenAddress(
+                        **token_address_with_markup
+                    )
+                if token_address_with_markup:
+                    if token_address_with_markup.token_id == "":
+                        tokens[token_address].update({"token_type": "fungible"})
+                    else:
+                        tokens[token_address].update({"token_type": "non-fungible"})
+                    tokens[token_address].update(
+                        {"token_metadata": token_address_with_markup.token_metadata}
+                    )
+                    tokens_tag_info_from_contract = contracts_with_tag_info.get(
+                        token_address_with_markup.contract
+                    )
+                    if tokens_tag_info_from_contract:
+                        tokens[token_address].update(
+                            {"tag_info": tokens_tag_info_from_contract}
+                        )
+                    else:
+                        tokens[token_address].update({"tag_info": None})
+                    if token_address_with_markup.exchange_rate:
                         tokens[token_address].update(
                             {
                                 "token_value": int(
@@ -1841,7 +1524,7 @@ async def get_ajax_tokens(
                                 * (
                                     math.pow(
                                         10,
-                                        -token_address_with_markup.tag_information.decimals,
+                                        -tokens_tag_info_from_contract.decimals,
                                     )
                                 )
                             }
@@ -1852,6 +1535,9 @@ async def get_ajax_tokens(
                                 * token_address_with_markup.exchange_rate
                             }
                         )
+                        tokens[token_address].update(
+                            {"exchange_rate": token_address_with_markup.exchange_rate}
+                        )
         else:
             tokens = {}
             len_tokens = 0
@@ -1859,11 +1545,10 @@ async def get_ajax_tokens(
         fung_count = 0
         non_fung_count = 0
         for token in tokens.values():
-            if token["markup"].tag_information:
-                if token["markup"].tag_information.token_type == "fungible":
-                    fung_count += 1
-                if token["markup"].tag_information.token_type == "non-fungible":
-                    non_fung_count += 1
+            if token["token_type"] == "fungible":
+                fung_count += 1
+            if token["token_type"] == "non-fungible":
+                non_fung_count += 1
         html = process_tokens_to_HTML_v2(
             tokens,
             total_count,

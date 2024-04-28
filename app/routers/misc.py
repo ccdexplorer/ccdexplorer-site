@@ -694,7 +694,7 @@ async def ping(request: Request):
     return JSONResponse(content={"success": True})
 
 
-@router.get("/ajax_txs_table", response_class=HTMLResponse)
+@router.get("/mainnet/ajax_txs_table", response_class=HTMLResponse)
 async def ajax_txs_table(
     request: Request,
     recurring: Recurring = Depends(get_recurring),
@@ -750,7 +750,7 @@ async def ajax_stream_table(
     )
 
 
-@router.get("/ajax_last_table", response_class=HTMLResponse)
+@router.get("/mainnet/ajax_last_table", response_class=HTMLResponse)
 async def ajax_last_table(
     request: Request,
     recurring: Recurring = Depends(get_recurring),
@@ -760,9 +760,6 @@ async def ajax_last_table(
     tooter: Tooter = Depends(get_tooter),
 ):
     user: UserV2 = get_user_detailsv2(request)
-    state_response = mongodb.mainnet_db["pre_render"].find_one(
-        {"_id": "accounts_table"}
-    )
     usecase_ids = get_usecases(mongodb)
     accounts_response = mongodb.mainnet_db["pre_render"].find_one(
         {"_id": "accounts_table"}

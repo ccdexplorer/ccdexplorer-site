@@ -1,39 +1,3 @@
-<script>
-  function getAccountStatement(requested_page, previous_balance) {
-    account_statement = document.getElementById('account_statement');
-    var account_id = document.querySelector('.account_id').title;
-    if (requested_page == 0) {
-      previous_balance = {{account.amount}}
-    }
-    console.log("previous balance = ", previous_balance)
-    url =  '/ajax_account_statement_v2/{{net}}/' + account_id + '/' + requested_page + '/' + previous_balance + '/' + api_key;
-    account_statement.innerHTML = '{% include "spinner.html" %}'
-    fetch(url)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        account_statement.innerHTML = data;
-        
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
-
-  function prev_v2_entries(requested_page) {
-    prev_balance = document.getElementById('next_balance').title;
-    getAccountStatement(requested_page, prev_balance)
-  };
-  function next_v2_entries(requested_page) {
-    prev_balance = document.getElementById('prev_balance').title;
-    getAccountStatement(requested_page, prev_balance)
-  };
-
-  // window.addEventListener('load', (event) => {
-  //   getAccountStatement(0, 0);
-  // });
-</script>
 
 
 <ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
