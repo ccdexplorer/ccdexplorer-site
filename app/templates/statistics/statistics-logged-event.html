@@ -26,7 +26,7 @@
     {% set amount =(event.result.token_amount|int)|token_amount_using_decimals(markup.tag_information.decimals) %}
     
     <td class="small text-end"><span class="ccd small ">{{amount}}</span></td>
-        <td class="small text-end"><a href="/{{net}}/tokens/{{markup.tag_information.id}}/"><span class="ccd small">{{markup.tag_information.id}}</span></a> <img src="{{markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt=""></td>
+        <td class="small text-end"><a href="/{{net}}/tokens/{{markup.tag_information.token_tag_id}}/"><span class="ccd small">{{markup.tag_information.token_tag_id}}</span></a> <img src="{{markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt=""></td>
     
     
 </tr>
