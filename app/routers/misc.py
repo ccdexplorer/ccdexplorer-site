@@ -103,6 +103,7 @@ async def labeled_accounts(
     # nightly_accounts: dict = Depends(get_nightly_accounts)
 ):
     user: UserV2 = get_user_detailsv2(request)
+    usecases = get_usecases(mongodb)
     if net == "mainnet":
         return templates.TemplateResponse(
             "labeled-accounts.html",
@@ -111,6 +112,7 @@ async def labeled_accounts(
                 "request": request,
                 "user": user,
                 "tags": tags,
+                "usecases": usecases,
                 "net": net,
             },
         )

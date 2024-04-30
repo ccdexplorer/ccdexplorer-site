@@ -29,6 +29,23 @@
     </div>
 {% endif %}
 {% endfor %}
-
+<div class="row">
+    <h4 class="mt-3">Usecases</h4>
+    <p><small>Recognized usecases on the Concordium blockchain.</small></p>
+{% for usecase_display_name, usecase_id in usecases.items()%}
+    <div class="card low border-success m-2 p-2" style="width: 9rem;">
+        <div style="background-color: lightblue"  class="card-body m-0 p-0 text-center">
+            <small><span  class="card-title text-center">
+                <a href="/usecase/{{usecase_id}}"><small>{{usecase_display_name}}</small></a>
+                
+        
+        </span></small>
+        <a class="stretched-link" href="/usecase/{{usecase_id}}"></a>
+    
+    </div>
+    
+</div>
+{% endfor%}
+</div>
 </div>
 {% endblock %}
