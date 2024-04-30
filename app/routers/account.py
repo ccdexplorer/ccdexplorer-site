@@ -1098,7 +1098,7 @@ async def get_account(
 
         pipeline = [
             {"$match": {"account_address_canonical": account_id[:29]}},
-            {"$match": {"token_holding_token_id": ""}},
+            {"$match": {"token_holding.token_id": ""}},
         ]
         result = db_to_use[Collections.tokens_links_v2].aggregate(pipeline)
         if len(result_list := list(result)) > 0:
@@ -1117,10 +1117,13 @@ async def get_account(
 
         # check if they only have NFT
         if not tokens_available:
-            result = db_to_use[Collections.tokens_links_v2].find_one(
-                {"token_holding_token_id": {"$ne": ""}}
-            )
-            if result:
+            pipeline = [
+                {"$match": {"account_address_canonical": account_id[:29]}},
+                {"$match": {"token_holding.token_id": {"$ne": ""}}},
+                {"$limit": 1},
+            ]
+            result = list(db_to_use[Collections.tokens_links_v2].aggregate(pipeline))
+            if len(result) > 0:
                 tokens_available = True
             else:
                 tokens_available = False
