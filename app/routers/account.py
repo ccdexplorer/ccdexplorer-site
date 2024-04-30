@@ -1096,9 +1096,11 @@ async def get_account(
         else:
             rewards_for_account_available = False
 
-        result = db_to_use[Collections.tokens_links_v2].find(
-            {"account_address_canonical": account_id[:29]}
-        )
+        pipeline = [
+            {"$match": {"account_address_canonical": account_id[:29]}},
+            {"$match": {"token_holding_token_id": ""}},
+        ]
+        result = db_to_use[Collections.tokens_links_v2].aggregate(pipeline)
         if len(result_list := list(result)) > 0:
             tokens_available = True
             tokens_with_metadata, tokens_value_USD = add_metadata_to_single_tokens(
@@ -1112,6 +1114,16 @@ async def get_account(
         else:
             tokens_available = False
             tokens_value_USD = 0
+
+        # check if they only have NFT
+        if not tokens_available:
+            result = db_to_use[Collections.tokens_links_v2].find_one(
+                {"token_holding_token_id": {"$ne": ""}}
+            )
+            if result:
+                tokens_available = True
+            else:
+                tokens_available = False
 
         # TODO
         accounts_for_download = []
