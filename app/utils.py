@@ -836,11 +836,23 @@ def earliest(earliest_win_time: dt.datetime):
         return "0 sec"
 
 
+def datetime_format_regular(value):
+    if not isinstance(value, dt.datetime):
+        the_date = dateutil.parser.parse(value).astimezone(dt.timezone.utc)
+    else:
+        the_date = value.astimezone(dt.timezone.utc)
+
+    return f"{the_date:%Y-%m-%d %H:%M:%S}"
+
+
 def datetime_format_schedule(value):
-    schedule_date = dateutil.parser.parse(value)
-    now = dt.datetime.now()
-    timezone = pytz.UTC
-    now = timezone.localize(now)
+    if not isinstance(value, dt.datetime):
+        schedule_date = dateutil.parser.parse(value).astimezone(dt.timezone.utc)
+    else:
+        schedule_date = value.astimezone(dt.timezone.utc)
+    now = dt.datetime.now().astimezone(dt.timezone.utc)
+    # timezone = pytz.UTC
+    # now = timezone.localize(now)
 
     delta = schedule_date - now
 

@@ -25,6 +25,7 @@ templates.env.filters["datetime_format_schedule_node"] = datetime_format_schedul
 templates.env.filters["datetime_delta_format_schedule_node"] = (
     datetime_delta_format_schedule_node
 )
+templates.env.filters["datetime_format_regular"] = datetime_format_regular
 templates.env.filters["sort_finalizers"] = sort_finalizers
 templates.env.filters["sort_finalizers_v2"] = sort_finalizers_v2
 templates.env.filters["sort_delegators"] = sort_delegators

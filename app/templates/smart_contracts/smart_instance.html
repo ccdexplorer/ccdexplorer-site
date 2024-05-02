@@ -64,6 +64,26 @@
 
     });
 </script>
+<script>
+    function Track() {
+        cis6 = document.getElementById('cis6_tracker');
+        item_id = document.getElementById("item_id").value;
+        contract_id= document.getElementById("contract_id").title;
+        url = '/ajax_track_item_id/{{net}}/'+contract_id+"/"+item_id;
+        cis6.innerHTML = '{% include "spinner.html" %}'
+        fetch(url)
+        .then((response) => {
+            return response.text();
+        })
+        .then((data) => {
+            cis6.innerHTML = data;
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    
+  };
+</script>
 <div style="padding-left:10px;">
     {% if error %}
     <p>An error occured: <b>{{error.errorMessage}}</b></p>
@@ -99,6 +119,14 @@
                 </button>
             </li>
     {% endif %}
+    {% if supports_cis6 %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small ps-2 pe-2 " id="cis6-tab"
+                data-bs-toggle="tab" data-bs-target="#cis6" type="button" role="tab" aria-controls="cis6" aria-selected="true">
+                <small>Track Items</small>
+                </button>
+            </li>
+    {% endif %}
 
     </ul>
 
@@ -120,7 +148,24 @@
             
         </div>
         {% endif %}  
+        {% if supports_cis6 %}
+        <div class="tab-pane fade show  " style="padding-top: 10px;"
+            id="cis6" role="tabpanel" aria-labelledby="cis6-tab">
+            <select name="item_id" id="item_id" class=" form-select form-select-sm small">
+                
+                {% for item_id in item_ids %}
+                  <option value="{{item_id}}">{{item_id}}</option>
+                {% endfor %}
+                
+              </select> 
+              <br/>
+              <button onclick='Track()' type="button" id="track-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Track Item</button>
 
+            <div id="cis6_tracker"></div>
+            
+            
+        </div>
+        {% endif %}  
     </div>
 
     {% endif %}

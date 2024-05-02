@@ -5,6 +5,7 @@ from bisect import bisect_right
 from datetime import timedelta
 
 import altair as alt
+from ccdexplorer_fundamentals.cis import StandardIdentifiers
 import pandas as pd
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
@@ -670,6 +671,38 @@ async def smart_contract_instance_full_address(
     )
 
 
+@router.get(
+    "/ajax_track_item_id/{net}/{instance_address}/{item_id}",
+    response_class=HTMLResponse,
+)  # type:ignore
+async def ajax_track_item_id(
+    request: Request,
+    net: str,
+    instance_address: str,
+    item_id: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    pipeline = [
+        {"$match": {"contract": instance_address}},
+        {"$match": {"item_id": item_id}},
+        {"$sort": {"block_height": DESCENDING}},
+    ]
+    item_id_statuses = list(
+        db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
+    )
+    html = templates.get_template("smart_contracts/tnt_logged_events.html").render(
+        {
+            "logged_events": item_id_statuses,
+            "net": net,
+            "env": request.app.env,
+            "request": request,
+        }
+    )
+
+    return html
+
+
 @router.get("/{net}/instance/{instance_index}/{subindex}")  # type:ignore
 async def smart_contract_instance(
     request: Request,
@@ -684,6 +717,44 @@ async def smart_contract_instance(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     instance_address = f"<{instance_index},{subindex}>"
+    result = db_to_use[Collections.instances].find_one({"_id": instance_address})
+    if result:
+        if result.get("v0"):
+            module_name = result["v0"]["name"][5:]
+        if result.get("v1"):
+            module_name = result["v1"]["name"][5:]
+
+    cis = CIS(
+        grpcclient,
+        instance_index,
+        subindex,
+        f"{module_name}.supports",
+        NET(net),
+    )
+    supports_cis6 = cis.supports_standard(StandardIdentifiers.CIS_6)
+    if supports_cis6:
+        pipeline = [
+            {
+                "$match": {"contract": instance_address},
+            },
+            {
+                "$group": {
+                    "_id": "$item_id",
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "distinctValues": "$_id",
+                }
+            },
+        ]
+        item_ids = [
+            x["distinctValues"]
+            for x in db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
+        ]
+    else:
+        item_ids = None
 
     result_list = list(
         db_to_use[Collections.tokens_links_v2].find(
@@ -716,6 +787,8 @@ async def smart_contract_instance(
                 "user": user,
                 "tags": tags,
                 "net": net,
+                "supports_cis6": supports_cis6,
+                "item_ids": item_ids,
             },
         )
     else:

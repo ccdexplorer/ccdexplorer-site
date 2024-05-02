@@ -1,0 +1,22 @@
+<div style="padding-left:10px;">
+{% if logged_events|length > 0%}
+  <table class="table table-striped table-hover table-sm">
+  <thead>
+    <tr>
+      <!-- <th class="small text-start"><small>Block</small></th> -->
+      <th class="small text-start"><small>Tx</small></th>
+      <th class="small text-center"><small>Date</small></th>
+      <th class="small text-end"><small>Status</small></th>
+
+    </tr>
+  </thead>
+  <tbody>
+{% for event in logged_events %}
+    {% include "smart_contracts/tnt_logged_event.html" %}
+
+{% endfor %}
+</tbody>
+
+</table>
+{% endif %}
+</div>
