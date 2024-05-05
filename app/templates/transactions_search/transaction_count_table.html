@@ -46,7 +46,7 @@
                     <tbody>
                         {% for k, v in row|dictsort(false, 'key') %}
                         
-                            {% if k not in ["date", "total_tx_count", "last_block_processed", "based_on_addresses"]%}
+                            {% if k not in ["date", "total_tx_count", "project", "last_block_processed", "based_on_addresses"]%}
                                 {% if v > 0 %}
                                     <tr>
                                         <td class="text-muted">{{k}}<td class="text-end">{{v|baker_ccd}}</td>

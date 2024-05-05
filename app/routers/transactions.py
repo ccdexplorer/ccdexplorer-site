@@ -32,13 +32,13 @@ from app.utils import user_string
 router = APIRouter()
 
 
-def get_all_data_for_analysis_and_usecase(
-    analysis: str, usecase_id: str, mongodb: MongoDB, dates_to_include: list[str]
+def get_all_data_for_analysis_and_project(
+    analysis: str, project_id: str, mongodb: MongoDB, dates_to_include: list[str]
 ) -> list[str]:
     pipeline = [
         {"$match": {"date": {"$in": dates_to_include}}},
         {"$match": {"type": analysis}},
-        {"$match": {"usecase": usecase_id}},
+        {"$match": {"project": project_id}},
         {"$project": {"_id": 0, "type": 0, "usecase": 0}},
         {"$sort": {"date": 1}},
     ]
@@ -50,6 +50,13 @@ def get_all_usecases(mongodb: MongoDB) -> list[str]:
     return {
         x["_id"]: x["display_name"]
         for x in mongodb.utilities[CollectionsUtilities.usecases].find()
+    }
+
+
+def get_all_projects(mongodb: MongoDB) -> list[str]:
+    return {
+        x["_id"]: x["display_name"]
+        for x in mongodb.utilities[CollectionsUtilities.projects].find()
     }
 
 
@@ -80,7 +87,7 @@ async def ajax_transaction_types_reporting(
     dates_to_include = generate_dates_from_start_until_end(
         reporting_request.start_date, reporting_request.end_date
     )
-    all_data = get_all_data_for_analysis_and_usecase(
+    all_data = get_all_data_for_analysis_and_project(
         "statistics_transaction_types",
         reporting_request.usecase_id,
         mongodb,
@@ -189,7 +196,7 @@ async def request_block_node(
         set(CCD_AccountTransactionEffects.__dict__["model_fields"].keys())
         - set(["none"])
     )
-    all_usecases = get_all_usecases(mongodb)
+    all_projects = get_all_projects(mongodb)
     return templates.TemplateResponse(
         "transactions_search/transaction_count.html",
         {
@@ -197,7 +204,7 @@ async def request_block_node(
             "env": request.app.env,
             "user": user,
             "net": net,
-            "all_usecases": all_usecases,
+            "all_projects": all_projects,
             "all_transaction_effects": all_transaction_effects,
         },
     )

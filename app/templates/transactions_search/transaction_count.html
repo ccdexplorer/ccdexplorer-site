@@ -91,11 +91,11 @@
 <h4>Transaction Types Count</h4>
 <br/>
 <div class="row ps-3 pe-3">
-  <label for="usecase" class="small">Select a usecase:</label>
+  <label for="usecase" class="small">Select a project:</label>
 
   <select name="usecase" id="usecase_id" class=" form-select form-select-sm small">
     <option value="all">None (show entire chain)</option>
-    {% for id, display_name in all_usecases.items() %}
+    {% for id, display_name in all_projects.items() %}
       <option value="{{id}}">{{display_name}}</option>
     {% endfor %}
     
