@@ -561,6 +561,28 @@ def get_usecases(mongodb: MongoDB):
     return usecase_ids
 
 
+def get_projects(mongodb: MongoDB):
+    project_ids = {}
+    result = mongodb.utilities[CollectionsUtilities.projects].find({})
+    for project in list(result):
+        mainnet_project_addresses = mongodb.mainnet[Collections.projects].find(
+            {"project_id": project["project_id"]}
+        )
+        for address in mainnet_project_addresses:
+            project_ids[project["display_name"]] = project["project_id"]
+
+    return project_ids
+
+
+def get_all_project_ids(mongodb: MongoDB):
+    project_ids = {}
+    result = mongodb.utilities[CollectionsUtilities.projects].find({})
+    for project in list(result):
+        project_ids[project["project_id"]] = project
+
+    return project_ids
+
+
 def account_link(
     value,
     net: str,

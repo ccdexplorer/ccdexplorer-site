@@ -103,7 +103,7 @@ async def labeled_accounts(
     # nightly_accounts: dict = Depends(get_nightly_accounts)
 ):
     user: UserV2 = get_user_detailsv2(request)
-    usecases = get_usecases(mongodb)
+    projects = get_all_project_ids(mongodb)
     if net == "mainnet":
         return templates.TemplateResponse(
             "labeled-accounts.html",
@@ -112,7 +112,7 @@ async def labeled_accounts(
                 "request": request,
                 "user": user,
                 "tags": tags,
-                "usecases": usecases,
+                "projects": projects,
                 "net": net,
             },
         )
@@ -762,7 +762,7 @@ async def ajax_last_table(
     tooter: Tooter = Depends(get_tooter),
 ):
     user: UserV2 = get_user_detailsv2(request)
-    usecase_ids = get_usecases(mongodb)
+    projects = get_projects(mongodb)
     accounts_response = mongodb.mainnet_db["pre_render"].find_one(
         {"_id": "accounts_table"}
     )
@@ -794,7 +794,7 @@ async def ajax_last_table(
                             app=request.app,
                         )
                     else:
-                        response = f'<a class="small" href="/usecase/{usecase_ids[response]}">🎯{response}</a>'
+                        response = f'<a class="small" href="/project/{projects[response]}">🎯{response}</a>'
             accounts_response[key] = response
 
     return templates.TemplateResponse(

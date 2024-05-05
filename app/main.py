@@ -38,13 +38,13 @@ from app.routers import (
     exchanges,
     misc,
     nodes_bakers,
+    projects,
     smart_contracts,
     staking,
     statistics,
     tokens,
     transaction,
     transactions,
-    usecases,
     usersv2,
 )
 
@@ -159,7 +159,7 @@ instrumentator = Instrumentator().instrument(app)
 
 app.include_router(smart_contracts.router)
 app.include_router(block.router)
-app.include_router(usecases.router)
+app.include_router(projects.router)
 app.include_router(misc.router)
 app.include_router(account.router)
 app.include_router(staking.router)
