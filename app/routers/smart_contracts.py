@@ -2,8 +2,9 @@
 
 import collections
 from bisect import bisect_right
+import numpy as np
 from datetime import timedelta
-
+import uuid
 import altair as alt
 from ccdexplorer_fundamentals.cis import StandardIdentifiers
 import pandas as pd
@@ -753,8 +754,56 @@ async def smart_contract_instance(
             x["distinctValues"]
             for x in db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
         ]
+        pipeline_for_all = [
+            {
+                "$match": {"contract": instance_address},
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    # "logged_event": 0,
+                    "result": 1,
+                    # "event_type": 1,
+                    "contract": 1,
+                    "tx_hash": 1,
+                    "timestamp": 1,
+                }
+            },
+        ]
+        all_logged_events = list(
+            db_to_use[Collections.tnt_logged_events].aggregate(pipeline_for_all)
+        )
+        df = pd.json_normalize(all_logged_events)
+        df.drop(
+            [
+                "result.tag",
+                "result.metadata.url",
+                "result.metadata.checksum",
+                "result.additional_data",
+            ],
+            axis=1,
+            inplace=True,
+        )
+        df["result.new_status"] = df["result.new_status"].fillna("")
+        df["result.initial_status"] = df["result.initial_status"].fillna("")
+        df["item_id"] = df["result.item_id"]
+        df["status"] = np.where(
+            df["result.initial_status"] == "",
+            df["result.new_status"],
+            df["result.initial_status"],
+        )
+
+        df.drop(
+            ["result.new_status", "result.initial_status", "result.item_id"],
+            axis=1,
+            inplace=True,
+        )
+        filename = f"/tmp/track_and_trace - contract {instance_address} | {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
+        # df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
+        df.to_csv(filename, index=False)
     else:
         item_ids = None
+        filename = None
 
     result_list = list(
         db_to_use[Collections.tokens_links_v2].find(
@@ -789,6 +838,7 @@ async def smart_contract_instance(
                 "net": net,
                 "supports_cis6": supports_cis6,
                 "item_ids": item_ids,
+                "filename": filename,
             },
         )
     else:

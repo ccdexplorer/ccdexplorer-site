@@ -151,6 +151,9 @@
         {% if supports_cis6 %}
         <div class="tab-pane fade show  " style="padding-top: 10px;"
             id="cis6" role="tabpanel" aria-labelledby="cis6-tab">
+            <div><a class="p-1 small" href="{{filename}}" title="Download .csv file for all items" target="_blank">Download .csv file for all items</a></div>
+            <hr/>
+            <label for="item_id"><small>Track individual item</small></label>
             <select name="item_id" id="item_id" class=" form-select form-select-sm small">
                 
                 {% for item_id in item_ids %}
@@ -159,9 +162,11 @@
                 
               </select> 
               <br/>
+              
               <button onclick='Track()' type="button" id="track-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Track Item</button>
-
-            <div id="cis6_tracker"></div>
+              
+            
+              <div id="cis6_tracker"></div>
             
             
         </div>
