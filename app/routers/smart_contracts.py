@@ -725,122 +725,122 @@ async def smart_contract_instance(
         if result.get("v1"):
             module_name = result["v1"]["name"][5:]
 
-    cis = CIS(
-        grpcclient,
-        instance_index,
-        subindex,
-        f"{module_name}.supports",
-        NET(net),
-    )
-    supports_cis6 = cis.supports_standard(StandardIdentifiers.CIS_6)
-    if supports_cis6:
-        pipeline = [
-            {
-                "$match": {"contract": instance_address},
-            },
-            {
-                "$group": {
-                    "_id": "$item_id",
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "distinctValues": "$_id",
-                }
-            },
-        ]
-        item_ids = [
-            x["distinctValues"]
-            for x in db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
-        ]
-        pipeline_for_all = [
-            {
-                "$match": {"contract": instance_address},
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    # "logged_event": 0,
-                    "result": 1,
-                    # "event_type": 1,
-                    "contract": 1,
-                    "tx_hash": 1,
-                    "timestamp": 1,
-                }
-            },
-        ]
-        all_logged_events = list(
-            db_to_use[Collections.tnt_logged_events].aggregate(pipeline_for_all)
+        cis = CIS(
+            grpcclient,
+            instance_index,
+            subindex,
+            f"{module_name}.supports",
+            NET(net),
         )
-        df = pd.json_normalize(all_logged_events)
-        df.drop(
-            [
-                "result.tag",
-                "result.metadata.url",
-                "result.metadata.checksum",
-                "result.additional_data",
-            ],
-            axis=1,
-            inplace=True,
-        )
-        df["result.new_status"] = df["result.new_status"].fillna("")
-        df["result.initial_status"] = df["result.initial_status"].fillna("")
-        df["item_id"] = df["result.item_id"]
-        df["status"] = np.where(
-            df["result.initial_status"] == "",
-            df["result.new_status"],
-            df["result.initial_status"],
-        )
+        supports_cis6 = cis.supports_standard(StandardIdentifiers.CIS_6)
+        if supports_cis6:
+            pipeline = [
+                {
+                    "$match": {"contract": instance_address},
+                },
+                {
+                    "$group": {
+                        "_id": "$item_id",
+                    }
+                },
+                {
+                    "$project": {
+                        "_id": 0,
+                        "distinctValues": "$_id",
+                    }
+                },
+            ]
+            item_ids = [
+                x["distinctValues"]
+                for x in db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
+            ]
+            pipeline_for_all = [
+                {
+                    "$match": {"contract": instance_address},
+                },
+                {
+                    "$project": {
+                        "_id": 0,
+                        # "logged_event": 0,
+                        "result": 1,
+                        # "event_type": 1,
+                        "contract": 1,
+                        "tx_hash": 1,
+                        "timestamp": 1,
+                    }
+                },
+            ]
+            all_logged_events = list(
+                db_to_use[Collections.tnt_logged_events].aggregate(pipeline_for_all)
+            )
+            df = pd.json_normalize(all_logged_events)
+            df.drop(
+                [
+                    "result.tag",
+                    "result.metadata.url",
+                    "result.metadata.checksum",
+                    "result.additional_data",
+                ],
+                axis=1,
+                inplace=True,
+            )
+            df["result.new_status"] = df["result.new_status"].fillna("")
+            df["result.initial_status"] = df["result.initial_status"].fillna("")
+            df["item_id"] = df["result.item_id"]
+            df["status"] = np.where(
+                df["result.initial_status"] == "",
+                df["result.new_status"],
+                df["result.initial_status"],
+            )
 
-        df.drop(
-            ["result.new_status", "result.initial_status", "result.item_id"],
-            axis=1,
-            inplace=True,
-        )
-        filename = f"/tmp/track_and_trace - contract {instance_address} | {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
-        # df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
-        df.to_csv(filename, index=False)
-    else:
-        item_ids = None
-        filename = None
+            df.drop(
+                ["result.new_status", "result.initial_status", "result.item_id"],
+                axis=1,
+                inplace=True,
+            )
+            filename = f"/tmp/track_and_trace - contract {instance_address} | {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
+            # df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
+            df.to_csv(filename, index=False)
+        else:
+            item_ids = None
+            filename = None
 
-    result_list = list(
-        db_to_use[Collections.tokens_links_v2].find(
-            {"account_address_canonical": instance_address}
+        result_list = list(
+            db_to_use[Collections.tokens_links_v2].find(
+                {"account_address_canonical": instance_address}
+            )
         )
-    )
-    if len(result_list) > 0:
-        tokens_available = True
-    else:
-        tokens_available = False
+        if len(result_list) > 0:
+            tokens_available = True
+        else:
+            tokens_available = False
 
-    result = db_to_use[Collections.instances].find_one({"_id": instance_address})
-    if result:
-        contract = MongoTypeInstance(**result)
-        index = contract.id.split(",")[0][1:]
-        subindex = contract.id.split(",")[1][:-1]
-        error = None
-        dressed_up_contract = contracts_with_tag_info.get(contract.id)
-        return templates.TemplateResponse(
-            "smart_contracts/smart_instance.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "error": error,
-                "tokens_available": tokens_available,
-                "contract": contract,
-                "index": index,
-                "subindex": subindex,
-                "dressed_up_contract": dressed_up_contract,
-                "user": user,
-                "tags": tags,
-                "net": net,
-                "supports_cis6": supports_cis6,
-                "item_ids": item_ids,
-                "filename": filename,
-            },
-        )
+        result = db_to_use[Collections.instances].find_one({"_id": instance_address})
+        if result:
+            contract = MongoTypeInstance(**result)
+            index = contract.id.split(",")[0][1:]
+            subindex = contract.id.split(",")[1][:-1]
+            error = None
+            dressed_up_contract = contracts_with_tag_info.get(contract.id)
+            return templates.TemplateResponse(
+                "smart_contracts/smart_instance.html",
+                {
+                    "env": request.app.env,
+                    "request": request,
+                    "error": error,
+                    "tokens_available": tokens_available,
+                    "contract": contract,
+                    "index": index,
+                    "subindex": subindex,
+                    "dressed_up_contract": dressed_up_contract,
+                    "user": user,
+                    "tags": tags,
+                    "net": net,
+                    "supports_cis6": supports_cis6,
+                    "item_ids": item_ids,
+                    "filename": filename,
+                },
+            )
     else:
         error = {
             "error": True,
