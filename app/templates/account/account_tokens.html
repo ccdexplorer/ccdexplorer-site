@@ -30,16 +30,24 @@
                     <img src="{{item.tag_info.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
                     <small><a href="/{{net}}/tokens/{{item.tag_info.token_tag_id}}"><span class="ccd">{{item.tag_info.token_tag_id}}</span></a>
                     <br/>
-                    <span class="ccd_decimals">{{item.token_value|round(item.tag_info.decimals)}} {{item.tag_info.token_tag_id}}</span>
+                    {% if item.token_value %}
+                      <span class="ccd_decimals">{{item.token_value|round(item.tag_info.decimals)}} {{item.tag_info.token_tag_id}}</span>
+                    {% else %}
+                    <span class="ccd_decimals">{{item.tag_info.token_tag_id}}</span>
+                    {% endif %}
                   </small>
                 </td>
 
                 <!-- Second column with values -->
                 <td class="text-end">
+                  {% if item.token_value %}
                   <small><span class="ccd">${{item.token_value_USD|baker_ccd}}
                   </span>
+                  {% endif %}
                   <br/>
+                  {% if item.token_value %}
                   <span class="ccd_decimals">@{{item.exchange_rate|commafy}}</span>
+                  {% endif %}
                   </small>
                 </td>
              
