@@ -50,10 +50,33 @@ def get_txs_for_impacted_address_arabella(mongodb: MongoDB):
 
 
 def get_txs_for_impacted_address_tricorn(mongodb: MongoDB):
-    result = mongodb.mainnet_db["impacted_addresses"].find(
-        {"impacted_address_canonical": "<9427,0>"}, projection={"_id": 0, "tx_hash": 1}
-    )
-    return [x["tx_hash"] for x in list(result)]
+    pipeline = [
+        {"$match": {"impacted_address_canonical": "<9427,0>"}},
+        {"$project": {"_id": 0, "tx_hash": 1}},
+    ]
+
+    result = mongodb.mainnet[Collections.impacted_addresses].aggregate(pipeline)
+    bridge_txs = set(x["tx_hash"] for x in result)
+
+    pipeline = [
+        {
+            "$match": {
+                "impacted_address_canonical": {
+                    "$in": ["<9428,0>", "<9429,0>", "<9430,0>"],
+                },
+            }
+        },
+        {"$project": {"_id": 0, "tx_hash": 1}},
+    ]
+
+    result = mongodb.mainnet[Collections.impacted_addresses].aggregate(pipeline)
+    wrong_txs = set(x["tx_hash"] for x in result)
+    return list(bridge_txs - wrong_txs)
+
+    # result = mongodb.mainnet_db["impacted_addresses"].find(
+    #     {"impacted_address_canonical": "<9427,0>"}, projection={"_id": 0, "tx_hash": 1}
+    # )
+    # return [x["tx_hash"] for x in list(result)]
 
 
 class ReportingActionType(str, Enum):
@@ -241,6 +264,16 @@ def process_txs_for_action_type_classification(
             if classified_tx.logged_events[0].event_type == "burn_event":
                 classified_tx.action_type = ReportingActionType.burn
 
+        elif reporting_subject == ReportingSubject.Tricorn:
+
+            if classified_tx.logged_events[0].event_type == "mint_event":
+                classified_tx.action_type = ReportingActionType.mint
+            # Tricorn burn txs seem to have a fee transfer as first logged event,
+            # hence we need to take the second logged event to classify correctly.
+            if len(classified_tx.logged_events) > 1:
+                if classified_tx.logged_events[1].event_type == "burn_event":
+                    classified_tx.action_type = ReportingActionType.burn
+
         txs_by_action_type[classified_tx.action_type].append(classified_tx)
     return txs_by_action_type, tx_hashes_from_events
 
@@ -406,7 +439,13 @@ async def bridges_and_dexes_graph(
                 if reporting_subject == ReportingSubject.Arabella:
                     if action_type["action_type"] == "Mint":
                         tvl += action_type["amount_in_usd"]
-                    if action_type["action_type"] == "Withdraw":
+                    if action_type["action_type"] == "Burn":
+                        tvl -= action_type["amount_in_usd"]
+
+                if reporting_subject == ReportingSubject.Tricorn:
+                    if action_type["action_type"] == "Mint":
+                        tvl += action_type["amount_in_usd"]
+                    if action_type["action_type"] == "Burn":
                         tvl -= action_type["amount_in_usd"]
 
                 if reporting_subject == ReportingSubject.Concordex:

@@ -542,34 +542,49 @@ async def tokens_tag(
     # 3. find token_address in collection
     token_addresses_for_tag = []
     stored_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
-    token_addresses_for_tag = db_to_use[Collections.tokens_token_addresses_v2].find_one(
-        {"contract": stored_tag["contracts"][0]}
-    )
-    is_PTRT = tag == "PTRT"
-    ajax_url = (
-        "ajax_token_ids_for_tag_single_use"
-        if stored_tag["single_use_contract"]
-        else "ajax_token_ids_for_tag_multiple_use"
-    )
-    return templates.TemplateResponse(
-        "tokens/token_overview.html",
-        {
-            "env": request.app.env,
-            "request": request,
-            "net": net,
-            "user": user,
-            "tags": tags,
-            "tag": tag,
-            "stored_tag": stored_tag,
-            "token_address_result": (
-                {"id": token_addresses_for_tag["_id"]}
-                if token_addresses_for_tag
-                else {"id": f"{stored_tag['contracts'][0]}-unknown"}
-            ),
-            "token_addresses_for_tag": token_addresses_for_tag,
-            "ajax_url": ajax_url,
-        },
-    )
+    if stored_tag:
+        token_addresses_for_tag = db_to_use[
+            Collections.tokens_token_addresses_v2
+        ].find_one({"contract": stored_tag["contracts"][0]})
+        is_PTRT = tag == "PTRT"
+        ajax_url = (
+            "ajax_token_ids_for_tag_single_use"
+            if stored_tag["single_use_contract"]
+            else "ajax_token_ids_for_tag_multiple_use"
+        )
+        return templates.TemplateResponse(
+            "tokens/token_overview.html",
+            {
+                "env": request.app.env,
+                "request": request,
+                "net": net,
+                "user": user,
+                "tags": tags,
+                "tag": tag,
+                "stored_tag": stored_tag,
+                "token_address_result": (
+                    {"id": token_addresses_for_tag["_id"]}
+                    if token_addresses_for_tag
+                    else {"id": f"{stored_tag['contracts'][0]}-unknown"}
+                ),
+                "token_addresses_for_tag": token_addresses_for_tag,
+                "ajax_url": ajax_url,
+            },
+        )
+    else:
+        error = {
+            "error": True,
+            "errorMessage": f"No token on {net} found with tag {tag}.",
+        }
+        return templates.TemplateResponse(
+            "account/account_account_error.html",
+            {
+                "env": request.app.env,
+                "request": request,
+                "net": net,
+                "error": error,
+            },
+        )
 
 
 @router.get("/{net}/tokens")  # type:ignore
