@@ -120,6 +120,14 @@ def micro_ccd_no_decimals(value: str):
     return f'<span class="ccd">Ͼ{splits[0]}</span>'
 
 
+def token_value_no_decimals(value: str, token: str):
+    try:
+        amount = int(value)
+    except:
+        amount = 0
+    return f'<span class="ccd">{amount:,.0f} {token}</span>'
+
+
 def is_valid_uuid4(uuid_: str) -> bool:
     """
     Check whether a string is a valid v4 uuid.
@@ -176,8 +184,7 @@ def contract_tag(value, user: UserV2 = None, tags=None, header=False):
 
     tag_label = None
     tag_found = False
-    if isinstance(user, dict):
-        user = UserV2(**user)
+
     if not tag_label:
         if tags:
             tag_found = False

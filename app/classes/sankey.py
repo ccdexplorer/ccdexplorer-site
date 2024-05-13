@@ -1,7 +1,9 @@
 from enum import Enum
 import plotly.graph_objects as go
-from ..utils import account_tag
+from ..utils import account_tag, contract_tag, convert_contract_str_to_type
 from ccdexplorer_fundamentals.mongodb import MongoImpactedAddress
+from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
+import math
 
 
 class WhoHasLinkInfo(Enum):
@@ -19,7 +21,7 @@ class NodeColors(Enum):
 
 
 class SanKey:
-    def __init__(self, account_id, gte, app):
+    def __init__(self, account_id, gte, app, token: str = None):
         self.labels = {}
         self.gte = gte
         self.colors = []
@@ -30,6 +32,7 @@ class SanKey:
         self.source_target_combo = {}
         self.graph_dict = {}
         self.app = app
+        self.token = token
 
         self.account_id = account_id
         self.add_node(account_id, NodeColors.ACCOUNT)
@@ -181,7 +184,17 @@ class SanKey:
         self.tagged_labels = []
         for l in self.labels:
             if len(l) < 29:
-                self.tagged_labels.append(l)
+                if l[0] == "<":
+                    tag_found, tag_label = contract_tag(
+                        convert_contract_str_to_type(l), None, gitbot_tags
+                    )
+                    if tag_found:
+                        self.tagged_labels.append(tag_label)
+                    else:
+                        self.tagged_labels.append(l)
+                else:
+                    self.tagged_labels.append(l)
+
             else:
                 tag_found, tag_label = account_tag(
                     l, user, gitbot_tags, header=True, sankey=True
@@ -298,30 +311,75 @@ class SanKey:
         for _, v in self.as_sender_dict.items():
             self.add_link(self.account_id, v, WhoHasLinkInfo.TARGET)
 
-    def fig(self) -> go.Figure:
-        fig = go.Figure(
-            data=[
-                go.Sankey(
-                    valuesuffix=" CCD",
-                    node=dict(
-                        pad=25,
-                        thickness=10,
-                        line=dict(color="grey", width=1.0),
-                        label=self.tagged_labels,
-                        color=self.colors,
-                    ),
-                    link=dict(
-                        source=[s for (s, _) in self.source_target_combo.keys()],
-                        target=[t for (_, t) in self.source_target_combo.keys()],
-                        value=[abs(x) for x in self.source_target_combo.values()],
-                        customdata=self.labels_link,
-                        hovertemplate="From: %{source.label}<br />"
-                        + "To: %{target.label}",
-                    ),
-                )
-            ]
+    def add_txs_for_account_for_token(
+        self,
+        txs_for_account: list[MongoTypeLoggedEvent],
+        decimals: int,
+        display_name: str,
+    ):
+        self.count_txs_as_receiver = 0
+        self.count_txs_as_sender = 0
+        self.as_receiver_dict = {}
+        self.as_sender_dict = {}
+        self.display_name = display_name
+        for event in txs_for_account:
+            if not isinstance(event, MongoTypeLoggedEvent):
+                event = MongoTypeLoggedEvent(**event)
+            if event.event_type == "mint_event":
+                self.count_txs_as_receiver += 1
+                self.as_receiver_dict[event.contract] = {
+                    "amount": self.as_receiver_dict.get(event.contract, {"amount": 0})[
+                        "amount"
+                    ]
+                    + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
+                    "account_id": event.contract,
+                }
+            elif event.event_type == "burn_event":
+                self.count_txs_as_sender += 1
+                self.as_sender_dict[event.contract] = {
+                    "amount": self.as_sender_dict.get(event.contract, {"amount": 0})[
+                        "amount"
+                    ]
+                    + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
+                    "account_id": event.contract,
+                }
+
+            elif event.event_type == "transfer_event":
+                if event.result["to_address"][:29] == self.account_id[:29]:
+                    self.count_txs_as_receiver += 1
+                    self.as_receiver_dict[event.result["from_address"][:29]] = {
+                        "amount": self.as_receiver_dict.get(
+                            event.result["from_address"][:29], {"amount": 0}
+                        )["amount"]
+                        + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
+                        "account_id": event.result["from_address"],
+                    }
+                elif event.result["from_address"][:29] == self.account_id[:29]:
+                    self.count_txs_as_sender += 1
+                    self.as_sender_dict[event.result["to_address"][:29]] = {
+                        "amount": self.as_sender_dict.get(
+                            event.result["to_address"][:29], {"amount": 0}
+                        )["amount"]
+                        + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
+                        "account_id": event.result["to_address"],
+                    }
+
+        self.amount_received = sum(
+            [x["amount"] for x in self.as_receiver_dict.values()]
         )
-        return fig
+        self.amount_sent = sum([x["amount"] for x in self.as_sender_dict.values()])
+
+        for node in [v["account_id"] for k, v in self.as_receiver_dict.items()]:
+            self.add_node(node, NodeColors.SENDER_TO_ACCOUNT)
+
+        for _, v in self.as_receiver_dict.items():
+            self.add_link(v, self.account_id, WhoHasLinkInfo.SOURCE)
+
+        for node in [v["account_id"] for k, v in self.as_sender_dict.items()]:
+            self.add_node(node, NodeColors.RECEIVER_FROM_ACCOUNT)
+
+        for _, v in self.as_sender_dict.items():
+            self.add_link(self.account_id, v, WhoHasLinkInfo.TARGET)
 
     def __repr__(self):
         return repr(self.__dict__)

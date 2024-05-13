@@ -13,13 +13,22 @@
     <tbody>
         <tr>
             <td>Received</td>
-            <td class="small text-end">{{(graph_dict.amount_received*1000000)|micro_ccd_no_decimals|safe}}</td>
+            {% if token == "CCD" %}
+                <td class="small text-end">{{(graph_dict.amount_received*1000000)|micro_ccd_no_decimals|safe}}</td>
+            {% else %}
+                <td class="small text-end">{{(graph_dict.amount_received)|token_value_no_decimals(token)|safe}}</td>
+            {% endif %}
             <td class="small text-end">{{graph_dict.receiver_txs}}</td>
             <td class="small text-end">{{graph_dict.receiver_accounts}}</td>
         </tr>
         <tr>
             <td>Sent</td>
-            <td class="small ccd text-end">{{(graph_dict.amount_sent*1000000)|micro_ccd_no_decimals|safe}}</td>
+            {% if token == "CCD" %}
+            <td class="small text-end">{{(graph_dict.amount_sent*1000000)|micro_ccd_no_decimals|safe}}</td>
+            {% else %}
+                <td class="small text-end">{{(graph_dict.amount_sent)|token_value_no_decimals(token)|safe}}</td>
+            {% endif %}
+            
             <td class="small text-end">{{graph_dict.sender_txs}}</td>
             <td class="small text-end">{{graph_dict.sender_accounts}}</td></tr>
     </tbody>    
@@ -51,7 +60,12 @@
                             {{v.account_id|account_link(net, True, True, user, tags,  tab='info', subtab='flow', app=request.app)|safe}}
                         {% endif %}
                     </td>
-                    <td class="small text-end ccd">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                    {% if token == "CCD" %}
+                        <td class="small text-end">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                    {% else %}
+                        <td class="small text-end">{{v.amount|token_value_no_decimals(token)|safe}}</td>
+                    {% endif %}
+                    
                 </tr>
                 {% endfor %}
                 
@@ -83,7 +97,11 @@
                             {{v.account_id|account_link(net, True, True, user, tags, tab='info', subtab='flow', app=request.app)|safe}}
                         {% endif %}
                     </td>
-                    <td class="small text-end ccd">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                    {% if token == "CCD" %}
+                        <td class="small text-end">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                    {% else %}
+                        <td class="small text-end">{{v.amount|token_value_no_decimals(token)|safe}}</td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
                 

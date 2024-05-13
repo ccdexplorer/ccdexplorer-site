@@ -3,11 +3,11 @@
     function DoSanKey(){
         sankey = JSON.parse(document.getElementById('hidden_sankey').innerHTML);
         SANKEY_DIV = document.getElementById('sankey');
-        
+        token = document.getElementById('token').value;
         var data = {
             type: "sankey",
             
-            valuesuffix: " CCD",
+            valuesuffix: " "+token,
 
             node: {
               pad: 25,
@@ -25,8 +25,16 @@
             }
 
             }
+        var account_index = document.getElementById('account_index').title;
+        var layout = {
+          margin: { b: 20, t: 20, l: 20, r: 20 },
+          title: {text:"Flow diagram for account "+account_index + " for token "+token, font: {
 
-        var layout = {margin: { b: 20, t: 20, l: 20, r: 20 }}
+// family: 'Courier New, monospace',
+
+size: 12
+
+},}}
 
         Plotly.newPlot(SANKEY_DIV, [data], layout, {'responsive': true, 'displayModeBar': false});
       }
@@ -35,6 +43,7 @@
     function getSankey() {
       table = document.getElementById('table');
       sankey = document.getElementById('sankey');
+      token = document.getElementById('token').value;
       var gte = document.getElementById('gte').value;
           gte = gte.split(' ')[0];
           
@@ -46,7 +55,7 @@
         var account_id = document.querySelector('.account_id').title;
         
         if (account_id != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD") {
-          url = '/ajax_sankey/{{net}}/'+account_id+'/'+gte+'/'+start_date+'/'+end_date;
+          url = '/ajax_sankey/{{net}}/'+account_id+'/'+gte+'/'+start_date+'/'+end_date+'/'+token;
           
           
           fetch(url)
@@ -70,7 +79,36 @@
         console.log('getSankey');
       });
 </script>
+<script>
+  function UpdateSuffix() {
+    
+    token = document.getElementById('token').value;
+    gte = document.getElementById('gte');
+    $(function() {
+      $('#gte').maskMoney({allowZero:true, suffix: ' '+'{{token}}'});
+      
+    })
+    gte.value = "";
+    gte.placeholder = "0 "+ token;
+  }
+    
+</script>
+<div class="row ps-3 pe-3">
+  <div class="col">
+  <label class = "ccd" for="token">Select token/coin</label>  
+</div>
+  <div class="col">
+    <select class="small" id="token" onchange="UpdateSuffix()">
+      <option class="small" value="CCD" selected><small>CCD</small></option>
+      {% for token in token_ids_for_flow %}
+        <option class="small" value="{{token}}" ><small>{{token}}</small></option>
+      {% endfor %}
+    </select>
+    
+  </div>
 
+</div>
+</br/>
 <div class="row ps-3 pe-3">
     
     <div class="col">
@@ -92,12 +130,12 @@
       <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " data-precision="0" name="gte" id="gte" placeholder="0 CCD"><br>
     </div>
   </div>
-  
+  <h5>{{token}}</h5>
   <div id="sankey"></div>
   <div id="table"></div>
 <script>
     $(function() {
-      $('#gte').maskMoney({allowZero:true, suffix: ' CCD'});
+      $('#gte').maskMoney({allowZero:true, suffix: ' '+'{{token}}'});
       
     })
     // flatpickr(".dates", {defaultDate:"2021-6-29"});

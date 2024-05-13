@@ -64,6 +64,7 @@ templates.env.filters["expectation"] = expectation
 templates.env.filters["dec_smaller"] = dec_smaller
 templates.env.filters["micro_ccd_display"] = micro_ccd_display
 templates.env.filters["micro_ccd_no_decimals"] = micro_ccd_no_decimals
+templates.env.filters["token_value_no_decimals"] = token_value_no_decimals
 
 templates.env.filters["earliest"] = earliest
 templates.env.filters["getattr"] = getattr

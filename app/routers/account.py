@@ -9,6 +9,7 @@ import pandas as pd
 from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import (
     AccountStatementEntry,
@@ -255,7 +256,7 @@ def calculate_baker_performance_measures(
 
 
 async def get_txs_for_account_from_ia(
-    account_id, start_block, end_block, mongomotor: MongoMotor
+    account_id: str, start_block: int, end_block: int, mongomotor: MongoMotor
 ):
     pipeline = [
         {
@@ -271,6 +272,34 @@ async def get_txs_for_account_from_ia(
         .aggregate(pipeline)
         .to_list(1_000_000_000)
     )
+    return txs_for_account
+
+
+async def get_txs_for_account_for_token(
+    account_id: str,
+    start_block: int,
+    end_block: int,
+    token_id: str,
+    mongomotor: MongoMotor,
+):
+    pipeline = [
+        {
+            "$match": {
+                "$or": [
+                    {"result.to_address": account_id},
+                    {"result.from_address": account_id},
+                ]
+            }
+        },
+        {"$match": {"block_height": {"$gt": start_block, "$lte": end_block}}},
+        {"$match": {"token_address": token_id}},
+    ]
+    txs_for_account = [
+        MongoTypeLoggedEvent(**x)
+        for x in await mongomotor.mainnet[Collections.tokens_logged_events]
+        .aggregate(pipeline)
+        .to_list(1_000_000_000)
+    ]
     return txs_for_account
 
 
@@ -341,7 +370,7 @@ async def get_get_account_rewards_sum_for_graph(
 
 
 @router.get(
-    "/ajax_sankey/{net}/{account_id}/{gte}/{start_date}/{end_date}",
+    "/ajax_sankey/{net}/{account_id}/{gte}/{start_date}/{end_date}/{token}",
     response_class=HTMLResponse,
 )
 async def request_sankey(
@@ -351,6 +380,7 @@ async def request_sankey(
     gte: str,
     start_date: str,
     end_date: str,
+    token: str,
     mongodb: MongoDB = Depends(get_mongo_db),
     mongomotor: MongoMotor = Depends(get_mongo_motor),
     recurring: Recurring = Depends(get_recurring),
@@ -379,22 +409,21 @@ async def request_sankey(
     except:
         error = True
 
-    if net == "mainnet":
-        # only transfer_in and transfer_out
-        # console.log("1")
+    if net == "testnet":
+        return "Not available on testnet."
+
+    sankey = SanKey(account_id, gte, request.app, token)
+    if token == "CCD":
+
         txs_for_account = await get_txs_for_account_from_ia(
             account_id, start_block, end_block, mongomotor
         )
-        # console.log("2")
-        # only account rewards in payday era
         account_rewards = await get_get_account_rewards_sum_for_graph(
             account_id, start_block, end_block, mongomotor
         )
-        # console.log("3")
         account_rewards_pre_payday = mongodb.mainnet[
             Collections.impacted_addresses_pre_payday
         ].find_one({"impacted_address_canonical": {"$eq": account_id[:29]}})
-        # console.log("4")
         if account_rewards_pre_payday:
             account_rewards_total = account_rewards_pre_payday[
                 "sum_transaction_fee_reward"
@@ -415,28 +444,40 @@ async def request_sankey(
             else:
                 account_rewards_total = 0
 
-        sankey = SanKey(account_id, gte, request.app)
         sankey.add_txs_for_account(
             txs_for_account, account_rewards_total, exchange_rates
         )
-        sankey.cross_the_streams(user, tags)
-        console.log("5")
-        json_sankey = json.dumps(sankey.__dict__, skipkeys=True)
-        return templates.TemplateResponse(
-            "account/account_graph_table.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "user": user,
-                "net": net,
-                "account_id": account_id,
-                "sankey": json_sankey,
-                "graph_dict": sankey.graph_dict,
-                "tags": tags,
-            },
-        )
+
     else:
-        return "Not available on testnet."
+        token_tag = MongoTypeTokensTag(
+            **mongodb.mainnet[Collections.tokens_tags].find_one({"_id": token})
+        )
+        token_id = f"{token_tag.contracts[0]}-"
+        decimals = token_tag.decimals
+        display_name = token_tag.display_name
+
+        txs_for_account = await get_txs_for_account_for_token(
+            account_id, start_block, end_block, token_id, mongomotor
+        )
+        sankey.add_txs_for_account_for_token(txs_for_account, decimals, display_name)
+
+    sankey.cross_the_streams(user, tags)
+
+    json_sankey = json.dumps(sankey.__dict__, skipkeys=True)
+    return templates.TemplateResponse(
+        "account/account_graph_table.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+            "account_id": account_id,
+            "token": token,
+            "sankey": json_sankey,
+            "graph_dict": sankey.graph_dict,
+            "tags": tags,
+        },
+    )
 
 
 async def get_blocks_per_payday(mongodb: MongoDB):
@@ -980,6 +1021,37 @@ def set_tabs(
         return defaults
 
 
+def get_token_contracts_for_account(account_id: str, mongodb: MongoDB):
+    pipeline = [
+        {
+            "$match": {
+                "$or": [
+                    {"result.to_address": account_id},
+                    {"result.from_address": account_id},
+                ]
+            }
+        },
+        {
+            "$group": {
+                "_id": "$contract",
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "contract": "$_id",
+            }
+        },
+    ]
+    contracts = list(
+        mongodb.mainnet[Collections.tokens_logged_events].aggregate(pipeline)
+    )
+    if len(contracts) > 0:
+        return [x["contract"] for x in contracts]
+    else:
+        return []
+
+
 @router.get("/{net}/account/{value}", response_class=HTMLResponse)
 async def get_account(
     request: Request,
@@ -995,6 +1067,7 @@ async def get_account(
     tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
     exchange_rates: dict = Depends(get_exchange_rates),
+    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
 ):
     account_id = None
     account_index = None
@@ -1135,6 +1208,14 @@ async def get_account(
         # )
         cns_domains_list = None  # cns_domains_registered(account_id)
 
+    # tokens for flow
+    contracts_for_flow = get_token_contracts_for_account(account_id, mongodb)
+    token_ids = [
+        contracts_with_tag_info[x].token_tag_id
+        for x in contracts_for_flow
+        if x in contracts_with_tag_info
+        and (contracts_with_tag_info[x].token_type == "fungible")
+    ]
     available_tabs = {
         "info": True,
         "identity": True,
@@ -1161,6 +1242,7 @@ async def get_account(
             "account_id": account_id,
             "account_index": account_index,
             # "fragment": fragment,
+            "token_ids_for_flow": token_ids,
             "request": request,
             "exchange_rates": exchange_rates,
             "tokens_value_USD": tokens_value_USD,
@@ -1575,218 +1657,6 @@ async def get_ajax_tokens(
         html = process_tokens_to_HTML_v2(
             tokens,
             total_count,
-            requested_page,
-            None,
-            None,
-            net,
-            fung_count,
-            non_fung_count,
-        )
-        return html
-
-
-@router.get(
-    "/ajax_account_tokens_fungible/{net}/{address}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_ajax_tokens_fungible(
-    request: Request,
-    net: str,
-    address: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    # exchange_rates: dict = Depends(get_exchange_rates),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-):
-    limit = 20
-    # user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
-
-        result_list = list(
-            db_to_use[Collections.tokens_links_v2].find(
-                {"account_address_canonical": address[:29]}
-            )
-        )
-        tokens = {
-            x["token_holding"]["token_address"]: x["token_holding"] for x in result_list
-        }
-
-        if tokens:
-            token_addresses = list(tokens.keys())
-            token_addresses_with_markup = get_token_addresses_with_markup_for_addresses(
-                token_addresses, request, db_to_use
-            )
-            # tokens: dict = result["tokens"]
-            len_tokens = len(tokens)
-
-            token_addresses_to_display = token_addresses[skip : (skip + limit)]
-            t_all = set(token_addresses)
-            t_display = set(token_addresses_to_display)
-            t_adr_to_remove = list(t_all - t_display)
-            for k in t_adr_to_remove:
-                tokens.pop(k, None)
-
-            for token_address, token in tokens.items():
-                # this needs to be a lookup in pre_ for all tokens at once and then locally generate this dict
-                token_address_with_markup = token_addresses_with_markup[token_address]
-                tokens[token_address].update({"markup": token_address_with_markup})
-                if token_address_with_markup.tag_information:
-                    if (
-                        token_address_with_markup.tag_information.token_type
-                        == "fungible"
-                    ):
-                        tokens[token_address].update(
-                            {
-                                "token_value": int(
-                                    tokens[token_address]["token_amount"]
-                                )
-                                * (
-                                    math.pow(
-                                        10,
-                                        -token_address_with_markup.tag_information.decimals,
-                                    )
-                                )
-                            }
-                        )
-                        tokens[token_address].update(
-                            {
-                                "token_value_USD": tokens[token_address]["token_value"]
-                                * token_address_with_markup.exchange_rate
-                            }
-                        )
-        else:
-            tokens = {}
-            len_tokens = 0
-
-        fung_count = 0
-        non_fung_count = 0
-        for token in tokens.values():
-            if token["markup"].tag_information:
-                if token["markup"].tag_information.token_type == "fungible":
-                    fung_count += 1
-                if token["markup"].tag_information.token_type == "non-fungible":
-                    non_fung_count += 1
-        html = process_tokens_to_HTML_v2(
-            tokens,
-            len_tokens,
-            requested_page,
-            None,
-            None,
-            net,
-            fung_count,
-            non_fung_count,
-        )
-        return html
-
-
-@router.get(
-    "/ajax_account_tokens_nft/{net}/{address}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_ajax_tokens_nft(
-    request: Request,
-    net: str,
-    address: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    # exchange_rates: dict = Depends(get_exchange_rates),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-):
-    limit = 20
-    # user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
-
-        # result = db_to_use[Collections.tokens_accounts].find_one({"_id": address})
-        result_list = list(
-            db_to_use[Collections.tokens_links_v2].find(
-                {"account_address_canonical": address[:29]}
-            )
-        )
-        tokens = {
-            x["token_holding"]["token_address"]: x["token_holding"] for x in result_list
-        }
-
-        if tokens:
-            token_addresses = list(tokens.keys())
-            token_addresses_with_markup = get_token_addresses_with_markup_for_addresses(
-                token_addresses, request, db_to_use
-            )
-            # tokens: dict = result["tokens"]
-            len_tokens = len(tokens)
-
-            token_addresses_to_display = token_addresses[skip : (skip + limit)]
-            t_all = set(token_addresses)
-            t_display = set(token_addresses_to_display)
-            t_adr_to_remove = list(t_all - t_display)
-            for k in t_adr_to_remove:
-                tokens.pop(k, None)
-
-            for token_address, token in tokens.items():
-                # this needs to be a lookup in pre_ for all tokens at once and then locally generate this dict
-                token_address_with_markup = token_addresses_with_markup[token_address]
-                tokens[token_address].update({"markup": token_address_with_markup})
-                if token_address_with_markup.tag_information:
-                    if (
-                        token_address_with_markup.tag_information.token_type
-                        == "fungible"
-                    ):
-                        tokens[token_address].update(
-                            {
-                                "token_value": int(
-                                    tokens[token_address]["token_amount"]
-                                )
-                                * (
-                                    math.pow(
-                                        10,
-                                        -token_address_with_markup.tag_information.decimals,
-                                    )
-                                )
-                            }
-                        )
-                        tokens[token_address].update(
-                            {
-                                "token_value_USD": tokens[token_address]["token_value"]
-                                * token_address_with_markup.exchange_rate
-                            }
-                        )
-        else:
-            tokens = {}
-            len_tokens = 0
-
-        non_fung_count = 0
-        for token in tokens.values():
-            if token["markup"].tag_information:
-                if token["markup"].tag_information.token_type == "non-fungible":
-                    non_fung_count += 1
-        html = process_tokens_to_HTML_v2(
-            tokens,
-            len_tokens,
             requested_page,
             None,
             None,
