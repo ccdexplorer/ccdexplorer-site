@@ -2004,7 +2004,7 @@ async def statistics_transaction_details_histogram(
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     df = pd.DataFrame(all_data)
-
+    df = df.fillna(0)
     df["account"] = df["initial"] + df["normal"] + df["credential_keys_updated"]
     df["staking"] = (
         df["baker_added"]
@@ -2076,11 +2076,16 @@ async def statistics_transaction_details_histogram(
         .mark_bar()
         .encode(
             x=alt.X("date:T"),  # , axis=None),
+            tooltip=[
+                alt.Tooltip("date:T", title="Date"),
+                alt.Tooltip("transaction_type:O", title="Transaction Type"),
+                alt.Tooltip("count:Q", title="Count", format=",.0f"),
+            ],
             y=alt.Y(
                 "count",
-                axis=alt.Axis(format="%"),
-                title="% of daily txs",
-                stack="normalize",
+                # axis=alt.Axis(format="%"),
+                # title="% of daily txs",
+                # stack="normalize",
             ),
             color=alt.Color(
                 "transaction_type", title="Transaction Type", scale=alt.Scale(range=rng)
@@ -2137,7 +2142,7 @@ async def statistics_transaction_details_bubble(
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     df = pd.DataFrame(all_data)
-
+    df = df.fillna(0)
     df["account"] = df["initial"] + df["normal"] + df["credential_keys_updated"]
     df["staking"] = (
         df["baker_added"]
