@@ -766,6 +766,7 @@ async def smart_contract_instance(
                         # "event_type": 1,
                         "contract": 1,
                         "tx_hash": 1,
+                        "sender": 1,
                         "timestamp": 1,
                     }
                 },
