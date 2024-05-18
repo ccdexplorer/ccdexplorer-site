@@ -67,7 +67,7 @@
           <div class="card-title small ">Description: This endpoint gets all tokens for a given account, as stored in MongoDB collection <i>tokens_links_v2.</i></div>
           <br/>
           <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/account/{account_address}/tokens</b></a></div>
-          <div>Example: <a href="https://api.ccdexplorer.io/v1/{net}/account/32EwmG2aJCRAmEDKY6AEYoF4SpxrChQKh1hChECtCc7jQnrRpe/tokens"><b>https://api.ccdexplorer.io/v1/{net}/account/32EwmG2...jQnrRpe/tokens</b></a></div>
+          <div>Example: <a href="https://api.ccdexplorer.io/v1/mainnet/account/32EwmG2aJCRAmEDKY6AEYoF4SpxrChQKh1hChECtCc7jQnrRpe/tokens"><b>https://api.ccdexplorer.io/v1/mainnet/account/32EwmG2...jQnrRpe/tokens</b></a></div>
           <br/>
           <div>Parameters: </div>
           <div>* {net} is <i>mainnet</i> or <i>testnet</i><br/>
@@ -79,6 +79,46 @@
 </div>
 <!-- </div> -->
 
+<div class="card mb-2 ms-2 me-2">
+  <div class="card-body p-2">
+          <div class="card-title small ">Name: Add Token Address Without Token Id To Metadata Refresh Queue<b></b>  
+          <div class="card-title small ">Description: This endpoint refreshes the metadata for a fungible token (so no token_id) by requesting the metadata_url again.</i></div>
+          <br/>
+          <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/token/{contract_index}/{contract_subindex}/refesh</b></a></div>
+          <div>Example: <form action="https://api.ccdexplorer.io/v1/mainnet/token/9451/0/refresh" method="post">
+            <button type="submit"  class="btn btn-link"><small><b>https://api.ccdexplorer.io/v1/mainnet/token/9451/0/refresh</b></small></button>
+        </form></div>
+          <br/>
+          <div>Parameters: </div>
+          <div>* {net} is <i>mainnet</i> or <i>testnet</i><br/>
+            * {contract_index} is the <i>contract index</i><br/>
+            * {contract_subindex} is the <i>contract subindex</i></div>
+          </div>
+      
+  </div>
+      
+</div>
+
+<div class="card mb-2 ms-2 me-2">
+  <div class="card-body p-2">
+          <div class="card-title small ">Name: Add Token Address To Metadata Refresh Queue<b></b>  
+          <div class="card-title small ">Description: This endpoint refreshes the metadata for an NFT  by requesting the metadata_url again.</i></div>
+          <br/>
+          <div>Url: <a><b>https://api.ccdexplorer.io/v1/{net}/token/{contract_index}/{contract_subindex}/{token_id}/refesh</b></a></div>
+          <div>Example: <form action="https://api.ccdexplorer.io/v1/mainnet/token/9456/0/f5261d00/refresh" method="post">
+            <button type="submit"  class="btn btn-link"><small><b>https://api.ccdexplorer.io/v1/mainnet/token/9456/0/f5261d00/refresh</b></small></button>
+        </form></div>
+          <br/>
+          <div>Parameters: </div>
+          <div>* {net} is <i>mainnet</i> or <i>testnet</i><br/>
+            * {contract_index} is the <i>contract index</i><br/>
+            * {contract_subindex} is the <i>contract subindex</i><br/>
+            * {token_id} is the <i>token id</i></div>
+          </div>
+      
+  </div>
+      
+</div>
 
 {% endif %}
 {% endblock content %}
