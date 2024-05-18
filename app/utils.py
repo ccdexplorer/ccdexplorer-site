@@ -928,6 +928,11 @@ def datetime_format_day_only(value):
     return f"{value:%Y-%m-%d}"
 
 
+def datetime_format_day_only_from_ms_timestamp(value):
+    ddt = dt.datetime.fromtimestamp(value / 1000)
+    return f"{ddt:%Y-%m-%d}"
+
+
 def lp(value):
     return f"{100*value:,.4f}"
 

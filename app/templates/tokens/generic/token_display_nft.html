@@ -213,17 +213,17 @@
     </div>
     <div class="card-body">
       <h5 class="card-title">{{metadata.name|striptags}}</h5>
-      <p class="card-text">{{metadata.description|striptags}}</p>
+      <p class="card-text"><small>{{metadata.description|striptags}}</small></p>
     </div>
     <hr>
-    {% if metadata.attrbutes %}
+    {% if metadata.attributes %}
     <div class="card-body">
-      <span><small><b>Token attributes</b></small></span>
+      <span><small><b>Attributes</b></small></span>
       <table class="table   small ">
       {% for a in metadata.attributes %}
           <tr><td><small>{{a.name}}</small></td>
           {% if a.type == 'date' %}
-              <td><small>{{a.value|int|datetime_delta_format_schedule_node}} ago</small></td>
+              <td class="ccd"><small>{{a.value|int|datetime_format_day_only_from_ms_timestamp}}</small></td>
           {% else %}
               <td><small>{{a.value}}</small></td>
           {% endif %}
