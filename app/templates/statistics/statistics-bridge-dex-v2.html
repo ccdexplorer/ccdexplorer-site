@@ -41,7 +41,7 @@
     Search();
   });
 </script>
-<script>
+<!-- <script>
   function getLoggedEvents(requested_page, total_rows) {
       // console.log("getloggevents")
     logged_events = document.getElementById('logged-events');
@@ -69,6 +69,38 @@
 
   window.addEventListener('load', (event) => {
     getLoggedEvents(0, 0);
+  });
+</script> -->
+
+<script>
+  function getTxAndLoggedEvents() {
+      // console.log("getloggevents")
+      tx_logged_events = document.getElementById('tx-logged-events');
+      year_month = document.getElementById('year_month').value;
+    url =  '/ajax_events_tx_and_logged/{{net}}/statistics/{{reporting_subject}}/'+year_month ; 
+  //   + requested_page + '/' + total_rows ;
+    tx_logged_events.innerHTML = '{% include "spinner.html" %}'
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        tx_logged_events.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  // function prev_v2_events(requested_page, total_rows) {
+  //   getLoggedEvents(requested_page, total_rows)
+  // };
+  // function next_v2_events(requested_page, total_rows) {
+  //   getLoggedEvents(requested_page, total_rows)
+  // };
+
+  window.addEventListener('load', (event) => {
+    getTxAndLoggedEvents(0, 0);
   });
 </script>
 
@@ -143,7 +175,15 @@
   </div>
   <div class="tab-pane fade show  " style="padding-top: 10px;"
     id="logged-events-div" role="tabpanel" aria-labelledby="logged-events-tab">
-    <div id="logged-events"></div>
+    <!-- <div id="logged-events"></div> -->
+    <select class="small ps-2 mb-2 ms-1 me-1" id="year_month" onchange="getTxAndLoggedEvents()">
+    
+      {% for year_month in year_months %}
+      <option value="{{year_month}}">{{year_month}}</option>
+      {% endfor %}
+    </select>
+    <br/>
+    <div id="tx-logged-events"></div>
 
   </div>
 </div>

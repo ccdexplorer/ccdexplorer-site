@@ -25,6 +25,7 @@ templates.env.filters["datetime_format_schedule_node"] = datetime_format_schedul
 templates.env.filters["datetime_delta_format_schedule_node"] = (
     datetime_delta_format_schedule_node
 )
+templates.env.filters["hour_min"] = hour_min
 templates.env.filters["datetime_format_day_only_from_ms_timestamp"] = (
     datetime_format_day_only_from_ms_timestamp
 )

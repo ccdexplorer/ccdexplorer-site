@@ -1,0 +1,33 @@
+<div style="padding-left:10px; ">
+  <table class="table  table-hover table-sm p-4">
+    <thead>
+      <tr>
+        <th class="small text-start"><small>Date/Action Type</small></th>
+        <!-- <th class="small text-start"><small>Tx</small></th> -->
+        <th class="small text-start"><small>Time/Event</small></th>
+        <th class="small text-end"><small>Amount</small></th>
+        <th class="small text-end"><small>Token</small></th>      
+      </tr>
+    </thead>
+    <tbody>
+{% autoescape true %}
+<!-- hello -->
+    {% for day in all_data%}
+    {% set date = day.date %}
+    <tr class="table-secondary">
+      <td colspan="4" class="text-muted"><small><span class="ccd small ">{{date}} | {{day.hashes_per_day|length}} tx{% if day.hashes_per_day|length == 1 %}{%else%}s{%endif%}</span></small>
+        
+      </td>
+      <!-- <td></td> -->
+      <!-- <td class="text-muted"><small><span class="ccd small "></span></small></td> -->
+      <td></td>
+      <td></td>
+  </tr>
+    {% include "statistics/statistics-tx-and-logged-events-for-day.html" %}
+    {% endfor %}
+    {% endautoescape %}
+  </tbody>
+
+</table>
+</div>
+</div>

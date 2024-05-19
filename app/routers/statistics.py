@@ -24,6 +24,7 @@ from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_PoolInfo,
     CCD_CurrentPaydayStatus,
+    CCD_BlockItemSummary,
 )
 from altair import Chart
 import pandas as pd
@@ -737,6 +738,67 @@ def process_logged_events_to_HTML(rows, tab_string: str, active: bool):
 
 
 @router.get(
+    "/ajax_events_tx_and_logged/{net}/statistics/{rep_subject}/{year_month}",
+    response_class=Response,
+)
+async def statistics_ajax_reporting_subject_events_tx_logged_events(
+    request: Request,
+    net: str,
+    rep_subject: str,
+    year_month: str,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    tooter: Tooter = Depends(get_tooter),
+    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
+    exchange_rates: dict = Depends(get_historical_rates),
+):
+    # user: UserV2 = get_user_detailsv2(request)
+    limit = 20
+    reporting_subject = ReportingSubject(rep_subject.capitalize())
+    all_data = get_all_data_for_bridges_and_dexes_for_month(
+        "statistics_bridges_and_dexes", rep_subject, year_month, mongodb
+    )
+    all_data = [x for x in all_data if len(x["action_types_for_day"]) > 0]
+    d_date = get_statistics_date(mongodb)
+    all_logged_event_ids = {}
+    all_tx_ids = {}
+    for row in all_data:
+        hashes = row["hashes_per_day"]
+        for tx_object in hashes:
+            all_tx_ids[tx_object["tx_hash"]] = len(tx_object["logged_events"])
+            for event in tx_object["logged_events"]:
+                all_logged_event_ids[event] = True
+
+    # get tx
+    pipeline = [{"$match": {"_id": {"$in": list(all_tx_ids.keys())}}}]
+    tx_cache = {
+        x["_id"]: CCD_BlockItemSummary(**x)
+        for x in mongodb.mainnet[Collections.transactions].aggregate(pipeline)
+    }
+
+    # get logged_events
+    pipeline = [{"$match": {"_id": {"$in": list(all_logged_event_ids.keys())}}}]
+    logged_event_cache = {
+        x["_id"]: MongoTypeLoggedEvent(**x)
+        for x in mongodb.mainnet[Collections.tokens_logged_events].aggregate(pipeline)
+    }
+    html = ""
+    html += templates.get_template(
+        "statistics/statistics-tx-and-logged-events.html"
+    ).render(
+        {
+            "net": net,
+            "all_data": sorted(all_data, key=lambda x: x["date"], reverse=True),
+            "tx_cache": tx_cache,
+            "logged_event_cache": logged_event_cache,
+            "token_addresses_with_markup": token_addresses_with_markup,
+        }
+    )
+    return html
+
+
+@router.get(
     "/ajax_events/{net}/statistics/{reporting_subject}/{requested_page}/{total_rows}",
     response_class=Response,
 )
@@ -847,11 +909,30 @@ async def statistics_reporting_subject(
     reporting_subject: str,
     recurring: Recurring = Depends(get_recurring),
     mongodb: MongoDB = Depends(get_mongo_db),
-    tooter: Tooter = Depends(get_tooter),
-    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    # exchange_rates: dict = Depends(get_historical_rates),
 ):
+    pipeline = [
+        {"$match": {"type": "statistics_bridges_and_dexes"}},
+        {"$match": {"reporting_subject": reporting_subject}},
+        {"$match": {"action_types_for_day": {"$exists": True, "$not": {"$size": 0}}}},
+        {
+            "$project": {
+                "yearMonth": {
+                    "$dateToString": {
+                        "format": "%Y-%m",
+                        "date": {"$dateFromString": {"dateString": "$date"}},
+                    }
+                }
+            }
+        },
+        {"$group": {"_id": "$yearMonth"}},
+        {"$sort": {"_id": -1}},  # Optional: Sort the results by year-month
+    ]
+
+    # Execute the aggregation pipeline
+    results = mongodb.mainnet[Collections.statistics].aggregate(pipeline)
+
+    # Extract and print the unique YYYY-MM dates
+    year_months = [result["_id"] for result in results]
     user: UserV2 = get_user_detailsv2(request)
     if net != "mainnet":
         return templates.TemplateResponse(
@@ -871,6 +952,7 @@ async def statistics_reporting_subject(
             "net": net,
             "request": request,
             "user": user,
+            "year_months": year_months,
             "reporting_subject": reporting_subject,
         },
     )
@@ -906,6 +988,25 @@ def get_all_data_for_bridges_and_dexes(
             }
         },
         {"$sort": {"date": 1}},
+    ]
+    return list(mongodb.mainnet[Collections.statistics].aggregate(pipeline))
+
+
+def get_all_data_for_bridges_and_dexes_for_month(
+    analysis: str, reporting_subject: str, month_str: str, mongodb: MongoDB
+) -> list[str]:
+    pipeline = [
+        {"$match": {"type": analysis}},
+        {"$match": {"date": {"$regex": f"{month_str}"}}},
+        {"$match": {"reporting_subject": reporting_subject}},
+        {
+            "$project": {
+                "_id": 0,
+                "type": 0,
+                "reporting_subject": 0,
+            }
+        },
+        {"$sort": {"date": -1}},
     ]
     return list(mongodb.mainnet[Collections.statistics].aggregate(pipeline))
 

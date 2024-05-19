@@ -916,6 +916,10 @@ def regular_datetime_format(value):
     return f"{value:%Y-%m-%d %H:%M:%S}"
 
 
+def hour_min(value):
+    return f"{value:%H:%M}"
+
+
 def datetime_format_isoparse(value):
     return f"{dateutil.parser.isoparse(value):%Y-%m-%d %H:%M:%S}"
 
