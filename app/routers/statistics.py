@@ -754,14 +754,14 @@ async def statistics_ajax_reporting_subject_events_tx_logged_events(
     exchange_rates: dict = Depends(get_historical_rates),
 ):
     # user: UserV2 = get_user_detailsv2(request)
-    print(token_addresses_with_markup.keys())
-    limit = 20
-    reporting_subject = ReportingSubject(rep_subject.capitalize())
+    print(f"{token_addresses_with_markup.keys()=}")
+    # limit = 20
+    # reporting_subject = ReportingSubject(rep_subject.capitalize())
     all_data = get_all_data_for_bridges_and_dexes_for_month(
         "statistics_bridges_and_dexes", rep_subject, year_month, mongodb
     )
     all_data = [x for x in all_data if len(x["action_types_for_day"]) > 0]
-    d_date = get_statistics_date(mongodb)
+    # d_date = get_statistics_date(mongodb)
     all_logged_event_ids = {}
     all_tx_ids = {}
     for row in all_data:

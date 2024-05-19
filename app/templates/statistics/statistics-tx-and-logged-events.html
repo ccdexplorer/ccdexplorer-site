@@ -14,7 +14,7 @@
     {% for day in all_data%}
     {% set date = day.date %}
     <tr class="table-secondary">
-      <td colspan="4" class="text-muted"><small><span class="ccd small ">{{date}} | {{day.hashes_per_day|length}} tx{% if day.hashes_per_day|length == 1 %}{%else%}s{%endif%}</span></small>
+      <td colspan="3" class="text-muted"><small><span class="ccd small ">{{date}} | {{day.hashes_per_day|length}} tx{% if day.hashes_per_day|length == 1 %}{%else%}s{%endif%}</span></small>
         
       </td>
       <!-- <td></td> -->
