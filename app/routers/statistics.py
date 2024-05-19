@@ -754,6 +754,7 @@ async def statistics_ajax_reporting_subject_events_tx_logged_events(
     exchange_rates: dict = Depends(get_historical_rates),
 ):
     # user: UserV2 = get_user_detailsv2(request)
+    print(token_addresses_with_markup.keys())
     limit = 20
     reporting_subject = ReportingSubject(rep_subject.capitalize())
     all_data = get_all_data_for_bridges_and_dexes_for_month(
