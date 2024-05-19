@@ -1067,10 +1067,11 @@ async def get_account(
     tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
     exchange_rates: dict = Depends(get_exchange_rates),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
 ):
     account_id = None
     account_index = None
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     if len(value) == 29:
@@ -1288,7 +1289,7 @@ async def get_ajax_account_html(
     mongodb: MongoDB = Depends(get_mongo_db),
     tags: dict = Depends(get_labeled_accounts),
     mongomotor: MongoMotor = Depends(get_mongo_motor),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
     ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
     # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
     credential_issuers: list = Depends(get_credential_issuers),
@@ -1296,6 +1297,7 @@ async def get_ajax_account_html(
     """
     Add {net}.
     """
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     limit = 20
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
@@ -1531,10 +1533,9 @@ async def get_ajax_tokens(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     recurring: Recurring = Depends(get_recurring),
     mongodb: MongoDB = Depends(get_mongo_db),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    # exchange_rates: dict = Depends(get_exchange_rates),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
 ):
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     limit = 20
     # user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet

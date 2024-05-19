@@ -466,13 +466,14 @@ async def ajax_instance_txs_html_v2(
     grpcclient: GRPCClient = Depends(get_grpcclient),
     mongodb: MongoDB = Depends(get_mongo_db),
     mongomotor: MongoMotor = Depends(get_mongo_motor),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
     tags: dict = Depends(get_labeled_accounts),
     # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
     credential_issuers: list = Depends(get_credential_issuers),
     ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
 ):
     limit = 20
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     instance_address = f"<{instance_index},{instance_subindex}>"
     user: UserV2 = get_user_detailsv2(request)
     # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
@@ -713,9 +714,10 @@ async def smart_contract_instance(
     mongodb: MongoDB = Depends(get_mongo_db),
     grpcclient: GRPCClient = Depends(get_grpcclient),
     tags: dict = Depends(get_labeled_accounts),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
 ):
     user: UserV2 = get_user_detailsv2(request)
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     instance_address = f"<{instance_index},{subindex}>"
     result = db_to_use[Collections.instances].find_one({"_id": instance_address})

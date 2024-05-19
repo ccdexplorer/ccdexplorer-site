@@ -303,96 +303,84 @@ def get_credential_issuers(
 def get_contracts_with_tag_info(
     req: Request,
 ):
+    req.app.contracts_with_tag_info = {}
+    for net in NET:
+        req.app.contracts_with_tag_info[net] = {}
+        if net == NET.MAINNET:
+            db_to_use = req.app.mongodb.mainnet
+        elif net == NET.MAINNET:
+            db_to_use = req.app.mongodb.testnet
 
-    if "net" in req.path_params:
-        db_to_use = (
-            req.app.mongodb.testnet
-            if req.path_params["net"] == "testnet"
-            else req.app.mongodb.mainnet
+        contracts_with_tag_info = {
+            x["contract"]: MongoTypeTokensTag(**x)
+            for x in db_to_use[Collections.pre_render].find(
+                {"recurring_type": "contracts_to_tokens"}
+            )
+        }
+        req.app.tokens_tags_last_requested = dt.datetime.now().astimezone(
+            dt.timezone.utc
         )
-    else:
-        db_to_use = req.app.mongodb.mainnet
+        req.app.contracts_with_tag_info[net] = contracts_with_tag_info
 
-    contracts_with_tag_info = {
-        x["contract"]: MongoTypeTokensTag(**x)
-        for x in db_to_use[Collections.pre_render].find(
-            {"recurring_type": "contracts_to_tokens"}
-        )
-    }
-    req.app.tokens_tags_last_requested = dt.datetime.now().astimezone(dt.timezone.utc)
-    req.app.contracts_with_tag_info = contracts_with_tag_info
-
-    print(f"{len(contracts_with_tag_info.keys())} Tokens_tags from mongodb.")
-    return contracts_with_tag_info
+        print(f"{len(contracts_with_tag_info.keys())} Tokens_tags from mongodb.")
+    return req.app.contracts_with_tag_info
 
 
 def get_token_addresses_with_markup(req: Request):
     if not req.app.contracts_with_tag_info:
-        contracts_with_tag_info = get_contracts_with_tag_info(req)
+        contracts_with_tag_info_both_nets = get_contracts_with_tag_info(req)
     else:
-        contracts_with_tag_info = req.app.contracts_with_tag_info
-    print(f"{contracts_with_tag_info.keys()=}")
-    if "net" in req.path_params:
-        db_to_use = (
-            req.app.mongodb.testnet
-            if req.path_params["net"] == "testnet"
-            else req.app.mongodb.mainnet
-        )
-    else:
-        db_to_use = req.app.mongodb.mainnet
+        contracts_with_tag_info_both_nets = req.app.contracts_with_tag_info
+
     # get exchange rates
     coll = req.app.mongodb.utilities[CollectionsUtilities.exchange_rates]
-
     exchange_rates = {x["token"]: x for x in coll.find({})}
+    token_addresses_with_markup_both_nets = {}
+    for net in NET:
+        token_addresses_with_markup_both_nets[net] = {}
+        if net == NET.MAINNET:
+            db_to_use = req.app.mongodb.mainnet
+        elif net == NET.MAINNET:
+            db_to_use = req.app.mongodb.testnet
 
-    # find fungible tokens
-    fungible_contracts = [
-        contract
-        for contract, token_tag in contracts_with_tag_info.items()
-        if token_tag.token_type == "fungible"
-    ]
-    print(f"{fungible_contracts=}")
-    # print(f"{fungible_contracts=}")
-    # now onto the token_addresses
-    token_addresses_with_markup = {
-        x["_id"]: MongoTypeTokenAddress(**x)
-        for x in db_to_use[Collections.tokens_token_addresses_v2].find(
-            {"contract": {"$in": fungible_contracts}}
-        )
-    }
-    # queue = []
-    for address in token_addresses_with_markup.keys():
-        token_address_class = token_addresses_with_markup[address]
-        if token_address_class.contract in contracts_with_tag_info.keys():
-            token_address_class.tag_information = contracts_with_tag_info[
+        # find fungible tokens
+        fungible_contracts = [
+            contract
+            for contract, token_tag in contracts_with_tag_info_both_nets[net].items()
+            if token_tag.token_type == "fungible"
+        ]
+        # now onto the token_addresses
+        token_addresses_with_markup = {
+            x["_id"]: MongoTypeTokenAddress(**x)
+            for x in db_to_use[Collections.tokens_token_addresses_v2].find(
+                {"contract": {"$in": fungible_contracts}}
+            )
+        }
+        # queue = []
+        for address in token_addresses_with_markup.keys():
+            token_address_class = token_addresses_with_markup[address]
+            if (
                 token_address_class.contract
-            ]
-            if token_address_class.tag_information.token_type == "fungible":
-                if (
-                    token_address_class.tag_information.get_price_from
-                    in exchange_rates.keys()
-                ):
-                    token_address_class.exchange_rate = exchange_rates[
+                in contracts_with_tag_info_both_nets[net].keys()
+            ):
+                token_address_class.tag_information = contracts_with_tag_info_both_nets[
+                    net
+                ][token_address_class.contract]
+                if token_address_class.tag_information.token_type == "fungible":
+                    if (
                         token_address_class.tag_information.get_price_from
-                    ]["rate"]
-                else:
-                    token_address_class.exchange_rate = 0
-        else:
-            token_address_class.tag_information = None
-        token_addresses_with_markup[address] = token_address_class
-
-        # repl_dict = token_address_class.model_dump()
-        # if "id" in repl_dict:
-        #     del repl_dict["id"]
-        # queue_item = ReplaceOne(
-        #     {"_id": token_address_class.id},
-        #     replacement=repl_dict,
-        #     upsert=True,
-        # )
-        # queue.append(queue_item)
-    # _ = db_to_use[Collections.pre_token_addresses_with_markup].bulk_write(queue)
-    # print(f"{token_addresses_with_markup=}")
-    return token_addresses_with_markup
+                        in exchange_rates.keys()
+                    ):
+                        token_address_class.exchange_rate = exchange_rates[
+                            token_address_class.tag_information.get_price_from
+                        ]["rate"]
+                    else:
+                        token_address_class.exchange_rate = 0
+            else:
+                token_address_class.tag_information = None
+            token_addresses_with_markup[address] = token_address_class
+        token_addresses_with_markup_both_nets[net] = token_addresses_with_markup
+    return token_addresses_with_markup_both_nets
 
 
 def get_labeled_accounts(

@@ -750,18 +750,17 @@ async def statistics_ajax_reporting_subject_events_tx_logged_events(
     mongodb: MongoDB = Depends(get_mongo_db),
     tooter: Tooter = Depends(get_tooter),
     # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
+    token_addresses_with_markup_both_nets: dict = Depends(
+        get_token_addresses_with_markup
+    ),
     exchange_rates: dict = Depends(get_historical_rates),
 ):
-    # user: UserV2 = get_user_detailsv2(request)
-    print(f"{token_addresses_with_markup.keys()=}")
-    # limit = 20
-    # reporting_subject = ReportingSubject(rep_subject.capitalize())
+    token_addresses_with_markup = token_addresses_with_markup_both_nets[NET.MAINNET]
     all_data = get_all_data_for_bridges_and_dexes_for_month(
         "statistics_bridges_and_dexes", rep_subject, year_month, mongodb
     )
     all_data = [x for x in all_data if len(x["action_types_for_day"]) > 0]
-    # d_date = get_statistics_date(mongodb)
+
     all_logged_event_ids = {}
     all_tx_ids = {}
     for row in all_data:
@@ -796,110 +795,6 @@ async def statistics_ajax_reporting_subject_events_tx_logged_events(
             "token_addresses_with_markup": token_addresses_with_markup,
         }
     )
-    return html
-
-
-@router.get(
-    "/ajax_events/{net}/statistics/{reporting_subject}/{requested_page}/{total_rows}",
-    response_class=Response,
-)
-async def statistics_ajax_reporting_subject_events_logged_events(
-    request: Request,
-    net: str,
-    reporting_subject: str,
-    requested_page: int,
-    total_rows: int,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    tooter: Tooter = Depends(get_tooter),
-    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    exchange_rates: dict = Depends(get_historical_rates),
-):
-    # user: UserV2 = get_user_detailsv2(request)
-    limit = 20
-    reporting_subject = ReportingSubject(reporting_subject.capitalize())
-    reporting_output = get_analytics_for_platform(
-        reporting_subject, mongodb, token_addresses_with_markup, exchange_rates, request
-    )
-
-    # requested page = 0 indicated the first page
-    # requested page = -1 indicates the last page
-    if requested_page > -1:
-        skip = requested_page * limit
-    else:
-        nr_of_pages, _ = divmod(total_rows, limit)
-        skip = nr_of_pages * limit
-        # special case if total_rows equals a limt multiple
-        if skip == total_rows:
-            skip = (nr_of_pages - 1) * limit
-
-    tx_tabs = {}
-    tx_tabs_active = {}
-    for action in ReportingActionType:
-        tx_tabs[action] = []
-
-    # add all classified_txs up to apply skip / limit to
-    all_logged_events = []
-    for _, classified_txs in reporting_output.txs_by_action_type.items():
-        for cl_tx in classified_txs:
-            for logged_event in cl_tx.logged_events:
-                all_logged_events.append(
-                    {
-                        "logged_event": logged_event,
-                        "action_type": cl_tx.action_type,
-                        "date": cl_tx.date,
-                    }
-                )
-
-    all_logged_events = sorted(
-        all_logged_events, reverse=True, key=lambda x: x["logged_event"].block_height
-    )
-    logged_events_this_page = all_logged_events[skip : (skip + limit)]
-
-    for event_dict in logged_events_this_page:
-        tx_tabs[event_dict["action_type"]].append(
-            {"logged_event": event_dict["logged_event"], "date": event_dict["date"]}
-        )
-
-    tab_selected_to_be_active = False
-    for tab in ReportingActionType:
-        tx_tabs_active[tab] = False
-        if (not tab_selected_to_be_active) and (len(tx_tabs[tab]) > 0):
-            tab_selected_to_be_active = True
-            tx_tabs_active[tab] = True
-
-    html = mongo_logged_events_html_header(
-        len(all_logged_events),
-        requested_page,
-        tx_tabs,
-        tx_tabs_active,
-    )
-
-    for tab in ReportingActionType:
-        # if reporting_subject == ReportingSubject.Arabella:
-        #     active_str = ""
-        #     if (tab.value == "Mint") and (len(tx_tabs[tab]) > 0):
-        #         active_str = "active"
-        #     if (tab.value == "Burn") and (len(tx_tabs[tab]) > 0):
-        #         active_str = "active"
-
-        # else:
-        #     active_str = "active" if tab.value == "Deposit" else ""
-        active_str = "active" if tx_tabs_active[tab] else ""
-        if len(tx_tabs[tab]) > 0:
-            html += f'<div class="tab-pane fade show {active_str} " style="padding-top: 10px;" id="{tab.value}" role="tabpanel" aria-labelledby="{tab.value}-tab">'
-            html += templates.get_template(
-                "statistics/statistics-logged-events.html"
-            ).render(
-                {
-                    "net": net,
-                    "logged_events": tx_tabs[tab],
-                    "token_addresses_with_markup": token_addresses_with_markup,
-                }
-            )
-
-    # html += transactions_html_footer()
     return html
 
 
@@ -2515,10 +2410,6 @@ async def statistics_transaction_fees_ajax(
     recurring: Recurring = Depends(get_recurring),
     mongodb: MongoDB = Depends(get_mongo_db),
     tooter: Tooter = Depends(get_tooter),
-    # contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
-    token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    exchange_rates: dict = Depends(get_historical_rates),
-    blocks_per_day: dict[str, MongoTypeBlockPerDay] = Depends(get_blocks_per_day),
 ):
     # user: UserV2 = get_user_detailsv2(request)
     net = "mainnet"

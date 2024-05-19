@@ -357,13 +357,14 @@ async def ajax_block_transactions_html(
     api_key: str,
     grpcclient: GRPCClient = Depends(get_grpcclient),
     mongodb: MongoDB = Depends(get_mongo_db),
-    contracts_with_tag_info: dict = Depends(get_contracts_with_tag_info),
+    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
     ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
     tags: dict = Depends(get_labeled_accounts),
     # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
     credential_issuers: list = Depends(get_credential_issuers),
 ):
     limit = 20
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
 

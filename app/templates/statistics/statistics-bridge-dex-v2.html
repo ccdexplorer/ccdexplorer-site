@@ -41,36 +41,7 @@
     Search();
   });
 </script>
-<!-- <script>
-  function getLoggedEvents(requested_page, total_rows) {
-      // console.log("getloggevents")
-    logged_events = document.getElementById('logged-events');
-    url =  '/ajax_events/{{net}}/statistics/{{reporting_subject}}/'+requested_page +"/" +total_rows; 
-  //   + requested_page + '/' + total_rows ;
-    logged_events.innerHTML = '{% include "spinner.html" %}'
-    fetch(url)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        logged_events.innerHTML = data;
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
 
-  function prev_v2_events(requested_page, total_rows) {
-    getLoggedEvents(requested_page, total_rows)
-  };
-  function next_v2_events(requested_page, total_rows) {
-    getLoggedEvents(requested_page, total_rows)
-  };
-
-  window.addEventListener('load', (event) => {
-    getLoggedEvents(0, 0);
-  });
-</script> -->
 
 <script>
   function getTxAndLoggedEvents() {
@@ -91,13 +62,6 @@
         console.log(error);
       });
   }
-
-  // function prev_v2_events(requested_page, total_rows) {
-  //   getLoggedEvents(requested_page, total_rows)
-  // };
-  // function next_v2_events(requested_page, total_rows) {
-  //   getLoggedEvents(requested_page, total_rows)
-  // };
 
   window.addEventListener('load', (event) => {
     getTxAndLoggedEvents(0, 0);
