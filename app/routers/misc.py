@@ -1,6 +1,7 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
 
 from fastapi import APIRouter, Request, Depends
+from bson.codec_options import CodecOptions
 from fastapi.responses import (
     HTMLResponse,
     RedirectResponse,
@@ -88,6 +89,88 @@ async def redirect_to_testnet(
     return templates.TemplateResponse(
         "home.html",
         {"env": request.app.env, "request": request, "user": user, "net": net},
+    )
+
+
+@router.get("/{net}/ajax-status", response_class=HTMLResponse)
+async def net_ajax_status(
+    request: Request,
+    net: str,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+    tags: dict = Depends(get_labeled_accounts),
+    # nightly_accounts: dict = Depends(get_nightly_accounts)
+):
+    user: UserV2 = get_user_detailsv2(request)
+    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    now = dt.datetime.now().astimezone(dt.timezone.utc)
+    last_block_info = grpcclient.get_block_info("last_final", net=NET(net))
+    helpers = {
+        x["_id"]: x
+        for x in db_to_use[Collections.helpers]
+        .with_options(
+            codec_options=CodecOptions(tz_aware=True, tzinfo=pytz.timezone("UTC"))
+        )
+        .find({})
+    }
+    exchange_rates = {
+        x["token"]: x
+        for x in mongodb.utilities[CollectionsUtilities.exchange_rates]
+        .with_options(
+            codec_options=CodecOptions(tz_aware=True, tzinfo=pytz.timezone("UTC"))
+        )
+        .find({})
+    }
+    helpers.update(
+        {"CCD": exchange_rates["CCD"]["timestamp"]}  # .astimezone(dt.timezone.utc)}
+    )
+    last_logged_event_height = list(
+        db_to_use[Collections.tokens_logged_events]
+        .find({})
+        .sort("block_height", -1)
+        .limit(1)
+    )[0]["block_height"]
+    return templates.TemplateResponse(
+        "net-ajax-status.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "helpers": helpers,
+            "last_block_info": last_block_info,
+            "last_logged_event_height": last_logged_event_height,
+            # "exchange_rates": exchange_rates,
+            "now": now,
+            "net": net,
+        },
+    )
+
+
+@router.get("/{net}/status", response_class=HTMLResponse)
+async def net_status(
+    request: Request,
+    net: str,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+    tags: dict = Depends(get_labeled_accounts),
+    # nightly_accounts: dict = Depends(get_nightly_accounts)
+):
+    user: UserV2 = get_user_detailsv2(request)
+
+    return templates.TemplateResponse(
+        "net-status.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "net": net,
+        },
     )
 
 
@@ -224,7 +307,7 @@ async def ajax_protocol_updates(
     # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
     credential_issuers: list = Depends(get_credential_issuers),
 ):
-    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
+    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET("mainnet")]
     user: UserV2 = get_user_detailsv2(request)
     limit = 500
 

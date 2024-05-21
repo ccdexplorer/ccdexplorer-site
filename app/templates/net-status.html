@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}
+  <div  hx-get="/{{net}}/ajax-status" hx-trigger="load, every 2s"></div>
+{% endblock content %}

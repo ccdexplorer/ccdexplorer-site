@@ -1,0 +1,77 @@
+{% set last_final = last_block_info.height%}
+<div style="padding-left:10px; padding-right:10px; ">
+  <table class="table  table-hover table-sm p-4">
+    <thead>
+      <tr>
+        <th class="small text-start"><small>Key</small></th>
+        <th class="small text-end"><small>Value</small></th>
+        <th class="small text-end"><small>Check</small></th>
+        
+      </tr>
+    </thead>
+    <tbody>
+{% autoescape true %}
+<tr>
+    <td><small>Last Finalized Block<br/><span class="small text-muted">This is the last finalized block on-chain</span></small></td>
+    <td class="ccd text-end">{{last_block_info.height|round_0_decimal_with_comma}}</td>
+  <td></td>
+</tr>
+    {% for key, value in helpers.items()%}
+    <tr>
+      {% if key == "heartbeat_last_processed_block"%}
+        <td><small>Heartbeat (blocks, txs, etc)<br/><span class="small text-muted">Heartbeat processes new blocks, txs, and impacted addresses</span></small></td>
+        <td class="ccd text-end">{{value.height|round_0_decimal_with_comma}}</td>
+        <td class="small text-end">{% if (last_final - value.height) < 10 %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    {% if net == 'mainnet' %}
+    <tr>
+      {% if key == "bot_last_processed_block"%}
+        <td><small>Bot Processed Last Block<br/><span class="small text-muted">This is the last block that the bot has processed</span></small></td>
+        <td class="ccd text-end">{{value.height|round_0_decimal_with_comma}}</td>
+        <td class="small text-end">{% if (last_final - value.height) < 10 %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    {% endif %}
+    <tr>
+      {% if key == "token_accounting_last_processed_block_v2"%}
+        <td><small>Token Accounting Last Block<br/><span class="small text-muted">This is the last block with a CIS-2 logged event</span></small></td>
+        <td class="ccd text-end">{{value.height|round_0_decimal_with_comma}}</td>
+        <td class="small text-end">{% if (last_logged_event_height - value.height) < 10 %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    <tr>
+      {% if key == "schema_parsing_last_processed_block"%}
+        <td><small>Track and Trace Last Block<br/><span class="small text-muted">This is the last block processed looking for Track and Trace events</span></small></td>
+        <td class="ccd text-end">{{value.height|round_0_decimal_with_comma}}</td>
+        <td class="small text-end">{% if (last_final - value.height) < 10 %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    <tr>
+      {% if key == "CCD"%}
+        <td><small>Timestamp CCD/USD<br/><span class="small text-muted">This is timestamp of the last time the CCD/USD exchange rate was fetched</span></small></td>
+        <td class="ccd text-end">{{((now - value).total_seconds()/60)|round_0_decimal_with_comma}} min ago</td>
+        <td class="small text-end">{% if (now - value).total_seconds() <(15*60) %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    <tr>
+      {% if key == "heartbeat_last_timestamp_impacted_addresses_all_top_list"%}
+        <td><small>Timestamp Impacted Address Top<br/><span class="small text-muted">This is timestamp of when the query last ran for determining tx counts the top-100 accounts</span></small></td>
+        <td class="ccd text-end">{{((now - value.timestamp).total_seconds())|round_0_decimal_with_comma}} sec ago</td>
+        <td class="small text-end">{% if (now - value.timestamp).total_seconds() <(5*60) %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+    <tr>
+      {% if key == "recurring_last_timestamp_get_metadata"%}
+        <td><small>Timestamp Get Metadata<br/><span class="small text-muted">This is timestamp of when the query last ran fto get metadata for CIS-2 tokens</span></small></td>
+        <td class="ccd text-end">{{((now - value.timestamp).total_seconds())|round_0_decimal_with_comma}} sec ago</td>
+        <td class="small text-end">{% if (now - value.timestamp).total_seconds() <(5*60) %}✅{%else%}❌{%endif%}</td>
+      {% endif %}
+    </tr>
+
+    {% endfor %}
+    {% endautoescape %}
+  </tbody>
+
+</table>
+</div>
