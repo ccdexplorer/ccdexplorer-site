@@ -1,18 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script>
-    function get_chart(analysis) {
-      // console.log("Analysis: ", analysis, "vis-"+analysis)
-      var width = Math.min(window.innerWidth, 675);
-      var spec = "{{env.SITE_URL}}/{{net}}/ajax_statistics/"+analysis+"/" + width;
-      target_div = document.getElementById("vis-"+analysis);
-      target_div.innerHTML = '{% include "spinner.html" %}'
-      // console.log('spec: ', spec)
-      var opt = { renderer: 'svg', actions: false };
-      vegaEmbed('#vis-'+analysis, spec, opt).then(function (result) { }).catch(console.error);
-    }
-  </script>
+  <!-- Load plotly.js into the DOM -->
+  <meta charset="utf-8" /> 
+	<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous"></script>
   <style>
         body {
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -87,25 +79,13 @@ button, input, optgroup, select, textarea {
     font-size: inherit;
     line-height: inherit;
 }
-      </style>
-  <!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-  
-  <style>
-    .vega-embed {
+    .plotly {
       width: 100%;
-      height:350px;
+      height:750px;
       /* border-style: dotted; */
       /* height: 100%; */
     }
-    .vega-embed-small {
-      width: 100%;
-      height:150px;
-      /* border-style: dotted; */
-      /* height: 100%; */
-    }
+    
     </style>
   <title>CCDExplorer | Statistics</title>
   <!-- Bootstrap CSS -->
@@ -135,39 +115,30 @@ button, input, optgroup, select, textarea {
 
 
   <div class="row">
-    <!-- <div class="col-md-1"></div> -->
     <div class="col-md-12" >
       
       <h2 class="p-2">Network Statistics (Beta)</h2>
       <p class="small p-2">These graphs are compiled every day based on the last block of the day.</p>      
-<h5 class="p-2">Account Growth</h5>
-<p class="small p-2">There are currently {{account_count| thousands}} accounts registered.</p>
-    <div class="vega-embed" id="vis-statistics_network_summary_accounts_per_day"></div>
-      <script type="text/javascript">get_chart("statistics_network_summary_accounts_per_day");</script>
-      <br><br><br><br><br>
-    <!-- <div class="vega-embed" id="vis-accounts"></div> -->
+    <h5 class="p-2">Account Growth</h5>
+    <p class="small p-2">There are currently {{account_count| thousands}} accounts registered.</p>
+      <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_network_summary_accounts_per_day"></div>
+    <br><br>
+    
     <h5 class="p-2">Holder Concentration</h5>
     <p class="small p-2">This graph shows the count of accounts that have a total CCD balance larger than 1M CCD.</p>
-    <div class="vega-embed" id="vis-statistics_daily_holders"></div>
-    <script type="text/javascript">get_chart("statistics_daily_holders");</script>
-    
-    <br><br><br><br><br>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_daily_holders"></div>
     
     <p class="small p-2">This graph shows the amount of CCD an account would need to have to be in the top 100 or top 250 of accounts.</p>
-    <div class="vega-embed" id="vis-statistics_daily_limits"></div>
-    <script type="text/javascript">get_chart("statistics_daily_limits");</script>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_daily_limits"></div>
     
-    <br><br><br><br><br><br><br><br>
     <h5 class="p-2">CCD on exchanges</h5>
-    <div class="vega-embed" id="vis-statistics_ccd_classified"></div>
-      <script type="text/javascript">get_chart("statistics_ccd_classified");</script>
-    <!-- <div class="vega-embed" id="vis-clas"></div> -->
-    <br><br><br><br><br><br><br>
+    
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_ccd_classified"></div>
+    
     <p class="small p-2">The following graph depicts how many CCD were at exchange accounts through time.</p>
-    <div class="vega-embed" id="vis-statistics_ccd_on_exchanges"></div>
-      <script type="text/javascript">get_chart("statistics_ccd_on_exchanges");</script>
-    <!-- <div class="vega-embed" id="vis-exchange"></div> -->
-    <br><br><br><br><br><br><br><br><br><br><br>
+      
+      <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/ccd_on_exchanges"></div>
+    
     <p class="small text-muted mb-3 p-2">For this analysis, we have taken the following addresses as Exchange addresses: 
       <a href="/mainnet/account/3kKn2kz9YHrkrKUcBZF9NUJbg8LqGzcBbLwzH1VPE5g2fTbY9z">Bitfinex</a>, 
       <a href="/mainnet/account/4Gkp5YPScc9VieoxmemurZa8kEhiz2hcB9T9bASMXN8aJ5ZsPp">Bitglobal</a>,
@@ -175,84 +146,47 @@ button, input, optgroup, select, textarea {
       <a href="/mainnet/account/3FEwBHfk7QBnTUDrqEowwn4txfKTnJyg66xLZza68rhYATh1HX">AscendEX</a>,
       <a href="/mainnet/account/4f1fKZA4kT2s2knPHUJ2addLDpwH7kPe2SQQHrT8xetUDyhTc6">KuCoin (canonical deposit address)</a>, 
       <a href="/mainnet/account/4sd3NCW8w4gC2dRZHSThT98URYgPJ6KMMnuawtLm4j1gbwpXRS">KuCoin (cold storage address)</a>, 
-      <a href="/mainnet/account/3bjh8aszDh7fHWm6ghhvagoMBSACGAfyZZzVnnSKhLjCGZemdc">KuCoin (3rd account)</a> and 
-      <a href="/mainnet/account/3K7JfzdRGJTNJ2bN8dXeyBvdYhTh9c2qpofBu8J7VFbi3wLYeA">Coinex</a>. We have <b>assumed</b> that all exchanges make use of the alias system, hence, there is one canonical account for each exchange (and possibly a cold storage address). Volume data from <a href="https://api.coingecko.com/api/v3/coins/concordium/history?date=10-02-2022&localization=false">CoinGecko</a>.</p>
+      <a href="/mainnet/account/3bjh8aszDh7fHWm6ghhvagoMBSACGAfyZZzVnnSKhLjCGZemdc">KuCoin (3rd account)</a>, 
+      <a href="/mainnet/account/3K7JfzdRGJTNJ2bN8dXeyBvdYhTh9c2qpofBu8J7VFbi3wLYeA">Coinex</a> and 
+      <a href="/mainnet/account/2xV4e5c8w5BdPWDYiGaQHDXn8Fg5FnRJb5PmPXPNStbMkrN2nR">LCX</a>. 
+      
+      We have <b>assumed</b> that all exchanges make use of the alias system, hence, there is one canonical account for each exchange (and possibly a cold storage address). Volume data from <a href="https://api.coingecko.com/api/v3/coins/concordium/history?date=10-02-2022&localization=false">CoinGecko</a>.</p>
     
       <p class="small p-2">Exchanges use the alias system for its internal CCD wallets. Hence, we can deduce the minimum count of unique exchange wallets per exchange. A wallet is counted only if this account has made a transfer.</p>
-      <div class="vega-embed" id="vis-statistics_exchange_wallets"></div>
-      <script type="text/javascript">get_chart("statistics_exchange_wallets");</script>
+      <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_exchange_wallets"></div>
+      
 <br/><br/>
     <h5 class="p-2">Network Activity</h5>
     <p class="small p-2">We estimate Network Activity as the daily sum of change in total balances in absolute value (locked + unlocked) for all accounts, adjusted for token inflation.
     </p>
-    <div class="vega-embed" id="vis-statistics_network_activity_tps"></div>
-    <script type="text/javascript">get_chart("statistics_network_activity_tps");</script>
     
-    
-    <!-- <div class="vega-embed" id="vis-activity"></div> -->
-    <br><br><br><br><br>
-    <p class="small text-muted mb-3 p-2"><b>Example</b>: take a network with two accounts, <em>a</em> and <em>b</em>, where account <em>b</em> is the only baker/finalizer. Now suppose <em>a</em> sends 100 CCD to <em>b</em> and <em>b</em> receives rewards of 10 CCD.
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_network_activity_tps"></div>  
+    <p class="small text-muted mb-3 p-2"><b>Example</b>: take a network with two accounts, <em>a</em> and <em>b</em>, where account <em>b</em> is the only validator. Now suppose <em>a</em> sends 100 CCD to <em>b</em> and <em>b</em> receives rewards of 10 CCD.
       Network activity for this day would be shown as [ abs(-100) + abs(100 + 10) - (10) ] / 2, which equals to 100 ( = the transferred amount).</p>
 
     <br>
-    <div class="vega-embed" id="vis-statistics_transaction_details_histogram"></div>
-    <script type="text/javascript">get_chart("statistics_transaction_details_histogram");</script>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_transaction_details_histogram"></div>
     
-    <!-- <div class="vega-embed" id="vis-transaction-hist"></div> -->
-    <br><br><br><br><br><br><br><br><br><br><br>
-    <div class="vega-embed" id="vis-statistics_transaction_details_bubble"></div>
-    <script type="text/javascript">get_chart("statistics_transaction_details_bubble");</script>
-    
-    <!-- <div class="vega-embed-small" id="vis-transaction-bubble"></div> -->
-    <br><br><br><br><br><br><br><br>
     <h5 class="p-2">Transaction costs - Fee stabilization</h5>
     <p class="small p-2"><i>"Transactions costs are designed to be stable in EUR terms, thereby enabling businesses and other users to predict and plan the costs of blockchain transactions."</i><br><br>On the chain this is expressed in micro CCD per EUR.
     Below we graph the cost of a regular transfer (with an energy cost of 501) over time in CCD.</p>
-    <div class="vega-embed" id="vis-statistics_microccd"></div>
-    <script type="text/javascript">get_chart("statistics_microccd");</script>
-    
-    <br><br><br><br><br><br><br><br>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_microccd"></div>  
     <h5 class="p-2">Transaction Fees</h5>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_transaction_fees"></div>  
     
-    <div class="vega-embed" id="vis-statistics_transaction_fees"></div>
-    <script type="text/javascript">get_chart("statistics_transaction_fees");</script>
-    
-    <!-- <div class="vega-embed" id="vis-microccd"></div> -->
-    <br><br><br><br><br>
-
     <h5 class="p-2">Staking</h5>
     
       <p class="small p-2">There are currently {{baker_count| thousands}} validators registered.</p>
-      <div class="vega-embed" id="vis-statistics_network_summary_validator_count"></div>
-      <script type="text/javascript">get_chart("statistics_network_summary_validator_count");</script>
-    
-    
-      <br><br><br><br><br>  
-      <div class="vega-embed" id="vis-statistics_validator_staking"></div>
-      <script type="text/javascript">get_chart("statistics_validator_staking");</script>
-    
-      <!-- <div class="vega-embed" id="vis-bakers"></div> -->
-    <br><br><br><br><br><br><br><br><br><br><br><br>
-
-    <div class="vega-embed" id="vis-apy"></div>
-    <br><br><br><br>
+      <!-- <div class="vega-embed" id="vis-statistics_network_summary_validator_count"></div> -->
+      <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_network_summary_validator_count"></div>  
+      <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_validator_staking"></div>  
     
     <h5 class="p-2">Staking (from Sirius Protocol)</h5>
     <br>
-    <div class="vega-embed-small" id="vis-statistics_classified_pools_open_pool_count"></div>
-    <script type="text/javascript">get_chart("statistics_classified_pools_open_pool_count");</script>
-    
-    <br><br><br><br><br><br>
-    <div class="vega-embed-small" id="vis-statistics_classified_pools_delegator_count"></div>
-    <script type="text/javascript">get_chart("statistics_classified_pools_delegator_count");</script>
-    
-    <br><br><br><br><br><br>
-    <div class="vega-embed-small" id="vis-statistics_classified_pools_avg_count_per_pool"></div>
-    <script type="text/javascript">get_chart("statistics_classified_pools_avg_count_per_pool");</script>
-    
-    <br><br><br><br><br><br>
-    <div class="vega-embed-small" id="vis-statistics_classified_pools_avg_stake"></div>
-    <script type="text/javascript">get_chart("statistics_classified_pools_avg_stake");</script>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_classified_pools_open_pool_count"></div>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_classified_pools_delegator_count"></div>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_classified_pools_avg_count_per_pool"></div>
+    <div class="plotly-embed" hx-trigger="load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_classified_pools_avg_stake"></div>
     
 
   </div>

@@ -4,7 +4,8 @@
 
 <head>
   <meta name="googlebot" >
-  
+  <!-- Load plotly.js into the DOM -->
+	<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
   <script>base_url = '{{env.SITE_URL}}'</script>
   <script>api_key = '{{env.API_KEY}}'</script>
   {% if env.SITE_URL != "http://127.0.0.1:8000" %}

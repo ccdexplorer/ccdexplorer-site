@@ -27,6 +27,9 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockItemSummary,
 )
 from altair import Chart
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import pandas as pd
 import altair as alt
 import uuid
@@ -34,6 +37,127 @@ import uuid
 alt.data_transformers.enable("vegafusion")
 
 router = APIRouter()
+
+
+def ccdexplorer_plotly_template():
+    rng = [
+        "#EE9B54",
+        "#F7D30A",
+        "#6E97F7",
+        "#F36F85",
+        "#AE7CF7",
+        "#508A86",
+        "#005B58",
+        # "#0E2625",
+    ]
+    primary_font = "sans-serif, Arial Black"
+    ccdexplorer_template = go.layout.Template()
+    ccdexplorer_template.layout = go.Layout(
+        colorway=rng,
+        font_family=primary_font,
+        font_size=14,
+        title_font_family=primary_font,
+        title_font_size=14,
+        title_xref="container",
+        title_yref="container",
+        title_x=0.5,
+        title_y=0.96,
+        title_xanchor="center",
+        title_yanchor="top",
+        title_pad_l=0,
+        title_pad_r=0,
+        title_pad_t=6,
+        title_pad_b=0,
+        showlegend=True,
+        legend_font_family=primary_font,
+        legend_font_size=12,
+        legend_orientation="v",
+        legend_y=-0.52,
+        legend_x=0.0,
+        legend_title_font_family=primary_font,
+        legend_title_font_size=12,
+        legend_title_text="",
+        legend_bgcolor="rgba(0,0,0,0)",
+        margin_l=24,
+        margin_r=24,
+        margin_t=64,
+        margin_b=64,
+        margin_pad=0,
+        margin_autoexpand=True,
+        coloraxis_autocolorscale=False,  # Set to False as otherwise users cannot customize via `color_continous_scale`
+        coloraxis_colorbar_outlinewidth=0,
+        coloraxis_colorbar_thickness=20,
+        coloraxis_colorbar_showticklabels=True,
+        coloraxis_colorbar_ticks="outside",
+        coloraxis_colorbar_tickwidth=1,
+        coloraxis_colorbar_ticklen=8,
+        coloraxis_colorbar_tickfont_family=primary_font,
+        coloraxis_colorbar_tickfont_size=14,
+        coloraxis_colorbar_ticklabelposition="outside",
+        coloraxis_colorbar_title_font_family=primary_font,
+        coloraxis_colorbar_title_font_size=14,
+        bargroupgap=0.1,
+        uniformtext_minsize=12,
+        uniformtext_mode="hide",
+        # X AXIS
+        xaxis_visible=True,
+        xaxis_title_font_family=primary_font,
+        xaxis_title_font_size=12,
+        xaxis_title_standoff=8,
+        xaxis_ticklabelposition="outside",
+        xaxis_ticks="outside",
+        xaxis_ticklen=8,
+        xaxis_tickwidth=1,
+        xaxis_showticklabels=True,
+        xaxis_automargin=True,
+        xaxis_tickfont_family=primary_font,
+        xaxis_tickfont_size=12,
+        xaxis_showline=True,
+        xaxis_layer="below traces",
+        xaxis_linewidth=1,
+        xaxis_zeroline=False,
+        xaxis_mirror=True,
+        # Y AXIS
+        yaxis_visible=True,
+        yaxis_title_font_family=primary_font,
+        yaxis_title_font_size=12,
+        yaxis_title_standoff=8,
+        yaxis_ticklabelposition="outside",
+        yaxis_ticks="outside",
+        yaxis_ticklen=8,
+        yaxis_tickwidth=1,
+        yaxis_showticklabels=True,
+        yaxis_automargin=True,
+        yaxis_tickfont_family=primary_font,
+        yaxis_tickfont_size=12,
+        yaxis_showline=True,
+        yaxis_layer="below traces",
+        yaxis_linewidth=1,
+        yaxis_zeroline=False,
+        yaxis_mirror=True,
+    )
+
+    return ccdexplorer_template
+
+
+def prepare_plotly_graph(data: list, title: str, d_date: str, layout_additions: dict):
+    return_object = {
+        "layout": {
+            "title": {
+                "text": f"<b>{title}</b><br><sup>{d_date}</sup>",
+                "font": {"size": 14},
+            },
+            # "plot_bgcolor": "#444",
+            "paper_bgcolor": "rgba(0,0,0,0)",
+            "xaxis": {"linecolor": "grey", "linewidth": 1, "mirror": True},
+            "yaxis": {"linecolor": "grey", "linewidth": 1, "mirror": True},
+            "legend": {"x": 0.01, "y": 0.99, "xanchor": "left", "yanchor": "top"},
+        },
+        "data": data,
+        "config": {"responsive": True, "displayModeBar": False},
+    }
+    return_object["layout"].update(layout_additions)
+    return return_object
 
 
 def get_txs_for_impacted_address_cdex(mongodb: MongoDB):
@@ -343,20 +467,19 @@ async def statistics(
 
     if net == "mainnet":
         try:
-            t = requests.get(
-                "https://raw.githubusercontent.com/sderuiter/concordium-network-statistics/main/network-summary.json",
-                verify=False,
+            df = pd.read_csv(
+                "https://raw.githubusercontent.com/ccdexplorer/ccdexplorer-accounts/main/accounts.csv",
+                low_memory=False,
             )
-            t = t.json()
-            baker_count = t["baker_count"]
-            account_count = t["account_count"]
-            free_float = t["free_float"]
+            df = df.fillna(-1)
+            f = df["baker_id"] != -1
+            baker_count = len(df[f])
+            account_count = len(df)
+
         except:
             baker_count = 0
             account_count = 0
-            free_float = 0
-        # baker_count = len(recurring.bakers_classified[BakerStatus.Active])
-        baker_count = len(recurring.all_bakers_by_baker_id)
+
         return templates.TemplateResponse(
             "statistics/statistics-clean.html",
             {
@@ -365,7 +488,6 @@ async def statistics(
                 "request": request,
                 "account_count": account_count,
                 "baker_count": baker_count,
-                "free_float": free_float,
                 "user": user,
             },
         )
@@ -928,12 +1050,12 @@ def get_statistics_date(mongodb: MongoDB) -> str:
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_daily_holders/{width}", response_class=Response
+    "/{net}/ajax_statistics_plotly_py/statistics_daily_holders",
+    response_class=HTMLResponse,
 )
-async def statistics_daily_holders(
+async def statistics_daily_holders_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -952,35 +1074,37 @@ async def statistics_daily_holders(
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     df = pd.DataFrame(all_data)
-    base = alt.Chart(df).encode(alt.X("date:T", axis=alt.Axis(title=None)))
-
-    line = base.mark_bar(opacity=1, strokeWidth=5, color="#549FF2").encode(
-        alt.Y(
-            "count_above_1M",
-            axis=alt.Axis(
-                title="Count of Accounts holding > 1M CCD", titleColor="#549FF2"
-            ),
-        )
+    title = "Count of Accounts holding > 1M CCD"
+    fig = px.bar(
+        df,
+        x="date",
+        y="count_above_1M",
+        template=ccdexplorer_plotly_template(),
     )
-    chart = line.properties(
-        width="container",
-        height=350,
-        title={
-            "text": "Count of Accounts holding > 1M CCD",
-            "subtitle": f"{d_date}",
-        },
+    fig.update_traces(marker_color="#549FF2")
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text=title,
+        showgrid=False,
+        title_font=dict(color="#549FF2"),
     )
-
-    return chart.to_json(format="vega")
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_daily_limits/{width}", response_class=Response
+    "/{net}/ajax_statistics_plotly_py/statistics_daily_limits",
+    response_class=HTMLResponse,
 )
-async def statistics_daily_limits(
+async def statistics_daily_limits_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1008,46 +1132,42 @@ async def statistics_daily_limits(
     )
     melt = df.melt("date", var_name="limit_amount", value_name="value")
     # print(melt)
-    base = alt.Chart(melt).encode(alt.X("date:T", axis=alt.Axis(title=None)))
 
-    rng = ["#AE7CF7", "#70B785"]  # , '#549FF2', '#EBBC90']
-    line = base.mark_line(opacity=1, strokeWidth=2).encode(
-        alt.Y("value:Q", axis=alt.Axis(title="Amount (CCD)")),
-        alt.Color(
-            "limit_amount:O",
-            scale=alt.Scale(range=rng),
-            title="Amount needed for...",
-        ),
+    rng = ["#AE7CF7", "#70B785"]
+
+    title = "Amounts of CCD needed to make top 100/250"
+    fig = px.line(
+        melt,
+        x="date",
+        y="value",
+        color="limit_amount",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-
-    chart: Chart = line.properties(
-        width="container",
-        # width=400,
-        height=350,
-        title={
-            "text": "Amounts of CCD needed to make top 100/250",
-            "subtitle": f"{d_date}",
-        },
-    ).configure_legend(
-        orient="bottom",
-        direction="vertical",
-        fillColor="white",
-        padding=5,
-        strokeColor="gray",
-        labelFontSize=9,
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text="Amount (CCD)",
+        showgrid=False,
+        autorange=False,
     )
-
-    return chart.to_json(format="vega")
+    fig.update_layout(
+        yaxis_range=[0, round(max(df["Top 100"]), 0)],
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_network_summary_validator_count/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_network_summary_validator_count",
     response_class=Response,
 )
-async def statistics_network_summary_validator_count(
+async def statistics_network_summary_validator_count_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1066,36 +1186,34 @@ async def statistics_network_summary_validator_count(
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     df = pd.DataFrame(all_data)
-    validators = (
-        alt.Chart(df)
-        .mark_line(color="#70B785", opacity=0.8)
-        .encode(
-            x=alt.X("date:T"),
-            y=alt.Y("validator_count", title="Count of Validators"),
-            # color='transaction_type'
-        )
+    rng = ["#70B785"]
+    title = "Registered Validators"
+    fig = px.line(
+        df,
+        x="date",
+        y="validator_count",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-    chart = validators.properties(
-        width="container",
-        # width=400,
-        height=350,
-        title={
-            "text": "Registered Validators",
-            "subtitle": f"{d_date}",
-        },
+    fig.update_yaxes(title_text="Count of Validators")
+    fig.update_xaxes(title=None)
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
     )
-
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_network_summary_accounts_per_day/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_network_summary_accounts_per_day",
     response_class=Response,
 )
-async def statistics_network_summary_accounts_per_day(
+async def statistics_network_summary_accounts_per_day_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1123,45 +1241,66 @@ async def statistics_network_summary_accounts_per_day(
     df_per_day.rename(
         columns={"d_count_accounts": "growth", "account_count": "level"}, inplace=True
     )
+    df_per_day = df_per_day[["date", "growth", "level"]]
+    title = "Accounts Active and Growth per day"
 
-    base = alt.Chart(df_per_day).encode(alt.X("date:T", axis=alt.Axis(title=None)))
-
-    line = base.mark_bar(opacity=1, strokeWidth=5, color="#549FF2").encode(
-        alt.Y("growth", axis=alt.Axis(title="Account Growth", titleColor="#549FF2"))
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Scatter(
+            x=df_per_day["date"].to_list(),
+            y=df_per_day["level"].to_list(),
+            name="Accounts On Chain",
+            marker=dict(color="#AE7CF7"),
+        ),
+        secondary_y=False,
     )
 
-    bar = base.mark_line(opacity=0.6, stroke="#AE7CF7").encode(
-        alt.Y("level", axis=alt.Axis(title="Accounts on Chain", titleColor="#AE7CF7"))
-    )
-    chart: Chart = (
-        alt.layer(bar, line)
-        .resolve_scale(y="independent")
-        .properties(
-            width="container",
-            # width=400,
-            height=350,
-            title={
-                "text": "Accounts Active and Growth per day",
-                "subtitle": f"{d_date}",
-            },
-        )
+    fig.add_trace(
+        go.Bar(
+            x=df_per_day["date"].to_list(),
+            y=df_per_day["growth"].to_list(),
+            name="Account Growth",
+            marker=dict(color="#549FF2"),
+        ),
+        secondary_y=True,
+        # showgrid=False,
     )
 
-    return chart.to_json(format="vega")
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text="Accounts On Chain",
+        showgrid=False,
+        title_font=dict(color="#AE7CF7"),
+    )
+    fig.update_yaxes(
+        secondary_y=True,
+        title_text="Account Growth",
+        showgrid=False,
+        title_font=dict(color="#549FF2"),
+    )
+    fig.update_xaxes(type="date")
+    fig.update_layout(
+        showlegend=False,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        template=ccdexplorer_plotly_template(),
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_classified_pools_open_pool_count/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_classified_pools_open_pool_count",
     response_class=Response,
 )
-async def statistics_classified_pools_open_pool_count(
+async def statistics_classified_pools_open_pool_count_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
-    analysis = "statistics_classified_pools"
     if net != "mainnet":
         return templates.TemplateResponse(
             "testnet/not-available.html",
@@ -1173,6 +1312,98 @@ async def statistics_classified_pools_open_pool_count(
             },
         )
 
+    analysis = "statistics_classified_pools"
+    title = "# Open Pools"
+    plot_color = "#80B589"
+    data_field = "open_pool_count"
+    return staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field)
+
+
+@router.get(
+    "/{net}/ajax_statistics_plotly_py/statistics_classified_pools_delegator_count",
+    response_class=Response,
+)
+async def statistics_classified_pools_delegator_count_plotly(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+                "user": user,
+            },
+        )
+
+    analysis = "statistics_classified_pools"
+    title = "# Delegators"
+    plot_color = "#EE9B54"
+    data_field = "delegator_count"
+    return staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field)
+
+
+@router.get(
+    "/{net}/ajax_statistics_plotly_py/statistics_classified_pools_avg_count_per_pool",
+    response_class=Response,
+)
+async def statistics_classified_pools_avg_count_per_pool_plotly(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+                "user": user,
+            },
+        )
+
+    analysis = "statistics_classified_pools"
+    title = "Average # Delegators per Pool"
+    plot_color = "#6E97F7"
+    data_field = "delegator_avg_count_per_pool"
+    return staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field)
+
+
+@router.get(
+    "/{net}/ajax_statistics_plotly_py/statistics_classified_pools_avg_stake",
+    response_class=Response,
+)
+async def statistics_classified_pools_avg_stake_plotly(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+                "user": user,
+            },
+        )
+
+    analysis = "statistics_classified_pools"
+    title = "Delegator's Average Stake"
+    plot_color = "#AE7CF7"
+    data_field = "delegator_avg_stake"
+    return staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field)
+
+
+def staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field):
     all_data = get_all_data_for_analysis(analysis, mongodb)
     d_date = get_statistics_date(mongodb)
     df_pools = pd.DataFrame(all_data)
@@ -1185,231 +1416,54 @@ async def statistics_classified_pools_open_pool_count(
             "delegator_avg_count_per_pool",
         ]
     ]
-
-    base = alt.Chart(df_pools).encode(alt.X("date:T", title=None))
-    open_pool_count = base.mark_area(
-        line={"color": "#80B589"},
-        color=alt.Gradient(
-            gradient="linear",
-            stops=[
-                alt.GradientStop(color="white", offset=0),
-                alt.GradientStop(color="#80B589", offset=1),
-            ],
-            x1=1,
-            x2=1,
-            y1=1,
-            y2=0,
-        ),
-    ).encode(alt.Y("open_pool_count:Q", title=None))
-    chart = open_pool_count.properties(
-        width="container",
-        # width = 400,
-        height=150,
-        title={
-            "text": "# Open Pools",
-            "subtitle": f"{d_date}",
-        },
+    rng = [plot_color]
+    fig = px.area(
+        df_pools,
+        x="date",
+        y=[data_field],
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-    return chart.to_json(format="vega")
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text=None,
+        showgrid=False,
+    )
+    fig.update_xaxes(title_text=None)
 
+    fig.update_layout(
+        showlegend=False,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=275,
+    )
 
-@router.get(
-    "/{net}/ajax_statistics/statistics_classified_pools_delegator_count/{width}",
-    response_class=Response,
-)
-async def statistics_classified_pools_delegator_count(
-    request: Request,
-    net: str,
-    width: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    analysis = "statistics_classified_pools"
-    if net != "mainnet":
-        return templates.TemplateResponse(
-            "testnet/not-available.html",
-            {
-                "env": request.app.env,
-                "net": net,
-                "request": request,
-                "user": user,
-            },
+    fig.update_traces(
+        fillgradient=dict(
+            type="vertical",
+            colorscale=[(0.0, "white"), (1.0, plot_color)],
+        ),
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df_pools["date"].to_list(),
+            y=df_pools[data_field].to_list(),
+            mode="lines",
+            line=dict(color=plot_color, width=2),
+            name=title,
         )
-
-    all_data = get_all_data_for_analysis(analysis, mongodb)
-    d_date = get_statistics_date(mongodb)
-    df_pools = pd.DataFrame(all_data)
-    df_pools = df_pools[
-        [
-            "date",
-            "open_pool_count",
-            "delegator_count",
-            "delegator_avg_stake",
-            "delegator_avg_count_per_pool",
-        ]
-    ]
-
-    base = alt.Chart(df_pools).encode(alt.X("date:T", title=None))
-    delegator_count = base.mark_area(
-        line={"color": "#EE9B54"},
-        color=alt.Gradient(
-            gradient="linear",
-            stops=[
-                alt.GradientStop(color="white", offset=0),
-                alt.GradientStop(color="#EE9B54", offset=1),
-            ],
-            x1=1,
-            x2=1,
-            y1=1,
-            y2=0,
-        ),
-    ).encode(alt.Y("delegator_count:Q", title=None))
-    chart = delegator_count.properties(
-        width="container",
-        # width = 400,
-        height=150,
-        title={
-            "text": "# Delegators",
-            "subtitle": f"{d_date}",
-        },
     )
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_classified_pools_avg_count_per_pool/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_microccd",
     response_class=Response,
 )
-async def statistics_classified_pools_avg_count_per_pool(
+async def statistics_microccd_plotly(
     request: Request,
     net: str,
-    width: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    analysis = "statistics_classified_pools"
-    if net != "mainnet":
-        return templates.TemplateResponse(
-            "testnet/not-available.html",
-            {
-                "env": request.app.env,
-                "net": net,
-                "request": request,
-                "user": user,
-            },
-        )
-
-    all_data = get_all_data_for_analysis(analysis, mongodb)
-    d_date = get_statistics_date(mongodb)
-    df_pools = pd.DataFrame(all_data)
-    df_pools = df_pools[
-        [
-            "date",
-            "open_pool_count",
-            "delegator_count",
-            "delegator_avg_stake",
-            "delegator_avg_count_per_pool",
-        ]
-    ]
-
-    base = alt.Chart(df_pools).encode(alt.X("date:T", title=None))
-    delegator_avg_count_per_pool = base.mark_area(
-        line={"color": "#6E97F7"},
-        color=alt.Gradient(
-            gradient="linear",
-            stops=[
-                alt.GradientStop(color="white", offset=0),
-                alt.GradientStop(color="#6E97F7", offset=1),
-            ],
-            x1=1,
-            x2=1,
-            y1=1,
-            y2=0,
-        ),
-    ).encode(alt.Y("delegator_avg_count_per_pool:Q", title=None))
-    chart = delegator_avg_count_per_pool.properties(
-        width="container",
-        # width = 400,
-        height=150,
-        title={
-            "text": "Average # Delegators per Pool",
-            "subtitle": f"{d_date}",
-        },
-    )
-    return chart.to_json(format="vega")
-
-
-@router.get(
-    "/{net}/ajax_statistics/statistics_classified_pools_avg_stake/{width}",
-    response_class=Response,
-)
-async def statistics_classified_pools_avg_stake(
-    request: Request,
-    net: str,
-    width: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    analysis = "statistics_classified_pools"
-    if net != "mainnet":
-        return templates.TemplateResponse(
-            "testnet/not-available.html",
-            {
-                "env": request.app.env,
-                "net": net,
-                "request": request,
-                "user": user,
-            },
-        )
-
-    all_data = get_all_data_for_analysis(analysis, mongodb)
-    d_date = get_statistics_date(mongodb)
-    df_pools = pd.DataFrame(all_data)
-    df_pools = df_pools[
-        [
-            "date",
-            "open_pool_count",
-            "delegator_count",
-            "delegator_avg_stake",
-            "delegator_avg_count_per_pool",
-        ]
-    ]
-
-    base = alt.Chart(df_pools).encode(alt.X("date:T", title=None))
-    delegator_avg_stake = base.mark_area(
-        line={"color": "#AE7CF7"},
-        color=alt.Gradient(
-            gradient="linear",
-            stops=[
-                alt.GradientStop(color="white", offset=0),
-                alt.GradientStop(color="#AE7CF7", offset=1),
-            ],
-            x1=1,
-            x2=1,
-            y1=1,
-            y2=0,
-        ),
-    ).encode(alt.Y("delegator_avg_stake:Q", title=None))
-    chart = delegator_avg_stake.properties(
-        width="container",
-        # width = 400,
-        height=150,
-        title={
-            "text": "Delegator's Average Stake",
-            "subtitle": f"{d_date}",
-        },
-    )
-    return chart.to_json(format="vega")
-
-
-@router.get(
-    "/{net}/ajax_statistics/statistics_microccd/{width}",
-    response_class=Response,
-)
-async def statistics_microccd(
-    request: Request,
-    net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1440,39 +1494,35 @@ async def statistics_microccd(
         / (df_microCCD["NRG_denominator"] / df_microCCD["NRG_numerator"])
     )
 
-    NRG = (
-        alt.Chart(df_microCCD)
-        .mark_line(color="#70B785", opacity=0.99)
-        .encode(
-            y=alt.Y(
-                "Price_of_regular_transfer:Q",
-                title="Cost for regular transfer (in CCD)",
-                scale=alt.Scale(zero=False, type="log"),
-            ),
-            x=alt.X("date:T", title=None),
-        )
+    rng = ["#70B785"]
+    title = "Fee stabilization - (log scale)"
+    fig = px.line(
+        df_microCCD,
+        x="date",
+        y="Price_of_regular_transfer",
+        log_y=True,
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-
-    chart = NRG.properties(
-        width="container",
-        # width=400,
-        height=350,
-        title={
-            "text": "Fee stabilization - (log scale)",
-            "subtitle": f"{d_date}",
-        },
+    fig.update_yaxes(title_text="Cost for regular transfer (in CCD)")
+    fig.update_xaxes(title=None)
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
     )
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_validator_staking/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_validator_staking",
     response_class=Response,
 )
-async def statistics_validator_staking(
+async def statistics_validator_staking_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1519,83 +1569,48 @@ async def statistics_validator_staking(
     df_bakers["o"] = df_bakers.index
     df_bakers["order"] = df_bakers["o"] + 1
 
-    melt = df_bakers.melt(
-        ["Validator ID", "order", "o", "index"],
-        var_name="stakeType",
-        value_name="value",
+    rng = ["#33C364", "#7939BA"]
+    rng = ["#2485DF", "#E87E90"]
+    title = "Validator (top 50) - Staked amounts"
+    fig = px.bar(
+        df_bakers,
+        x=["Validator Stake", "Delegated Stake"],
+        y="Validator ID",
+        orientation="h",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-
-    bar = (
-        alt.Chart(melt)
-        .mark_bar()
-        .encode(
-            y=alt.Y(
-                "Validator ID:O", title=None, sort=alt.EncodingSortField(field="order")
-            ),
-            x=alt.X("value:Q", title="Staked Amount"),
-            color=alt.Color(
-                "stakeType",
-                legend=alt.Legend(orient="bottom"),
-                sort=alt.EncodingSortField("stakeType", order="descending"),
-            ),
-            order=alt.Order(
-                # Sort the segments of the bars by this field
-                "stakeType",
-                sort="descending",
-            ),
-            tooltip=[
-                alt.Tooltip("Validator ID:O", title="Validator"),
-                alt.Tooltip("value:Q", title="Staked Amount (CCD)", format=",.0f"),
-                alt.Tooltip("stakeType:O", title="StakeType"),
-            ],
-        )
+    fig.update_yaxes(
+        type="category",
     )
-    # Create a selection that chooses the nearest point & selects based on x-value
-    nearest = alt.selection_point(
-        nearest=True, on="mouseover", fields=["x"], empty=False
-    )
-
-    # Transparent selectors across the chart. This is what tells us
-    # the x-value of the cursor
-    selectors = (
-        alt.Chart(melt)
-        .mark_point()
-        .encode(
-            x="x:Q",
-            opacity=alt.value(0),
-        )
-        .add_params(nearest)
-    )
-
-    # Draw a rule at the location of the selection
-    rules = (
-        alt.Chart(melt)
-        .mark_rule(color="gray")
-        .encode(
-            x="x:Q",
-        )
-        .transform_filter(nearest)
-    )
-    chart = alt.layer(bar, selectors, rules).properties(
-        width="container",
-        # width=700,
-        height=500,
-        title={
-            "text": "Validator (top 50) - Staked amounts",
-            "subtitle": f"{d_date}",
+    fig.update_xaxes(title="Staked Amount")
+    fig.update_layout(
+        legend_title_text=None,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=750,
+        legend_y=0.0,
+        legend_x=0.7,
+        yaxis_dtick=1,
+        uniformtext_minsize=8,
+        uniformtext_mode="show",
+        barmode="stack",
+        yaxis={
+            "categoryorder": "total ascending",
+            "categoryarray": df_bakers["Validator ID"].to_list(),
         },
     )
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_ccd_on_exchanges/{width}",
-    response_class=Response,
+    "/{net}/ajax_statistics_plotly_py/ccd_on_exchanges",
+    response_class=HTMLResponse,
 )
-async def statistics_ccd_on_exchanges(
+async def statistics_ccd_on_exchanges_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1635,10 +1650,11 @@ async def statistics_ccd_on_exchanges(
             "ascendex": "4.AscendEX",
             "kucoin": "5.KuCoin",
             "coinex": "6.CoinEx",
+            "lcx": "7.LCX",
         }
     )
 
-    rng = ["#DC5050", "#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A"]
+    rng = ["#DC5050", "#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
     columns = [
         "1.BitFinex",
         "2.BitGlobal",
@@ -1646,55 +1662,44 @@ async def statistics_ccd_on_exchanges(
         "4.AscendEX",
         "5.KuCoin",
         "6.CoinEx",
+        "7.LCX",
     ]
 
-    # columns = [ 'BitFinex', 'BitGlobal', 'MEXC', 'AscendEX']
-    area = (
-        alt.Chart(melt)
-        .mark_area(color="#AE7CF7", opacity=0.7)
-        .encode(
-            alt.X("date:T", title=None, axis=alt.Axis(grid=False)),
-            y=alt.Y("CCD:Q", title="CCD on exchanges", sort=None),
-            color=alt.Color(
-                "ccd_type",
-                title="Exchanges",
-                scale=alt.Scale(domain=columns, range=rng),
-            ),
-        )
+    title = "CCD on Exchanges"
+    fig = px.area(
+        melt,
+        x="date",
+        y="CCD",
+        color="ccd_type",
+        color_discrete_sequence=rng,
+        category_orders={"ccd_type": columns},
+        template=ccdexplorer_plotly_template(),
     )
-
-    chart = (
-        (area)  # + listings)
-        .properties(
-            width="container",
-            # width=400,
-            height=350,
-            title={
-                "text": "CCD on Exchanges",
-                "subtitle": f"{d_date}",
-            },
-        )
-        .configure_legend(
-            orient="bottom",
-            direction="vertical",
-            fillColor="white",
-            padding=5,
-            strokeColor="gray",
-            labelFontSize=9,
-        )
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text="CCD on exchanges",
+        showgrid=False,
+        autorange=True,
     )
-
-    return chart.to_json(format="vega")
+    fig.update_layout(
+        # yaxis_range=[0, round(max(melt["CCD"]), 0)],
+        legend_title_text=title,
+        legend_y=-0.75,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_ccd_classified/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_ccd_classified",
     response_class=Response,
 )
-async def statistics_ccd_classified(
+async def statistics_ccd_classified_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1724,6 +1729,7 @@ async def statistics_ccd_classified(
         + df_ccd_classified["ascendex"]
         + df_ccd_classified["kucoin"]
         + df_ccd_classified["coinex"]
+        + df_ccd_classified["lcx"]
     )
     df_ccd_classified = df_ccd_classified[
         ["date", "staked", "delegated", "unstaked", "tradable"]
@@ -1749,148 +1755,34 @@ async def statistics_ccd_classified(
 
     # rng = ["#AE7CF7", "#70B785", "#549FF2", "#EBBC90"]
     rng = ["#E87E90", "#33C364", "#2485DF", "#7939BA"]
-    base = alt.Chart(
+    title = "CCD Classified"
+    fig = px.bar(
         melt,
-    ).encode(x="date:T")
-    columns = ["tradable", "unstaked", "staked", "delegated"]
-
-    area = base.mark_area(opacity=1).encode(
-        y="CCD:Q",
-        color=alt.Color(
-            "ccd_type",
-            scale=alt.Scale(domain=columns, range=rng),
-            sort=alt.EncodingSortField("order", order="descending"),
-            legend=alt.Legend(title=None, titleAnchor="start", fillColor="white"),
-        ),
-        order="order",  # this controls stack order
+        x="date",
+        y="CCD",
+        color="ccd_type",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-
-    chart = area.properties(
-        # chart = alt.layer( area, line_locked ).properties(
-        width="container",
-        # width = 400,
-        height=350,
-        title={
-            "text": "CCD Classified",
-            "subtitle": f"{d_date}",
-        },
-    ).configure_legend(
-        orient="bottom",
-        direction="horizontal",
-        fillColor="white",
-        padding=5,
-        strokeColor="gray",
-        labelFontSize=9,
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+        legend_y=-0.1,
+        legend_orientation="h",
     )
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_network_activity/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_network_activity_tps",
     response_class=Response,
 )
-async def statistics_network_activity(
+async def statistics_network_activity_tps_plotly(
     request: Request,
     net: str,
-    width: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    analysis = "statistics_mongo_transactions"
-    if net != "mainnet":
-        return templates.TemplateResponse(
-            "testnet/not-available.html",
-            {
-                "env": request.app.env,
-                "net": net,
-                "request": request,
-                "user": user,
-            },
-        )
-
-    all_data = get_all_data_for_analysis(analysis, mongodb)
-    d_date = get_statistics_date(mongodb)
-    df_ccd_classified = pd.DataFrame(all_data)
-
-    all_data = get_all_data_for_analysis("statistics_release_amounts", mongodb)
-    df_release = pd.DataFrame(all_data)
-
-    df_ccd_classified["tradable"] = (
-        df_ccd_classified["bitfinex"]
-        + df_ccd_classified["bitglobal"]
-        + df_ccd_classified["mexc"]
-        + df_ccd_classified["ascendex"]
-        + df_ccd_classified["kucoin"]
-        + df_ccd_classified["coinex"]
-    )
-    df_ccd_classified = df_ccd_classified[
-        ["date", "staked", "delegated", "unstaked", "tradable"]
-    ]
-    melt = df_ccd_classified.melt("date", var_name="ccd_type", value_name="CCD")
-    melt["order"] = melt["ccd_type"].replace(
-        {
-            val: i
-            for i, val in enumerate(["staked", "delegated", "unstaked", "tradable"])
-        }
-    )
-    df_ccd_classified = (
-        df_ccd_classified.set_index("date")
-        .join(df_release.set_index("date"))
-        .reset_index()[["date", "total_amount_released", "total_amount"]]
-    )
-    df_ccd_classified["total_amount_released"] = df_ccd_classified[
-        "total_amount_released"
-    ].replace(np.nan, 0)
-    df_ccd_classified["locked"] = (
-        df_ccd_classified["total_amount"] - df_ccd_classified["total_amount_released"]
-    ) / 1_000_000
-
-    # rng = ["#AE7CF7", "#70B785", "#549FF2", "#EBBC90"]
-    rng = ["#E87E90", "#33C364", "#2485DF", "#7939BA"]
-    base = alt.Chart(
-        melt,
-    ).encode(x="date:T")
-    columns = ["tradable", "unstaked", "staked", "delegated"]
-
-    area = base.mark_area(opacity=1).encode(
-        y="CCD:Q",
-        color=alt.Color(
-            "ccd_type",
-            scale=alt.Scale(domain=columns, range=rng),
-            sort=alt.EncodingSortField("order", order="descending"),
-            legend=alt.Legend(title=None, titleAnchor="start", fillColor="white"),
-        ),
-        order="order",  # this controls stack order
-    )
-
-    chart = area.properties(
-        # chart = alt.layer( area, line_locked ).properties(
-        width="container",
-        # width = 400,
-        height=350,
-        title={
-            "text": "CCD Classified",
-            "subtitle": f"{d_date}",
-        },
-    ).configure_legend(
-        orient="bottom",
-        direction="horizontal",
-        fillColor="white",
-        padding=5,
-        strokeColor="gray",
-        labelFontSize=9,
-    )
-    return chart.to_json(format="vega")
-
-
-@router.get(
-    "/{net}/ajax_statistics/statistics_network_activity_tps/{width}",
-    response_class=Response,
-)
-async def statistics_network_activity_tps(
-    request: Request,
-    net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -1922,67 +1814,70 @@ async def statistics_network_activity_tps(
 
     merge_tr = merge[merge["TPS"] > 0]
     merge_ac = merge[merge["network_activity"] > 0.0]
-    tr = (
-        alt.Chart(merge_tr)
-        .mark_line(clip=True, color="#AE7CF7", opacity=1)
-        .encode(
-            y=alt.Y(
-                "TPS:Q", title="Transactions Per Second (TPS)"
-            ),  # , scale=alt.Scale(domain=[0,1])),
-            x=alt.X("date:T", title=None),
-        )
-    )
-    ac = (
-        alt.Chart(merge_ac)
-        .mark_area(
-            line={"color": "#70B785"},
-            color=alt.Gradient(
-                gradient="linear",
-                stops=[
-                    alt.GradientStop(color="white", offset=0),
-                    alt.GradientStop(color="#70B785", offset=1),
-                ],
-                x1=1,
-                x2=1,
-                y1=1,
-                y2=0,
-            ),
-            opacity=0.75,
-        )
-        .encode(
-            y=alt.Y(
-                "network_activity:Q",
-                title="CCD amounts transferred",
-                scale=alt.Scale(zero=False, type="log"),
-            ),
-            x=alt.X("date:T", title=None),
-        )
-    )
+    title = "Network Activity"
 
-    chart = (
-        (ac + tr)
-        .resolve_scale(y="independent")
-        .properties(
-            width="container",
-            # width=400,
-            height=350,
-            title={
-                "text": "Network Activity",
-                "subtitle": f"{d_date}",
-            },
-        )
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        go.Scatter(
+            x=merge_ac["date"].to_list(),
+            y=merge_ac["network_activity"].to_list(),
+            name="Activity",
+            fill="tozeroy",
+            marker=dict(color="#70B785"),
+            fillgradient=dict(
+                type="horizontal",
+                colorscale=[(0.0, "white"), (1.0, "#70B785")],
+            ),
+        ),
+        secondary_y=False,
+        # showgrid=False,
     )
-    return chart.to_json(format="vega")
+    fig.update_yaxes(secondary_y=False, type="log")
+    # fig.update_traces(
+
+    # )
+    fig.add_trace(
+        go.Scatter(
+            x=merge_tr["date"].to_list(),
+            y=merge_tr["TPS"].to_list(),
+            name="TPS",
+            marker=dict(color="#AE7CF7"),
+        ),
+        secondary_y=True,
+    )
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text="Activity",
+        showgrid=False,
+        title_font=dict(color="#70B785"),
+    )
+    fig.update_yaxes(
+        secondary_y=True,
+        title_text="TPS",
+        showgrid=False,
+        title_font=dict(color="#AE7CF7"),
+    )
+    fig.update_xaxes(type="date")
+    fig.update_layout(
+        showlegend=False,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        template=ccdexplorer_plotly_template(),
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_transaction_details_histogram/{width}",
-    response_class=Response,
+    "/{net}/ajax_statistics_plotly_py/statistics_transaction_details_histogram",
+    response_class=HTMLResponse,
 )
-async def statistics_transaction_details_histogram(
+async def statistics_transaction_details_histogram_python(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -2018,22 +1913,6 @@ async def statistics_transaction_details_histogram(
         + df["contract_update_issued"]
     )
     df["register data"] = df["data_registered"]
-    # df["chain updates"] = (
-    #     df["micro_ccd_per_euro_update"]
-    #     + df["euro_per_energy_update"]
-    #     + df["pool_parameters_cpv_1_update"]
-    #     + df["protocol_update"]
-    #     + df["add_identity_provider_update"]
-    #     + df["add_anonymity_revoker_update"]
-    #     + df["level_1_update"]
-    #     + df["time_parameters_cpv_1_update"]
-    #     + df["mint_distribution_cpv_1_update"]
-    #     + df["root_update"]
-    #     + df["mint_distribution_update"]
-    #     + df["baker_stake_threshold_update"]
-    #     + df["gas_rewards_update"]
-    #     + df["transaction_fee_distribution_update"]
-    # )
 
     df["transfer"] = (
         df["account_transfer"]
@@ -2068,59 +1947,31 @@ async def statistics_transaction_details_histogram(
         # "#0E2625",
     ]
     # stacked hist
-    norm_stack = (
-        alt.Chart(melt)
-        .mark_bar()
-        .encode(
-            x=alt.X("date:T"),  # , axis=None),
-            tooltip=[
-                alt.Tooltip("date:T", title="Date"),
-                alt.Tooltip("transaction_type:O", title="Transaction Type"),
-                alt.Tooltip("count:Q", title="Count", format=",.0f"),
-            ],
-            y=alt.Y(
-                "count",
-                # axis=alt.Axis(format="%"),
-                # title="% of daily txs",
-                # stack="normalize",
-            ),
-            color=alt.Color(
-                "transaction_type", title="Transaction Type", scale=alt.Scale(range=rng)
-            ),
-        )
+    title = "Transaction Types"
+    fig = px.bar(
+        melt,
+        x="date",
+        y="count",
+        color="transaction_type",
+        template=ccdexplorer_plotly_template(),
     )
-    chart: Chart = (
-        norm_stack.properties(
-            width="container",
-            # width = 400,
-            height=350,
-            title={
-                "text": "Transaction Types",
-                "subtitle": f"{d_date}",
-            },
-        )
-        .configure_axis(grid=False)
-        .configure_legend(
-            orient="bottom",
-            direction="vertical",
-            fillColor="white",
-            padding=5,
-            strokeColor="gray",
-            labelFontSize=9,
-        )
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
     )
-
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_transaction_details_bubble/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_transaction_details_bubble",
     response_class=Response,
 )
-async def statistics_transaction_details_bubble(
+async def statistics_transaction_details_bubble_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -2156,22 +2007,6 @@ async def statistics_transaction_details_bubble(
         + df["contract_update_issued"]
     )
     df["register data"] = df["data_registered"]
-    # df["chain updates"] = (
-    #     df["micro_ccd_per_euro_update"]
-    #     + df["euro_per_energy_update"]
-    #     + df["pool_parameters_cpv_1_update"]
-    #     + df["protocol_update"]
-    #     + df["add_identity_provider_update"]
-    #     + df["add_anonymity_revoker_update"]
-    #     + df["level_1_update"]
-    #     + df["time_parameters_cpv_1_update"]
-    #     + df["mint_distribution_cpv_1_update"]
-    #     + df["root_update"]
-    #     + df["mint_distribution_update"]
-    #     + df["baker_stake_threshold_update"]
-    #     + df["gas_rewards_update"]
-    #     + df["transaction_fee_distribution_update"]
-    # )
 
     df["transfer"] = (
         df["account_transfer"]
@@ -2205,52 +2040,52 @@ async def statistics_transaction_details_bubble(
         "#005B58",
         # "#0E2625",
     ]
-    # bubble
-    bubble = (
-        alt.Chart(melt)
-        .mark_circle()
-        .encode(
-            alt.X("date:T", bin=False),
-            alt.Y("transaction_type:N", title=None, bin=False),
-            size=alt.Size("count:Q", title="Count", bin=False),
-            color=alt.Color(
-                "transaction_type",
-                title="Transaction Type",
-                scale=alt.Scale(range=rng),
-                legend=None,
-            ),
+    df_plotly = df[
+        [
+            "date",
+            "account",
+            "staking",
+            "smart ctr",
+            "transfer",
+            "register data",
+        ]
+    ]
+    dates = df_plotly["date"].to_list()
+    cols_for_traces = sorted(list(set(df_plotly.columns) - set(["date"])))
+    traces = []
+    print(cols_for_traces)
+    for index, col in enumerate(cols_for_traces):
+        traces.append(
+            go.Scatter(
+                x=dates,
+                y=df_plotly[col].to_list(),
+                name=col,
+                mode="markers",
+                marker=dict(
+                    size=df_plotly[col].to_list(),
+                    sizemode="area",
+                    sizeref=2.0 * max(df_plotly[col].to_list()) / (40.0**2),
+                    sizemin=4,
+                    color=rng[index],
+                ),
+            )
         )
-    )
+    title = "Transaction Types"
 
-    chart = (
-        bubble.properties(
-            width="container",
-            # width = 400,
-            height=200,
-            # title={"text":None}
-        )
-        .configure_axis(grid=False)
-        .configure_legend(
-            orient="bottom",
-            direction="horizontal",
-            fillColor="white",
-            padding=5,
-            strokeColor="gray",
-            labelFontSize=9,
-        )
-    )
+    fig = go.Figure(data=traces)
 
-    return chart.to_json(format="vega")
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_exchange_wallets/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_exchange_wallets",
     response_class=Response,
 )
-async def statistics_exchange_wallets(
+async def statistics_exchange_wallets_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -2271,7 +2106,6 @@ async def statistics_exchange_wallets(
     df = pd.DataFrame(all_data)
     melt = pd.DataFrame(df).melt(id_vars=["date"])
 
-    base = alt.Chart(melt).encode(alt.X("date:T", axis=alt.Axis(title=None)))
     rng = [
         "#EE9B54",
         "#F7D30A",
@@ -2283,46 +2117,38 @@ async def statistics_exchange_wallets(
         "#0E2625",
     ]
 
-    line = base.mark_line().encode(
-        y=alt.Y("value:Q", axis=alt.Axis(title="Count of Known Exchange Wallets")),
-        tooltip=[
-            alt.Tooltip("date:T", title="Date"),
-            alt.Tooltip("value:Q", title="Count", format=",.0f"),
-            alt.Tooltip("variable:O", title="Exchange"),
-        ],
-        color=alt.Color(
-            "variable:O",
-            scale=alt.Scale(range=rng),
-            # sort=alt.EncodingSortField("order", order="descending"),
-            legend=alt.Legend(
-                title=None,
-                titleAnchor="start",
-                fillColor="white",
-                orient="bottom",
-                columns=2,
-            ),
-        ),
+    title = "Known Exchange Wallets"
+    fig = px.line(
+        melt,
+        x="date",
+        y="value",
+        color="variable",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-    chart = line.properties(
-        width="container",
-        # width=400,
-        height=350,
-        title={
-            "text": "Known Exchange Wallets",
-            "subtitle": f"{d_date}",
-        },
+    fig.update_yaxes(
+        title_text="Count",
+        showgrid=False,
     )
-    return chart.to_json(format="vega")
+    fig.update_layout(
+        yaxis_range=[0, round(max(melt["value"]), 0) * 1.1],
+        legend_title_text=title,
+        legend_y=-0.75,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 @router.get(
-    "/{net}/ajax_statistics/statistics_transaction_fees/{width}",
+    "/{net}/ajax_statistics_plotly_py/statistics_transaction_fees",
     response_class=Response,
 )
-async def statistics_transaction_fees(
+async def statistics_transaction_fees_plotly(
     request: Request,
     net: str,
-    width: int,
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -2344,35 +2170,31 @@ async def statistics_transaction_fees(
     df.fillna(0)
     df["fee_for_day"] = df["fee_for_day"] / 1_000_000
 
-    base = (
-        alt.Chart(df)
-        .mark_line(color="#EE9B54", opacity=0.99)
-        .encode(
-            y=alt.Y(
-                "fee_for_day:Q",
-                title="Transaction Fees (in CCD)",
-                # scale=alt.Scale(zero=False, type="log"),
-            ),
-            x=alt.X("date:T", title=None),
-            tooltip=[
-                alt.Tooltip("date:T", title="Date"),
-                alt.Tooltip(
-                    "fee_for_day:Q", title="Transaction Fees (CCD)", format=",.0f"
-                ),
-            ],
-        )
+    rng = ["#EE9B54"]
+    title = "Transaction Fees per Day"
+    fig = px.line(
+        df,
+        x="date",
+        y="fee_for_day",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
     )
-
-    chart = base.properties(
-        width="container",
-        # width=400,
-        height=350,
-        title={
-            "text": "Transaction Fees per Day",
-            "subtitle": f"{d_date}",
-        },
+    fig.update_yaxes(
+        # secondary_y=False,
+        title_text="Transaction Fees (CCD)",
+        # showgrid=False,
+        autorange=False,
     )
-    return chart.to_json(format="vega")
+    fig.update_xaxes(title=None)
+    fig.update_layout(
+        yaxis_range=[0, round(max(df["fee_for_day"]), 0) * 1.1],
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False}, full_html=False
+    )
 
 
 def dates_to_blocks(

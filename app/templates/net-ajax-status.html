@@ -37,7 +37,7 @@
       {% if key == "token_accounting_last_processed_block_v2"%}
         <td><small>Token Accounting Last Block<br/><span class="small text-muted">This is the last block with a CIS-2 logged event</span></small></td>
         <td class="ccd text-end">{{value.height|round_0_decimal_with_comma}}</td>
-        <td class="small text-end">{% if (last_logged_event_height - value.height) < 10 %}✅{%else%}❌{%endif%}</td>
+        <td class="small text-end">{% if (last_logged_event_height - value.height) < 40 %}✅{%else%}❌{%endif%}</td>
       {% endif %}
     </tr>
     <tr>
