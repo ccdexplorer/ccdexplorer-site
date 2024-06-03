@@ -992,6 +992,20 @@ def get_all_data_for_analysis(analysis: str, mongodb: MongoDB) -> list[str]:
     ]
 
 
+def get_all_data_for_analysis_for_token(
+    analysis: str, token_address: str, mongodb: MongoDB
+) -> list[str]:
+    return [
+        x
+        for x in mongodb.mainnet[Collections.statistics]
+        .find(
+            {"$and": [{"type": analysis}, {"token_address": token_address}]},
+            {"_id": 0, "type": 0, "token_address": 0},
+        )
+        .sort("date", ASCENDING)
+    ]
+
+
 def get_all_data_for_bridges_and_dexes(
     analysis: str, reporting_subject: str, mongodb: MongoDB
 ) -> list[str]:
@@ -1094,7 +1108,9 @@ async def statistics_daily_holders_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1157,7 +1173,9 @@ async def statistics_daily_limits_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1203,7 +1221,9 @@ async def statistics_network_summary_validator_count_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1287,7 +1307,9 @@ async def statistics_network_summary_accounts_per_day_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1453,7 +1475,9 @@ def staking_graphs_plotly(analysis, mongodb, title, plot_color, data_field):
         )
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1512,7 +1536,9 @@ async def statistics_microccd_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1600,7 +1626,9 @@ async def statistics_validator_staking_plotly(
         },
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1689,7 +1717,9 @@ async def statistics_ccd_on_exchanges_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1772,7 +1802,9 @@ async def statistics_ccd_classified_plotly(
         legend_orientation="h",
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1867,7 +1899,9 @@ async def statistics_network_activity_tps_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -1961,7 +1995,9 @@ async def statistics_transaction_details_histogram_python(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -2075,7 +2111,9 @@ async def statistics_transaction_details_bubble_plotly(
     fig = go.Figure(data=traces)
 
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -2138,7 +2176,9 @@ async def statistics_exchange_wallets_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 
@@ -2193,7 +2233,9 @@ async def statistics_transaction_fees_plotly(
         height=550,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False}, full_html=False
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
 
 

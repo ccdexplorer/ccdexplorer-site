@@ -1,45 +1,52 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
 
-from fastapi import APIRouter, Request, Depends
-from typing import Union
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-
-from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
 import operator
+from bisect import bisect_right
 from datetime import timedelta
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from typing import Union
 
-from app.Recurring.recurring import Recurring
-from app.jinja2_helpers import *
-from pymongo import ASCENDING, DESCENDING
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from app.env import *
-from app.state.state import *
-from app.console import console
-from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+import pandas as pd
+import plotly.express as px
 from ccdexplorer_fundamentals.cis import (
     CIS,
-    TokenMetaData,
     MongoTypeLoggedEvent,
-    transferEvent,
     MongoTypeTokenAddress,
+    TokenMetaData,
+    transferEvent,
 )
 from ccdexplorer_fundamentals.enums import NET
+from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import (
+    Collections,
     MongoDB,
     MongoMotor,
-    Collections,
 )
-from bisect import bisect_right
+from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from pymongo import ASCENDING, DESCENDING
+
 from app.ajax_helpers import (
-    process_transactions_to_HTML,
-    transactions_html_footer,
     mongo_transactions_html_header,
     process_logged_events_to_HTML_v2,
     process_summed_rewards,
     process_token_holders_to_HTML_v2,
     process_token_ids_for_tag_to_HTML_v2,
+    process_transactions_to_HTML,
+    transactions_html_footer,
 )
+from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
+from app.console import console
+from app.env import *
+from app.jinja2_helpers import *
+from app.Recurring.recurring import Recurring
+from app.routers.statistics import (
+    ccdexplorer_plotly_template,
+    get_all_data_for_analysis_for_token,
+    get_statistics_date,
+)
+from app.state.state import *
 
 router = APIRouter()
 
@@ -511,7 +518,7 @@ async def tokens_tag_token_id(
 
 
 @router.get("/{net}/ajax_token_metadata_display/{url}")  # type:ignore
-async def tokens_tag(
+async def tokens_tag_metadata(
     request: Request,
     net: str,
     url: str,
@@ -524,6 +531,30 @@ async def tokens_tag(
     response = requests.get(url)
     if response.status_code == 200:
         return response
+
+
+@router.get("/{net}/fungible-tokens/tvl")  # type:ignore
+async def tokens_fungible_tvl(
+    request: Request,
+    net: str,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    return templates.TemplateResponse(
+        "tokens/tokens_tvl.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "net": net,
+            "user": user,
+            "tags": tags,
+            "token_address": "<9390,0>-",
+        },
+    )
 
 
 @router.get("/{net}/tokens/{tag}")  # type:ignore
@@ -550,7 +581,6 @@ async def tokens_tag(
         token_addresses_for_tag = db_to_use[
             Collections.tokens_token_addresses_v2
         ].find_one({"contract": stored_tag["contracts"][0]})
-        is_PTRT = tag == "PTRT"
         ajax_url = (
             "ajax_token_ids_for_tag_single_use"
             if stored_tag["single_use_contract"]
@@ -839,6 +869,7 @@ async def ajax_token_holders_for_token_address(
                 for x in db_to_use[Collections.tokens_links_v2].find(
                     {"token_holding.token_address": token_address_str}
                 )
+                # if int(x["token_holding"]["token_amount"]) >= 0
             }
             token_holders = token_links_for_address_from_collection
             token_holders = dict(
@@ -921,7 +952,16 @@ async def ajax_token_ids_for_tag(
         metadata = find_token_address_from_contract_address(
             db_to_use, stored_tag["contracts"][0]
         )
+        pipeline = [
+            {"$match": {"token_holding.token_address": token_address_for_tag.id}},
+            {"$match": {"token_holding.token_amount": {"$regex": "-"}}},
+            {"$limit": 1},
+        ]
 
+        any_faulty_holdings = list(
+            db_to_use[Collections.tokens_links_v2].aggregate(pipeline)
+        )
+        non_compliant_contract = len(any_faulty_holdings) > 0
         return templates.TemplateResponse(
             "tokens/generic/token_display_fungible.html",
             {
@@ -929,6 +969,7 @@ async def ajax_token_ids_for_tag(
                 "request": request,
                 "is_PTRT": is_PTRT,
                 "net": net,
+                "non_compliant_contract": non_compliant_contract,
                 "contract": (
                     token_address_for_tag.contract
                     if token_address_for_tag
@@ -1029,3 +1070,42 @@ async def ajax_token_ids_for_tag_mulitple(
             # decimals,
         )
         return html
+
+
+@router.get(
+    "/ajax_statistics_tvl/{token_address}",
+    response_class=Response,
+)
+async def statistics_token_TVL_plotly(
+    request: Request,
+    token_address: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    analysis = "statistics_tvl_for_tokens"
+
+    token_address = token_address.replace("&lt;", "<").replace("&gt;", ">")
+    all_data = get_all_data_for_analysis_for_token(analysis, token_address, mongodb)
+    d_date = get_statistics_date(mongodb)
+    df = pd.DataFrame(all_data)
+    df["tvl"] = df["tvl_contribution_for_day_in_usd"].cumsum()
+    rng = ["#70B785"]
+    title = "EUROe"
+    fig = px.line(
+        df,
+        x="date",
+        y="tvl",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(),
+    )
+    fig.update_yaxes(title_text="TVL")
+    fig.update_xaxes(title=None)
+    fig.update_layout(
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
