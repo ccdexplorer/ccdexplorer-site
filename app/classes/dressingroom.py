@@ -1217,15 +1217,16 @@ class MakeUp:
                 source_module_name,
                 bytes.fromhex(event),
             )
-            for k, v in event_json.items():
-                logged_events.append(
-                    EventType(
-                        f"Schema Parsed for {k}",
-                        print_schema_dict(v, net, user, tags, app),
-                        None,
+            if event_json:
+                for k, v in event_json.items():
+                    logged_events.append(
+                        EventType(
+                            f"Schema Parsed for {k}",
+                            print_schema_dict(v, net, user, tags, app),
+                            None,
+                        )
                     )
-                )
-            success = True
+                success = True
         except ValueError:
             success = False
 
