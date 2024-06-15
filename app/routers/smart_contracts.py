@@ -4,10 +4,14 @@ import collections
 from bisect import bisect_right
 import numpy as np
 from datetime import timedelta
+import json
 import uuid
 import altair as alt
 from ccdexplorer_fundamentals.cis import StandardIdentifiers
 import pandas as pd
+from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
+from ccdexplorer_schema_parser.Schema import Schema
+
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import (
@@ -88,11 +92,17 @@ async def request_ajax_source_module(
     )
     module_name = module_class.module_name
     modules_instances = module_class.contracts
-    pipeline = [
-        {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
-        {"$group": {"_id": "$date", "count": {"$sum": 1}}},
-    ]
-    result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
+    if modules_instances:
+        pipeline = [
+            {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
+            {"$group": {"_id": "$date", "count": {"$sum": 1}}},
+        ]
+        result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
+    else:
+        result = []
+    if len(result) == 0:
+        return None
+
     df = pd.DataFrame(result)
     days_alive = (
         dt.datetime.now() - dt.datetime(2021, 6, 9, 10, 0, 0)
@@ -411,6 +421,20 @@ async def smart_contracts(
     )
 
 
+def get_schema_from_source(
+    db_to_use: dict[Collections, Collection],
+    grpcclient: GRPCClient,
+    net: str,
+    module_ref: str,
+):
+    ms: VersionedModuleSource = grpcclient.get_module_source_original_classes(
+        module_ref, "last_final", net=NET(net)
+    )
+    schema = Schema(ms.v1.value, 1) if ms.v1 else Schema(ms.v0.value, 0)
+
+    return schema
+
+
 @router.get("/{net}/module/{module_address}")  # type:ignore
 async def module_module_address(
     request: Request,
@@ -425,11 +449,37 @@ async def module_module_address(
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     result = db_to_use[Collections.modules].find_one({"_id": module_address})
+    schema_available = False
+    schema_dict = {}
+    schema_methods = {}
     if result:
         module = MongoTypeModule(**result)
+        module_name = module.module_name
+        schema = get_schema_from_source(db_to_use, grpcclient, net, module_address)
+        if schema.schema:
+            schema_available = True
+            schema_dict["init_param"] = schema.extract_init_param_schema(module_name)
+            schema_dict["init_error"] = schema.extract_init_error_schema(module_name)
+            schema_dict["event"] = schema.extract_event_schema(module_name)
+            for method_name in module.methods:
+
+                schema_methods[method_name] = {
+                    "receive_param": schema.extract_receive_param_schema(
+                        module_name, method_name
+                    ),
+                    "receive_error": schema.extract_receive_error_schema(
+                        module_name, method_name
+                    ),
+                    "receive_return": schema.extract_receive_return_value_schema(
+                        module_name, method_name
+                    ),
+                }
 
     else:
         module = None
+
+        schema_dict = {}
+        schema_methods = {}
 
     error = None
     if not module:
@@ -445,6 +495,9 @@ async def module_module_address(
             "request": request,
             "error": error,
             "module": module,
+            "schema": schema_available,
+            "schema_dict": schema_dict,
+            "schema_methods": schema_methods,
             "user": user,
             "tags": tags,
         },

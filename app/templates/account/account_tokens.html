@@ -19,6 +19,7 @@
         
 
 {% for token_address, item in tokens.items() %}
+
 {% if item.tag_info.token_type == "fungible" %}
     <tr>
           <!-- This is a recognized token, and has a corresponding tag entry -->

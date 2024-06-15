@@ -1031,6 +1031,27 @@ def get_token_contracts_for_account(account_id: str, mongodb: MongoDB):
                 ]
             }
         },
+        # "$match": {
+        #     "$or": [
+        #         {
+        #             "$expr": {
+        #                 "$eq": [
+        #                     {"$substr": ["$result.to_address", 0, 29]},
+        #                     {"$substr": [account_id, 0, 29]},
+        #                 ]
+        #             }
+        #         },
+        #         {
+        #             "$expr": {
+        #                 "$eq": [
+        #                     {"$substr": ["$result.from_address", 0, 29]},
+        #                     {"$substr": [account_id, 0, 29]},
+        #                 ]
+        #             }
+        #         },
+        #     ]
+        # }
+        # },
         {
             "$group": {
                 "_id": "$contract",

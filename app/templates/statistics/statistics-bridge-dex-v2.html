@@ -86,7 +86,7 @@
 
 
 <h4  >Statistics for {{reporting_subject|capitalize}}</h4>
-<p class="me-4"><small>This page summarizes statistics for {{reporting_subject|capitalize}}. Below are graphs for usage by Action Type ({% if reporting_subject == "arabella"%}Mint and Burn{% elif reporting_subject == 'concordex'%}Deposit, Swap and Withdraw{% endif%}) and usage by Fungible Token. 
+<p class="me-4"><small>This page summarizes statistics for {{reporting_subject|capitalize}}. Below are graphs for usage by Action Type ({% if reporting_subject == "arabella"%}Mint and Burn{% elif reporting_subject == 'concordex'%}Deposit, Swap and Withdraw{% else%}Mint and Burn{% endif%}) and usage by Fungible Token. 
   
   Data is grouped either daily, weekly or monthly. The count of unique addresses (in the chosen groupby period) is displayed in the Action Type graph.
   Source transactions (depicted as logged events from these transactions) are displayed in the Source tab.

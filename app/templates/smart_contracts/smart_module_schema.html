@@ -1,0 +1,105 @@
+
+     <b>Initialization</b>
+     <div class="accordion accordion-flush" id="contract_schema">
+        <div class="accordion-item">
+            <p class="d-inline-flex gap-1">
+                {% if schema_dict["init_param"] %}
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_param" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                    Parameters
+                </button>
+                {% endif %}
+                {% if schema_dict["init_error"] %}
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_error" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                Errors
+            </button>
+            {% endif %}
+            {% if schema_dict["event"] %}
+            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_return" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+            Event
+        </button>
+        {% endif %}
+            </p>
+    
+    <div class="collapse" id="collapse-method-receive_param">
+      <div class="card card-body mt-2">
+        <small><span class="text-muted">Parameters</span></small>
+        <small><pre><code >{{ schema_dict["init_param"]}}</code></pre></small>
+      </div>
+    </div>
+        
+    
+    <div class="collapse" id="collapse-method-receive_error">
+      <div class="card card-body mt-2">
+        <small><span class="text-muted">Errors</span></small>
+        <small><pre><code >{{ schema_dict["init_error"]}}</code></pre></small>
+      </div>
+    </div>
+        
+    <div class="collapse" id="collapse-method-receive_return">
+        <div class="card card-body mt-2">
+          <small><span class="text-muted">Event</span></small>
+          <small><pre><code >{{ schema_dict["event"]}}</code></pre></small>
+        </div>
+    </div>
+ 
+    </div>
+</div>
+
+
+<b>Methods</b>
+    <div class="accordion accordion-flush" id="contract_methods">
+    {% for method_name, dict in schema_methods.items() %}
+        <div class="accordion-item">
+            <b class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne-{{method_name}}" aria-expanded="false" aria-controls="flush-collapseOne-{{method_name}}">
+                <small>{{method_name}}</small>
+                </button>
+            </b>
+            <div id="flush-collapseOne-{{method_name}}" class="accordion-collapse collapse" data-bs-parent="#contract_methods">
+                <div class="accordion-body">
+                    <p class="d-inline-flex gap-1">
+                        {% if dict["receive_param"] %}
+                        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{method_name}}-receive_param" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                            Parameters
+                        </button>
+                        {% endif %}
+                        {% if dict["receive_error"] %}
+                        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{method_name}}-receive_error" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                        Errors
+                    </button>
+                    {% endif %}
+                    {% if dict["receive_return"] %}
+                        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-{{method_name}}-receive_return" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                        Return
+                    </button>
+                    {% endif %}
+                </p>
+            
+                <div class="collapse" id="collapse-{{method_name}}-receive_param">
+                <div class="card card-body mt-2">
+                    <small><span class="text-muted">Parameters</span></small>
+                    <small><pre><code >{{ dict["receive_param"]}}</code></pre></small>
+                </div>
+                </div>
+                    
+                
+                <div class="collapse" id="collapse-{{method_name}}-receive_error">
+                <div class="card card-body mt-2">
+                    <small><span class="text-muted">Errors</span></small>
+                    <small><pre><code >{{ dict["receive_error"]}}</code></pre></small>
+                </div>
+                </div>
+                    
+                <div class="collapse" id="collapse-{{method_name}}-receive_return">
+                    <div class="card card-body mt-2">
+                    <small><span class="text-muted">Return</span></small>
+                    <small><pre><code >{{ dict["receive_return"]}}</code></pre></small>
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+  <!-- </div> -->

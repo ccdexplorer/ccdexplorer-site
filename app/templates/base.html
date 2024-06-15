@@ -4,8 +4,8 @@
 
 <head>
   <meta name="googlebot" >
-  <!-- Load plotly.js into the DOM -->
-	<script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
+  <meta charset="utf-8" />
+	<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
   <script>base_url = '{{env.SITE_URL}}'</script>
   <script>api_key = '{{env.API_KEY}}'</script>
   {% if env.SITE_URL != "http://127.0.0.1:8000" %}
@@ -120,6 +120,13 @@
     
   </style>
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- and it's easy to individually load additional languages -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+
+  <script>hljs.highlightAll();</script>
   <meta charset="utf-8">
   <meta id="meta_data_net" title="{{net}}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -129,7 +136,7 @@
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
-  <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
+  <script src="/static/htmx.min.js"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
   
@@ -137,7 +144,7 @@
   
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
 <script src="/static/easy-number-separator.js"></script>
-  <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
+  
 
   <!-- <script src="/static/reconnect-ws.js?v=0.0.1"></script> -->
   <script src="/static/message.js?v=0.0.4"></script>
@@ -251,6 +258,7 @@
     <small><small> <a href="https://uptime.ccdexplorer.io">Uptime</small></small></a>
     <small><small> <a href="/{{net}}/status">Backend Status</small></small></a>
   </div>
+  <!-- <div id="htmx_tvl"  hx-trigger="load" hx-get="/ajax_statistics_tvl/<9390,0>-">htmx</div> -->
   {% if user %}
   {%set user_token=user.token+'/' %}
   {%else%}
@@ -258,7 +266,11 @@
   {% endif %}
   
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+<!-- <script>htmx.logger = function(elt, event, data) {
+  if(console) {
+      console.log(event, elt, data);
+  }
+}</script> -->
 
 </body>
 

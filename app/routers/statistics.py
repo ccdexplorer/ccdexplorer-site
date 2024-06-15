@@ -2399,3 +2399,66 @@ async def statistics_transaction_fees_ajax(
                     },
                 )
                 return html
+
+
+@router.get(
+    "/{net}/ajax_statistics_plotly_py/statistics_unique_addresses/{aggregation}",
+    response_class=Response,
+)
+async def statistics_unique_addresses_plotly(
+    request: Request,
+    net: str,
+    aggregation: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    analysis = "statistics_unique_addresses_weekly"
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+                "user": user,
+            },
+        )
+
+    all_data = get_all_data_for_analysis(analysis, mongodb)
+    d_date = get_statistics_date(mongodb)
+    df = pd.DataFrame(all_data)
+    df.fillna(0)
+    df["date"] = pd.to_datetime(df["date"])
+    rng = ["#EE9B54"]
+    title = "Unique Active Addresses per Week"
+    fig = px.scatter(
+        df,
+        x="date",
+        y="unique_impacted_address_count",
+        color_discrete_sequence=rng,
+        # mode="lines",
+        template=ccdexplorer_plotly_template(),
+        # trendline="rolling",
+        # trendline_options=dict(window=12),
+    )
+    fig.update_yaxes(
+        # secondary_y=False,
+        title_text=None,
+        # showgrid=False,
+        # autorange=False,
+    )
+    fig.update_traces(mode="lines")
+    fig.update_xaxes(title=None, type="date")
+
+    fig.update_yaxes(secondary_y=False, type="log")
+    fig.update_layout(
+        # yaxis_range=[0, round(max(df["unique_impacted_address_count"]), 0) * 1.1],
+        legend_title_text=title,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=550,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )

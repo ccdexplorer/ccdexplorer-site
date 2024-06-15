@@ -42,7 +42,7 @@
     token_holders = document.getElementById('token-holders');
     url =  '/ajax_token_holders_for_token_address/{{net}}/{{token_address_result.id}}/' + requested_page + '/' + total_rows + '/' + api_key;
     token_holders.innerHTML = '{% include "spinner.html" %}'
-    console.log(url)
+    // console.log(url)
     fetch(url)
       .then((response) => {
         return response.text();
@@ -91,13 +91,30 @@
 
 </script>
 <script>
+  function getTVL() {
+    tvl = document.getElementById('tvl_graph');
+    tvl.innerHTML = '{% include "spinner.html" %}';
+    fetch("/ajax_statistics_tvl/{{token_address_result.id}}")
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        tvl.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+  
+  </script>
+<script>
   function get_token_ids_for_tag(requested_page, total_rows) {
     try {
       token_ids_for_tag = document.getElementById('token_ids_for_tag');
       // var account_id = document.querySelector('.account_id').title;
       url =  '/{{ajax_url}}/{{net}}/{{tag}}/' + requested_page + '/' + total_rows + '/' + api_key;
       
-      console.log('URL=', url);
+      // console.log('URL=', url);
       token_ids_for_tag.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
       fetch(url)
         .then((response) => {
@@ -105,9 +122,12 @@
         })
         .then((data) => {
           token_ids_for_tag.innerHTML = data;
+          // getTVL();
           getTokenHolders(0, 0);
           getLoggedEvents(0, 0);
-          getRewards(0, 0);
+          
+          
+          if ("{{is_PTRT}}") {getRewards(0, 0);}
         })
         .catch(function (error) {
           console.log(error);
@@ -128,4 +148,6 @@
   });
   
 </script>
+
+
   {% endblock content %}

@@ -17,7 +17,13 @@
         <button class="nav-link small ps-2 pe-2 active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true"><small>Info</small></button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2 " id="methods-tab" data-bs-toggle="tab" data-bs-target="#methods" type="button" role="tab" aria-controls="methods" aria-selected="true"><small>Methods</small></button>
+        <button class="nav-link small ps-2 pe-2 " id="methods-tab" data-bs-toggle="tab" data-bs-target="#methods" type="button" role="tab" aria-controls="methods" aria-selected="true"><small>
+            {% if schema %}
+                Schema
+            {% else %}
+                Methods
+            {%endif%}
+        </small></button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link small ps-2 pe-2  " id="passive-tab" data-bs-toggle="tab" data-bs-target="#instances" type="button" role="tab" aria-controls="instances" aria-selected="true"><small>Instances</small></button>
@@ -33,7 +39,11 @@
             {% include "smart_contracts/smart_module_info.html" %}
             </div>
         <div class="tab-pane fade show  " style="padding-top: 10px;" id="methods" role="tabpanel" aria-labelledby="methods-tab">
-            {% include "smart_contracts/smart_module_methods.html" %}
+            {% if schema %}
+                {% include "smart_contracts/smart_module_schema.html" %}
+            {% else  %}
+                {% include "smart_contracts/smart_module_methods.html" %}
+            {% endif %}
         </div>
 
         <div class="tab-pane fade show  " style="padding-top: 10px;" id="instances" role="tabpanel" aria-labelledby="instances-tab">
