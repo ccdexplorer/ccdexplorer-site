@@ -871,6 +871,10 @@ async def ajax_last_table(
                             tags=tags,
                             app=request.app,
                         )
+                    elif "<" in response:
+                        response = instance_link_v2(
+                            CCD_ContractAddress.from_str(response), "mainnet"
+                        )
                     else:
                         response = f'<a class="small" href="/project/{projects[response]}">🎯{response}</a>'
             accounts_response[key] = response
