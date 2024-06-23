@@ -420,6 +420,34 @@ def get_labeled_accounts(
             dt.timezone.utc
         )
 
+        ### insert projects into tags
+        # display_names
+        projects_display_names = {
+            x["_id"]: x["display_name"]
+            for x in req.app.mongodb.utilities[CollectionsUtilities.projects].find({})
+        }
+        # account addresses
+        project_account_addresses = list(
+            req.app.mongodb.mainnet[Collections.projects].find(
+                {"type": "account_address"}
+            )
+        )
+        dd = {}
+        for paa in project_account_addresses:
+            dd[paa["account_address"]] = projects_display_names[paa["project_id"]]
+        labeled_accounts["projects"] = dd
+
+        # contract addresses
+        project_contract_addresses = list(
+            req.app.mongodb.mainnet[Collections.projects].find(
+                {"type": "contract_address"}
+            )
+        )
+        dd = {}
+        for paa in project_contract_addresses:
+            dd[paa["contract_address"]] = projects_display_names[paa["project_id"]]
+        labeled_accounts["contracts"].update(dd)
+
         tags = {
             "labels": labeled_accounts,
             "colors": colors,
