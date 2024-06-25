@@ -446,6 +446,7 @@ async def tokens_tag_token_id(
     # 3. find token_address in collection
     token_id_or_address = token_id_or_address.lower()
     metadata = None
+    contract = None
     owner_history_list = None
     if tag == "_":
         token_address = token_id_or_address
