@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block style %}
+    <link href="/static/smart-contract-verification-check.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <div style="padding-left:10px;">
 <h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
