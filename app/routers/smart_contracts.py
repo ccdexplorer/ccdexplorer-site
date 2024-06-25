@@ -359,6 +359,39 @@ async def module_verification(
     )
 
 
+@router.post("/{net}/smart-contracts/verification")  # type:ignore
+async def module_verification_post(
+        request: Request,
+        net: str,
+        recurring: Recurring = Depends(get_recurring),
+        mongodb: MongoDB = Depends(get_mongo_db),
+        grpcclient: GRPCClient = Depends(get_grpcclient),
+        tooter: Tooter = Depends(get_tooter),
+):
+    user: UserV2 = get_user_detailsv2(request)
+
+    body = await request.form()
+    smart_contract_address = body.get("module_address")
+    if smart_contract_address:
+        smart_contract_address = smart_contract_address.strip()
+
+    smart_contract_sources = body.get("module_sources")
+    if smart_contract_sources:
+        smart_contract_sources = smart_contract_sources.strip()
+
+    return templates.TemplateResponse(
+        "smart_contracts/smart_module_verification.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "net": net,
+            "user": user,
+            "address": smart_contract_address,
+            "sources": smart_contract_sources,
+        },
+    )
+
+
 @router.get("/{net}/smart-contracts/usage/{module}")  # type:ignore
 async def smart_contracts(
     request: Request,

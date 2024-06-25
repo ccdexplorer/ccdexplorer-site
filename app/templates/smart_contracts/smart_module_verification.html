@@ -13,13 +13,15 @@
                 <div class="form-group row">
                     <label for="module_address" class="col-sm-3 col-form-label">Module address:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" id="module_address" name="module_address" placeholder="smart contract address" required>
+                        <input type="text" class="form-control" id="module_address" name="module_address"
+                               placeholder="smart contract address" value="{{ address }}" required>
                     </div>
                 </div>
                 <hr/>
                 <div class="form-group row">
                     <label for="module_sources" class="form-label">Module source code:</label>
-                    <textarea class="form-control vh-50" id="module_sources" name="module_sources" placeholder="Paste your smart contract sources here..." required></textarea>
+                    <textarea class="form-control vh-50" id="module_sources" name="module_sources"
+                              placeholder="Paste your smart contract sources here..." required>{{ sources }}</textarea>
                 </div>
                 <div class="row mt-3">
                     <button type="submit" class="btn btn-primary">Submit</button>
