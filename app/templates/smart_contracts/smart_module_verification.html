@@ -11,15 +11,15 @@
             <h4>Module verification form</h4>
             <form class="" action="/smart-contracts/verification" method="post">
                 <div class="form-group row">
-                    <label for="module_name" class="col-sm-3 col-form-label">Module address:</label>
+                    <label for="module_address" class="col-sm-3 col-form-label">Module address:</label>
                     <div class="col-sm-9">
-                        <input type="text" class="form-control" id="module_name" name="module_name" placeholder="smart contract address" required>
+                        <input type="text" class="form-control" id="module_address" name="module_address" placeholder="smart contract address" required>
                     </div>
                 </div>
                 <hr/>
                 <div class="form-group row">
-                    <label for="module_hash" class="form-label">Module source code:</label>
-                    <textarea class="form-control vh-50" id="module_hash" name="module_hash" placeholder="Paste your smart contract sources here..." required></textarea>
+                    <label for="module_sources" class="form-label">Module source code:</label>
+                    <textarea class="form-control vh-50" id="module_sources" name="module_sources" placeholder="Paste your smart contract sources here..." required></textarea>
                 </div>
                 <div class="row mt-3">
                     <button type="submit" class="btn btn-primary">Submit</button>
