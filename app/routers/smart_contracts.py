@@ -1,10 +1,10 @@
 # ruff: noqa: F403, F405, E402, E501, E722
-
-import collections
+import os
+import subprocess
 from bisect import bisect_right
+
+import aiofiles
 import numpy as np
-from datetime import timedelta
-import json
 import uuid
 import altair as alt
 from ccdexplorer_fundamentals.cis import StandardIdentifiers
@@ -23,7 +23,7 @@ from ccdexplorer_fundamentals.mongodb import (
 )
 from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
 from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from pymongo import DESCENDING
@@ -368,7 +368,15 @@ async def module_verification_post(
         grpcclient: GRPCClient = Depends(get_grpcclient),
         tooter: Tooter = Depends(get_tooter),
 ):
+    from ccdexplorer_fundamentals.env import GRPC_MAINNET, GRPC_TESTNET
+
+    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     user: UserV2 = get_user_detailsv2(request)
+
+    if net == "testnet":
+        node_address = ["--grpc-ip", GRPC_TESTNET[0].get('host'), "--grpc-port", str(GRPC_TESTNET[0].get('port'))]
+    else:
+        node_address = ["--grpc-ip", GRPC_MAINNET[0].get('host'), "--grpc-port", str(GRPC_MAINNET[0].get('port'))]
 
     body = await request.form()
     smart_contract_address = body.get("module_address")
@@ -376,8 +384,63 @@ async def module_verification_post(
         smart_contract_address = smart_contract_address.strip()
 
     smart_contract_sources = body.get("module_sources")
-    if smart_contract_sources:
-        smart_contract_sources = smart_contract_sources.strip()
+
+    upload_folder = f"./tmp/{smart_contract_address}"
+
+    module_path = f"{upload_folder}/contract.wasm.v1"
+    sources_path = f"{upload_folder}/{smart_contract_sources.filename}"
+
+    if os.path.exists(upload_folder):
+        if os.path.exists(module_path):
+            os.remove(module_path)
+        if os.path.exists(sources_path):
+            os.remove(sources_path)
+    else:
+        if not os.path.exists("tmp"):
+            os.mkdir("tmp")
+        os.mkdir(upload_folder)
+
+    async with aiofiles.open(sources_path, "wb") as f:
+        await f.write(await UploadFile(smart_contract_sources.file).read())
+
+    ccd_client_run = subprocess.run(
+        ["./concordium-client", "module", "show", smart_contract_address, "--out", module_path] + node_address,
+        capture_output=True, text=True
+    )
+
+    if ccd_client_run.returncode == 0:
+        print(ccd_client_run.stderr)
+        print(ccd_client_run.stdout)
+        cargo_run = subprocess.run(
+            ["cargo", "concordium", "verify-build", "--module", module_path, "--source", sources_path],
+            capture_output=True, text=True
+        )
+        print(cargo_run.stderr)
+        print(cargo_run.stdout)
+        if cargo_run.returncode == 0:
+            result = {"success": True, "message": "Source and module match."}
+        else:
+            returned_message = cargo_run.stderr.replace("", "")
+            if "Caused by:" in returned_message:
+                returned_message = returned_message.split("Caused by:")[-1].strip()
+            elif "Error: " in returned_message:
+                returned_message = returned_message.split("Error:")[-1].replace("[1;31m", "").replace("[0m", "").strip()
+            result = {"success": False, "message": returned_message}
+
+        if db_to_use[Collections.modules].find_one({"_id": smart_contract_address}):
+            db_to_use[Collections.modules].update_one(
+                {"_id": smart_contract_address},
+                {"$set": {"verification_status": result["success"], "verification_message": result["message"]}},
+                upsert=True,
+            )
+    else:
+        result = {"success": False, "message": ccd_client_run.stderr.strip()}
+
+    if os.path.exists(module_path):
+        os.remove(module_path)
+    if os.path.exists(sources_path):
+        os.remove(sources_path)
+    os.rmdir(upload_folder)
 
     return templates.TemplateResponse(
         "smart_contracts/smart_module_verification.html",
@@ -387,7 +450,7 @@ async def module_verification_post(
             "net": net,
             "user": user,
             "address": smart_contract_address,
-            "sources": smart_contract_sources,
+            "result": result,
         },
     )
 
