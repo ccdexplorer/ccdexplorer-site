@@ -409,14 +409,10 @@ async def module_verification_post(
     )
 
     if ccd_client_run.returncode == 0:
-        print(ccd_client_run.stderr)
-        print(ccd_client_run.stdout)
         cargo_run = subprocess.run(
             ["cargo", "concordium", "verify-build", "--module", module_path, "--source", sources_path],
             capture_output=True, text=True
         )
-        print(cargo_run.stderr)
-        print(cargo_run.stdout)
         if cargo_run.returncode == 0:
             result = {"success": True, "message": "Source and module match."}
         else:
