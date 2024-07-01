@@ -152,7 +152,8 @@ class ReportingPeriods(Enum):
 def flatten_extend(matrix):
     flat_list = []
     for row in matrix:
-        flat_list.extend(row)
+        if row:
+            flat_list.extend(row)
     return flat_list
 
 
@@ -184,8 +185,11 @@ async def ajax_source_module_reporting(
     source_to_name = {x.id: x.module_name for x in module_classes}
     instance_to_source = {}
     for module_class in module_classes:
-        for instance in module_class.contracts:
-            instance_to_source[instance] = module_class.id
+        module_instances = list(
+            db_to_use[Collections.instances].find({"source_module": module_class.id})
+        )
+        for instance in module_instances:
+            instance_to_source[instance["_id"]] = module_class.id
     # module_name = module_class.module_name
     modules_instances = [x.contracts for x in module_classes]
     modules_instances = flatten_extend(modules_instances)
@@ -200,39 +204,42 @@ async def ajax_source_module_reporting(
     ]
     result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
     new_result = []
-    for r in result:
-        source_module = instance_to_source[r["_id"]["instance"]]
-        r.update({"source_module": source_module, "date": r["_id"]["date"]})
-        del r["_id"]
-        new_result.append(r)
+    if len(result) > 0:
+        for r in result:
+            source_module = instance_to_source[r["_id"]["instance"]]
+            r.update({"source_module": source_module, "date": r["_id"]["date"]})
+            del r["_id"]
+            new_result.append(r)
 
-    df = pd.DataFrame(new_result)
-    df["date"] = pd.to_datetime(df["date"])
-    df_group = (
-        df.groupby(
-            [
-                "source_module",
-                # "display_name",
-                pd.Grouper(key="date", freq=reporting_request.period),
-            ]
+        df = pd.DataFrame(new_result)
+        df["date"] = pd.to_datetime(df["date"])
+        df_group = (
+            df.groupby(
+                [
+                    "source_module",
+                    # "display_name",
+                    pd.Grouper(key="date", freq=reporting_request.period),
+                ]
+            )
+            .sum()
+            .reset_index()
         )
-        .sum()
-        .reset_index()
-    )
 
-    df_group_all = (
-        df.groupby([pd.Grouper(key="date", freq=reporting_request.period)])
-        .sum()
-        .reset_index()
-    )
-    results_all = df_group_all.to_dict("records")
-    dict_to_send = {}
-    for sm in reporting_request.source_modules:
-        f = df_group["source_module"] == sm
-        df_for_sm = df_group[f]
-        dict_to_send[sm] = df_for_sm.to_dict("records")
-        pass
-
+        df_group_all = (
+            df.groupby([pd.Grouper(key="date", freq=reporting_request.period)])
+            .sum()
+            .reset_index()
+        )
+        results_all = df_group_all.to_dict("records")
+        dict_to_send = {}
+        for sm in reporting_request.source_modules:
+            f = df_group["source_module"] == sm
+            df_for_sm = df_group[f]
+            dict_to_send[sm] = df_for_sm.to_dict("records")
+            pass
+    else:
+        dict_to_send = {}
+        results_all = {}
     return templates.TemplateResponse(
         "smart_contracts/smart_contracts_reporting_all.html",
         {
@@ -474,10 +481,15 @@ async def module_module_address(
                         module_name, method_name
                     ),
                 }
-
+        module_instances = [
+            x["_id"]
+            for x in db_to_use[Collections.instances].find(
+                {"source_module": module_address}
+            )
+        ]
     else:
         module = None
-
+        module_instances = None
         schema_dict = {}
         schema_methods = {}
 
@@ -495,6 +507,7 @@ async def module_module_address(
             "request": request,
             "error": error,
             "module": module,
+            "module_instances": module_instances,
             "schema": schema_available,
             "schema_dict": schema_dict,
             "schema_methods": schema_methods,

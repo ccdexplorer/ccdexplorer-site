@@ -9,6 +9,9 @@
     </ul>
     
     <h6 class="mt-2">All Selected Modules Combined</h6>
+    {% if results_all|length == 0 %}
+    <p><small>No results found...</small></p>
+    {% endif %}
     <table class="table table-striped ms-1 me-1 small">
     {% for c in results_all|reverse %}
         
