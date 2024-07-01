@@ -404,23 +404,21 @@ async def module_verification_post(
         await f.write(await UploadFile(smart_contract_sources.file).read())
 
     ccd_client_run = subprocess.run(
-        ["./concordium-client", "module", "show", smart_contract_address, "--out", module_path] + node_address,
+        ["./concordium-client", "module", "show", smart_contract_address, "--out", f"{module_path}"] + node_address,
         capture_output=True, text=True
     )
 
     if ccd_client_run.returncode == 0:
         cargo_run = subprocess.run(
-            ["cargo", "concordium", "verify-build", "--module", module_path, "--source", sources_path],
+            ["cargo", "concordium", "verify-build", "--module", module_path, f"--source", f"{sources_path}"],
             capture_output=True, text=True
         )
         if cargo_run.returncode == 0:
             result = {"success": True, "message": "Source and module match."}
         else:
             returned_message = cargo_run.stderr.replace("", "")
-            if "Caused by:" in returned_message:
-                returned_message = returned_message.split("Caused by:")[-1].strip()
-            elif "Error: " in returned_message:
-                returned_message = returned_message.split("Error:")[-1].replace("[1;31m", "").replace("[0m", "").strip()
+            if "Error: " in returned_message:
+                returned_message = returned_message.split("error:")[-1].replace("\n", "<br>").replace("[1;31m", "").replace("[0m", "").strip()
             result = {"success": False, "message": returned_message}
 
         if db_to_use[Collections.modules].find_one({"_id": smart_contract_address}):
