@@ -91,7 +91,14 @@ async def request_ajax_source_module(
         **db_to_use[Collections.modules].find_one({"_id": source_module})
     )
     module_name = module_class.module_name
-    modules_instances = module_class.contracts
+    # modules_instances = module_class.contracts
+    module_instances = list(
+        db_to_use[Collections.instances].find({"source_module": module_class.id})
+    )
+    instance_to_source = {}
+    for instance in module_instances:
+        instance_to_source[instance["_id"]] = module_class.id
+    modules_instances = list(instance_to_source.keys())
     if modules_instances:
         pipeline = [
             {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
