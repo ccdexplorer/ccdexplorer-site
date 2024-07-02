@@ -190,9 +190,7 @@ async def ajax_source_module_reporting(
         )
         for instance in module_instances:
             instance_to_source[instance["_id"]] = module_class.id
-    # module_name = module_class.module_name
-    modules_instances = [x.contracts for x in module_classes]
-    modules_instances = flatten_extend(modules_instances)
+    modules_instances = list(instance_to_source.keys())
     pipeline = [
         {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
         {
