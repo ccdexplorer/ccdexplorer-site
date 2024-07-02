@@ -189,7 +189,7 @@ async def ajax_source_module_reporting(
             )
         )
     ]
-    source_to_name = {x.id: x.module_name for x in module_classes}
+    source_to_name = {x.id: f"{x.id[:4]}-{x.module_name}" for x in module_classes}
     instance_to_source = {}
     for module_class in module_classes:
         module_instances = list(
