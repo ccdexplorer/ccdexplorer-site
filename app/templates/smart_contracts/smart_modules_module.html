@@ -4,15 +4,15 @@
         Instances: <span class="ccd">{% if module.contracts %}{{ module.contracts|length }}{% else %}
         0 {% endif %}</span>
     </td>
-
     <td class="">
         <a href="/{{ net }}/module/{{ module.id }}"><span class="ccd">{{ module.id[:10] }}</span></a><br/>
         Methods: <span class="ccd">{% if module.methods %}{{ module.methods|length }}{% else %} 0 {% endif %}</span>
     </td>
-    <td class=""><br/>Init: {% if module.init_date %}{{ module.init_date|datetime_format_day_only }}{% endif %}</td>
+    <td class="{% if module.verification_status %}{% else %}text-end{% endif %}"><br/>Init:
+        {% if module.init_date %}{{ module.init_date|datetime_format_day_only }}{% endif %}</td>
+    {% if module.verification_status %}
     <td class="text-end">
-        {% if module.verification_status %}
             <span class="verification-check">&#10004;</span>
-        {% endif %}
     </td>
+    {% endif %}
 </tr>
