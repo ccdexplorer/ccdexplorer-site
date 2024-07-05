@@ -407,7 +407,7 @@ async def smart_contracts_reporting(
 
 
 @router.get("/{net}/smart-contracts/usage")  # type:ignore
-async def smart_contracts(
+async def smart_contracts_usage(
     request: Request,
     net: str,
     recurring: Recurring = Depends(get_recurring),
