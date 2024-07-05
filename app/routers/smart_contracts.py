@@ -337,7 +337,8 @@ async def smart_contracts(
     )
 
 
-@router.get("/{net}/smart-contracts/verification")  # type:ignore
+@router.get("/{net}/smart-contracts/verification", response_class=HTMLResponse)  # type:ignore
+@router.get("/{net}/smart-contracts/verification/{smart_contract_address}", response_class=HTMLResponse)
 async def module_verification(
         request: Request,
         net: str,
@@ -345,7 +346,7 @@ async def module_verification(
         mongodb: MongoDB = Depends(get_mongo_db),
         grpcclient: GRPCClient = Depends(get_grpcclient),
         tooter: Tooter = Depends(get_tooter),
-
+        smart_contract_address: Optional[str] = None
 ):
     user: UserV2 = get_user_detailsv2(request)
     return templates.TemplateResponse(
@@ -355,11 +356,14 @@ async def module_verification(
             "request": request,
             "net": net,
             "user": user,
+            "address": smart_contract_address,
+            "locked" : smart_contract_address is not None
         },
     )
 
 
 @router.post("/{net}/smart-contracts/verification")  # type:ignore
+@router.post("/{net}/smart-contracts/verification/{smart_contract_address}")
 async def module_verification_post(
         request: Request,
         net: str,
@@ -367,6 +371,7 @@ async def module_verification_post(
         mongodb: MongoDB = Depends(get_mongo_db),
         grpcclient: GRPCClient = Depends(get_grpcclient),
         tooter: Tooter = Depends(get_tooter),
+        smart_contract_address: Optional[str] = None
 ):
     from ccdexplorer_fundamentals.env import GRPC_MAINNET, GRPC_TESTNET
 
@@ -379,9 +384,10 @@ async def module_verification_post(
         node_address = ["--grpc-ip", GRPC_MAINNET[0].get('host'), "--grpc-port", str(GRPC_MAINNET[0].get('port'))]
 
     body = await request.form()
-    smart_contract_address = body.get("module_address")
-    if smart_contract_address:
-        smart_contract_address = smart_contract_address.strip()
+    if smart_contract_address is None:
+        smart_contract_address = body.get("module_address")
+        if smart_contract_address:
+            smart_contract_address = smart_contract_address.strip()
 
     smart_contract_sources = body.get("module_sources")
 
@@ -445,6 +451,7 @@ async def module_verification_post(
             "user": user,
             "address": smart_contract_address,
             "result": result,
+            "locked": smart_contract_address is not None
         },
     )
 

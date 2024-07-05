@@ -13,8 +13,9 @@
                 <div class="form-group row">
                     <label for="module_address" class="col-sm-4 col-form-label">Module address:</label>
                     <div class="col-sm-8">
-                        <input type="text" class="form-control" id="module_address" name="module_address"
-                               placeholder="smart contract address" value="{{ address }}" required>
+                        <input type="text" class="form-control" id="module_address" name="module_address" required
+                               placeholder="smart contract address" {% if locked %}disabled{% endif %}
+                               {% if address %}value="{{ address }}"{% endif %}>
                     </div>
                 </div>
                 <hr/>
