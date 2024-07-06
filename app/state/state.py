@@ -446,7 +446,9 @@ def get_labeled_accounts(
         dd = {}
         for paa in project_contract_addresses:
             dd[paa["contract_address"]] = projects_display_names[paa["project_id"]]
-        labeled_accounts["contracts"].update(dd)
+
+        contracts = labeled_accounts.get("contracts", {})
+        contracts.update(dd)
 
         tags = {
             "labels": labeled_accounts,
