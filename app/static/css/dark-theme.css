@@ -1,0 +1,42 @@
+/* Dark Theme */
+:root {
+  --background-color: #0f0f0f;
+  --text-color: #ffffff;
+  --secondary-text-color: #a0a0a0;
+  --border-color: #333333;
+  --highlight-color: #00aaff;
+  --success-color: #00ff00;
+  --error-color: #ff0000;
+  --input-background-color: #1f1f1f;
+  --input-text-color: #ffffff;
+}
+
+body.dark-theme {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+/* .dark-theme .secondary-text {
+  color: var(--secondary-text-color);
+}
+
+.dark-theme .bordered {
+  border-color: var(--border-color);
+}
+
+.dark-theme .highlight {
+  color: var(--highlight-color);
+}
+
+.dark-theme .success {
+  color: var(--success-color);
+}
+
+.dark-theme .error {
+  color: var(--error-color);
+}
+
+.dark-theme input, .dark-theme select, .dark-theme textarea {
+  background-color: var(--input-background-color);
+  color: var(--input-text-color);
+} */

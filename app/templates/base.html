@@ -1,277 +1,424 @@
 <!doctype html>
-<html lang="en"  data-bs-theme="light">
-  <!-- <html lang="en" > -->
+<html lang="en">
 
 <head>
-  <meta name="googlebot" >
-  <meta charset="utf-8" />
-	<script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
-  <script>base_url = '{{env.SITE_URL}}'</script>
-  <script>api_key = '{{env.API_KEY}}'</script>
-  {% if env.SITE_URL != "http://127.0.0.1:8000" %}
-      <script>window.aesirx1stparty = "https://aesirx.ccdexplorer.io"</script> 
-      <script async defer src="/static/analytics.js"></script>
+    <meta name="googlebot">
+    <meta charset="utf-8">
+    <meta id="meta_data_net" title="{{ net }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Load plotly.js into the DOM -->
+    <script src='https://cdn.plot.ly/plotly-2.32.0.min.js'></script>
+    <script>base_url = '{{env.SITE_URL}}';</script>
+    <script>api_key = '{{env.API_KEY}}';</script>
+    {% if env.SITE_URL != "http://127.0.0.1:8000" %}
+        <script>window.aesirx1stparty = 'https://aesirx.ccdexplorer.io';</script>
+        <script async defer src="/static/analytics.js"></script>
     {% endif %}
-  <style>
-    .rotate {
-      margin-left: 10px;
-      animation: rotation 1.2s infinite linear;
-    }
 
-    @keyframes rotation {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(359deg);
-      }
-    }
+    <!-- Link CSS -->
+
+    <link rel="stylesheet" href="/static/css/nav-logo-main-s.css">
+    <link rel="stylesheet" href="/static/css/search-bar.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+
+    <!-- Google font Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap"
+            rel="stylesheet">
+
+    <style>
+
+        /* Dark and Light theme */
+
+        :root {
+            --background-color: #ffffff;
+            --background-color-nav-drop-menu-hover-item: #CBCBCB;
+            --bakground-color-component: #ffffff;
+            --search-button-color: #ffffff;
+            --background-color-dropdown-menu: #ffffff;
+            --border-color-main: #1E1E1E;
+            --border-color-secondary: #1B1B1B;
+            --background-mainnet: #ffffff;
+            --text-color-mainnet: #1D1C1C;
+            --text-color: #030303;
+            --text-color-grey: #030303;
+            --secondary-text-color-light: #606060;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-theme {
+            --background-color: #030303;
+            --background-color-nav-drop-menu-hover-item: #0A0A0A;
+            --background-color-component: #0A0A0A;
+            --background-mainnet: #1D1C1C;
+            --text-color: #FFFFFF;
+            --text-color-mainnet: #CBCBCB;
+            --search-button-color: #666666;
+            --text-color-grey: #666666;
+            --background-color-dropdown-menu: #131313;
+            --shadow-color: rgba(207, 227, 240, 0.2);
+        }
+
+        .rotate {
+            margin-left: 10px;
+            animation: rotation 1.2s infinite linear;
+        }
+
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(359deg);
+            }
+        }
+
+        span {
+            opacity: 1;
+            transition: all 0.5s;
+        }
+
+        span.hide {
+            opacity: 0;
+        }
+
+        span {
+            opacity: 1;
+            transition: all 0.5s;
+        }
+
+        span.hide {
+            opacity: 0;
+        }
+
+        span {
+            opacity: 1;
+            transition: all 0.5s;
+        }
+
+        span.hide {
+            opacity: 0;
+        }
+
+        * {
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+            /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+              Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+              "Helvetica Neue", sans-serif; */
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        p {
+            padding-left: 10px;
+
+        }
+
+        .row {
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .low {
+            margin-top: 1px;
+            margin-bottom: 1px;
+        }
+
+        .ccd {
+            font-family: SFMono-Regular, Menlo, Monaco,
+            Consolas, "Liberation Mono",
+            "Courier New", monospace;
+            font-size: 12px;
+        }
+
+        .ccd_small {
+            font-family: SFMono-Regular, Menlo, Monaco,
+            Consolas, "Liberation Mono",
+            "Courier New", monospace;
+            font-size: 10px;
+        }
+
+        .ccd_decimals {
+            font-family: SFMono-Regular, Menlo, Monaco,
+            Consolas, "Liberation Mono",
+            "Courier New", monospace;
+            color: gray;
+            font-size: 10px;
+        }
+
+        .cns {
+            color: white;
+        }
+
+        .cns_small {
+            font-size: 10px;
+            overflow-wrap: normal;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        a {
+            font-family: "Outfit", sans-serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15.12px;
+            text-align: left;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        #nav-logo {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 15.31px;
+            text-align: left;
+            text-decoration: none;
+            text-transform: uppercase;
+            color: var(--text-color);
+        }
+
+    </style>
 
 
-    span {
-      opacity: 1;
-      transition: all 0.5s;
-    }
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
-    span.hide {
-      opacity: 0;
-    }
+    <script src="https://unpkg.com/htmx.org@1.9.6"
+            integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+            crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 
-    span {
-      opacity: 1;
-      transition: all 0.5s;
-    }
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
+    <script src="/static/easy-number-separator.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.16.1.min.js"></script>
 
-    span.hide {
-      opacity: 0;
-    }
+    <!-- <script src="/static/reconnect-ws.js?v=0.0.1"></script> -->
+    <script src="/static/message.js?v=0.0.4"></script>
+    <script src="/static/copyToClipboard.js?v0.0.2"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
+    <script src="/static/jquery.maskMoney.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
 
-    span {
-      opacity: 1;
-      transition: all 0.5s;
-    }
+            $('#toggle').on('click', function () {
+                $('.events-col').attr('colspan', 1);
+                $('.events').toggleClass('hidden');
+            });
 
-    span.hide {
-      opacity: 0;
-    }
+        });
+    </script>
 
-    body {
-      max-width: 100%;
-  overflow-x: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, Oxygen-Sans, Ubuntu, Cantarell,
-        "Helvetica Neue", sans-serif;
-    }
+    <!-- Bootstrap CSS -->
 
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    p {
-      padding-left: 10px;
-    }
+    <link href="/static/carousel.css" rel="stylesheet" crossorigin="anonymous">
+    <title>CCDExplorer.io {{ request.url|string|prepare_title }}</title>
 
-    .row {
-      margin-left: 5px;
-      margin-right: 5px;
-    }
-    .low {
-      margin-top: 1px;
-      margin-bottom: 1px;
-    }
+    <style>
+        .blur {
 
-    .ccd {
-      font-family: SFMono-Regular, Menlo, Monaco,
-        Consolas, "Liberation Mono",
-        "Courier New", monospace;
-      font-size: 12px;
-    }
+            /* Add the blur effect */
+            filter: blur(4px);
+            -webkit-filter: blur(4px);
+        }
 
-    .ccd_small {
-      font-family: SFMono-Regular, Menlo, Monaco,
-        Consolas, "Liberation Mono",
-        "Courier New", monospace;
-      font-size: 10px;
-    }
+        @media (min-width: 768px) {
+            .row {
+                margin-right: auto;
+                margin-left: auto;
+                /* max-width: 768px; */
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+    <style>
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 500ms ease-in-out;
+        }
 
-    .ccd_decimals {
-      font-family: SFMono-Regular, Menlo, Monaco,
-        Consolas, "Liberation Mono",
-        "Courier New", monospace;
-        color: gray;
-      font-size: 10px;
-    }
+        .htmx-request .htmx-indicator {
+            opacity: 1
+        }
 
-    .cns {
-      color: white;
-    }
+        .htmx-request.htmx-indicator {
+            opacity: 1
+        }
+    </style>
+    <style>
+        .breathing.faded {
+            opacity: .1;
+        }
 
-    .cns_small {
-      font-size: 10px;
-      overflow-wrap: normal;
-    }
+        .breathing {
+            opacity: 1;
+            transition: opacity ease-in 500ms;
+        }
+    </style>
+    <style>
+        body {
+            background: var(--background-color);
+            color: var(--text-color)
+        }
 
-    .hidden {
-      display: none;
-    }
-    
-  </style>
+        .nav-link {
+            color: #FFFFFF;
+        }
+    </style>
+    <style>
+        .dropdown-toggle::after {
+            margin-left: .255em;
+            vertical-align: .255em;
+        }
+    </style>
+    <style>
+        footer {
+            font-family: "Outfit";
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 15.12px;
+            text-align: left;
+            color: #666666;
+            text-align: center;
+            height: 100px;
+            border-top: #666666;
+            padding: 15px;
+        }
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+        .footer-info {
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid #666666;
+        }
 
-  <!-- and it's easy to individually load additional languages -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+        ul.footer-info-list {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            list-style-type: none;
+        }
 
-  <script>hljs.highlightAll();</script>
-  <meta charset="utf-8">
-  <meta id="meta_data_net" title="{{net}}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        @media screen and (max-width: 594px) {
+            ul.footer-info-list {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
 
-
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
-
-  <script src="/static/htmx.min.js"></script>
-  <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
-  <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
-  
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-  
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
-<script src="/static/easy-number-separator.js"></script>
-  
-
-  <!-- <script src="/static/reconnect-ws.js?v=0.0.1"></script> -->
-  <script src="/static/message.js?v=0.0.4"></script>
-  <script src="/static/copyToClipboard.js?v0.0.2"></script>
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-    crossorigin="anonymous"></script>
-  <script src="/static/jquery.maskMoney.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" crossorigin="anonymous"></script>
-  <script>
-    $(document).ready(function () {
-
-      $("#toggle").on("click", function () {
-        $(".events-col").attr('colspan', 1);
-        $(".events").toggleClass("hidden")
-      });
-
-    });
-  </script>
-  <!-- Bootstrap CSS -->
-
-
-  <link href="/static/carousel.css" rel="stylesheet" crossorigin="anonymous">
-  <title>CCDExplorer.io {{request.url|string|prepare_title }}</title>
-
-  <style>
-    .blur {
-
-      /* Add the blur effect */
-      filter: blur(4px);
-      -webkit-filter: blur(4px);
-    }
-
-    @media (min-width: 768px) {
-      .row {
-        margin-right: auto;
-        margin-left: auto;
-        max-width: 768px;
-      }
-    }
-
-    
-  </style>
-  <style>
-    .htmx-indicator{
-    opacity:0;
-    transition: opacity 500ms ease-in-out;
-}
-.htmx-request .htmx-indicator{
-    opacity:1
-}
-.htmx-request.htmx-indicator{
-    opacity:1
-}
-</style>
-<style>
-.breathing.faded {
-  opacity:.1;
-}
-
-.breathing {
-  opacity:1;
-  transition: opacity ease-in 500ms;
-}
-</style>
-
-  <script>
-    window.disableAnalyticsConsent = "true"
-  </script>
+    <script>
+        window.disableAnalyticsConsent = 'true';
+    </script>
+    {% block style %}{% endblock %}
 </head>
 
-<body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-  <div class="row">
-    <div class="col-md-12">
-      {% include "nav_logo.html"%}
-      {% if not net %}
-      {% set net = 'mainnet' %}
-      {% endif %}
-      {% if
+
+<body id="body">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+
+<div class="container-fluid">
+    <div class="col-10 mx-auto">
+        {% include "nav_logo.html" %}
+        {% include "marketcap_table.html" %}
+        {% include "search_bar.html" %}
+        <hr>
+        {% if not net %}
+            {% set net = 'mainnet' %}
+        {% endif %}
+        {% if
       (not (request.url|string).endswith('statistics')) and
       (not (request.url|string).endswith('nodes-and-bakers')) and
-      (not (request.url|string).endswith('nodes'))
-      %}
-      <span class="p-6 hidden text-center mark text-uppercase" id="message"></span>
-      {% if (request.url|string).endswith(net)%}
-        <div hx-get="/{{net}}/ajax_stream_table" hx-trigger="load, every 2s" ></div>
-        {% endif %}
-      {% if net == 'mainnet' and (request.url|string).endswith('mainnet')%}
-      <div hx-get="/mainnet/ajax_txs_table" hx-trigger="load, every 30s" ></div>
-      
-      {% endif %}
-      <hr>
-      {% include "search_bar.html"%}
-      {% endif %}
-
-      {% block content %}{% endblock %}
-      <br>
-      <hr>
-      {% if net == 'mainnet'%}
-      {%  if not 'statistics' in (request.url|string) %}
-      {% if net == 'mainnet' and (request.url|string).endswith('mainnet')%}
-          
-          <div hx-get="/mainnet/ajax_last_table" hx-trigger="load, every 30s" ></div>
-          {% endif %}
+      (not (request.url|string).endswith('nodes')) %}
+            <span class="p-6 hidden text-center mark text-uppercase" id="message"></span>
+            {% if (request.url|string).endswith(net) %}
+                <div hx-get="/{{ net }}/ajax_stream_table" hx-trigger="load, every 2s"></div>
             {% endif %}
-      {% endif %}
-    </div>
-    <small><small>Release: <a href="/release-notes">{{request.app.release}}</small></small></a><br/>
-    <small><small> <a href="/donate">Support CCDExplorer.io</small></small></a>
-    <small><small> <a href="https://uptime.ccdexplorer.io">Uptime</small></small></a>
-    <small><small> <a href="/{{net}}/status">Backend Status</small></small></a>
-  </div>
-  <!-- <div id="htmx_tvl"  hx-trigger="load" hx-get="/ajax_statistics_tvl/<9390,0>-">htmx</div> -->
-  {% if user %}
-  {%set user_token=user.token+'/' %}
-  {%else%}
-  {%set user_token='' %}
-  {% endif %}
-  
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- <script>htmx.logger = function(elt, event, data) {
-  if(console) {
-      console.log(event, elt, data);
-  }
-}</script> -->
+            {% if net == 'mainnet' and (request.url|string).endswith('mainnet') %}
+                <div hx-get="/mainnet/ajax_txs_table" hx-trigger="load, every 30s"></div>
+            {% endif %}
+        {% endif %}
+        {% block content %}{% endblock %}
+        <br>
+        <hr>
+        {% if net == 'mainnet' %}
+            {% if not 'statistics' in (request.url|string) %}
+                {% if net == 'mainnet' and (request.url|string).endswith('mainnet') %}
 
+                    <div hx-get="/mainnet/ajax_last_table" hx-trigger="load, every 30s"></div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-info">
+                <ul class="footer-info-list">
+                    <li>Release: <a href="/release-notes">{{ request.app.release }}</a></li>
+                    <li><a href="/donate">Support CCDExplorer.io</a></li>
+                    <li><a href="https://uptime.ccdexplorer.io">Uptime</a></li>
+                    <li><a href="/{{ net }}/status">Backend Status</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+</div>
+{% if user %}
+    {% set user_token=user.token+'/' %}
+{% else %}
+    {% set user_token='' %}
+{% endif %}
+
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    document.getElementById('toggleItem').addEventListener('click', function (e) {
+        e.preventDefault();
+        let dropdownButton = document.getElementById('dropdownMenuButton');
+        let toggleItem = document.getElementById('toggleItem');
+
+        if (dropdownButton.textContent.trim() === 'Mainnet') {
+            dropdownButton.textContent = 'Testnet';
+            toggleItem.textContent = 'Mainnet';
+        } else {
+            dropdownButton.textContent = 'Mainnet';
+            toggleItem.textContent = 'Testnet';
+        }
+    });
+</script>
+{% block javascript %}{% endblock %}
 </body>
 
 </html>

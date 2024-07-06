@@ -1,0 +1,43 @@
+/* Light Theme */
+
+:root {
+  --background-color-light: #ffffff;
+  --text-color-light: #030303;
+  --secondary-text-color-light: #606060;
+  --border-color-light: #cccccc;
+  --highlight-color-light: #0066cc;
+  --success-color-light: #008800;
+  --error-color-light: #cc0000;
+  --input-background-color-light: #f0f0f0;
+  --input-text-color-light: #000000;
+}
+
+body.light-theme {
+  background-color: var(--background-color-light);
+  color: var(--text-color-light);
+}
+
+.light-theme .secondary-text {
+  color: var(--secondary-text-color-light);
+}
+
+.light-theme .bordered {
+  border-color: var(--border-color-light);
+}
+
+.light-theme .highlight {
+  color: var(--highlight-color-light);
+}
+
+.light-theme .success {
+  color: var(--success-color-light);
+}
+
+.light-theme .error {
+  color: var(--error-color-light);
+}
+
+.light-theme input, .light-theme select, .light-theme textarea {
+  background-color: var(--input-background-color-light);
+  color: var(--input-text-color-light);
+}

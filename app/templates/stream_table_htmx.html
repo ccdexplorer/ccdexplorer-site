@@ -1,28 +1,145 @@
-<div class="container-sm rounded  border border-secondary mb-1 ">
-    <div class="row">
-      <!-- <div class="clearfix"> -->
-        <table class="table  small" style="margin-bottom: 2px !important;">
-          
-        <tr>
-          <!-- <th class="small text-end p-1 m-1">Consensus</th> -->
-          <th class="small text-end p-1 m-1"><small>Fin. Height</small></th>
-          <th class="small text-end p-1"><small>Fin. Period (EMA)</small></th>
-          <th class="small text-end p-1"><small>Tx per block (EMA)</small></th>
-          <!-- <th class="small text-end p-1"><small>Txs</small></th> -->
-          <th class="small text-end p-1"><small>Outst. CCD</small></th>
-          
-        <tr>
-          
-          <!-- <td class="small text-end p-1 m-1"><small></small></td> -->
-          <td class="small text-end p-1"><small><a id="height"  href = "/{{net}}/block/{{s.block_info.height}}">{{s.block_info.height|round_0_decimal_with_comma}}</a></small></td>
-          <td class="small text-end p-1"><small><span id="consensus_fin_period_combined">{{s.consensus_info.finalization_period_ema|round_x_decimal_no_comma(2)}} (± {{s.consensus_info.finalization_period_emsd|round_x_decimal_no_comma(2)}})</span></small></td>
-          <td class="small text-end p-1"><small><span id="consensus_tx_per_block_combined">{{s.consensus_info.transactions_per_block_ema|round_x_decimal_no_comma(2)}}s (± {{s.consensus_info.transactions_per_block_emsd|round_x_decimal_no_comma(2)}}s)</span></small></td>
-          <!-- <td class="small text-end p-1"><small><span id="tx_count"></span></small></td> -->
-          <td class="small text-end p-1"><small><span id="ccd_outstanding">{{(s.tokenomics_info.v1.total_amount/1_000_000)|round_0_decimal_with_comma}}</span></small></td>
-          
-        </tr>
-        
-    </table>
+{% block style %}
+    <style>
+        .stream-table-box {
+            width: 70%;
+            height: 84px;
+            border: #1B1B1B solid 1px;
+            background: var(--bckg-color);
+            color: var(--text-color);
+            top: 184px;
+            left: 60px;
+            gap: 40px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stream-table {
+            width: 100%;
+        }
+
+        th,
+        td {
+            font-family: "Outfit", serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15.12px;
+            color: #666666;
+            padding: 5px;
+            text-align: center;
+        }
+
+        td {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        /* Responsive design */
+        @media screen and (max-width: 1014px) {
+            .stream-table-box {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+
+            th,
+            td {
+                font-family: "Outfit", serif;
+                font-size: 8px;
+                font-weight: 200;
+                line-height: 15.12px;
+                color: #666666;
+                padding: 5px;
+                text-align: center;
+            }
+
+            td {
+                font-weight: 400;
+                font-size: 12px;
+            }
+        }
+
+        @media screen and (max-width: 512px) {
+            .stream-table-image > img {
+                display: none;
+            }
+
+            .stream-table-box {
+                gap: 0;
+                padding: 0;
+            }
+
+            th,
+            td {
+                font-family: "Outfit", serif;
+                font-size: 6px;
+                font-weight: 200;
+                line-height: 15.12px;
+                color: #666666;
+                padding: 5px;
+                text-align: center;
+            }
+
+            td {
+                font-weight: 400;
+                font-size: 10px;
+            }
+        }
+
+        @media screen and (max-width: 440px) {
+            .stream-table-box {
+                height: 120px;
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="stream-table-box">
+            <div class="">
+                <img class="small-logo stream" src="/static/small-logo-black.png" alt="small-logo">
+            </div>
+
+            <table class="stream-table">
+                <thead>
+                <tr>
+                    <th><small>Fin. Height</small></th>
+                    <th><small>Fin. Period (EMA)</small></th>
+                    <th><small>Tx per block (EMA)</small></th>
+                    <th><small>Outst. CCD</small></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td>
+                        <small><a id="height" href="/{{ net }}/block/{{ s.block_info.height }}">
+                            {{ s.block_info.height|round_0_decimal_with_comma }}
+                        </a></small>
+                    </td>
+                    <td>
+                        <small><span id="consensus_fin_period_combined">
+                            {{ s.consensus_info.finalization_period_ema|round_x_decimal_no_comma(2) }}
+                            (± {{ s.consensus_info.finalization_period_emsd|round_x_decimal_no_comma(2) }})
+                        </span></small>
+                    </td>
+                    <td>
+                        <small><span id="consensus_tx_per_block_combined">
+                            {{ s.consensus_info.transactions_per_block_ema|round_x_decimal_no_comma(2) }}s
+                            (± {{ s.consensus_info.transactions_per_block_emsd|round_x_decimal_no_comma(2) }}s)
+                        </span></small>
+                    </td>
+                    <td>
+                        <small><span id="ccd_outstanding">
+                            {{ (s.tokenomics_info.v1.total_amount/1_000_000)|round_0_decimal_with_comma }}
+                        </span></small>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-  </div>
-  
+{% endblock %}

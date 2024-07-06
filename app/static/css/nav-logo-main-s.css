@@ -1,0 +1,525 @@
+.navigation-bar {
+  height: 200px;
+  position: relative;
+  top: 43px;
+  margin: 0 auto;
+}
+
+#navigation-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: auto;
+  width: 100%;
+}
+
+#navigation-items {
+  display: flex;
+  justify-content: space-between;
+  width: 797.06px;
+}
+
+#nav-logo {
+  color: var(--text-color);
+}
+
+img#logo-logo {
+  width: 200px;
+  background: var(--secondary-text-color);
+}
+
+img#concordium-small {
+  width: 80px;
+  display: none;
+  margin-right: 5px;
+}
+
+img.small-logo {
+  width: 25px;
+}
+
+.sub-menu {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  list-style-type: none;
+  text-decoration: none;
+}
+
+ul.sub-menu li {
+  margin-right: 5px;
+}
+
+ul.sub-menu li a {
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15.12px;
+  text-align: left;
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.sub-menu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+.menu-item {
+  position: relative;
+}
+
+.menu-item a {
+  display: block;
+  padding: 15px 20px;
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.menu-item a:hover {
+  color: #666666;
+  transition: ease-in-out 0.3s;
+}
+
+ul.drop {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  gap: 2px;
+  position: absolute;
+  top: 100%;
+  background: var(--background-color-dropdown-menu);
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  width: 76px;
+  font-family: "Outfit";
+  border-radius: 8px;
+  padding: 4px;
+  gap: 8px;
+  box-shadow: 2px 2px 3px var(--shadow-color);
+}
+
+ul.drop li a {
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 15.12px;
+  text-align: left;
+  color: var(--text-color);
+  text-decoration: none;
+  width: 70px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 5px;
+  border-radius: 8px;
+}
+
+ul.drop li a:hover {
+  background: var(--background-color-nav-drop-menu-hover-item);
+  color: var(--text-color);
+}
+
+ul :nth-child(1) .drop {
+  left: 12px;
+}
+
+.drop li {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.drop li a {
+  margin: 0;
+  padding: 0;
+}
+
+.menu-item:hover .drop {
+  display: flex;
+}
+
+/* Theme Swithcer Button */
+
+#theme-mainnet-testnet {
+  max-width: 215px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Switcher styles */
+
+.switcher {
+  border: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: #666666;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+ 
+}
+
+/* .switcher-animation-light {
+  animation-name: light;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+.switcher-animation-dark {
+  animation-name: dark;
+  animation-duration: 0.5s;
+  animation-fill-mode: backwards;
+} */
+
+/* Animation for switch button */
+
+/* @keyframes light {
+  0% {
+    left: 0px;
+  }
+
+  100% {
+    left: 30px;
+    color: rgb(238, 178, 13);
+  }
+}
+
+@keyframes dark {
+  0% {
+    left: 30px;
+  }
+
+  100% {
+    left: 0px;
+    color: #0A0A0A;
+  } */
+
+
+#switch-theme {
+
+  border-radius: 4px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-right: 10px;
+}
+
+/* Mainnet Testnet
+
+#mainnet-testnet {
+  border: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: 109.6px;
+  height: 35px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 4px;
+  background-color: #1D1C1C;
+}
+
+#img-mainnet {
+  width: 14px;
+  height: 14px;
+}
+
+#p-mainnet {
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  color: #CBCBCB;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  text-decoration: none;
+}
+
+#p-mainnet:hover,
+.arrow-down:hover {
+  color: #666666;
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.arrow-down {
+  color: #CBCBCB;
+  cursor: pointer;
+}
+
+.testnet-list {
+  list-style-type: none;
+  width: 109.6px;
+  height: 35px;
+  background-color: rgb(102, 102, 102);
+  position: absolute;
+  top: 45px;
+  border-radius: 4px;
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  color: #CBCBCB;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(102, 102, 102, 0.3);
+}
+
+.mainnet-opened {
+  display: flex;
+}
+
+.testnet-list-item:hover {
+color: #666666;
+transition: 0.5s;
+cursor: pointer;
+} */
+
+.dropbtn {
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  color: #CBCBCB;
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 4px;
+  opacity: 0px;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown-custom {
+  width: 109.06px;
+  height: 35px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 4px;
+  background: var(--background-mainnet);
+  border: 1px solid var(--border-color-main);
+}
+
+#dropdownHead {
+  color: var(--text-color-mainnet);
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-custom-content {
+  font-family: "Outfit";
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-color-mainnet);
+  text-align: center;
+  padding: 0;
+  margin-top: 0px;
+  list-style-type: none;
+  text-decoration: none;
+  cursor: pointer;
+  display: none;
+  position: absolute;
+  top: 45px;
+  background-color: rgba(102, 102, 102, 0.5);
+  width: 109.6px;
+  height: 35px;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/* Links inside the dropdown */
+.dropdown-custom-content .dropdown-custom-item {
+  color: #f1f1f1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+}
+
+/* Change color of dropdown links on hover */
+/* .dropdown-custom-content .dropdown-custom-item:hover {
+  background-color: #f1f1f1;
+} */
+
+/* Show the dropdown menu on hover */
+/* .dropdown-custom:hover .dropdown-custom-content {
+  display: block;
+} */
+
+/* HAMBURGER MENU */
+
+.hamburger {
+display: none;
+justify-content: center;
+align-items: center;
+width: 36px;
+height: 36px;
+top: 42px;
+left: 314.06px;
+padding: 5px;
+gap: 10px;
+border-radius: 4px;
+opacity: 0px;
+background: var(--background-mainnet);
+border: 1px solid var(--border-color-main);
+font-size: 25px;
+color: var(--text-color-mainnet);
+}
+
+.side-menu {
+  display: block;
+  width: 25%;
+  left: -575px;
+  height: 100vh;
+  position: absolute;
+  transition: 0.5s;
+  z-index: 1;
+}
+
+.side-menu-opened {
+  left: 0px;
+  width: 100%;
+  background: rgba(102, 102, 102, 0.8);
+}
+
+.accordion-button::after {
+  background-color: var(--background-color-beige);
+  border-radius: 50%;
+
+}
+
+.no-arrow::after {
+  display: none;
+}
+
+
+
+/* .sub-menu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  position: relative;
+} */
+
+/* .drop {
+  display: flex;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  left: 100%;
+  top: 0;
+} */
+
+/* .menu-item:hover .drop {
+  display: block;
+} */
+
+/* Responsive styles */
+
+
+/* MEDIA QUERY */
+
+@media screen and (max-width: 1521px) {
+
+  .container {
+    margin: 0;
+    padding: 0;
+  }
+
+ .sub-menu {
+  display: none;
+ }
+
+ #navigation-items {
+  justify-content: end;
+}
+
+.hamburger {
+  display: flex;
+}
+}
+
+@media screen and (max-width: 1251px) {
+
+
+  /* #theme-mainnet-testnet {
+    width: 250px;
+  } */
+
+
+  #navigation-bar-content {
+    align-items: center;
+  }
+
+  div#main-logo {
+    width: 135px;
+    font-size: 30px;
+    display: flex;
+  }
+
+  .main-menu {
+    display: none;
+    flex-direction: column;
+  }
+
+  .main-menu.show {
+    display: flex;
+  }
+
+  .menu-item {
+    position: relative;
+  }
+
+  .drop {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 636px) {
+
+  img#logo-logo {
+    width: 130px;
+  }
+}
+
+
+@media screen and (max-width: 495px) {
+
+  img#logo-logo {
+    display: none;
+  }
+
+  img#concordium-small {
+    display: flex;
+    margin-right: 20px;
+  }
+}
