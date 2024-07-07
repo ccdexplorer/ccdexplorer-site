@@ -20,7 +20,7 @@ RUN wget https://distribution.concordium.software/tools/linux/concordium-client_
 # download rustup install script
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /code/rustup.sh && chmod +x /code/rustup.sh
 
-# install rustuo
+# install rustup
 RUN /code/rustup.sh -y
 RUN rm /code/rustup.sh
 
