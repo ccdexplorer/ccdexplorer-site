@@ -302,8 +302,8 @@ async def smart_contracts(
     cur_date = min_date
     while cur_date < max_date:
         end_of_day = dt.datetime.combine(cur_date, dt.time.max)
-        next_month = end_of_day.replace(day=28) + timedelta(days=4)
-        res = next_month - timedelta(days=next_month.day)
+        next_month = end_of_day.replace(day=28) + dt.timedelta(days=4)
+        res = next_month - dt.timedelta(days=next_month.day)
         # print(f"Last date of month is:", res.date())
         months_list.append(
             {
