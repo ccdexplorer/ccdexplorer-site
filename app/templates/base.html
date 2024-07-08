@@ -33,7 +33,6 @@
             rel="stylesheet">
 
     <style>
-
         /* Dark and Light theme */
 
         :root {
@@ -195,7 +194,6 @@
             text-transform: uppercase;
             color: var(--text-color);
         }
-
     </style>
 
 
@@ -298,11 +296,10 @@
     </style>
     <style>
         footer {
-            font-family: "Outfit";
+            font-family: "Outfit", serif;
             font-size: 15px;
             font-weight: 600;
             line-height: 15.12px;
-            text-align: left;
             color: #666666;
             text-align: center;
             height: 100px;
@@ -334,7 +331,31 @@
     <script>
         window.disableAnalyticsConsent = 'true';
     </script>
-    {% block style %}{% endblock %}
+
+    {% block style %}
+        <style>
+            .upper-screen {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            @media screen and (max-width: 1521px) {
+
+                .upper-screen {
+                    flex-direction: column;
+                    gap: 10px;
+                    align-items: center;
+                }
+
+                .right-screen {
+                    margin-top: 20px;
+                    margin-bottom: 20px;
+                    padding: 10px;
+                }
+            }
+        </style>
+    {% endblock %}
 </head>
 
 
@@ -346,8 +367,16 @@
 <div class="container-fluid">
     <div class="col-10 mx-auto">
         {% include "nav_logo.html" %}
-        {% include "marketcap_table.html" %}
-        {% include "search_bar.html" %}
+        <div class="container">
+            <div class="upper-screen">
+                <div class="left-screen">
+                    {% include "marketcap_table.html" %}
+                    {% include "search_bar.html" %}
+                    {% include "search_examples_bar.html" %}
+                </div>
+                {% include "graph_chart.html" %}
+            </div>
+        </div>
         <hr>
         {% if not net %}
             {% set net = 'mainnet' %}
