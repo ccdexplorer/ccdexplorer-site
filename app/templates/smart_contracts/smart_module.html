@@ -1,60 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-{% if net %}
-    {% set net_url_string = '?net=testnet' %}
-{% else %}
-    {% set net_url_string = '' %}
-{% endif %}
-<div style="padding-left:10px;">
-<h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
-<h5  class="ms-1">Module: <i>{{ module.module_name }}</i></h5>
-<a href="/{{net}}/smart-contracts"><small>back to overview</small></a>
-<br>
+    {% if net %}
+        {% set net_url_string = '?net=testnet' %}
+    {% else %}
+        {% set net_url_string = '' %}
+    {% endif %}
+    <div style="padding-left:10px;">
+        <h4 class="ms-1">Smart Contracts{% if net == 'mainnet' %}{% else %} (Testnet){% endif %}</h4>
+        <h5 class="ms-1">Module: <i>{{ module.module_name }}</i></h5>
+        <a href="/{{ net }}/smart-contracts"><small>back to overview</small></a>
+        <br>
 
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2 active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true"><small>Info</small></button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2 " id="methods-tab" data-bs-toggle="tab" data-bs-target="#methods" type="button" role="tab" aria-controls="methods" aria-selected="true"><small>
-            {% if schema %}
-                Schema
-            {% else %}
-                Methods
-            {%endif%}
-        </small></button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2  " id="passive-tab" data-bs-toggle="tab" data-bs-target="#instances" type="button" role="tab" aria-controls="instances" aria-selected="true"><small>Instances</small></button>
-    </li>    
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2  " id="usage-tab" data-bs-toggle="tab" data-bs-target="#usage" type="button" role="tab" aria-controls="usage" aria-selected="true"><small>Usage</small></button>
-    </li>    
-</ul>
-
-     <div class="tab-content" id="myTabContent">
-
-        <div class="tab-pane fade show  active" style="padding-top: 10px;" id="info" role="tabpanel" aria-labelledby="info-tab">
-            {% include "smart_contracts/smart_module_info.html" %}
+        <ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small ps-2 pe-2 active" id="info-tab" data-bs-toggle="tab"
+                        data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">
+                    <small>Info</small></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small ps-2 pe-2 " id="methods-tab" data-bs-toggle="tab"
+                        data-bs-target="#methods" type="button" role="tab" aria-controls="methods" aria-selected="true">
+                    <small>{% if schema %}Schema{% else %}Methods{% endif %}</small>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small ps-2 pe-2  " id="passive-tab" data-bs-toggle="tab"
+                        data-bs-target="#instances" type="button" role="tab" aria-controls="instances"
+                        aria-selected="true"><small>Instances</small></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small ps-2 pe-2  " id="usage-tab" data-bs-toggle="tab" data-bs-target="#usage"
+                        type="button" role="tab" aria-controls="usage" aria-selected="true">
+                    <small>Usage</small>
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show  active" style="padding-top: 10px;" id="info" role="tabpanel" aria-labelledby="info-tab">
+                {% include "smart_contracts/smart_module_info.html" %}
             </div>
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="methods" role="tabpanel" aria-labelledby="methods-tab">
-            {% if schema %}
-                {% include "smart_contracts/smart_module_schema.html" %}
-            {% else  %}
-                {% include "smart_contracts/smart_module_methods.html" %}
-            {% endif %}
-        </div>
+            <div class="tab-pane fade show" style="padding-top: 10px;" id="methods" role="tabpanel" aria-labelledby="methods-tab">
+                {% if schema %}
+                    {% include "smart_contracts/smart_module_schema.html" %}
+                {% else %}
+                    {% include "smart_contracts/smart_module_methods.html" %}
+                {% endif %}
+            </div>
 
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="instances" role="tabpanel" aria-labelledby="instances-tab">
-            {% include "smart_contracts/smart_module_instances.html" %}
-        </div>
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="usage" role="tabpanel" aria-labelledby="usage-tab">
-            {% include "smart_contracts/smart_module_usage.html" %}
+            <div class="tab-pane fade show" style="padding-top: 10px;" id="instances" role="tabpanel" aria-labelledby="instances-tab">
+                {% include "smart_contracts/smart_module_instances.html" %}
+            </div>
+            <div class="tab-pane fade show" style="padding-top: 10px;" id="usage" role="tabpanel" aria-labelledby="usage-tab">
+                {% include "smart_contracts/smart_module_usage.html" %}
+            </div>
         </div>
     </div>
-
-
-</div>
-  {% endblock content %}
+{% endblock content %}
 
