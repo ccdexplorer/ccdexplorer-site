@@ -258,9 +258,8 @@ def get_user_detailsv2(req: Request, token: str = None):
         user = users_from_collection.get(token)
     except AttributeError:
         user = None
-
-    if user:
-        if not type(user) == UserV2:
+    else:
+        if user and not isinstance(user, UserV2):
             user = UserV2(**user)
 
     return user
