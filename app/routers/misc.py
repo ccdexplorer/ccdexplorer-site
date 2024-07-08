@@ -939,3 +939,25 @@ async def release_notes(
         "release_notes.html",
         {"env": request.app.env, "request": request, "release_notes": release_notes},
     )
+
+
+@router.get("/{net}/profiles", response_class=HTMLResponse)
+async def profiles(
+    request: Request,
+    net: str,
+    recurring: Recurring = Depends(get_recurring),
+    mongodb: MongoDB = Depends(get_mongo_db),
+    mongomotor: MongoMotor = Depends(get_mongo_motor),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tooter: Tooter = Depends(get_tooter),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    return templates.TemplateResponse(
+        "profiles/profiles.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+        },
+    )

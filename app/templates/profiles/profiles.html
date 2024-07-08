@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if error %}
+        <p>An error occured: <b>{{ error.errorMessage }}</b></p>
+    {% else %}
+
+        <script>
+            function get_account_creation_actions(requested_page, total_rows) {
+                account_creation = document.getElementById('content_account_creation');
+                url = '/ajax_recent_actions/{{net}}/account_creation/99999' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+                account_creation.innerHTML = '{% include "spinner.html" %}';
+                fetch(url)
+                    .then((response) => {
+                        return response.text();
+                    })
+                    .then((data) => {
+                        account_creation.innerHTML = data;
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+
+            function prev_v2_account_creation_actions(requested_page, total_rows) {
+                get_account_creation_actions(requested_page, total_rows);
+            }
+
+            function next_v2_account_creation_actions(requested_page, total_rows) {
+                get_account_creation_actions(requested_page, total_rows);
+            }
+
+            window.addEventListener('load', (event) => {
+                get_account_creation_actions(0, 0);
+
+            });
+        </script>
+        <h2>Profiles{% if net == 'mainnet' %}{% else %} (Testnet){% endif %}</h2>
+
+        <div id="content_account_creation"></div>
+    {% endif %}
+{% endblock content %}
