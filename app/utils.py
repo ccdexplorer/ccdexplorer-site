@@ -242,7 +242,7 @@ def account_tag(value, user: UserV2 = None, tags=None, header=False, sankey=Fals
         if tags:
             tag_found = False
             for label_group in tags["labels"].keys():
-                label_group_color = tags["colors"].get(label_group, {})
+                label_group_color = tags["colors"].get(label_group, "black")
                 for address, tag in tags["labels"][label_group].items():
                     if address[:29] == value[:29]:
                         tag_label = (
