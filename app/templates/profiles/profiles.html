@@ -6,8 +6,8 @@
 
         <script>
             function get_account_creation_actions(requested_page, total_rows) {
-                account_creation = document.getElementById('content_account_creation');
-                url = '/ajax_recent_actions/{{net}}/account_creation/99999' + '/' + requested_page + '/' + total_rows + '/' + api_key;
+                const account_creation = document.getElementById('content_account_creation');
+                const url = '/ajax_recent_actions/{{net}}/account_creation/99999' + '/' + requested_page + '/' + total_rows + '/' + api_key;
                 account_creation.innerHTML = '{% include "spinner.html" %}';
                 fetch(url)
                     .then((response) => {
