@@ -1893,7 +1893,8 @@ async def statistics_network_activity_tps_plotly(
     )
     fig.update_xaxes(type="date")
     fig.update_layout(
-        showlegend=False,
+        showlegend=True,
+        legend_y=-0.2,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
         template=ccdexplorer_plotly_template(),
         height=550,
