@@ -1,56 +1,170 @@
-<h2>Nodes and Validators</h2>
+{% block style %}
+    <style>
+        .nodes {
+            margin-top: 30px;
+        }
+
+        .text-heading {
+            background: none;
+            color: var(--text-color);
+        }
+
+        .nodes-table {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        .nodes-data {
+            height: 100px;
+        }
+
+        .nodes-table p {
+            font-family: Outfit, serif;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 23px;
+            letter-spacing: 0.19177599251270294px;
+            color: var(--text-color);
+        }
+
+        .nodes h2 {
+            font-family: Outfit, serif;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 23px;
+            letter-spacing: 0.19177599251270294px;
+            color: var(--text-color);
+        }
+
+        .nodes-table thead {
+            background: transparent;
+            /* border-bottom: 1px solid var(--secondary-text-color-light); */
+            height: 20px;
+        }
+
+        .nodes-table thead tr th {
+            background: transparent;
+            padding: 10px;
+            font-family: Outfit, serif;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 15px;
+            letter-spacing: 0.19177599251270294px;
+            text-align: center;
+        }
+
+
+        tbody.node-tbody {
+            background: var(--background-color-beige);
+            color: var(--secondary-text-color-light);
+            box-shadow: 0 0 0 1px var(--background-color-beige);
+            border-radius: 5px;
+        }
+
+        .node-tbody tr td {
+            font-family: Outfit, serif;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 15px;
+            letter-spacing: 0.19177599251270294px;
+            padding: 10px;
+        }
+
+        .node-head {
+            color: var(--text-color);
+        }
+
+        .node-tbody tr {
+            padding: 5px;
+        }
+
+        .sort {
+            padding: 10px;
+            width: 300px;
+            background: var(--background-color-row);
+            border: 1px solid var(--secondary-text-color-light);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px;
+        }
+
+        select {
+            background-color: var(--background-color-row);
+            color: var(--text-color);
+        }
+    </style>
+{% endblock %}
+
+<div class="container nodes">
+    <h2>Nodes and Validators</h2>
     <div class="clearfix">
-        <table class="table table-striped ms-1 me-1 small">
+        <table class="nodes-table">
             <thead>
-                <tr><th></th><th class="text-end">Validator</th><th class="text-end">No Validator</th><th class="text-end">Total</th></tr>
+            <tr>
+                <th class="text-center"></th>
+                <th class="text-center">Validator</th>
+                <th class="text-center">No Validator</th>
+                <th class="text-center">Total</th>
+            </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td><b>Node</b></td><td class="text-end">{{len_reporting_bakers}}</td><td class="text-end">{{(len_nodes-len_reporting_bakers)}}</td><td class="text-end">{{len_nodes}}</td>
-                </tr>
-                <tr>
-                    <td><b>Not Reporting</b></td><td class="text-end">{{(len_bakers-len_reporting_bakers)}}</td><td class="text-end">-</td><td class="text-end">{{(len_bakers-len_reporting_bakers)}}</td>
-                </tr>
-                <tr>
-                    <td><b>Total</b></td><td class="text-end">{{len_bakers}}</td><td class="text-end">{{(len_nodes-len_reporting_bakers)}}</td><td class="text-end">{{(len_bakers+len_nodes-len_reporting_bakers)}}</td>
-                </tr>
+            <tbody class="node-tbody">
+            <tr>
+                <td class="node-head">Node</td>
+                <td class="text-center">{{ len_reporting_bakers }}</td>
+                <td class="text-center">{{ (len_nodes-len_reporting_bakers) }}</td>
+                <td class="text-center">{{ len_nodes }}</td>
+            </tr>
+            <tr>
+                <td class="node-head">Not Reporting</td>
+                <td class="text-center">{{ (len_bakers-len_reporting_bakers) }}</td>
+                <td class="text-center">-</td>
+                <td class="text-center">{{ (len_bakers-len_reporting_bakers) }}</td>
+            </tr>
+            <tr>
+                <td class="node-head">Total</td>
+                <td class="text-center">{{ len_bakers }}</td>
+                <td class="text-center">{{ (len_nodes-len_reporting_bakers) }}</td>
+                <td class="text-center">{{ (len_bakers+len_nodes-len_reporting_bakers) }}</td>
+            </tr>
             </tbody>
         </table>
 
 
-        </table>
-        <p><small>Information for validator is taken from the <a href='/mainnet/block/{{last_payday.id}}'>first block</a> of the current payday. <br/>
-            Information for nodes is refreshed every minute from the <a href="https://dashboard.mainnet.concordium.software/">Mainnet Dashboard</a>.</small></p>
+        <p><small>
+            Information for validator is taken from the<a href='/mainnet/block/{{ last_payday.id }}'>first block</a>
+            of the current payday. <br/>Information for nodes is refreshed every minute from the
+            <a href="https://dashboard.mainnet.concordium.software/">Mainnet Dashboard</a>.
+        </small></p>
         {% if show_bakers %}
-            <br><i><small>Showing only validators.</small></i>
+            <br>
+            <p>Showing only validators</p>
         {% endif %}
-        </p>
 
-        <div class="float-end">
+        <div class="sort ">
             <label class="small" for="key">Sort on: </label>
 
             <select class="form-select-sm" id="key" onchange="val()">
-                
-            {% for sortKey in SortKey %}
-                {% if key == sortKey.name %}
-                    <option class="small" value="{{sortKey.name}}" selected>{{sortKey.value}}</option>
-                {% else %}
-                    <option class="small" value="{{sortKey.name}}">{{sortKey.value}}</option>
-                {% endif %}    
-            {% endfor %}    
-            
+                {% for sortKey in SortKey %}
+                    {% if key == sortKey.name %}
+                        <option class="small" value="{{ sortKey.name }}" selected>{{ sortKey.value }}</option>
+                    {% else %}
+                        <option class="small" value="{{ sortKey.name }}">{{ sortKey.value }}</option>
+                    {% endif %}
+                {% endfor %}
             </select>
 
             <select class="form-select-sm" id="direction" onchange="val()">
-                
-            {% for direction in Direction %}
-                {% if chosen_direction == direction.name %}
-                    <option value="{{direction.name}}" selected>{{direction.value}}</option>
-                {% else %}
-                    <option value="{{direction.name}}">{{direction.value}}</option>
-                {% endif %}    
-            {% endfor %}    
+                {% for direction in Direction %}
+                    {% if chosen_direction == direction.name %}
+                        <option value="{{ direction.name }}" selected>{{ direction.value }}</option>
+                    {% else %}
+                        <option value="{{ direction.name }}">{{ direction.value }}</option>
+                    {% endif %}
+                {% endfor %}
             </select>
         </div>
     </div>
-    
+</div>
