@@ -259,7 +259,7 @@ def get_user_detailsv2(req: Request, token: str = None):
     except AttributeError:
         user = None
     else:
-        if not isinstance(user, UserV2):
+        if user and not isinstance(user, UserV2):
             user = UserV2(**user)
 
     return user
