@@ -1,19 +1,30 @@
+{% block style %}
+    <style>
+        .modules, .modules b, .modules span {
+            color: var(--text-color);
+        }
+    </style>
+{% endblock %}
 
+<tr class="m-0">
+    <td class="bg-transparent text-center p-3 modules">
+        <b>{{ module.module_name }}</b><br/>
+        <span>Instances:</span>
+        <span class="ccd">{% if module.contracts %}{{ module.contracts|length }}{% else %}0{% endif %}</span>
+    </td>
 
-
-
-    
-        <tr class="m-0">
-            
-            <td class="">
-                <b>{{ module.module_name }}</b><br/>
-                Instances: <span class="ccd">{% if module.contracts %}{{module.contracts|length}}{% else %} 0 {% endif %}</span>
-            </td>
-            
-            <td class="">
-                <a href="/{{net}}/module/{{ module.id }}"><span class="ccd">{{ module.id[:10] }}</span></a><br/>
-                Methods: <span class="ccd">{% if module.methods %}{{module.methods|length}}{% else %} 0 {% endif %}</span>
-            </td>
-            <td class=""><br/>Init: {% if module.init_date %}{{module.init_date|datetime_format_day_only}}{% endif %}</td>
-        </tr>
+    <td class="bg-transparent text-center p-3 modules">
+        <a href="/{{ net }}/module/{{ module.id }}">
+            <span class="ccd">{{ module.id[:10] }}</span>
+        </a>
+        <br/>
+        <span>Methods:</span>
+        <span class="ccd">{% if module.methods %}{{ module.methods|length }}{% else %}0{% endif %}</span>
+    </td>
+    <td class="bg-transparent text-center p-3  modules">
+        <br/>
+        <span>Init:</span>
+        <span>{% if module.init_date %}{{ module.init_date|datetime_format_day_only }}{% endif %}</span>
+    </td>
+</tr>
     

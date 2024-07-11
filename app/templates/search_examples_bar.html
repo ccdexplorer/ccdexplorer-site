@@ -1,0 +1,62 @@
+{% block style %}
+    <style>
+        .search-example-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 770px;
+            min-height: 17px;
+            top: 368px;
+            left: 60px;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 15px;
+            text-align: left;
+            color: var(--text-color-grey)
+        }
+
+        .search-example-bar span {
+            margin-left: 5px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="search-example-bar">
+            <div class="search-example_item">
+                <span>Search examples:</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-wallet-fill"></i>
+                <span>Address</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-file-earmark-person"></i>
+                <span>Identity</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-coin"></i>
+                <span>Token</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-boxes"></i>
+                <span>Block</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Transaction</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-circle"></i>
+                <span>CNS Name</span>
+            </div>
+            <div class="search-example_item">
+                <i class="bi bi-fonts"></i>
+                <span>Embedded Text Data</span>
+            </div>
+        </div>
+    </div>
+{% endblock %}

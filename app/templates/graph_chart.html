@@ -1,0 +1,161 @@
+{% block style %}
+    <style>
+        .graph-container {
+            width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            height: auto;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .graph-chart {
+            display: flex;
+            width: 100%;
+            justify-content: start;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .graph-heading-content {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .graph-heading-content h3 {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15.12px;
+            text-align: left;
+            color: var(--text-color-grey);
+            text-transform: uppercase;
+        }
+
+        .dropdown-button-chart {
+            width: 108px;
+            height: 40px;
+            gap: 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color-secondary);
+            background: var(--background-mainnet);
+            justify-content: center;
+            display: flex;
+            align-items: center;
+            color: var(--text-color-mainnet);
+            font-size: 12px;
+        }
+
+        .dropdown-button-chart:hover {
+            background-color: #555;
+            color: #ffffff;
+        }
+
+        #canvas-graph-chart {
+            position: relative;
+            display: flex;
+            justify-content: start;
+            align-items: center;
+            width: 100%;
+            height: 165px;
+        }
+
+        @media screen and (max-width: 1521px) {
+
+            .graph-container {
+                width: 100%;
+                margin: 30px auto;
+            }
+
+            #canvas-graph-chart {
+                width: 100%;
+                height: 100%;
+                justify-content: center;
+            }
+
+            .graph-chart {
+                padding: 15px;
+                width: 100%;
+                height: auto;
+                border: 1px solid var(--border-color-secondary);
+            }
+
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div class="graph-container">
+        <div class="graph-heading-content">
+            <h3>CCD Transactions History</h3>
+            <button class="dropdown-button-chart">14 days<span style="margin-left: 5px;"><i
+                    class="bi bi-chevron-down"></i></span></button>
+        </div>
+        <div class="graph-chart">
+            <div id="canvas-graph-chart">
+                <canvas id="transactionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const ctx = document.getElementById('transactionChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan 24', 'Feb24', 'Mar 24', 'Apr 24'],
+                    datasets: [{
+                        label: 'Price in USD',
+                        data: [0, 1, 2, 3],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRation: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                maxTicksLimit: 4,
+                                callback: ((context, index) => {
+                                    if (context === 0) {
+                                        response = 2000;
+                                    } else if (context === 1) {
+                                        response = 2500;
+                                    } else if (context === 2) {
+                                        response = 5500;
+                                    } else if (context === 3) {
+                                        response = 'Txns';
+                                    }
+                                    return response;
+                                })
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

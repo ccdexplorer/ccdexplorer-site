@@ -1,13 +1,30 @@
 {% extends "base.html" %}
+{% block style %}
+    <link href="/static/smart-contract-verification-check.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div style="padding-left:10px;">
-<h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+    <div style="padding-left:10px;">
+        <h4 class="ms-1">Smart Contracts{% if net == 'mainnet' %}{% else %} (Testnet){% endif %}</h4>
+        <p><small>
+            A smart contract is a user-supplied piece of code submitted to the Concordium blockchain,
+            used to define behavior that is not directly part of the core protocol.
+            Smart contracts are executed by nodes in the Concordium network according to predefined rules. <br><br>Each
+            <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-module.html">module</a>
+            can have zero or more
+            <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-instances.html">instances</a>.
+        </small></p>
+        <p><small>
+            <a href="/{{ net }}/smart-contracts/usage">Usage</a>,
+            <a href="/{{ net }}/smart-contracts/reporting">reporting</a>,
+            or click below on a module to see individual specifications and usage.
+        </small></p>
+        <p><a href="/{{ net }}/smart-contracts/verification" class="btn btn-outline-primary btn-sm">
+            Verify a module
+        </a></p>
 
+        <b style="padding-left:10px;">Modules</b></div><br/>
+    {% include "smart_contracts/smart_modules.html" %}
 
-<p><small>A smart contract is a user-supplied piece of code submitted to the Concordium blockchain, used to define behavior that is not directly part of the core protocol. Smart contracts are executed by nodes in the Concordium network according to predefined rules. <br><br>Each <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-module.html">module</a> can have zero or more <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-instances.html">instances</a>.</small></p>
-<p><small><a href="/{{net}}/smart-contracts/usage">Usage</a>, <a href="/{{net}}/smart-contracts/reporting">reporting</a>,  or click below on a module to see individual specifications and usage.</small></p>
-<b  style="padding-left:10px;">Modules</b></div><br/>
-{% include "smart_contracts/smart_modules.html" %}
-
-</div>
-  {% endblock content %}
+    </div>
+{% endblock content %}

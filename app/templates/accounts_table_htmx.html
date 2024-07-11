@@ -1,48 +1,202 @@
-<div class="container-sm rounded  border border-secondary p-1">
-    <div class="row">
+<style>
+    :root {
+        --bckg-color: #FFFFFF;
+        --text-color: #1B1B1B;
+    }
 
-      <div class="float-center small text-center text-muted"><small>(last 7 days, transfers excluding Exchange to Exchange transfers, transactions excluding Exchange accounts, data from {{s["timestamp"]|datetime_delta_format_since}} ago)</small></div>
-      
-      <div class="col">
-        <table class="table  small ">
-          
-          <tr>
-            
-            <th colspan="2" class="small text-center p-1 m-1"><small>Largest Transfers</small></th>
-          <tr><td class="small text-end p-1"><small><span id="largest-0">{{s["largest-0"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-0-amount">{{s["largest-0-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-1">{{s["largest-1"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-1-amount">{{s["largest-1-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-2">{{s["largest-2"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-2-amount">{{s["largest-2-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-3">{{s["largest-3"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-3-amount">{{s["largest-3-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-4">{{s["largest-4"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-4-amount">{{s["largest-4-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-5">{{s["largest-5"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-5-amount">{{s["largest-5-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-6">{{s["largest-6"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-6-amount">{{s["largest-6-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-7">{{s["largest-7"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-7-amount">{{s["largest-7-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-8">{{s["largest-8"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-8-amount">{{s["largest-8-amount"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="largest-9">{{s["largest-9"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="largest-9-amount">{{s["largest-9-amount"]|safe}}</span></small></td></tr>  
-          
-      </table>
-      </div>
-      <div class="col">
-        <table class="table  small ">
-          
-          <tr>
-            <th colspan="2" class="small text-center p-1 m-1"><small>Most Transactions</small></th>
-          <tr><td class="small text-end p-1"><small><span id="most_active-0">{{s["most_active-0"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-0-tx">{{s["most_active-0-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-1">{{s["most_active-1"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-1-tx">{{s["most_active-1-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-2">{{s["most_active-2"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-2-tx">{{s["most_active-2-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-3">{{s["most_active-3"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-3-tx">{{s["most_active-3-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-4">{{s["most_active-4"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-4-tx">{{s["most_active-4-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-5">{{s["most_active-5"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-5-tx">{{s["most_active-5-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-6">{{s["most_active-6"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-6-tx">{{s["most_active-6-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-7">{{s["most_active-7"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-7-tx">{{s["most_active-7-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-8">{{s["most_active-8"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-8-tx">{{s["most_active-8-tx"]|safe}}</span></small></td></tr>
-          <tr><td class="small text-end p-1"><small><span id="most_active-9">{{s["most_active-9"]|safe}}</span></small></td><td class="small text-end p-1"><small><span id="most_active-9-tx">{{s["most_active-9-tx"]|safe}}</span></small></td></tr>
-          
-      </table>
-      </div>
-        
+    .dark-theme {
+        --bckg-color: #0A0A0A;
+    }
+
+    .accounts-table-block {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: 50px;
+    }
+
+    .account-table-box {
+        width: 45%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .account-table thead tr th {
+        font-family: "Outfit", serif;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 15px;
+        text-align: center;
+        color: var(--text-color);
+        background: none
+
+    }
+
+    h5 {
+        font-family: "Outfit", serif;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 15px;
+        color: #666666;
+        text-align: center;
+    }
+
+    tbody.accounts-table-block {
+        width: 100%;
+        height: 400px;
+    }
+
+    .account-row {
+        background: var(--bckg-color);
+        border: #1A1A1A solid 1px;
+        border-radius: 8px;
+        margin: 5px;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        width: 600px;
+    }
+
+    .account-table tbody tr td {
+        font-family: "Outfit", serif;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 15px;
+        letter-spacing: 0.19177599251270294px;
+        text-align: center;
+    }
+
+    @media screen and (max-width: 1251px) {
+
+        .accounts-table-block {
+            flex-direction: column;
+
+        }
+
+        .account-table-box {
+            width: 100%;
+        }
+    }
+
+    @media screen and (max-width: 560px) {
+
+        .account-table tbody tr {
+            width: 300px;
+        }
+    }
+</style>
+
+
+<div class="container">
+    <h5>
+        (last 7 days, transfers excluding Exchange to Exchange transfers, transactions excluding Exchange accounts,
+        data from {{ s["timestamp"]|datetime_delta_format_since }} ago)
+    </h5>
+    <div class="accounts-table-block">
+        <div class="account-table-box">
+            <table class="account-table">
+                <thead>
+                <tr>
+                    <th>Largest transfers</th>
+                </tr>
+                </thead>
+                <tbody id="accounts-table-block">
+                <tr class="account-row">
+                    <td>{{ s["largest-0"]|safe }}</td>
+                    <td>{{ s["largest-0-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-1"]|safe }}</td>
+                    <td>{{ s["largest-1-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-2"]|safe }}</td>
+                    <td>{{ s["largest-2-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-3"]|safe }}</td>
+                    <td>{{ s["largest-3-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-4"]|safe }}</td>
+                    <td>{{ s["largest-4-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-5"]|safe }}</td>
+                    <td>{{ s["largest-5-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-6"]|safe }}</td>
+                    <td>{{ s["largest-6-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-7"]|safe }}</td>
+                    <td>{{ s["largest-7-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-8"]|safe }}</td>
+                    <td>{{ s["largest-8-amount"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["largest-9"]|safe }}</td>
+                    <td>{{ s["largest-9-amount"]|safe }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="account-table-box">
+            <table class="account-table">
+                <thead>
+                <tr>
+                    <th>Most Transactions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="account-row">
+                    <td>{{ s["most_active-0"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-1"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-2"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-3"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-4"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-5"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-6"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-7"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-8"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                <tr class="account-row">
+                    <td>{{ s["most_active-9"]|safe }}</td>
+                    <td>{{ s["most_active-0-tx"]|safe }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    
-  </div>
-  <br/>
-  
+</div>

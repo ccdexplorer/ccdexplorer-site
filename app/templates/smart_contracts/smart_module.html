@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block style %}
+    <link href="/static/smart-contract-verification-check.css" rel="stylesheet">
+{% endblock %}
 {% block content %}
 {% if net %}
     {% set net_url_string = '?net=testnet' %}
@@ -6,8 +9,12 @@
     {% set net_url_string = '' %}
 {% endif %}
 <div style="padding-left:10px;">
-<h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
-<h5  class="ms-1">Module: <i>{{ module.module_name }}</i></h5>
+<h4 class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+<h5 class="ms-1">
+    Module: <i>{{ module.module_name }}</i>
+    {% if module.verification_status %}<span class="ms-2 verification-check">&#10004;</span>{% endif %}
+    <a class="btn btn-outline-primary btn-sm ms-2" href="/{{ net }}/smart-contracts/verification/{{ module.id }}">Verify</a>
+</h5>
 <a href="/{{net}}/smart-contracts"><small>back to overview</small></a>
 <br>
 

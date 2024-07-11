@@ -1,29 +1,111 @@
+{% block style %}
+    <style>
+        .search-bar-container {
+            max-width: 770px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+            background: var(--background-color-dropdown-menu);
+            border-radius: 8px;
+            border: 1px solid var(--border-color-secondary);
+        }
+
+        .all-filters-search-button {
+            width: 108px;
+            height: 40px;
+            padding: 10px;
+            gap: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+        }
+
+        p.filters-btn-text {
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15px;
+            text-align: left;
+            color: var(--text-color-grey);
+            padding: 0;
+            margin: 0;
+        }
+
+        .arrow {
+            color: var(--text-color-grey);
+        }
+
+        .input-box {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+
+        }
+
+        input {
+            width: 100%;
+            height: 40px;
+            border-radius: 5px;
+            border: none;
+            background: none;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15px;
+            text-align: left;
+            margin-left: 15px;
+            color: #787878;
+            font-family: Outfit, serif;
+        }
+
+        input:focus {
+            outline: none;
+        }
+
+        .search_button {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 4px;
+            background: var(--search-button-color);
+        }
+    </style>
+{% endblock %}
+
 <script>
-    function yourFunction(){
-        var value_to_search = document.getElementsByName("acc")[0].value;
-        if (value_to_search != '') {
-         
-        var action_src = "/{{net}}/go/" + value_to_search;
-        var your_form = document.getElementById('your_form');
-        document.getElementById('acc').disabled = true;
-        your_form.action = action_src ;
+    function yourFunction() {
+        var value_to_search = document.getElementsByName('acc')[0].value;
+        if (value_to_search !== '') {
+
+            var action_src = "/{{net}}/go/" + value_to_search;
+            var your_form = document.getElementById('your_form');
+            document.getElementById('acc').disabled = true;
+            your_form.action = action_src;
         }
     }
-
-    function yourFunction2(){
-      var action_src = "/random/";
-      your_form.action = action_src ;
-    }
 </script>
-{% if net != 'user'%}
-            <div class="col-xs-4 me-3" style="padding-left: 10px">
-            <form id="your_form" class="form-inline m-1" onsubmit="yourFunction()">
-                 <input type="text" class=" form-control form-control-sm small input-sm mb-0 " name="acc" id="acc" placeholder="Address | Validator id | Block | Tx | CNS domain...        " >  <br>
-              <input type="submit" class="btn small ms-1 mt-0 btn-sm btn-primary" value="Search">
-              <!-- <a class="btn small btn-sm btn-primary" href="/randombaker" role="button">Random Baker</a>
-              <a class="btn small btn-sm btn-primary" href="/randomaccount" role="button">Random Wallet</a> -->
-            </form>
-            
-          </div>
-          <br>
-           {% endif %} 
+{% if net != 'user' %}
+    {% block content %}
+        <div class="container">
+            <div class="search-bar-container">
+                <div class="all-filters-search-button">
+                    <p id="dropdownHead" class="filters-btn-text">All filters</p>
+                    <i class="bi bi-chevron-down arrow"></i>
+                </div>
+                <div class="input-box">
+                    <input type="text" placeholder="Address | Validator id | Block | Tx | CNS domain...">
+                    <button type="submit" role="button" class="input-group-text btn search_button">
+                        <img src="/static/search_btn.png" alt="searc_btn">
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+{% endif %}

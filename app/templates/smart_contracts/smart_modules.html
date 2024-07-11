@@ -1,31 +1,73 @@
-<table id="main" class="table table-striped ms-1  small">
+{% block style %}
+    <style>
+        .smart-modules-row {
+            background: var(--bckg-color);
+            border: #1A1A1A solid 1px;
+            border-radius: 8px;
+            margin: 5px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            width: 100%;
+        }
 
+        .smart-modules-row td {
+            font-family: "Outfit", serif;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 15px;
+            letter-spacing: 0.19177599251270294px;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--bckg-color);
+            color: var(--secondary-text-color-light)
+        }
+
+        a {
+            margin-left: 5px;
+            color: inherit;
+
+        }
+
+        a:hover i::before {
+            background-color: #e8c3c3;
+            border-radius: 4px;
+        }
+
+        td {
+            color: var(--secondary-text-color-light);
+        }
+    </style>
+{% endblock %}
+
+<table id="main" class="table table-borderless ms-1 small">
     {% for display_month in modules %}
-        <tr>
+        <tr class="smart-modules-row">
             <td>
-                <b  class="ccd" style="padding-left:10px;padding-top:6px;">{{display_month}}</b>
+                <b>{{ display_month }}</b>
             </td>
-            <td class="text-end">
-                {{modules[display_month]|length}} 
-                {% if modules[display_month]|length == 1%}
+            <td>
+                {{ modules[display_month]|length }}
+                {% if modules[display_month]|length == 1 %}
                     new module
                 {% else %}
                     new modules
                 {% endif %}
+                <a class="btn btn-sm" data-bs-toggle="collapse"
+                   href="#month-{{ display_month }}" role="button" aria-expanded="false"
+                   aria-controls="month-{{ display_month }}"><i class="bi bi-chevron-down"></i></a>
             </td>
-            <td class="p-1"><a class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse"
-                href="#month-{{display_month}}" role="button" aria-expanded="false"
-                aria-controls="month-{{display_month}}">↧</a>
+        <tr class="collapse" id="month-{{ display_month }}">
+            <td colspan="2" class="bg-transparent">
+                <table class="table ms-0 small" style="border-bottom: 1px solid #1A1A1A;">
+                    {% for module in modules[display_month] %}
+                        {% include "smart_contracts/smart_modules_module.html" %}
+                    {% endfor %}
+                </table>
             </td>
-        </tr>
-        <tr class="collapse" id="month-{{display_month}}">
-            <td colspan="2">
-                <table class="table   ms-0  small">
-            {% for module in modules[display_month] %}
-                {% include "smart_contracts/smart_modules_module.html" %}
-            {% endfor %}    
-            </table>
-        </td>
         </tr>
     {% endfor %}
 </table>

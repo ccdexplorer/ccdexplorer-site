@@ -258,9 +258,8 @@ def get_user_detailsv2(req: Request, token: str = None):
         user = users_from_collection.get(token)
     except AttributeError:
         user = None
-
-    if user:
-        if not type(user) == UserV2:
+    else:
+        if user and not isinstance(user, UserV2):
             user = UserV2(**user)
 
     return user
@@ -422,31 +421,33 @@ def get_labeled_accounts(
 
         ### insert projects into tags
         # display_names
-        # projects_display_names = {
-        #     x["_id"]: x["display_name"]
-        #     for x in req.app.mongodb.utilities[CollectionsUtilities.projects].find({})
-        # }
-        # # account addresses
-        # project_account_addresses = list(
-        #     req.app.mongodb.mainnet[Collections.projects].find(
-        #         {"type": "account_address"}
-        #     )
-        # )
-        # dd = {}
-        # for paa in project_account_addresses:
-        #     dd[paa["account_address"]] = projects_display_names[paa["project_id"]]
-        # labeled_accounts["projects"] = dd
+        projects_display_names = {
+            x["_id"]: x["display_name"]
+            for x in req.app.mongodb.utilities[CollectionsUtilities.projects].find({})
+        }
+        # account addresses
+        project_account_addresses = list(
+            req.app.mongodb.mainnet[Collections.projects].find(
+                {"type": "account_address"}
+            )
+        )
+        dd = {}
+        for paa in project_account_addresses:
+            dd[paa["account_address"]] = projects_display_names[paa["project_id"]]
+        labeled_accounts["projects"] = dd
 
-        # # contract addresses
-        # project_contract_addresses = list(
-        #     req.app.mongodb.mainnet[Collections.projects].find(
-        #         {"type": "contract_address"}
-        #     )
-        # )
-        # dd = {}
-        # for paa in project_contract_addresses:
-        #     dd[paa["contract_address"]] = projects_display_names[paa["project_id"]]
-        # labeled_accounts["contracts"].update(dd)
+        # contract addresses
+        project_contract_addresses = list(
+            req.app.mongodb.mainnet[Collections.projects].find(
+                {"type": "contract_address"}
+            )
+        )
+        dd = {}
+        for paa in project_contract_addresses:
+            dd[paa["contract_address"]] = projects_display_names[paa["project_id"]]
+
+        contracts = labeled_accounts.get("contracts", {})
+        contracts.update(dd)
 
         tags = {
             "labels": labeled_accounts,
