@@ -25,7 +25,7 @@ from ccdexplorer_fundamentals.mongodb import (
 )
 from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockItemSummary
 from app.jinja2_helpers import *
 from app.env import *
 from app.state.state import *

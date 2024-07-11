@@ -1,5 +1,6 @@
 <!-- <div class="table-responsive"> -->
     <!-- - Module Contracts table -->
+    
 <table class="table table-striped ms-1 me-1 small">
    
     <tbody>
@@ -10,8 +11,8 @@
         </tr>
 
        </thead>
-       {% if module.contracts %}
-        {% for contract_address in module.contracts|sort %}
+       {% if module_instances %}
+        {% for contract_address in module_instances|sort %}
         <tr >
             
             <td>{{contract_address|instance_link_from_str(net)|safe}}</td>

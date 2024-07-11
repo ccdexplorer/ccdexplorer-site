@@ -1,14 +1,18 @@
 <!-- <div class="table-responsive"> -->
     <!-- - Module Contracts table -->
     
-    <p><small>The following modules are included in the report:</small></p>
+    <!-- <p><small>The following modules are included in the report:</small></p>
     <ul>
         {% for sm in results.keys() %}
         <li><span class="ccd">{{source_to_name[sm]}}</span></li>
         {% endfor %}
-    </ul>
+    </ul> -->
     
-    <h6 class="mt-2">All Selected Modules Combined</h6>
+    <h6 class="mt-2">All Selected Modules Combined*</h6>
+    <p><small><i><span class="small">* Note that double counting can occur, as a single tx can involve multiple contracts from a module.</span></i></small></p>
+    {% if results_all|length == 0 %}
+    <p><small>No results found...</small></p>
+    {% endif %}
     <table class="table table-striped ms-1 me-1 small">
     {% for c in results_all|reverse %}
         
@@ -29,9 +33,10 @@
         
         {% endfor %}
     </table>
-    
+    <hr>
+    <h6 class="mt-2">Individual Modules</h6>
     {% for sm, content in results.items() %}
-        <small><span class="text-muted ">{{source_to_name[sm]}}</span></small>
+        <small><span class="text-muted ms-2">{{source_to_name[sm]}}</span></small>
         <table class="table table-striped ms-1 me-1small">
             {% include "smart_contracts/smart_contracts_reporting_individual.html" %}    
         </table>

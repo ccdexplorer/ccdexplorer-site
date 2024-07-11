@@ -612,6 +612,13 @@ class MakeUp:
                                 None,
                             )
 
+                        if effect.upgraded:
+                            new_event = EventType(
+                                f"Upgraded contract with address {instance_link_v2(effect.upgraded.address, self.user, self.tags, self.net)}",
+                                f"From module: <a href='/{self.net}/module/{effect.upgraded.from_module}'>{effect.upgraded.from_module[:4]}</a><br>To module: <a href='/{self.net}/module/{effect.upgraded.to_module}'>{effect.upgraded.to_module[:4]}</a>",
+                                None,
+                            )
+
                         if new_event:
                             self.events_list.append(new_event)
 
