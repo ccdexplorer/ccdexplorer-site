@@ -941,8 +941,8 @@ async def release_notes(
     )
 
 
-@router.get("/{net}/profiles", response_class=HTMLResponse)
-async def profiles(
+@router.get("/{net}/accounts", response_class=HTMLResponse)
+async def accounts_list(
     request: Request,
     net: str,
     recurring: Recurring = Depends(get_recurring),
