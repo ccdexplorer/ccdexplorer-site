@@ -1,164 +1,156 @@
+<div class="container">
+    <p class="small">Select date range: </p>
+    <div class="col">
+        <input type="text" class="dates form-control form-control-sm small input-sm mb-1 text-start" data-precision="0"
+               name="start_date" id="start_date" placeholder="Start Date"><br>
+    </div>
 
-  <script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
-  <!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
-<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-<!-- Import vega-embed -->
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-
-
-
-
-
-
-<script>
-
-  function Search() {
-    const type_daily = document.getElementById("daily");
-    const type_weekly = document.getElementById("weekly");
-    const type_monthly = document.getElementById("monthly");
-
-    if (type_daily.checked) {
-      type = "Daily"
-    }
-    if (type_weekly.checked) {
-      type = "Weekly"
-    }
-    if (type_monthly.checked) {
-      type = "Monthly"
-    }
-
-    var width = Math.min(window.innerWidth, 675);
-    fee_graph = document.getElementById('fee_graph');
-    fee_graph.innerHTML = '{% include "spinner.html" %}';
-    fee_table = document.getElementById('fee_table');
-    fee_table.innerHTML = '{% include "spinner.html" %}';
-        
-        
-        var start_date = document.getElementById("start_date").value;
-        var end_date = document.getElementById("end_date").value;
-        spec = '/ajax_transaction_fees_graph/'+start_date+'/'+end_date+"/"+type+'/graph/'+width;
-        
-        var opt = { renderer: 'svg', actions: false };
-        vegaEmbed('#fee_graph', spec, opt).then(function (result) { }).catch(console.error);
-        
-        url = '/ajax_transaction_fees_graph/'+start_date+'/'+end_date+"/"+type+'/table/'+width;
-        
-        fetch(url)
-          .then((response) => {
-            return response.json();
-          })
-          .then((data) => {
-            fee_table.innerHTML = data
-          })
-          .catch(function(error) {
-            console.log(error);
-          });
-      }
-
-
-
-</script>
- 
-<br/>
-<div class="row ps-3 pe-3">
-  <p class="small">Select date range: </p>
-  <div class="col">
-    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="start_date" id="start_date" placeholder="Start Date"><br>
-  </div>
-  <div class="col small text-center"><span class="ccd">≤ Date ≤</span>
-  </div>
-  <div class="col">
-    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
-  </div>
+    <div class="col">
+        <input type="text" class="dates form-control form-control-sm small input-sm mb-1 text-start" data-precision="0"
+               name="end_date" id="end_date" placeholder="End Date"><br>
+    </div>
 </div>
-<div class="text-start ps-3 pe-3">
-  <p class="small">Group by: </p>
-  <div class="btn-group btn-group-sm text-center ms-2"   role="group" >
-    <input type="radio" class="btn-check " name="btnradio_gb_d" id="daily" autocomplete="off" >
-    <label class="btn btn-outline-primary" for="daily">Daily</label>
-  
-    <input type="radio" class="btn-check" name="btnradio_gb_w" id="weekly" autocomplete="off" >
-    <label class="btn btn-outline-primary" for="weekly">Weekly</label>
-  
-    <input type="radio" class="btn-check" name="btnradio_gb_m" id="monthly" autocomplete="off" checked>
-    <label class="btn btn-outline-primary" for="monthly">Monthly</label>
-  </div>
+
+
+<div class="container">
+    <div class="text-start ps-3 pe-3">
+        <p class="small">Group by: </p>
+
+        <input type="radio" class="btn-check" name="options" id="option1" autocomplete="off" checked>
+        <label class="btn " for="option1">Daily</label>
+
+        <input type="radio" class="btn-check" name="options" id="option2" autocomplete="off">
+        <label class="btn " for="option2">Weekly</label>
+
+        <input type="radio" class="btn-check" name="options" id="option4" autocomplete="off">
+        <label class="btn " for="option4">Monthly</label>
+    </div>
 </div>
 <br/><br/><br/>
-<button onclick='Search()' type="button" id="account-add-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Show Transaction Fees</button>
-    <!-- </form> -->
-  
-
+<button onclick='Search()' type="button" id="account-add-button" class="ms-4 pe-3 btn btn-sm">Show
+    Transaction Fees
+</button>
 
 <div id="fee_graph" class="ps-3 pt-3"></div>
 <div id="fee_table" class="ps-3 pt-3"></div>
 
+{% block style %}
+    <style>
+        .container {
+            color: var(--secondary-text-color-light);
+            font-family: 'Outfit', serif;
+        }
+
+        .dates {
+            background: var(--background-color-row);
+            color: var(--secondary-text-color-light);
+            border: 1px solid var(--secondary-text-color-light);
+        }
+
+        .btn {
+            background: var(--background-color-row);
+            border: 1px solid var(--secondary-text-color);
+            box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
+            color: var(--secondary-text-color-light);
+        }
+    </style>
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://unpkg.com/htmx.org@1.9.6"
+            integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni"
+            crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
+    <!-- Import Vega & Vega-Lite (does not have to be from CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <!-- Import vega-embed -->
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <script>
+        function Search() {
+            const type_daily = document.getElementById('daily');
+            const type_weekly = document.getElementById('weekly');
+            const type_monthly = document.getElementById('monthly');
 
 
-<script>
-function addHoursToDate(objDate, intHours) {
+            let type;
+            switch (true) {
+                case type_daily.checked:
+                    type = 'Daily';
+                    break;
+                case type_weekly.checked:
+                    type = 'Weekly';
+                    break;
+                case type_monthly.checked:
+                    type = 'Monthly';
+                    break;
+            }
 
-  var numberOfMlSeconds = objDate;
-
-  var addMlSeconds = (intHours * 60) * 60 * 1000;
-
-  var newDateObj = new Date(numberOfMlSeconds + addMlSeconds);
-
-  return newDateObj;
-
-}
-
-flatpickr("#start_date", {defaultDate:"2021-06-09"});
-let now = new Date().toISOString()//.split('T')[0]
-// let last_month = addHoursToDate(Date.now(), -24*30)
-flatpickr("#end_date", {defaultDate: now});
-</script>
-
-<script>
-  const btn_daily = document.getElementById("daily");
-  const btn_weekly = document.getElementById("weekly");
-  const btn_monthly = document.getElementById("monthly");
-  
-  document.querySelector("#daily").addEventListener("click",function() {
-    btn_daily.checked = true;
-    btn_weekly.checked = false;
-    btn_monthly.checked = false;
-  })
-
-  document.querySelector("#weekly").addEventListener("click",function() {
-    btn_daily.checked = false;
-    btn_weekly.checked = true;
-    btn_monthly.checked = false;
-  })
-
-  document.querySelector("#monthly").addEventListener("click",function() {
-    btn_daily.checked = false;
-    btn_weekly.checked = false;
-    btn_monthly.checked = true;
-  })
-</script>
+            const width = Math.min(window.innerWidth, 675);
+            const fee_graph = document.getElementById('fee_graph');
+            fee_graph.innerHTML = '{% include "spinner.html" %}';
+            const fee_table = document.getElementById('fee_table');
+            fee_table.innerHTML = '{% include "spinner.html" %}';
 
 
+            var start_date = document.getElementById('start_date').value;
+            var end_date = document.getElementById('end_date').value;
+            spec = '/ajax_transaction_fees_graph/' + start_date + '/' + end_date + '/' + type + '/graph/' + width;
 
+            var opt = {renderer: 'svg', actions: false};
+            vegaEmbed('#fee_graph', spec, opt).then(function (result) {
+            }).catch(console.error);
 
+            url = '/ajax_transaction_fees_graph/' + start_date + '/' + end_date + '/' + type + '/table/' + width;
 
+            fetch(url)
+                .then((response) => {
+                    return response.json();
+                })
+                .then((data) => {
+                    fee_table.innerHTML = data;
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+    </script>
 
+    <script>
+        function addHoursToDate(objDate, intHours) {
+            const numberOfMlSeconds = objDate;
+            const addMlSeconds = (intHours * 60) * 60 * 1000;
+            return new Date(numberOfMlSeconds + addMlSeconds);
+        }
 
+        flatpickr('#start_date', {defaultDate: '2021-06-09'});
+        let now = new Date().toISOString();//.split('T')[0]
+        // let last_month = addHoursToDate(Date.now(), -24*30)
+        flatpickr('#end_date', {defaultDate: now});
+    </script>
 
+    <script>
+        const btn_daily = document.getElementById('daily');
+        const btn_weekly = document.getElementById('weekly');
+        const btn_monthly = document.getElementById('monthly');
 
+        document.querySelector('#daily').addEventListener('click', function () {
+            btn_daily.checked = true;
+            btn_weekly.checked = false;
+            btn_monthly.checked = false;
+        });
 
+        document.querySelector('#weekly').addEventListener('click', function () {
+            btn_daily.checked = false;
+            btn_weekly.checked = true;
+            btn_monthly.checked = false;
+        });
 
-
-
-
-
-
-
-
-
-
-
-
-
+        document.querySelector('#monthly').addEventListener('click', function () {
+            btn_daily.checked = false;
+            btn_weekly.checked = false;
+            btn_monthly.checked = true;
+        });
+    </script>
+{% endblock %}
