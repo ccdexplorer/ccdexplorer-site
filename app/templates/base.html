@@ -16,7 +16,7 @@
         <script>window.aesirx1stparty = 'https://aesirx.ccdexplorer.io';</script>
         <script async defer src="/static/analytics.js"></script>
     {% endif %}
-
+    <script src="/static/theme-switch.js" defer></script>
     <!-- Link CSS -->
 
     <link rel="stylesheet" href="/static/css/nav-logo-main-s.css">
@@ -41,7 +41,7 @@
             --bakground-color-component: #ffffff;
             --search-button-color: #ffffff;
             --background-color-dropdown-menu: #ffffff;
-            --border-color-main: #1E1E1E;
+            --border-color-main: #BBB;
             --border-color-secondary: #1B1B1B;
             --background-mainnet: #ffffff;
             --text-color-mainnet: #1D1C1C;
@@ -56,6 +56,7 @@
             --background-color-nav-drop-menu-hover-item: #0A0A0A;
             --background-color-component: #0A0A0A;
             --background-mainnet: #1D1C1C;
+            --border-color-main: #1E1E1E;
             --text-color: #FFFFFF;
             --text-color-mainnet: #CBCBCB;
             --search-button-color: #666666;
@@ -81,25 +82,7 @@
 
         span {
             opacity: 1;
-            transition: all 0.5s;
-        }
-
-        span.hide {
-            opacity: 0;
-        }
-
-        span {
-            opacity: 1;
-            transition: all 0.5s;
-        }
-
-        span.hide {
-            opacity: 0;
-        }
-
-        span {
-            opacity: 1;
-            transition: all 0.5s;
+            transition: all 300ms;
         }
 
         span.hide {
@@ -257,7 +240,7 @@
     <style>
         .htmx-indicator {
             opacity: 0;
-            transition: opacity 500ms ease-in-out;
+            transition: opacity ease-in-out 300ms;
         }
 
         .htmx-request .htmx-indicator {
@@ -275,7 +258,7 @@
 
         .breathing {
             opacity: 1;
-            transition: opacity ease-in 500ms;
+            transition: opacity ease-in 300ms;
         }
     </style>
     <style>
@@ -297,7 +280,7 @@
     <style>
         footer {
             font-family: "Outfit", serif;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             line-height: 15.12px;
             color: #666666;
@@ -366,7 +349,7 @@
 
 <div class="container-fluid">
     <div class="col-10 mx-auto">
-        {% include "nav_logo.html" %}
+        {% include "header.html" %}
         <div class="container">
             <div class="upper-screen">
                 <div class="left-screen">
@@ -374,7 +357,9 @@
                     {% include "search_bar.html" %}
                     {% include "search_examples_bar.html" %}
                 </div>
-                {% include "graph_chart.html" %}
+                {% if net == 'mainnet' and (request.url|string).endswith(net) %}
+                    {% include "graph_chart.html" %}
+                {% endif %}
             </div>
         </div>
         <hr>

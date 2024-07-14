@@ -1,29 +1,26 @@
-.navigation-bar {
-  height: 200px;
-  position: relative;
-  top: 43px;
-  margin: 0 auto;
-}
-
-#navigation-bar-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin: auto;
+.header {
   width: 100%;
+  display: flex;
+  margin: 64px auto;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
 }
 
-#navigation-items {
-  display: flex;
-  justify-content: space-between;
-  width: 797.06px;
+.dropdown:hover>.dropdown-menu {
+  display: block;
+}
+
+.dropdown>.dropdown-toggle:active {
+  /*Without this, clicking will make it sticky*/
+    pointer-events: none;
 }
 
 #nav-logo {
   color: var(--text-color);
 }
 
-img#logo-logo {
+img#logo-lg {
   width: 200px;
   background: var(--secondary-text-color);
 }
@@ -34,121 +31,54 @@ img#concordium-small {
   margin-right: 5px;
 }
 
-img.small-logo {
-  width: 25px;
+img.logo-sm {
+  max-width: 24px;
+  max-height: 24px;
+  width: 100%;
+  height: 100%;
 }
 
-.sub-menu {
-  width: 100%;
+.navigation {
+  margin: 0 0 0 auto;
+  gap: 48px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
   list-style-type: none;
   text-decoration: none;
-}
-
-ul.sub-menu li {
-  margin-right: 5px;
-}
-
-ul.sub-menu li a {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 15.12px;
-  text-align: left;
-  color: var(--text-color);
-  text-decoration: none;
-}
-
-.sub-menu {
-  list-style-type: none;
   padding: 0;
-  margin: 0;
-  display: flex;
 }
 
-.menu-item {
-  position: relative;
+.navigation-item-complex {
+  text-wrap: nowrap;
+  cursor: pointer;
 }
 
-.menu-item a {
-  display: block;
-  padding: 15px 20px;
-  color: #FFFFFF;
+.navigation-item-complex a {
   text-decoration: none;
+  color: var(--text-color);
 }
 
-.menu-item a:hover {
+.navigation-item-complex a:hover {
   color: #666666;
-  transition: ease-in-out 0.3s;
+  transition: 300ms ease-in-out;
 }
 
-ul.drop {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  align-items: center;
-  gap: 2px;
-  position: absolute;
-  top: 100%;
-  background: var(--background-color-dropdown-menu);
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  width: 76px;
-  font-family: "Outfit";
-  border-radius: 8px;
-  padding: 4px;
-  gap: 8px;
-  box-shadow: 2px 2px 3px var(--shadow-color);
+.navigation-item-complex__wrapper {
+  --bs-dropdown-min-width: 10px !important;
+  --bs-dropdown-padding-x: 16px !important;
+  --bs-dropdown-padding-y: 4px !important;
+  background-color: var(--background-mainnet) !important;
 }
 
-ul.drop li a {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 15.12px;
-  text-align: left;
-  color: var(--text-color);
+.navigation-item-complex__item {
   text-decoration: none;
-  width: 70px;
-  height: 25px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-left: 5px;
-  border-radius: 8px;
-}
-
-ul.drop li a:hover {
-  background: var(--background-color-nav-drop-menu-hover-item);
   color: var(--text-color);
-}
-
-ul :nth-child(1) .drop {
-  left: 12px;
-}
-
-.drop li {
-  display: inline-block;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-}
-
-.drop li a {
-  margin: 0;
-  padding: 0;
-}
-
-.menu-item:hover .drop {
-  display: flex;
 }
 
 /* Theme Swithcer Button */
 
-#theme-mainnet-testnet {
-  max-width: 215px;
+#header-settings {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -157,356 +87,104 @@ ul :nth-child(1) .drop {
 
 /* Switcher styles */
 
-.switcher {
-  border: 0;
-  padding: 0;
-  box-sizing: border-box;
-  width: 30px;
-  height: 30px;
+.theme-switcher {
   border-radius: 6px;
-  background-color: #666666;
+  background-color: var(--background-mainnet);
+  margin: 0 !important;
+  min-width: 38px;
+  min-height: 38px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  position: relative;
- 
 }
 
-/* .switcher-animation-light {
-  animation-name: light;
-  animation-duration: 0.5s;
-  animation-fill-mode: forwards;
-}
-
-.switcher-animation-dark {
-  animation-name: dark;
-  animation-duration: 0.5s;
-  animation-fill-mode: backwards;
-} */
-
-/* Animation for switch button */
-
-/* @keyframes light {
-  0% {
-    left: 0px;
-  }
-
-  100% {
-    left: 30px;
-    color: rgb(238, 178, 13);
-  }
-}
-
-@keyframes dark {
-  0% {
-    left: 30px;
-  }
-
-  100% {
-    left: 0px;
-    color: #0A0A0A;
-  } */
-
-
-#switch-theme {
-
-  border-radius: 4px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-right: 10px;
-}
-
-/* Mainnet Testnet
-
-#mainnet-testnet {
-  border: 0;
-  padding: 0;
-  box-sizing: border-box;
-  width: 109.6px;
-  height: 35px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  border-radius: 4px;
-  background-color: #1D1C1C;
-}
-
-#img-mainnet {
-  width: 14px;
-  height: 14px;
-}
-
-#p-mainnet {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  color: #CBCBCB;
-  text-align: center;
-  padding: 0;
+.theme-switcher i {
   margin: 0;
-  list-style-type: none;
-  text-decoration: none;
 }
 
-#p-mainnet:hover,
-.arrow-down:hover {
-  color: #666666;
-  cursor: pointer;
-  transition: 0.5s;
+.network-switcher {
+  --bs-body-bg: var(--background-mainnet);
+  --bs-body-color: var(--text-color-mainnet);
+  --bs-border-color: var(--border-color-main);
 }
 
-.arrow-down {
-  color: #CBCBCB;
-  cursor: pointer;
-}
+/* burger-button MENU */
 
-.testnet-list {
-  list-style-type: none;
-  width: 109.6px;
-  height: 35px;
-  background-color: rgb(102, 102, 102);
-  position: absolute;
-  top: 45px;
-  border-radius: 4px;
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  color: #CBCBCB;
-  text-align: center;
-  padding: 0;
-  margin: 0;
+.burger-button {
   display: none;
   justify-content: center;
   align-items: center;
-  background-color: rgba(102, 102, 102, 0.3);
-}
-
-.mainnet-opened {
-  display: flex;
-}
-
-.testnet-list-item:hover {
-color: #666666;
-transition: 0.5s;
-cursor: pointer;
-} */
-
-.dropbtn {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  color: #CBCBCB;
-  text-align: center;
-  padding: 0;
-  margin: 0;
-  list-style-type: none;
-  text-decoration: none;
-  cursor: pointer;
-  padding: 10px;
-  gap: 10px;
-  border-radius: 4px;
-  opacity: 0px;
-}
-
-/* The container <div> - needed to position the dropdown content */
-.dropdown-custom {
-  width: 109.06px;
-  height: 35px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+  min-width: 38px;
+  min-height: 38px;
   border-radius: 4px;
   background: var(--background-mainnet);
-  border: 1px solid var(--border-color-main);
+  border: none;
+  font-size: 20px;
+  color: var(--text-color-mainnet);
+  padding: 0 4px 4px;
 }
 
-#dropdownHead {
-  color: var(--text-color-mainnet);
-}
-
-/* Dropdown Content (Hidden by Default) */
-.dropdown-custom-content {
-  font-family: "Outfit";
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-color-mainnet);
-  text-align: center;
-  padding: 0;
-  margin-top: 0px;
-  list-style-type: none;
+.burger-item {
+  background-color: var(--background-mainnet) !important;
+  color: var(--text-color-mainnet) !important;
+  border: none !important;
   text-decoration: none;
-  cursor: pointer;
-  display: none;
+  max-width: 600px;
+  margin: auto;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.burger-menu {
   position: absolute;
-  top: 45px;
-  background-color: rgba(102, 102, 102, 0.5);
-  width: 109.6px;
-  height: 35px;
-  border-radius: 4px;
-  justify-content: center;
-  align-items: center;
-}
-
-
-/* Links inside the dropdown */
-.dropdown-custom-content .dropdown-custom-item {
-  color: #f1f1f1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  margin: 0;
-  padding: 0;
-  text-decoration: none;
-}
-
-/* Change color of dropdown links on hover */
-/* .dropdown-custom-content .dropdown-custom-item:hover {
-  background-color: #f1f1f1;
-} */
-
-/* Show the dropdown menu on hover */
-/* .dropdown-custom:hover .dropdown-custom-content {
-  display: block;
-} */
-
-/* HAMBURGER MENU */
-
-.hamburger {
-display: none;
-justify-content: center;
-align-items: center;
-width: 36px;
-height: 36px;
-top: 42px;
-left: 314.06px;
-padding: 5px;
-gap: 10px;
-border-radius: 4px;
-opacity: 0px;
-background: var(--background-mainnet);
-border: 1px solid var(--border-color-main);
-font-size: 25px;
-color: var(--text-color-mainnet);
-}
-
-.side-menu {
+  inset: 0;
   display: block;
   width: 25%;
   left: -575px;
-  height: 100vh;
-  position: absolute;
-  transition: 0.5s;
-  z-index: 1;
+  transition: 300ms;
+  z-index: 10;
 }
 
-.side-menu-opened {
+.burger-menu-opened {
   left: 0px;
   width: 100%;
-  background: rgba(102, 102, 102, 0.8);
-}
-
-.accordion-button::after {
-  background-color: var(--background-color-beige);
-  border-radius: 50%;
-
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .no-arrow::after {
   display: none;
 }
 
-
-
-/* .sub-menu {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-item {
-  position: relative;
-} */
-
-/* .drop {
-  display: flex;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  position: absolute;
-  left: 100%;
-  top: 0;
-} */
-
-/* .menu-item:hover .drop {
-  display: block;
-} */
-
-/* Responsive styles */
-
-
-/* MEDIA QUERY */
-
 @media screen and (max-width: 1521px) {
-
   .container {
     margin: 0;
     padding: 0;
   }
 
- .sub-menu {
-  display: none;
- }
+  .navigation {
+    display: none;
+  }
 
- #navigation-items {
-  justify-content: end;
-}
-
-.hamburger {
-  display: flex;
-}
+  .burger-button {
+    display: flex;
+  }
 }
 
 @media screen and (max-width: 1251px) {
-
-
-  /* #theme-mainnet-testnet {
-    width: 250px;
-  } */
-
-
-  #navigation-bar-content {
-    align-items: center;
-  }
-
-  div#main-logo {
+  div#logo-md {
     width: 135px;
     font-size: 30px;
     display: flex;
   }
 
-  .main-menu {
-    display: none;
-    flex-direction: column;
-  }
-
-  .main-menu.show {
-    display: flex;
-  }
-
-  .menu-item {
+  .navigation-item-complex {
     position: relative;
-  }
-
-  .drop {
-    position: static;
   }
 }
 
 @media screen and (max-width: 636px) {
 
-  img#logo-logo {
+  img#logo-lg {
     width: 130px;
   }
 }
@@ -514,7 +192,7 @@ color: var(--text-color-mainnet);
 
 @media screen and (max-width: 495px) {
 
-  img#logo-logo {
+  img#logo-lg {
     display: none;
   }
 
