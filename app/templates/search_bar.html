@@ -79,29 +79,13 @@
     </style>
 {% endblock %}
 
-<script>
-    function yourFunction() {
-        var value_to_search = document.getElementsByName('acc')[0].value;
-        if (value_to_search !== '') {
-
-            var action_src = "/{{net}}/go/" + value_to_search;
-            var your_form = document.getElementById('your_form');
-            document.getElementById('acc').disabled = true;
-            your_form.action = action_src;
-        }
-    }
-</script>
 {% if net != 'user' %}
     {% block content %}
         <div class="container">
-            <div class="search-bar-container">
-                <div class="all-filters-search-button">
-                    <p id="dropdownHead" class="filters-btn-text">All filters</p>
-                    <i class="bi bi-chevron-down arrow"></i>
-                </div>
+            <div id="search-element" class="search-bar-container" onsubmit="searchElement()">
                 <div class="input-box">
-                    <input type="text" placeholder="Address | Validator id | Block | Tx | CNS domain...">
-                    <button type="submit" role="button" class="input-group-text btn search_button">
+                    <input type="text" placeholder="Address | Validator id | Block | Tx | CNS domain..." name="acc">
+                    <button role="button" class="input-group-text btn search_button" onclick="searchElement()">
                         <img src="/static/search_btn.png" alt="searc_btn">
                     </button>
                 </div>
@@ -109,3 +93,13 @@
         </div>
     {% endblock %}
 {% endif %}
+
+<script>
+    function searchElement(event) {
+        var value_to_search = document.getElementsByName('acc')[0].value;
+        if (value_to_search !== '') {
+            var action_src = `/{{net}}/go/${value_to_search}`;
+            window.location.replace(action_src)
+        }
+    }
+</script>

@@ -1,10 +1,14 @@
 .venv/*
+venv
+.env
+
 .DS_Store
 /app/tmp
 *.pyc
-.env
+
 .vscode/launch.json
 .vscode/settings.json
+
 docs/classes.md
 docs/endpoints.md
 docs/Exchanges.md
@@ -14,6 +18,7 @@ docs/milestones.pdf
 docs/statistics.md
 docs/configs/mongodb/docker-compose.yml
 docs/configs/node/docker-compose.yml
+
 site/404.html
 site/index.html
 site/milestones.pdf
@@ -64,3 +69,10 @@ site/endpoints/index.html
 site/milestones/index.html
 site/search/search_index.json
 site/statistics/index.html
+
+
+site/assets/javascripts/**/*.min.js
+site/assets/javascripts/**/*.min.js.map
+
+site/assets/stylesheets/**/*.min.css
+site/assets/stylesheets/**/*.min.css.map
