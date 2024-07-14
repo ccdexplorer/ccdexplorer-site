@@ -155,7 +155,7 @@ img.logo-sm {
   display: none;
 }
 
-@media screen and (max-width: 1521px) {
+@media screen and (max-width: 1000px) {
   .container {
     margin: 0;
     padding: 0;

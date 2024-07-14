@@ -3,13 +3,11 @@
         .crypto-dashboard {
             border: 1px solid var(--border-color-main);
             background: var(--background-color-component);
-            max-width: 770px;
+            max-width: 900px;
             min-height: 84px;
             display: flex;
             justify-content: space-around;
             align-items: center;
-            top: 184px;
-            left: 60px;
             padding: 20px;
             gap: 40px;
             border-radius: 8px;
@@ -19,7 +17,27 @@
         .crypto-info {
             display: flex;
             gap: 40px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            width: fit-content;
+            align-items: center;
+            justify-content: center;
+            left: 0;
+        }
+
+        @media screen and (max-width: 1000px) {
+            .crypto-info {
+                display: flex;
+                gap: 40px;
+                flex-wrap: wrap;
+            }
+        }
+
+
+        .crypto-info-row {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            width: 100%;
         }
 
         .crypto-info-item {
@@ -28,6 +46,7 @@
             align-items: center;
             gap: 8px;
             height: 44px;
+            min-width: 80px;
         }
 
         .label,
@@ -68,37 +87,38 @@
 {% block content %}
     <div class="container">
         <div class="crypto-dashboard">
-            <div class="crypto-logo">
-                <img class="logo-sm inside" src="/static/small-logo-black.png" alt="small-logo">
-            </div>
             <div class="crypto-info">
-                <div class="crypto-info-item marketcap">
-                    <span class="label">Marketcap</span>
-                    <span class="value">$48M</span>
+                <div class="crypto-info-row">   
+                    <div class="crypto-info-item marketcap">
+                        <span class="label">Marketcap</span>
+                        <span class="value">$48M</span>
+                    </div>
+                    <div class="crypto-info-item position">
+                        <span class="label">Position</span>
+                        <span class="value">#456</span>
+                    </div>
+                    <div class="crypto-info-item accounts">
+                        <span class="label">Accounts</span>
+                        <span class="value">5600</span>
+                    </div>
                 </div>
-                <div class="crypto-info-item position">
-                    <span class="label">Position</span>
-                    <span class="value">#456</span>
-                </div>
-                <div class="crypto-info-item accounts">
-                    <span class="label">Accounts</span>
-                    <span class="value">5600</span>
-                </div>
-                <div class="crypto-info-item ccd-price">
-                    <span class="label">CCD Price</span>
-                    <span class="value percentage-add">$0.05 <span class="percentage">+15%</span></span>
-                </div>
-                <div class="crypto-info-item gas-price">
-                    <span class="label">Gas Price</span>
-                    <span class="value">$0.05</span>
-                </div>
-                <div class="crypto-info-item total-txns">
-                    <span class="label">Total Txns</span>
-                    <span class="value">45M txns</span>
-                </div>
-                <div class="crypto-info-item tps">
-                    <span class="label">TPS</span>
-                    <span class="value">0.5 txns/sec</span>
+                <div class="crypto-info-row">
+                    <div class="crypto-info-item ccd-price">
+                        <span class="label">CCD Price</span>
+                        <span class="value percentage-add">$0.05 <span class="percentage">+15%</span></span>
+                    </div>
+                    <div class="crypto-info-item gas-price">
+                        <span class="label">Gas Price</span>
+                        <span class="value">$0.05</span>
+                    </div>
+                    <div class="crypto-info-item total-txns">
+                        <span class="label">Total Txns</span>
+                        <span class="value">45M txs</span>
+                    </div>
+                    <div class="crypto-info-item tps">
+                        <span class="label">TPS</span>
+                        <span class="value">.5 txs/sec</span>
+                    </div>
                 </div>
             </div>
         </div>
