@@ -17,6 +17,7 @@ const smallLogoWhite = '/static/small-logo-white.png';
 
 
 const switchingTheme = function () {
+
     let theme = 'light';
 
     if (!switching.classList.contains('theme-switcher-animation-dark')) {
@@ -40,7 +41,14 @@ const switchingTheme = function () {
     localStorage.setItem('theme', theme);
 };
 
-const theme = localStorage.getItem('theme');
+
+let theme;
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    theme = 'dark';
+}
+
+theme = localStorage.getItem('theme') || theme;
+
 if (theme == 'dark') {
     switchingTheme();
 }
