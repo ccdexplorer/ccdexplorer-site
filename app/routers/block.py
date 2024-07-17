@@ -30,6 +30,29 @@ from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 router = APIRouter()
 
 
+@router.get("/{net}/ajax_last_blocks", response_class=HTMLResponse)
+async def ajax_last_blocks(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    result = db_to_use[Collections.blocks].find({}).sort({"slot_time": -1}).limit(10)
+    return templates.TemplateResponse(
+        "last_blocks_table.html",
+        {
+            "request": request,
+            "blocks": list(result),
+            "net": net,
+            "mongodb": mongodb,
+            "tags": tags,
+            "user": user,
+        },
+    )
+
+
 @router.get("/block/{block_hash}", response_class=RedirectResponse)
 async def redirect_block_to_mainnet(request: Request, block_hash: str):
     response = RedirectResponse(url=f"/mainnet/block/{block_hash}", status_code=302)

@@ -1,0 +1,139 @@
+.rotate {
+    margin-left: 10px;
+    animation: rotation 1.2s infinite linear;
+  }
+
+  @keyframes rotation {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(359deg);
+    }
+  }
+
+
+  span {
+    opacity: 1;
+    transition: all 0.5s;
+  }
+
+  span.hide {
+    opacity: 0;
+  }
+
+
+  span {
+    opacity: 1;
+    transition: all 0.5s;
+  }
+
+  span.hide {
+    opacity: 0;
+  }
+
+  span {
+    opacity: 1;
+    transition: all 0.5s;
+  }
+
+  span.hide {
+    opacity: 0;
+  }
+
+  body {
+    max-width: 100%;
+overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+      "Helvetica Neue", sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    padding-left: 10px;
+  }
+
+  .row {
+    margin-left: 5px;
+    margin-right: 5px;
+  }
+  .low {
+    margin-top: 1px;
+    margin-bottom: 1px;
+  }
+
+  .ccd {
+    font-family: SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 12px;
+  }
+
+  .ccd_small {
+    font-family: SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 10px;
+  }
+
+  .ccd_decimals {
+    font-family: SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono",
+      "Courier New", monospace;
+      color: gray;
+    font-size: 10px;
+  }
+
+  .cns {
+    color: white;
+  }
+
+  .cns_small {
+    font-size: 10px;
+    overflow-wrap: normal;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .blur {
+
+    /* Add the blur effect */
+    filter: blur(4px);
+    -webkit-filter: blur(4px);
+  }
+
+  /* @media (min-width: 768px) {
+    .row {
+      margin-right: auto;
+      margin-left: auto;
+      /* max-width: 768px; */
+    }
+  } */
+
+  .htmx-indicator{
+    opacity:0;
+    transition: opacity 500ms ease-in-out;
+}
+.htmx-request .htmx-indicator{
+    opacity:1
+}
+.htmx-request.htmx-indicator{
+    opacity:1
+}
+
+.breathing.faded {
+    opacity:.1;
+  }
+  
+  .breathing {
+    opacity:1;
+    transition: opacity ease-in 500ms;
+  }

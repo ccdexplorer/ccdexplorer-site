@@ -1,0 +1,22 @@
+
+<h5>Latest Blocks</h5>
+<table class="table">
+  <tr>
+    <th class="small">Height</th>
+    <th class="text-end small">Time</th>
+    <th class="text-end small">Hash</th>
+    <th class="text-end small">Validator</th>
+    <th class="text-end small">Txs</th>
+    <!-- <th>Amount</th> -->
+  </tr>
+{% for row in blocks %}
+  <tr>
+    <td class="small ccd"><a class="ccd" href="/{{net}}/block/{{row.hash}}">{{row.height|round_0_decimal_with_comma}}</a></td>
+    <td class="text-end small">{{row.slot_time|datetime_delta_format_since}}</td>
+    <td class="text-end small"><a class="ccd" href="/{{net}}/block/{{row.hash}}">{{row.hash[:6]}}</a></td>
+    <td class="text-end small"><a class="ccd" href="/{{net}}/account/{{row.baker}}">{{row.baker|round_0_decimal_with_comma}}</a></td>
+    <td class="text-end small"><span class="ccd">{{row.transaction_count|round_0_decimal_with_comma }}</span></td>
+
+  </tr>
+{% endfor %}
+</table>

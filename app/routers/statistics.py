@@ -78,6 +78,8 @@ def ccdexplorer_plotly_template():
         legend_title_font_size=12,
         legend_title_text="",
         legend_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0.2,0.2,0.2,0.3)",
         margin_l=24,
         margin_r=24,
         margin_t=64,

@@ -1,0 +1,22 @@
+<h5>Latest Transactions</h5>
+<table class="table">
+  <tr>
+    <th class="small">Hash</th>
+    <th class="text-end small">Time</th>
+    <th class="text-end small">Status</th>
+    <th class="text-end small">Type</th>
+    <th class="text-end small">Sender</th>
+    <!-- <th>Amount</th> -->
+  </tr>
+{% for row in txs %}
+  <tr>
+    <td class="small ccd"><a class="ccd" href="/{{net}}/transaction/{{row.hash}}">{{row.hash[:6]}}</a></td>
+    
+    <td class="text-end small">{{row.block_info.slot_time|datetime_delta_format_since}}</td>
+    <td class="text-end small">{% if row.account_transaction %}{% if row.account_transaction.outcome == 'success' %}✅{%else%}❌{%endif%}{%endif%}</td>
+    <td class="text-end small">{{row.type.contents}}</td>
+    <td class="text-end small">{{row.account_transaction.sender|account_link(net, True, True, user, tags, white_text=true, app=request.app)|safe }}</td>
+
+  </tr>
+{% endfor %}
+</table>

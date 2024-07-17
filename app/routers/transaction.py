@@ -33,6 +33,34 @@ from app.state.state import *
 router = APIRouter()
 
 
+@router.get("/{net}/ajax_last_transactions", response_class=HTMLResponse)
+async def ajax_last_txs(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    result = (
+        db_to_use[Collections.transactions]
+        .find({})
+        .sort({"block_info.height": -1})
+        .limit(10)
+    )
+    return templates.TemplateResponse(
+        "last_txs_table.html",
+        {
+            "request": request,
+            "txs": list(result),
+            "net": net,
+            "mongodb": mongodb,
+            "tags": tags,
+            "user": user,
+        },
+    )
+
+
 @router.get("/transaction/{tx_hash}", response_class=RedirectResponse)
 async def redirect_transaction_to_mainnet(request: Request, tx_hash: str):
     response = RedirectResponse(url=f"/mainnet/transaction/{tx_hash}", status_code=302)
