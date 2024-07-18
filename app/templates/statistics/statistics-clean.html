@@ -21,6 +21,7 @@ switchElement.addEventListener('change', function () {
     } else {
         htmlElement.setAttribute('data-bs-theme', 'light');
         localStorage.setItem('bsTheme', 'light');
+        
     }
 });
 });
@@ -142,7 +143,7 @@ button, input, optgroup, select, textarea {
       <p class="small p-2">These graphs are compiled every day based on the last block of the day.</p>      
     <h5 class="p-2">Account Growth</h5>
     <p class="small p-2">There are currently {{account_count| thousands}} accounts registered.</p>
-      <div class="plotly-embed" hx-trigger="load,from:.html" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_network_summary_accounts_per_day"></div>
+      <div class="plotly-embed" hx-trigger="htmx: load" hx-get="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/statistics_network_summary_accounts_per_day"></div>
     <br><br>
     
     <h5 class="p-2">Holder Concentration</h5>
