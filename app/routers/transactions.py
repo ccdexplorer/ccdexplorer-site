@@ -28,6 +28,7 @@ from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
 from app.state.state import *
 from app.utils import user_string
+import plotly.express as px
 
 router = APIRouter()
 
@@ -67,6 +68,58 @@ class TXCountReportingRequest(BaseModel):
     usecase_id: str
     group_by: str
     tx_types: list
+
+
+@router.get(
+    "/{net}/ajax_transactions_frontpage/",
+    response_class=HTMLResponse,
+)
+async def ajax_transactions_frontpage(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+):
+
+    dates_to_include = generate_dates_from_start_until_end("2024-04-01", "2024-07-16")
+    all_data = get_all_data_for_analysis_and_project(
+        "statistics_transaction_types",
+        "all",
+        mongodb,
+        dates_to_include,
+    )
+    df = pd.json_normalize(all_data)
+    df["sum_all"] = df.sum(axis=1, numeric_only=True)
+    pass
+    df["date"] = pd.to_datetime(df["date"])
+    rng = ["#EE9B54"]
+    # title = "Unique Active Addresses per Week"
+    fig = px.scatter(
+        df,
+        x="date",
+        y="sum_all",
+        color_discrete_sequence=rng,
+        # mode="lines",
+        # template=ccdexplorer_plotly_template(),
+        # trendline="rolling",
+        # trendline_options=dict(window=12),
+    )
+    fig.update_yaxes(
+        # secondary_y=False,
+        title_text=None,
+        # showgrid=False,
+        # autorange=False,
+    )
+    fig.update_traces(mode="lines")
+    fig.update_xaxes(title=None, type="date")
+    fig.update_layout(
+        # yaxis_range=[0, round(max(df["unique_impacted_address_count"]), 0) * 1.1],
+        height=200,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
 
 
 @router.post(

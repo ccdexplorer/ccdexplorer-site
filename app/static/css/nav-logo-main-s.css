@@ -1,0 +1,203 @@
+.header {
+  width: 100%;
+  display: flex;
+  margin: 64px auto;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.dropdown:hover>.dropdown-menu {
+  display: block;
+}
+
+.dropdown>.dropdown-toggle:active {
+  /*Without this, clicking will make it sticky*/
+    pointer-events: none;
+}
+
+#nav-logo {
+  color: var(--text-color);
+}
+
+img#logo-lg {
+  width: 200px;
+  background: var(--secondary-text-color);
+}
+
+img#concordium-small {
+  width: 80px;
+  display: none;
+  margin-right: 5px;
+}
+
+img.logo-sm {
+  max-width: 24px;
+  max-height: 24px;
+  width: 100%;
+  height: 100%;
+}
+
+.navigation {
+  margin: 0 0 0 auto;
+  gap: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style-type: none;
+  text-decoration: none;
+  padding: 0;
+}
+
+.navigation-item-complex {
+  text-wrap: nowrap;
+  cursor: pointer;
+}
+
+.navigation-item-complex a {
+  text-decoration: none;
+  color: var(--text-color);
+}
+
+.navigation-item-complex a:hover {
+  color: #666666;
+  transition: 300ms ease-in-out;
+}
+
+.navigation-item-complex__wrapper {
+  --bs-dropdown-min-width: 10px !important;
+  --bs-dropdown-padding-x: 16px !important;
+  --bs-dropdown-padding-y: 4px !important;
+  background-color: var(--background-mainnet) !important;
+}
+
+.navigation-item-complex__item {
+  text-decoration: none;
+  color: var(--text-color);
+}
+
+/* Theme Swithcer Button */
+
+#header-settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Switcher styles */
+
+.theme-switcher {
+  border-radius: 6px;
+  background-color: var(--background-mainnet);
+  margin: 0 !important;
+  min-width: 38px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-switcher i {
+  margin: 0;
+}
+
+.network-switcher {
+  --bs-body-bg: var(--background-mainnet);
+  --bs-body-color: var(--text-color-mainnet);
+  --bs-border-color: var(--border-color-main);
+}
+
+/* burger-button MENU */
+
+.burger-button {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 4px;
+  background: var(--background-mainnet);
+  border: none;
+  font-size: 20px;
+  color: var(--text-color-mainnet);
+  padding: 0 4px 4px;
+}
+
+.burger-item {
+  background-color: var(--background-mainnet) !important;
+  color: var(--text-color-mainnet) !important;
+  border: none !important;
+  text-decoration: none;
+  max-width: 600px;
+  margin: auto;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.burger-menu {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 25%;
+  left: -575px;
+  transition: 300ms;
+  z-index: 10;
+}
+
+.burger-menu-opened {
+  left: 0px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.no-arrow::after {
+  display: none;
+}
+
+@media screen and (max-width: 1521px) {
+  .container {
+    margin: 0;
+    padding: 0;
+  }
+
+  .navigation {
+    display: none;
+  }
+
+  .burger-button {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 1251px) {
+  div#logo-md {
+    width: 135px;
+    font-size: 30px;
+    display: flex;
+  }
+
+  .navigation-item-complex {
+    position: relative;
+  }
+}
+
+@media screen and (max-width: 636px) {
+
+  img#logo-lg {
+    width: 130px;
+  }
+}
+
+
+@media screen and (max-width: 495px) {
+
+  img#logo-lg {
+    display: none;
+  }
+
+  img#concordium-small {
+    display: flex;
+    margin-right: 20px;
+  }
+}

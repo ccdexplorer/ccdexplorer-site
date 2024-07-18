@@ -1,3 +1,36 @@
+
+/* Dark and Light theme */
+
+ :root,
+ [data-bs-theme=light] {
+  --background-color: #ffffff;
+  --background-color-nav-drop-menu-hover-item: #CBCBCB;
+  --bakground-color-component: #ffffff;
+  --search-button-color: #ffffff;
+  --background-color-dropdown-menu: #ffffff;
+  --border-color-main: #BBB;
+  --border-color-secondary: #1B1B1B;
+  --background-mainnet: #ffffff;
+  --text-color-mainnet: #1D1C1C;
+  --text-color: #030303;
+  --text-color-grey: #030303;
+  --secondary-text-color-light: #606060;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+}
+:root,
+[data-bs-theme=dark] {
+  --background-color: #030303;
+  --background-color-nav-drop-menu-hover-item: #0A0A0A;
+  --background-color-component: #0A0A0A;
+  --background-mainnet: #1D1C1C;
+  --border-color-main: #1E1E1E;
+  --text-color: #FFFFFF;
+  --text-color-mainnet: #CBCBCB;
+  --search-button-color: #666666;
+  --text-color-grey: #666666;
+  --background-color-dropdown-menu: #131313;
+  --shadow-color: rgba(207, 227, 240, 0.2);
+}
 .rotate {
     margin-left: 10px;
     animation: rotation 1.2s infinite linear;
@@ -109,14 +142,6 @@ overflow-x: hidden;
     filter: blur(4px);
     -webkit-filter: blur(4px);
   }
-
-  /* @media (min-width: 768px) {
-    .row {
-      margin-right: auto;
-      margin-left: auto;
-      /* max-width: 768px; */
-    }
-  } */
 
   .htmx-indicator{
     opacity:0;

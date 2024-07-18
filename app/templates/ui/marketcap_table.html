@@ -1,0 +1,106 @@
+{% block style %}
+    <style>
+        .crypto-dashboard {
+            border: 1px solid var(--border-color-main);
+            background: var(--background-color-component);
+            max-width: 770px;
+            min-height: 84px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            top: 184px;
+            left: 60px;
+            padding: 20px;
+            gap: 40px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .crypto-info {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .crypto-info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            height: 44px;
+        }
+
+        .label,
+        .value,
+        .percentage {
+            color: var(--text-color-grey);
+            font-size: 12px;
+            line-height: 15.12px;
+            text-align: left;
+        }
+
+        .label {
+            font-weight: 400;
+        }
+
+        .value {
+            font-weight: 700;
+        }
+
+        .percentage-add {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .percentage {
+            width: 36px;
+            gap: 4px;
+            border-radius: 4px;
+            background: #00950F33;
+            border: 1px solid #1E1E1E;
+            color: #00950F;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="crypto-dashboard">
+            <div class="crypto-logo">
+                <img class="logo-sm inside" src="/static/small-logo-black.png" alt="small-logo" height="20px">
+            </div>
+            <div class="crypto-info">
+                <div class="crypto-info-item marketcap">
+                    <span class="label">Marketcap</span>
+                    <span class="value">$48M</span>
+                </div>
+                <div class="crypto-info-item position">
+                    <span class="label">Position</span>
+                    <span class="value">#456</span>
+                </div>
+                <div class="crypto-info-item accounts">
+                    <span class="label">Accounts</span>
+                    <span class="value">5600</span>
+                </div>
+                <div class="crypto-info-item ccd-price">
+                    <span class="label">CCD Price</span>
+                    <span class="value percentage-add">$0.05 <span class="percentage">+15%</span></span>
+                </div>
+                <div class="crypto-info-item gas-price">
+                    <span class="label">Gas Price</span>
+                    <span class="value">$0.05</span>
+                </div>
+                <div class="crypto-info-item total-txns">
+                    <span class="label">Total Txns</span>
+                    <span class="value">45M txns</span>
+                </div>
+                <div class="crypto-info-item tps">
+                    <span class="label">TPS</span>
+                    <span class="value">0.5 txns/sec</span>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
