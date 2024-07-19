@@ -12,6 +12,7 @@ from ccdexplorer_fundamentals.mongodb import (
     MongoMotor,
     MongoTypeBlockPerDay,
 )
+from scipy import signal
 from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, FileResponse
@@ -80,7 +81,7 @@ async def ajax_transactions_frontpage(
     mongodb: MongoDB = Depends(get_mongo_db),
 ):
 
-    dates_to_include = generate_dates_from_start_until_end("2024-04-01", "2024-07-16")
+    dates_to_include = generate_dates_from_start_until_end("2024-01-01", "2024-07-16")
     all_data = get_all_data_for_analysis_and_project(
         "statistics_transaction_types",
         "all",
@@ -91,26 +92,27 @@ async def ajax_transactions_frontpage(
     df["sum_all"] = df.sum(axis=1, numeric_only=True)
     pass
     df["date"] = pd.to_datetime(df["date"])
-    rng = ["#EE9B54"]
-    # title = "Unique Active Addresses per Week"
+    rng = ["#3EB7E5"]
     fig = px.scatter(
         df,
         x="date",
-        y="sum_all",
+        y=signal.savgol_filter(
+            df["sum_all"], 60, 2  # window size used for filtering
+        ),  # order of fitted polynomial,
         color_discrete_sequence=rng,
         # mode="lines",
-        # template=ccdexplorer_plotly_template(),
+        template=ccdexplorer_plotly_template(),
         # trendline="rolling",
         # trendline_options=dict(window=12),
     )
     fig.update_yaxes(
         # secondary_y=False,
         title_text=None,
-        # showgrid=False,
+        showgrid=False,
         # autorange=False,
     )
     fig.update_traces(mode="lines")
-    fig.update_xaxes(title=None, type="date")
+    fig.update_xaxes(title=None, type="date", showgrid=False)
     fig.update_layout(
         # yaxis_range=[0, round(max(df["unique_impacted_address_count"]), 0) * 1.1],
         height=200,

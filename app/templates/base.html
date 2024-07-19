@@ -81,12 +81,12 @@
       <hr>
   </div>
       <div class="row">
-        <div class="col-lg-7" >
-          {% include "ui/marketcap_table.html" %}
+        <div class="col-lg-8" >
           {% include "search_bar.html"%}
+          {% include "ui/marketcap_table.html" %}
         </div>
         <div class="col" >
-          <div hx-trigger="load"  hx-get="/{{net}}/ajax_transactions_frontpage"></div>
+          <div hx-trigger="load"  hx-get="{{env.SITE_URL}}/{{net}}/ajax_transactions_frontpage"></div>
         </div>
       </div>
 
