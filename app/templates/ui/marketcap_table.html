@@ -53,13 +53,23 @@
             gap: 2px;
         }
 
-        .percentage {
+        .percentage_up {
             width: 36px;
             gap: 4px;
             border-radius: 4px;
             background: #00950F33;
             border: 1px solid #1E1E1E;
             color: #00950F;
+            text-align: center;
+        }
+
+        .percentage_down {
+            width: 36px;
+            gap: 4px;
+            border-radius: 4px;
+            background: #00950F33;
+            border: 1px solid #1E1E1E;
+            color: #d65671;
             text-align: center;
         }
     </style>
@@ -69,32 +79,33 @@
     <div class="container">
         <div class="crypto-dashboard">
             <div class="crypto-logo">
-                <img class="logo-sm inside" src="/static/small-logo-black.png" alt="small-logo" height="20px">
+                <img class="logo-sm inside" id="marketcap_logo" src="/static/small-logo-white.png" alt="small-logo" height="20px">
             </div>
             <div class="crypto-info">
                 <div class="crypto-info-item marketcap">
                     <span class="label">Marketcap</span>
-                    <span class="value">$48M</span>
+                    <span class="value">$ {{market_cap}}</span>
                 </div>
                 <div class="crypto-info-item position">
                     <span class="label">Position</span>
-                    <span class="value">#456</span>
-                </div>
-                <div class="crypto-info-item accounts">
-                    <span class="label">Accounts</span>
-                    <span class="value">5600</span>
+                    <span class="value">#{{cmc_rank}}</span>
                 </div>
                 <div class="crypto-info-item ccd-price">
                     <span class="label">CCD Price</span>
-                    <span class="value percentage-add">$0.05 <span class="percentage">+15%</span></span>
+                    <span class="value percentage-add">$ {{ccd_price}} {% if ccd_change > 0 %}<span class="percentage_up">{{(ccd_change)|round_1_decimal_no_comma}}%</span>{% else %}<span class="percentage_down">{{(ccd_change)|round_1_decimal_no_comma}}%</span>{% endif%}</span>
                 </div>
+                <div class="crypto-info-item accounts">
+                    <span class="label">Accounts</span>
+                    <span class="value">{{total_accounts}}</span>
+                </div>
+                
                 <div class="crypto-info-item total-txns">
-                    <span class="label">Total Txns</span>
-                    <span class="value">45M txs</span>
+                    <span class="label">Total Txs</span>
+                    <span class="value">{{total_txs}}</span>
                 </div>
                 <div class="crypto-info-item tps">
                     <span class="label">TPS</span>
-                    <span class="value">0.5 txs/s</span>
+                    <span class="value">{{tps_h}} txs/s</span>
                 </div>
             </div>
         </div>

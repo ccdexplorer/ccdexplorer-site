@@ -1,6 +1,6 @@
 
 /* Dark and Light theme */
-
+/* 
  :root,
  [data-bs-theme=light] {
   --background-color: #ffffff;
@@ -30,7 +30,7 @@
   --text-color-grey: #666666;
   --background-color-dropdown-menu: #131313;
   --shadow-color: rgba(207, 227, 240, 0.2);
-}
+} */
 .rotate {
     margin-left: 10px;
     animation: rotation 1.2s infinite linear;

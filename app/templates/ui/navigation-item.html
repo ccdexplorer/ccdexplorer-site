@@ -1,0 +1,21 @@
+<div class="dropdown navigation-item-complex">
+    <a
+        id="dropdownMenuButton"
+        data-mdb-toggle="dropdown"
+        aria-expanded="false"
+        {% if 'link' in nav_tab %}href={{nav_tab.link}}{% endif %}
+    >
+        {{nav_tab.text}}
+    </a>
+    {% if 'children' in nav_tab %}
+        <ul 
+            class="dropdown-menu navigation-item-complex__wrapper" 
+            aria-labelledby="dropdownMenuButton">
+            {% for sub_nav_tab in nav_tab.children %}
+                <li><a class="navigation-item-complex__item" href={{sub_nav_tab.link}}>
+                    {{sub_nav_tab.text}}
+                </a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>

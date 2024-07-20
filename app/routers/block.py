@@ -1,7 +1,7 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 
 ##
 from ccdexplorer_fundamentals.enums import NET
@@ -28,6 +28,83 @@ from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 
 
 router = APIRouter()
+
+from collections.abc import AsyncIterable, Iterable
+
+from pydantic import BaseModel
+from starlette.background import BackgroundTask
+from starlette.concurrency import iterate_in_threadpool
+from starlette.responses import JSONResponse
+
+
+class JSONStreamingResponse(StreamingResponse, JSONResponse):
+    """StreamingResponse that also render with JSON."""
+
+    def __init__(
+        self,
+        content: Iterable | AsyncIterable,
+        status_code: int = 200,
+        headers: dict[str, str] | None = None,
+        media_type: str | None = None,
+        background: BackgroundTask | None = None,
+    ) -> None:
+        if isinstance(content, AsyncIterable):
+            self._content_iterable: AsyncIterable = content
+        else:
+            self._content_iterable = iterate_in_threadpool(content)
+
+        async def body_iterator() -> AsyncIterable[bytes]:
+            async for content_ in self._content_iterable:
+                if isinstance(content_, BaseModel):
+                    content_ = content_.model_dump()
+                yield self.render(content_)
+
+        self.body_iterator = body_iterator()
+        self.status_code = status_code
+        if media_type is not None:
+            self.media_type = media_type
+        self.background = background
+        self.init_headers(headers)
+
+
+async def get_last_blocks_including_non_finalized(
+    mongodb: MongoDB,
+    grpcclient: GRPCClient,
+):
+    db_to_use = mongodb.mainnet
+
+    result = db_to_use[Collections.blocks].find({}).sort({"slot_time": -1}).limit(10)
+    blocks = list(result)
+    last_block = grpcclient.get_block()
+    yield last_block.model_dump()
+    # yield grpcclient.get_blocks()
+
+
+@router.get(
+    "/{net}/ajax_last_blocks_including_non_finalized",
+    response_class=JSONStreamingResponse,
+)
+async def ajax_last_blocks_including_non_finalized(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+    grpcclient: GRPCClient = Depends(get_grpcclient),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    return JSONStreamingResponse(
+        get_last_blocks_including_non_finalized(mongodb, grpcclient)
+    )
+    # return templates.TemplateResponse(
+    #     "last_blocks_table.html",
+    #     {
+    #         "request": request,
+    #         "blocks": list(result),
+    #         "net": net,
+    #         "mongodb": mongodb,
+    #         "tags": tags,
+    #         "user": user,
+    #     },
+    # )
 
 
 @router.get("/{net}/ajax_last_blocks", response_class=HTMLResponse)

@@ -1,5 +1,5 @@
 <script>
-    function yourFunction(){
+    function go(){
         var value_to_search = document.getElementsByName("acc")[0].value;
         if (value_to_search != '') {
          
@@ -10,14 +10,11 @@
         }
     }
 
-    function yourFunction2(){
-      var action_src = "/random/";
-      your_form.action = action_src ;
-    }
+    
 </script>
 {% if net != 'user'%}
             <!-- <div class="col-xs-4 me-3" style="padding-left: 10px"> -->
-            <form id="your_form" class="form-inline m-1" onsubmit="yourFunction()">
+            <form id="your_form" class="form-inline m-1" onsubmit="go()">
                  <input type="text" class=" form-control form-control-sm small input-sm mb-0 " name="acc" id="acc" placeholder="Address | Validator id | Block | Tx | CNS domain...        " >  <br>
               <input type="submit" class="btn small ms-1 mt-0 btn-sm btn-primary" value="Search">
               </form>

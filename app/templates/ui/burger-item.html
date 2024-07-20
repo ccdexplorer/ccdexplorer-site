@@ -1,0 +1,31 @@
+<a
+    class="accordion-item collapsed accordion-button burger-item {% if 'children' not in nav_tab %}no-arrow{% endif %}" 
+    {% if 'link' not in nav_tab %}
+        data-bs-target="#collapse-{{nav_tab.text}}"
+        data-bs-toggle="collapse"
+        aria-expanded="false"
+        aria-controls="collapse-{{nav_tab.text}}"
+    {% else %}
+        href={{nav_tab.link}}
+    {% endif %}
+>
+    {{nav_tab.text}}
+</a>
+{% if 'children' in nav_tab %}
+    <div id="collapse-{{nav_tab.text}}" class="accordion-collapse collapse"
+        data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+            <div class="d-grid gap-2">
+                {% for sub_nav_tab in nav_tab.children %}
+                    <li>
+                        <a 
+                            href={{sub_nav_tab.link}}
+                            class="accordion-item accordion-button burger-item no-arrow">
+                            {{sub_nav_tab.text}}
+                        </a>
+                    </li>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endif %}

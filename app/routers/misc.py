@@ -35,8 +35,63 @@ from app.ajax_helpers import (
     mongo_transactions_html_header,
 )
 from ccdexplorer_fundamentals.tooter import Tooter, TooterType, TooterChannel
+import math
 
 router = APIRouter()
+
+millnames = ["", " Thousand", " M", " B", " Tr"]
+
+
+def millify(n):
+    n = float(n)
+    millidx = max(
+        0,
+        min(
+            len(millnames) - 1, int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))
+        ),
+    )
+
+    return "{:.0f}{}".format(n / 10 ** (3 * millidx), millnames[millidx])
+
+
+@router.get("/{net}/ajax_market_cap_table", response_class=HTMLResponse)
+async def ajax_market_cap_table(
+    request: Request,
+    net: str,
+    mongodb: MongoDB = Depends(get_mongo_db),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 = get_user_detailsv2(request)
+    db_to_use = mongodb.mainnet
+    result = db_to_use[Collections.pre_render].find_one({"_id": "tps_table"})
+    tps_table = result
+
+    result = db_to_use[Collections.transactions].estimated_document_count()
+    total_txs = result
+
+    result = db_to_use[Collections.nightly_accounts].estimated_document_count()
+    total_accounts = result
+
+    result = db_to_use[Collections.helpers].find_one({"_id": "coinmarketcap_data"})
+    cmc = result
+
+    return templates.TemplateResponse(
+        "ui/marketcap_table.html",
+        {
+            "request": request,
+            "net": net,
+            "mongodb": mongodb,
+            "tags": tags,
+            "user": user,
+            "cmc_rank": cmc["cmc_rank"],
+            "tps_h": tps_table["hour_tps"],
+            "total_txs": millify(total_txs),
+            "ccd_price": f"{cmc['quote']['USD']['price']:,.5f}",
+            "ccd_change": cmc["quote"]["USD"]["percent_change_24h"],
+            "market_cap": millify(float(cmc["quote"]["USD"]["market_cap"])),
+            "total_accounts": f"{total_accounts:,.0f}",
+        },
+    )
 
 
 @router.get("/grant-proposal")

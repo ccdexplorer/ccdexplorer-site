@@ -1,0 +1,79 @@
+{% set navigation = [
+    {'text': 'Blockchain', 'children': [
+        {'text': 'Blocks', 'link': '/%s/' % net},
+        {'text': 'Accounts', 'link': '/%s/accounts/' % net},
+    ]},
+    {'text': 'Nodes', 'link': '/%s/nodes-and-validators/' % net},
+
+    {'text': 'Tools', 'children': [
+        {'text': 'Analytics', 'link': '/%s/statistics/' % net},
+        {'text': 'Contracts', 'link': '/%s/smart-contracts/' % net},
+        {'text': 'Staking', 'link': '/%s/staking/' % net},
+    ]},
+    {'text': 'Tokens', 'children': [
+        {'text': 'Fungible', 'link': '/%s/tokens/' % net},
+        {'text': 'NFTs', 'link': '/%s/tokens/' % net},
+    ]},
+] %}
+
+<!-- Below is side menu, mobile phones menu -->
+<div class="burger-menu" onclick="">
+    <div class="close-menu d-flex justify-content-end py-2 mx-2">
+        <button 
+            type="button" 
+            class="btn-close btn-close-white py-2" 
+            onclick="closeMenu()"
+            aria-label="Close">
+        </button>
+    </div>
+
+    <div class="accordion borderless">
+        {% for nav_tab in navigation %}
+        {% include 'ui/burger-item.html' %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Below is navigation bar for the entire project. Althought it is most written in Bootstrap, it contains custom css classes -->
+<nav class="header">
+    {% include "ui/logo.html" %}
+
+    <ul class="navigation">
+        {% for nav_tab in navigation %}
+            {% include 'ui/navigation-item.html' %}
+        {% endfor %}
+    </ul>
+
+    <div id="header-settings">
+
+        <div class="theme-switcher"><i class="bi bi-sun-fill h6"></i></div>
+
+        {% set other_net = 'testnet' if net == 'mainnet' else 'mainnet' %}
+        <select 
+            onchange="location = location.pathname.replace('{{net}}', '{{other_net}}')"
+            class="form-select network-switcher" 
+        >
+            <option value={{net}} selected>{{net}}</option>
+            <option value={{other_net}}>{{other_net}}</option>
+        </select>
+
+        <button 
+            class="burger-button" 
+            onclick="openMenu()">
+            &#9776;
+        </button>
+    </div>
+</nav>
+
+<script>
+    // burger-button menu toggle
+    function openMenu() {
+        const sideMenu = document.querySelector('.burger-menu');
+        sideMenu.classList.add('burger-menu-opened');
+    }
+
+    function closeMenu() {
+        const sideMenu = document.querySelector('.burger-menu');
+        sideMenu.classList.remove('burger-menu-opened');
+    }
+</script>
