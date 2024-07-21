@@ -115,10 +115,10 @@ async def ajax_transactions_frontpage(
     fig.update_xaxes(title=None, type="date", showgrid=False)
     fig.update_layout(
         # yaxis_range=[0, round(max(df["unique_impacted_address_count"]), 0) * 1.1],
-        height=200,
+        height=250,
     )
     return fig.to_html(
-        config={"responsive": True, "displayModeBar": False},
+        config={"responsive": False, "displayModeBar": False},
         full_html=False,
         include_plotlyjs=False,
     )
