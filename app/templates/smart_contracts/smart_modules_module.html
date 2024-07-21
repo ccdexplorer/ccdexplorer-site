@@ -7,7 +7,7 @@
             
             <td class="">
                 <b>{{ module.module_name }}</b><br/>
-                Instances: <span class="ccd">{% if module.contracts %}{{module.contracts|length}}{% else %} 0 {% endif %}</span>
+                Instances: <span class="ccd">{% if all_instances[module.id] %}{{all_instances[module.id]|length}}{% else %} 0 {% endif %}</span>
             </td>
             
             <td class="">

@@ -336,6 +336,14 @@ async def smart_contracts(
                 modules_sorted_by_date[init_date]
             )
 
+    all_instances = {}
+    for inst in [
+        MongoTypeInstance(**x) for x in db_to_use[Collections.instances].find({})
+    ]:
+        if not inst.source_module in all_instances:
+            all_instances[inst.source_module] = []
+        all_instances[inst.source_module].append(inst)
+
     return templates.TemplateResponse(
         "smart_contracts/smart_contracts.html",
         {
@@ -343,6 +351,7 @@ async def smart_contracts(
             "request": request,
             "net": net,
             "modules": the_dict,
+            "all_instances": all_instances,
             "user": user,
             "tags": tags,
         },
