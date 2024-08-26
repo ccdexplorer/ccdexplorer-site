@@ -1634,7 +1634,7 @@ async def get_ajax_tokens(
                         )
                     else:
                         tokens[token_address].update({"tag_info": None})
-                    if token_address_with_markup.exchange_rate:
+                    if token_address_with_markup.exchange_rate is not None:
                         tokens[token_address].update(
                             {
                                 "token_value": int(
