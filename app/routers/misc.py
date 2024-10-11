@@ -243,26 +243,12 @@ async def recent_actions(
     )
 
 
-@router.get("/api", response_class=HTMLResponse)
+@router.get("/api", response_class=RedirectResponse)
 async def api(
     request: Request,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
-    exchange_rates: dict = Depends(get_exchange_rates),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    return templates.TemplateResponse(
-        "api-docs.html",
-        {
-            "env": request.app.env,
-            "request": request,
-            "user": user,
-            "exchange_rates": exchange_rates,
-            "net": "mainnet",
-        },
-    )
+    response = RedirectResponse("https://api.ccdexplorer.io", status_code=303)
+    return response
 
 
 @router.get("/mainnet/exchange-rates", response_class=HTMLResponse)
