@@ -12,35 +12,37 @@
         
     </tr>
           
-        {% for logged_event_id in tx_object.logged_events %}    
+        {% for logged_event_id in tx_object.logged_events %}   
+        
         {% set db_event = logged_event_cache[logged_event_id] %}
-        {% set markup = token_addresses_with_markup[db_event.token_address] %}
-        <tr>
-            <!-- <td></td> -->
-            <!-- <td></td> -->
-            <td class="   text-start">
-            
-                {% if db_event.event_type == 'mint_event' %}
-                🌱
-                {% endif %}
-                {% if db_event.event_type == 'burn_event' %}
-                🔥
-                {% endif %}
-                {% if db_event.event_type == 'transfer_event' %}
-                💸
-                {% endif %}
-                {% if db_event.event_type == 'metadata_event' %}
-                🗂️
-                {% endif %}
-            </td>
-            {% set amount =(db_event.result.token_amount|int)|token_amount_using_decimals(markup.tag_information.decimals) %}
-    
-    <td class="small text-end"><span class="ccd small ">{{amount}}</span></td>
-        <td min-width="70px" class="small text-end"><a href="/{{net}}/tokens/{{markup.tag_information.token_tag_id}}/"><span class="ccd small">{{markup.tag_information.token_tag_id}}</span></a> <img src="{{markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt=""></td>
-    
-            
-        </tr>
-    
+        {% if db_event.token_address in token_addresses_with_markup %}
+            {% set markup = token_addresses_with_markup[db_event.token_address] %}
+            <tr>
+                <!-- <td></td> -->
+                <!-- <td></td> -->
+                <td class="   text-start">
+                
+                    {% if db_event.event_type == 'mint_event' %}
+                    🌱
+                    {% endif %}
+                    {% if db_event.event_type == 'burn_event' %}
+                    🔥
+                    {% endif %}
+                    {% if db_event.event_type == 'transfer_event' %}
+                    💸
+                    {% endif %}
+                    {% if db_event.event_type == 'metadata_event' %}
+                    🗂️
+                    {% endif %}
+                </td>
+                {% set amount =(db_event.result.token_amount|int)|token_amount_using_decimals(markup.tag_information.decimals) %}
+        
+        <td class="small text-end"><span class="ccd small ">{{amount}}</span></td>
+            <td min-width="70px" class="small text-end"><a href="/{{net}}/tokens/{{markup.tag_information.token_tag_id}}/"><span class="ccd small">{{markup.tag_information.token_tag_id}}</span></a> <img src="{{markup.tag_information.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt=""></td>
+        
+                
+            </tr>
+        {% endif %}
         {% endfor %}
 
 
