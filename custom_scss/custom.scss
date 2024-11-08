@@ -1,0 +1,39 @@
+//custom.scss
+
+// Look in /node_modules/bootstrap/scss/_variables-dark.scss for inspiration of variable names
+
+// run: sass custom_scss/custom.scss app/static/css/custom_bootstrap.css    
+
+// $secondary: #666666;
+
+$body-bg-dark:#0A0A0A;
+$body-color-dark:  #9d9b9b;
+$body-secondary-color-dark:  #fff;
+$secondary-bg-subtle:  #fff;
+$secondary-bg-subtle-dark:  #0f0f0f;
+// $tertiary-bg-subtle:  #666666;
+$body-tertiary-bg-dark: #666666;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+@include media-breakpoint-down(sm) {
+    span.sm-text {
+      font-size: smaller;
+    }
+    tr.sm-text {
+        font-size: smaller;
+      }
+    th.sm-text {
+        font-size: smaller;
+      }
+    td.sm-text {
+        font-size: smaller;
+      }
+    p.sm-text {
+        font-size: smaller;
+      }
+    a.sm-text {
+        font-size: smaller;
+      }
+  }
+  

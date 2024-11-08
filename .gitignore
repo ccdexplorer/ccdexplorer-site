@@ -55,7 +55,7 @@
 
 !/custom_scss
 /custom_scss/*
-!/custom_scss/custom_scss
+!/custom_scss/custom.scss
 
 
 !/node_modules/sortable-tablesort/
