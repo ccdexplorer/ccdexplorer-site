@@ -85,24 +85,24 @@ async def redirect_to_mainnet(
 
     if net == "mainnet":
         request.state.api_calls["TPS"] = (
-            f"{request.app.api_url}/v2/{net}/transactions/info/tps"
+            f"{request.app.api_url}/docs#/Transactions/get_transactions_tps_v2__net__transactions_info_tps_get"
         )
         request.state.api_calls["Markets Info"] = (
-            f"{request.app.api_url}/v2/markets/info"
+            f"{request.app.api_url}/docs#/Markets/get_markets_info_v2_markets_info_get"
         )
 
     request.state.api_calls["Tx Count"] = (
-        f"{request.app.api_url}/v2/{net}/transactions/info/count"
+        f"{request.app.api_url}/docs#/Transactions/get_transactions_count_estimate_v2__net__transactions_info_count_get"
     )
 
     request.state.api_calls["Account Count"] = (
-        f"{request.app.api_url}/v2/{net}/accounts/info/count"
+        f"{request.app.api_url}/docs#/Accounts/get_accounts_count_estimate_v2__net__accounts_info_count_get"
     )
     request.state.api_calls["Latest Blocks"] = (
-        f"{request.app.api_url}/v2/{net}/blocks/last/10"
+        f"{request.app.api_url}/docs#/Blocks/get_last_blocks_v2__net__blocks_last__count__get"
     )
     request.state.api_calls["Latest Txs"] = (
-        f"{request.app.api_url}/v2/{net}/transactions/last/10"
+        f"{request.app.api_url}/docs#/Transactions/get_last_transactions_v2__net__transactions_last__count__get"
     )
     return templates.TemplateResponse(
         "home/home.html",
@@ -133,16 +133,7 @@ async def ajax_market_cap_table(
     total_accounts = 0
     total_tokens = 0
     total_validators = 0
-    cmc = {
-        "cmc_rank": 0,
-        "quote": {
-            "USD": {
-                "price": 0,
-                "percent_change_24h": 0,
-                "market_cap": 0,
-            }
-        },
-    }
+    
     try:
 
         tps_table = await get_marketcap_info(httpx_client, MarketCapInfo.TPS, api_url)
@@ -153,6 +144,17 @@ async def ajax_market_cap_table(
             httpx_client, MarketCapInfo.TOKENS_COUNT, api_url, "mainnet"
         )
         cmc = await get_marketcap_info(httpx_client, MarketCapInfo.CMC, api_url)
+        if not cmc:
+            cmc = {
+                "cmc_rank": 0,
+                "quote": {
+                    "USD": {
+                        "price": 0,
+                        "percent_change_24h": 0,
+                        "market_cap": 0,
+                    }
+                },
+            }
         total_accounts = await get_marketcap_info(
             httpx_client, MarketCapInfo.ACCOUNTS_COUNT, api_url
         )

@@ -1387,7 +1387,9 @@ async def get_url_from_api(url: str, httpx_client: httpx.AsyncClient):
     end = dt.datetime.now().astimezone(dt.UTC)
 
     api_response.duration_in_sec = (end - now).total_seconds()
-    print(f"GET: {api_response.duration_in_sec:2,.4f}s for {url}")
+    print(
+        f"GET: {api_response.duration_in_sec:2,.4f}s | status {response.status_code} | {url}"
+    )
     return api_response
 
 
@@ -1415,7 +1417,9 @@ async def post_url_from_api(
     end = dt.datetime.now().astimezone(dt.UTC)
 
     api_response.duration_in_sec = (end - now).total_seconds()
-    print(f"POST: {api_response.duration_in_sec:2,.4f}s for {url}")
+    print(
+        f"POST: {api_response.duration_in_sec:2,.4f}s | status {response.status_code} | {url}"
+    )
     return api_response
 
 
