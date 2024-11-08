@@ -1,0 +1,54 @@
+{% if fungible_verified_tokens|length > 0 %}
+<div class=" col-md-8  col-sm-12">
+<div  class="border content curved-border">
+{% set title= "Verified Fungible Tokens" %}{% include 'base/box_title.html' %}
+
+{% include 'base/pagination.html' %}
+<table class="table table-borderless ">
+      <thead>
+        <tr class="sm-text">
+          <th class="text-secondary-emphasis " scope="col"></th>
+          <th class="text-secondary-emphasis  text-end" scope="col">Value (USD)</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for token_address, row in fungible_verified_tokens.items() %}
+        
+          {% set ai = row.address_information %}
+          {% set vi = row.verified_information %}
+          {% set token_decimals = 0 %}
+          {% if vi %}
+            {% set token_decimals = vi.decimals %}
+          {% else %}
+            {% if ai %}
+              {% set token_decimals = ai.decimals %}
+            {% endif %}
+          {% endif %}
+
+            
+        <tr class="sm-text border-bottom">
+          <td><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+            <a href="/{{net}}/tokens/{{vi._id}}"><span class="ccd text-secondary-emphasis">{{vi._id}}</span></a>
+            <br/>
+              <span class="ccd_decimals text-secondary-emphasis">{{row.token_value|round_x_decimal_with_comma(token_decimals)}} {{vi._id}}</span>
+            </td>
+             <!-- Second column with values -->
+             <td class="text-end text-secondary-emphasis">
+              {% if row.token_value %}
+              <span class="ccd text-secondary-emphasis">${{row.token_value_USD|round_x_decimal_with_comma(0)}}
+              </span>
+              {% endif %}
+              <br/>
+              {% if row.token_value %}
+              <span class="ccd_decimals text-secondary-emphasis">@{{ai.exchange_rate|round_x_decimal_with_comma(3)}}</span>
+              {% endif %}
+              
+            </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+    {% endif %}

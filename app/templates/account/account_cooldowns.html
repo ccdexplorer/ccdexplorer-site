@@ -1,0 +1,27 @@
+{% if account.cooldowns %}
+<div class="border curved-border mb-2 mt-4">
+    {% set title= "Cooldowns" %}{% include 'base/box_title.html' %}
+<br/>
+    <table class="table table-borderless">
+      <thead>
+        <tr>
+          
+          <th class="sm-text text-start text-secondary-emphasis" scope="col">Ends in</th>
+          <th class="sm-text  text-end text-secondary-emphasis" scope="col">Amount</th>
+          <th class="sm-text  text-end text-secondary-emphasis" scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cooldown in account.cooldowns %}
+        <tr>
+          <td class="sm-text text-secondary-emphasis"><span class="ccd">{{cooldown.end_time |datetime_delta_format_until}}</span></td>
+          <td class="sm-text text-end text-secondary-emphasis">{{cooldown.amount |micro_ccd_no_decimals|safe}}</td>
+          <td class="sm-text text-end text-secondary-emphasis">{{cooldown.status.name|cooldown_string}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <!--class="card-body p-2"-->
+</div>  
+    {% endif %}
+

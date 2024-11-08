@@ -1,45 +1,90 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-<h4  class="ms-4">Tokens{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
-<p  class="ms-3"><small>Fungible tokens are sorted by the TVL. Non-fungible tokens are sorted by logged events. Note that only tokens from CIS-2 compliant contracts are shown that are verified. 
-    Contact me at <a href="https://telegram.me/sderuiter">@explorer.ccd</a> to get your token verified.</small></p>
-<div class="container">
-  
-    {% for owner, item in tokens_tags|groupby("token_type") %}
-    <div class="row mb-3">
-        <h5>{{ owner|capitalize }}</h5>
-        {% for token in item|sort(reverse=True, attribute="tvl_for_token_in_usd") %}
-        
-        <div class="card  low border-dark m-2 p-2" style="width: 7rem;">
-            {% if owner == 'fungible'%}
-            <div class="ccd card-title text-center text-muted m-0 pb-3"><small>TVL: {% if token.tvl_for_token_in_usd %}{{token.tvl_for_token_in_usd|human_format}}{% else %} 0{%endif%} USD</small></div>
-            {% endif%}
+{% include 'base/search_bar_non_home_inclusion.html' %}
 
-          <img src="{{token.logo_url}}"  style="width: 50%; max-height: 50px;" class="mx-auto  card-img-top" alt="logo">
-            <div class="card-body  m-0 p-0 text-center">
-                <small><span class="card-title text-center">
-                    <small>
-                        {% if token.display_name %}
-                            {{token.display_name}}
-                        {% else %}
-                            {{token.id}}
-                        {% endif %}
-                        
-                    </small><br/>
-                    <!-- <span class="text-muted"><small><small>{{token.logged_events_count}} events</small></small></span> -->
-                
-                </span></small>
-                <a class="stretched-link" href="/{{net}}/tokens/{{token.id}}"></a>
-      
-            </div>
-        </div>          
-        {% endfor %}
-      </div>
+<h4 >Verified Fungible Tokens</h4>
+
+<p >Fungible tokens are sorted by the TVL. Note that only tokens from CIS-2 compliant contracts are shown that are verified. 
+    Contact me at <a href="https://telegram.me/sderuiter">@explorer.ccd</a> to get your token verified.</p>
   
+    <div class="container my-4">
+        <div class="row">
+    
+    {% for token in fungible_tokens_verified %}
+        {% set vi = token.verified_information %}
+        {% set md = token.address_information %}
+    
+              <!-- Card 1 -->
+              <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"> -->
+                <div class="card  low border-dark m-2 p-2" style="width: 10rem;">
+                    
+                  
+                    <div class="card-title text-center text-muted px-1 pb-3 text-secondary-emphasis"><small>TVL: {% if token.token_value_USD %}{{token.token_value_USD|round_x_decimal_with_comma(0)}}{% else %} 0{%endif%} USD</small></div>
+                    <img src="{{vi.logo_url}}"  style="width: 50%; max-height: 75px;" class="mx-auto  card-img-top" alt="logo">
+                    <div class="card-body  m-0 p-0 text-center">
+                        <span class="card-title text-center">
+                                
+                            <br/>
+                            {{vi.display_name}}
+                            
+                            
+                            
+                        </span>
+                        <a class="stretched-link" href="/{{net}}/tokens/{{vi._id}}"></a>
+              
+                  
+                  <!-- </div> -->
+                </div>
+              </div>
+        
+      
 
 {% endfor %}
+</div>          
+        
+</div>
 
-</div> 
+<h4 >Verified NFTs</h4>
+
+<p >Note that only NFTs from CIS-2 compliant contracts are shown that are verified. 
+    Contact me at <a href="https://telegram.me/sderuiter">@explorer.ccd</a> to get your token verified.</p>
+  
+    <div class="container my-4">
+        <div class="row">
+    
+    {% for token in non_fungible_tokens_verified %}
+        {% set vi = token.verified_information %}
+        
+              <!-- Card 1 -->
+              <!-- <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4"> -->
+                <div class="card  low border-dark m-2 p-2" style="width: 10rem;">
+                    
+                  
+                    <img src="{{vi.logo_url}}"  style="width: 50%; max-height: 75px;" class="mx-auto  card-img-top" alt="logo">
+                    <div class="card-body  m-0 p-0 text-center">
+                        <span class="card-title text-center">
+                                
+                            <br/>
+                            {{vi.display_name}}
+                            
+                            
+                            
+                        </span>
+                        <a class="stretched-link" href="/{{net}}/tokens/{{vi._id}}"></a>
+              
+                  
+                  <!-- </div> -->
+                </div>
+              </div>
+        
+      
+
+{% endfor %}
+</div>          
+        
+</div>
+
+
 
 {% endblock content %}
 

@@ -1,0 +1,62 @@
+{% set new_delegators=passive_delegators_response.new_delegators_dict %}
+{% set delegators_in_block_dict=passive_delegators_response.delegators_in_block_dict %}
+{% set new_delegators=passive_delegators_response.new_delegators_dict %}
+{% include 'base/pagination.html' %}
+    <table class="table table-borderless">
+      <thead>
+        <tr class="sm-text">
+          <th class="text-secondary-emphasis" scope="col">Account</th>
+          <th class="text-secondary-emphasis text-end" scope="col">Staked Amount</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for account, new_delegator in new_delegators.items() %}
+        <tr class="sm-text">
+          <td>{{account|account_link(net, user, tags, app=request.app)|safe}}</td>
+          <td class="text-secondary-emphasis text-end">{{new_delegator.stake | micro_ccd_no_decimals|safe}}
+                </td>
+        </tr>
+
+        {% if new_delegator.pending_change.remove %}
+        Delegation to be removed at:
+        <span class="ccd text-secondary-emphasis">{{new_delegator.pending_change.remove|regular_datetime_format}}</span>
+        {% endif %}
+        {% if new_delegator.pending_change.reduce %}
+        Delegation stake reduced to:
+        <span class="ccd text-secondary-emphasis">{{new_delegator.pending_change.reduce.new_stake}}</span> at:
+        <span class="ccd text-secondary-emphasis">{{new_delegator.pending_change.reduce.effective_time|regular_datetime_format}}</span>
+        {% endif %}
+
+        {%endfor%}
+        {% for row in delegators %}
+        <tr class="sm-text">
+          <td>
+            {{row.account|account_link(net, user, tags, app=request.app)|safe}}
+            
+            {% if row.account in delegators_in_block_dict %}
+
+            {% if delegators_in_block_dict[row.account].pending_change %}
+            <br /><i>
+                {% if delegators_in_block_dict[row.account].pending_change.remove %}
+                Delegation to be removed at:
+                <span
+                  class="ccd text-secondary-emphasis">{{delegators_in_block_dict[row.account].pending_change.remove|regular_datetime_format}}</span>
+                {% endif %}
+                {% if delegators_in_block_dict[row.account].pending_change.reduce %}
+                Delegation stake reduced to:
+                <span class="ccd text-secondary-emphasis">{{delegators_in_block_dict[row.account].pending_change.reduce.new_stake}}</span> at:
+                <span
+                  class="ccd text-secondary-emphasis">{{delegators_in_block_dict[row.account].pending_change.reduce.effective_time|regular_datetime_format}}</span>
+                {% endif %}
+                {% endif %}
+                {% endif %}
+              </i>
+          </td>
+          <td class="text-end text-secondary-emphasis">{{row.stake | micro_ccd_no_decimals|safe}}
+ </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+ 

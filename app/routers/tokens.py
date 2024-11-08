@@ -3,7 +3,6 @@
 import operator
 from bisect import bisect_right
 from datetime import timedelta
-from typing import Union
 
 import pandas as pd
 import plotly.express as px
@@ -15,38 +14,23 @@ from ccdexplorer_fundamentals.cis import (
     transferEvent,
 )
 from ccdexplorer_fundamentals.enums import NET
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import (
     Collections,
-    MongoDB,
-    MongoMotor,
 )
 from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from pymongo import ASCENDING, DESCENDING
-
-from app.ajax_helpers import (
-    mongo_transactions_html_header,
-    process_logged_events_to_HTML_v2,
-    process_summed_rewards,
-    process_token_holders_to_HTML_v2,
-    process_token_ids_for_tag_to_HTML_v2,
-    process_transactions_to_HTML,
-    transactions_html_footer,
-)
 from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
-from app.console import console
 from app.env import *
 from app.jinja2_helpers import *
-from app.Recurring.recurring import Recurring
 from app.routers.statistics import (
     ccdexplorer_plotly_template,
     get_all_data_for_analysis_for_token,
-    get_statistics_date,
+    # get_statistics_date,
 )
-from app.state.state import *
+from app.state import *
 
 router = APIRouter()
 
@@ -97,15 +81,11 @@ async def ajax_token_events(
     requested_page: int,
     total_rows: int,
     api_key: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
-    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
-    token_addresses_with_markup_both_nets: dict = Depends(
-        get_token_addresses_with_markup
-    ),
+    # contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
+    # token_addresses_with_markup_both_nets: dict = Depends(
+    #     get_token_addresses_with_markup
+    # ),
     credential_issuers: list = Depends(get_credential_issuers),
     ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
 ):
@@ -249,7 +229,7 @@ def find_token_address_from_contract_address(db_to_use, contract_address: str):
 
 
 def get_owner_history_for_provenance(
-    grpcclient: GRPCClient,
+    # grpcclient: GRPCClient,
     tokenID: str,
     contract_address: CCD_ContractAddress,
     net: NET,
@@ -287,11 +267,6 @@ async def token_ptrt(
     requested_page: int,
     total_rows: int,
     api_key: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     limit = 20
@@ -425,108 +400,11 @@ async def token_ptrt(
     return html
 
 
-@router.get("/{net}/tokens/{tag}/{token_id_or_address}")  # type:ignore
-async def tokens_tag_token_id(
-    request: Request,
-    net: str,
-    tag: str,
-    token_id_or_address: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
-    tags: dict = Depends(get_labeled_accounts),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-
-    # steps
-    # 1. find contracts associated with tag
-    # 2. create token_address
-    # 3. find token_address in collection
-    token_id_or_address = token_id_or_address.lower()
-    metadata = None
-    contract = None
-    owner_history_list = None
-    if tag == "_":
-        token_address = token_id_or_address
-        stored_token_address = db_to_use[
-            Collections.tokens_token_addresses_v2
-        ].find_one({"_id": token_address})
-        typed_token_address = TokenAddress.from_str(token_address)
-        contract, token_id = split_token_address(token_address)
-        tokens_tag = None
-    else:
-        token_id = token_id_or_address
-
-        tokens_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
-        stored_tag = tokens_tag
-        if tokens_tag:
-            contracts_for_tag = tokens_tag["contracts"]
-            for contract in contracts_for_tag:
-                token_address = f"{contract}-{token_id_or_address}"
-                stored_token_address = db_to_use[
-                    Collections.tokens_token_addresses_v2
-                ].find_one({"_id": token_address})
-                if stored_token_address:
-                    break
-        else:
-            stored_token_address = None
-    # metadata = retrieve_metadata_for_stored_token_address(token_address, db_to_use)
-    if stored_token_address:
-        stored_token_address = MongoTypeTokenAddress(**stored_token_address)
-        if tag == "provenance-tags":
-            owner_history_list = get_owner_history_for_provenance(
-                grpcclient,
-                token_id,
-                CCD_ContractAddress.from_str(stored_token_address.contract),
-                NET(net),
-            )
-
-    template_dict = {
-        "env": request.app.env,
-        "request": request,
-        "net": net,
-        "contract": contract,
-        "token_address_result": stored_token_address,
-        "metadata": (
-            stored_token_address.token_metadata
-            if stored_token_address is not None
-            else None
-        ),
-        "token_id": token_id,
-        "stored_tag": tokens_tag,
-        "is_PTRT": False,
-        "tag": tag,
-        "user": user,
-        "tags": tags,
-        "owner_history_list": owner_history_list,
-    }
-
-    if not tokens_tag:
-        return templates.TemplateResponse(
-            "tokens/generic/token_display_nft.html", template_dict
-        )
-    else:
-        if tokens_tag["tag_template"]:
-            return templates.TemplateResponse(
-                f"tokens/{tag}/token_display.html", template_dict
-            )
-        else:
-            return templates.TemplateResponse(
-                "tokens/generic/token_display_nft.html", template_dict
-            )
-
-
 @router.get("/{net}/ajax_token_metadata_display/{url}")  # type:ignore
 async def tokens_tag_metadata(
     request: Request,
     net: str,
     url: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     response = requests.get(url)
@@ -538,10 +416,6 @@ async def tokens_tag_metadata(
 async def tokens_fungible_tvl(
     request: Request,
     net: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -558,122 +432,35 @@ async def tokens_fungible_tvl(
     )
 
 
-@router.get("/{net}/tokens/{tag}")  # type:ignore
-async def tokens_tag(
-    request: Request,
-    net: str,
-    tag: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
-    tags: dict = Depends(get_labeled_accounts),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-
-    # steps
-    # 1. find contracts associated with tag
-    # 2. create token_address
-    # 3. find token_address in collection
-    token_addresses_for_tag = []
-    stored_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
-    if stored_tag:
-        token_addresses_for_tag = db_to_use[
-            Collections.tokens_token_addresses_v2
-        ].find_one({"contract": stored_tag["contracts"][0]})
-        ajax_url = (
-            "ajax_token_ids_for_tag_single_use"
-            if stored_tag["single_use_contract"]
-            else "ajax_token_ids_for_tag_multiple_use"
-        )
-        return templates.TemplateResponse(
-            "tokens/token_overview.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "net": net,
-                "user": user,
-                "tags": tags,
-                "tag": tag,
-                "stored_tag": stored_tag,
-                "token_address_result": (
-                    {"id": token_addresses_for_tag["_id"]}
-                    if token_addresses_for_tag
-                    else {"id": f"{stored_tag['contracts'][0]}-unknown"}
-                ),
-                "token_addresses_for_tag": token_addresses_for_tag,
-                "ajax_url": ajax_url,
-            },
-        )
-    else:
-        error = {
-            "error": True,
-            "errorMessage": f"No token on {net} found with tag {tag}.",
-        }
-        return templates.TemplateResponse(
-            "account/account_account_error.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "net": net,
-                "error": error,
-            },
-        )
-
-
 @router.get("/{net}/tokens")  # type:ignore
 async def smart_contracts_tokens_overview(
     request: Request,
     net: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
-    token_addresses_with_markup_both_nets: dict = Depends(
-        get_token_addresses_with_markup
-    ),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    token_addresses_with_markup = token_addresses_with_markup_both_nets[NET(net)]
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    # motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/tokens/fungible-tokens/verified",
+        request.app.httpx_client,
+    )
+    fungible_tokens_verified = api_result.return_value if api_result.ok else None
+    fungible_tokens_verified = sorted(
+        fungible_tokens_verified, key=lambda x: x["token_value_USD"], reverse=True
+    )
 
-    tokens_tags = [
-        MongoTypeTokensTag(**x)
-        for x in db_to_use[Collections.tokens_tags].find(
-            {"$or": [{"hidden": {"$exists": False}}, {"hidden": False}]}
-        )
-    ]
-
-    logged_events_by_contract = {
-        x["_id"]: x["count"]
-        for x in db_to_use[Collections.pre_tokens_overview].find({})
-    }
-
-    for tt in tokens_tags:
-        if tt.token_type == "fungible":
-            contract = tt.contracts[0]
-            token_address_with_markup: MongoTypeTokenAddress = (
-                token_addresses_with_markup.get(f"{contract}-")
-            )
-            if token_address_with_markup:
-                tvl_for_token = int(token_address_with_markup.token_amount) * (
-                    math.pow(10, -token_address_with_markup.tag_information.decimals)
-                )
-                tvl_for_token_in_usd = (
-                    tvl_for_token * token_address_with_markup.exchange_rate
-                )
-                tt.tvl_for_token_in_usd = tvl_for_token_in_usd
-            else:
-                tt.tvl_for_token_in_usd = 0
-        tt.logged_events_count = 0
-        for contract in tt.contracts:
-            if contract in logged_events_by_contract.keys():
-                tt.logged_events_count += logged_events_by_contract[contract]
-    # print(f"{token_addresses_with_markup=}")
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/tokens/non-fungible-tokens/verified",
+        request.app.httpx_client,
+    )
+    non_fungible_tokens_verified = api_result.return_value if api_result.ok else None
+    request.state.api_calls = {}
+    request.state.api_calls["Fungible Tokens"] = (
+        f"{request.app.api_url}/docs#/Tokens/get_fungible_tokens_verified_v2__net__tokens_fungible_tokens_verified_get"
+    )
+    request.state.api_calls["Non-Fungible Tokens"] = (
+        f"{request.app.api_url}/docs#/Tokens/get_non_fungible_tokens_verified_v2__net__tokens_non_fungible_tokens_verified_get"
+    )
     return templates.TemplateResponse(
         "tokens/tokens.html",
         {
@@ -682,7 +469,8 @@ async def smart_contracts_tokens_overview(
             "net": net,
             "user": user,
             "tags": tags,
-            "tokens_tags": tokens_tags,
+            "fungible_tokens_verified": fungible_tokens_verified,
+            "non_fungible_tokens_verified": non_fungible_tokens_verified,
         },
     )
 
@@ -698,10 +486,6 @@ async def ajax_logged_events_for_token_address(
     requested_page: int,
     total_rows: int,
     api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
     tags: dict = Depends(get_labeled_accounts),
 ):
     limit = 20
@@ -813,102 +597,6 @@ async def ajax_logged_events_for_token_address(
 
 
 @router.get(
-    "/ajax_token_holders_for_token_address/{net}/{token_address_str}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def ajax_token_holders_for_token_address(
-    request: Request,
-    net: str,
-    token_address_str: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    tags: dict = Depends(get_labeled_accounts),
-):
-    limit = 20
-    token_address_str = token_address_str.replace("&lt;", "<").replace("&gt;", ">")
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    metadata = None
-    typed_tokens_tag = None
-    single_use_contract = False
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
-
-        stored_token_address = db_to_use[
-            Collections.tokens_token_addresses_v2
-        ].find_one({"_id": token_address_str})
-
-        typed_token_address = TokenAddress.from_str(token_address_str)
-        if stored_token_address:
-            stored_token_address = MongoTypeTokenAddress(**stored_token_address)
-            typed_tokens_tag = token_tag_if_exists(
-                typed_token_address.contract, db_to_use
-            )
-            metadata = None
-            decimals = 0 if not typed_tokens_tag else typed_tokens_tag.decimals
-            if not typed_tokens_tag:
-                metadata = retrieve_metadata_for_stored_token_address(
-                    token_address_str, db_to_use
-                )
-                if metadata:
-                    decimals = metadata.decimals
-
-            token_links_for_address_from_collection = {
-                x["account_address"]: x["token_holding"]["token_amount"]
-                for x in db_to_use[Collections.tokens_links_v2].find(
-                    {"token_holding.token_address": token_address_str}
-                )
-                # if int(x["token_holding"]["token_amount"]) >= 0
-            }
-            token_holders = token_links_for_address_from_collection
-            token_holders = dict(
-                sorted(
-                    token_holders.items(), key=lambda item: int(item[1]), reverse=True
-                )
-            )
-            total_event_count = len(token_holders)
-            token_holder_addresses = list(token_holders.keys())
-            token_holders_to_show = token_holder_addresses[skip : (skip + limit)]
-            token_holders = {
-                k: int(v)
-                for k, v in token_holders.items()
-                if k in token_holders_to_show
-            }
-            token_holders = sorted(
-                token_holders.items(), key=operator.itemgetter(1), reverse=True
-            )
-        else:
-            token_holders = []
-            total_event_count = 0
-            decimals = 0
-        html = process_token_holders_to_HTML_v2(
-            request,
-            token_holders,
-            total_event_count,
-            requested_page,
-            user,
-            tags,
-            net,
-            metadata,
-            typed_tokens_tag,
-            decimals,
-        )
-        return html
-
-
-@router.get(
     "/ajax_token_ids_for_tag_single_use/{net}/{tag}/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,
 )
@@ -919,10 +607,6 @@ async def ajax_token_ids_for_tag(
     requested_page: int,
     total_rows: int,
     api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
     tags: dict = Depends(get_labeled_accounts),
 ):
     limit = 20
@@ -996,81 +680,54 @@ async def ajax_token_ids_for_tag(
 
 
 @router.get(
-    "/ajax_token_ids_for_tag_multiple_use/{net}/{tag}/{requested_page}/{total_rows}/{api_key}",
+    "/{net}/ajax_nft_tokens_for/{tag}/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,
 )
-async def ajax_token_ids_for_tag_mulitple(
+async def ajax_nft_tokens_for_tag(
     request: Request,
     net: str,
     tag: str,
     requested_page: int,
     total_rows: int,
     api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 20
-    # token_address_str = token_address_str.replace("&lt;", "<").replace("&gt;", ">")
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    # motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    metadata = None
-    typed_tokens_tag = None
-    single_use_contract = False
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
+    limit = 10
+    skip = calculate_skip(requested_page, total_rows, limit)
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/tag/{tag}/{skip}/{limit}",
+        httpx_client,
+    )
+    nft_tokens = api_result.return_value if api_result.ok else None
 
-        token_addresses_for_tag = []
-        stored_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
-        is_PTRT = tag == "PTRT"
-        if not stored_tag:
-            return None
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="token",
+        action_string="nft_token",
+        limit=limit,
+        returned_rows=len(nft_tokens),
+    )
+    pagination = pagination_calculator(pagination_request)
+    request.state.api_calls = {}
+    request.state.api_calls["NFT Tokens"] = (
+        f"{request.app.api_url}/docs#/Token/get_nft_tag_tokens_v2__net__token_tag__tag___skip___limit__get"
+    )
+    html = templates.get_template("tokens/nft_tag/nft_tag_tokens.html").render(
+        {
+            "nft_tokens": nft_tokens,
+            "tags": tags,
+            "tag": tag,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "total_rows": total_rows,
+        }
+    )
 
-        tag_id_count_result = list(
-            db_to_use[Collections.pre_addresses_by_contract_count].find(
-                {"_id": {"$in": stored_tag["contracts"]}}
-            )
-        )
-        tag_id_count = sum([x["count"] for x in tag_id_count_result])
-        pipeline = [
-            {"$match": {"contract": {"$in": stored_tag["contracts"]}}},
-            {"$match": {"hidden": False}},
-            {"$sort": {"last_height_processed": DESCENDING}},
-            {
-                "$facet": {
-                    "data": [{"$skip": skip}, {"$limit": limit}],
-                }
-            },
-        ]
-        result = list(
-            db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline)
-        )
-        if len(result) > 0:
-            token_addresses_for_tag = [
-                MongoTypeTokenAddress(**x) for x in result[0]["data"]
-            ]
-        html = process_token_ids_for_tag_to_HTML_v2(
-            request,
-            token_addresses_for_tag,
-            tag_id_count,
-            requested_page,
-            user,
-            tags,
-            net,
-            metadata,
-            tag,
-            # decimals,
-        )
-        return html
+    return html
 
 
 @router.get(
@@ -1080,7 +737,6 @@ async def ajax_token_ids_for_tag_mulitple(
 async def statistics_token_TVL_plotly(
     request: Request,
     token_address: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
 ):
     analysis = "statistics_tvl_for_tokens"
 
@@ -1110,3 +766,282 @@ async def statistics_token_TVL_plotly(
         full_html=False,
         include_plotlyjs=False,
     )
+
+
+@router.get(
+    "/{net}/token/{contract_index}/{contract_subindex}/{token_id}"
+)  # type:ignore
+async def get_token_token_address(
+    request: Request,
+    net: str,
+    contract_index: int,
+    contract_subindex: int,
+    token_id: str,
+    tags: dict = Depends(get_labeled_accounts),
+):
+    # user: UserV2 = await get_user_detailsv2(request)
+    token_id = token_id.lower()
+    contract = CCD_ContractAddress.from_index(contract_index, contract_subindex)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract.index}/{contract.subindex}/{token_id}/info",
+        request.app.httpx_client,
+    )
+    stored_token_address = api_result.return_value if api_result.ok else None
+    return await show_token_address(
+        request,
+        net,
+        stored_token_address,
+        contract_index,
+        contract_subindex,
+        token_id,
+        tags,
+    )
+
+
+async def show_token_address(
+    request: Request,
+    net: str,
+    stored_token_address: dict,
+    contract_index: str,
+    contract_subindex: str,
+    token_id: str,
+    tags: dict,
+):
+    """Only for fungible tags and indivitual token addresses, not non-fungible tags"""
+    user: UserV2 = await get_user_detailsv2(request)
+
+    if not stored_token_address:
+        error = f"Can't find the token at {contract_index}/{contract_subindex}/{token_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    contract = CCD_ContractAddress.from_index(contract_index, contract_subindex)
+
+    # CIS-2 compliant?
+    use_token_id = "_" if token_id == "" else token_id
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{use_token_id}/cis-2-compliant",
+        request.app.httpx_client,
+    )
+    compliant_contract = api_result.return_value if api_result.ok else True
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/transaction/{stored_token_address["mint_tx_hash"]}",
+        request.app.httpx_client,
+    )
+    tx_deployed = (
+        CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
+    )
+    request.state.api_calls = {}
+    request.state.api_calls["Token Info"] = (
+        f"{request.app.api_url}/docs#/Token/get_info_for_token_address_v2__net__token__contract_index___contract_subindex___token_id__info_get"
+    )
+    request.state.api_calls["Token Mint Tx"] = (
+        f"{request.app.api_url}/docs#/Transaction/get_transaction_v2__net__transaction__tx_hash__get"
+    )
+    template_dict = {
+        "env": request.app.env,
+        "request": request,
+        "net": net,
+        "contract": contract,
+        "tx_deployed": tx_deployed,
+        "stored_token_address": stored_token_address,
+        "token_id": token_id,
+        "compliant_contract": compliant_contract,
+        # "stored_tag": tokens_tag,
+        # "is_PTRT": False,
+        # "tag": tag,
+        "user": user,
+        "tags": tags,
+        # "owner_history_list": owner_history_list,
+    }
+
+    return templates.TemplateResponse(
+        "tokens/generic/token_address_display.html", template_dict
+    )
+
+
+async def show_nft_tag(request: Request, net: str, tag_result: dict):
+    """Only for non-fungible tags"""
+    user: UserV2 = await get_user_detailsv2(request)
+
+    template_dict = {
+        "env": request.app.env,
+        "request": request,
+        "net": net,
+        "user": user,
+        "vi": tag_result,
+    }
+
+    return templates.TemplateResponse(
+        "tokens/nft_tag/nft_tag_display.html", template_dict
+    )
+
+
+@router.get("/{net}/tokens/{tag}")
+@router.get("/{net}/tokens/{tag}/{token_id_or_address}")  # type:ignore
+async def tokens_tag_token_id(
+    request: Request,
+    net: str,
+    tag: str,
+    token_id_or_address: Optional[str] = None,
+    tags: dict = Depends(get_labeled_accounts),
+):
+    if tag == "_":
+        splits = token_id_or_address.split("-")
+        contract = CCD_ContractAddress.from_str(splits[0])
+        token_id = splits[1]
+
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/token/{contract.index}/{contract.subindex}/{token_id}/info",
+            request.app.httpx_client,
+        )
+        stored_token_address = api_result.return_value if api_result.ok else None
+    else:
+        # first request the tag
+        # if tag is fungible, continue here.
+        # if tag is non-fungible, go to separate function to display NFT tag.
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/token/{tag}/info",
+            request.app.httpx_client,
+        )
+        tag_result = api_result.return_value if api_result.ok else None
+
+        if tag_result and not token_id_or_address:
+            if tag_result["token_type"] == "non-fungible":
+                print("NFT")
+                return await show_nft_tag(request, net, tag_result)
+
+        # continue here with fungible or unknown tag.
+
+        if token_id_or_address:
+            # non-fungible token
+            token_id = token_id_or_address.lower()
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/token/tag/{tag}/token-id/{token_id}/info",
+                request.app.httpx_client,
+            )
+            stored_token_address = api_result.return_value if api_result.ok else None
+        else:
+            # fungible token
+            token_id = ""
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/token/tag/{tag}/info",
+                request.app.httpx_client,
+            )
+            stored_token_address = api_result.return_value if api_result.ok else None
+        if stored_token_address:
+            contract = CCD_ContractAddress.from_str(stored_token_address["contract"])
+            contract_index = contract.index
+            contract_subindex = contract.subindex
+        else:
+            if not stored_token_address:
+                if not token_id_or_address:
+                    error = f"Can't find the token at {tag} on {net}."
+                else:
+                    error = (
+                        f"Can't find the token at {tag}-{token_id_or_address} on {net}."
+                    )
+                return templates.TemplateResponse(
+                    "base/error.html",
+                    {
+                        "request": request,
+                        "error": error,
+                        "env": environment,
+                        "net": net,
+                    },
+                )
+
+    return await show_token_address(
+        request,
+        net,
+        stored_token_address,
+        contract_index,
+        contract_subindex,
+        token_id,
+        tags,
+    )
+
+
+@router.get(
+    "/{net}/token/{contract_index}/{contract_subindex}/{token_id}/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def get_token_current_holders(
+    request: Request,
+    net: str,
+    contract_index: int,
+    contract_subindex: int,
+    token_id: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    limit = 10
+    if api_key != request.app.env["API_KEY"]:
+        return "No valid api key supplied."
+    else:
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/info",
+            request.app.httpx_client,
+        )
+        stored_token_address = api_result.return_value if api_result.ok else None
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/holders/{skip}/{limit}",
+            httpx_client,
+        )
+        current_holders = (
+            api_result.return_value["current_holders"] if api_result.ok else None
+        )
+        total_rows = api_result.return_value["total_count"] if api_result.ok else None
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="holder",
+            action_string="holder",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+
+        curren_holder_with_id = current_holders
+
+        current_holders = []
+        for holder in curren_holder_with_id:
+
+            holder.update(
+                {
+                    "account_index": from_address_to_index(
+                        holder["account_address_canonical"], net, request.app
+                    )
+                }
+            )
+            current_holders.append(holder)
+
+        html = templates.get_template(
+            "tokens/generic/token_current_holders.html"
+        ).render(
+            {
+                "co": current_holders,
+                "tags": tags,
+                "user": user,
+                "net": net,
+                "request": request,
+                "pagination": pagination,
+                "totals_in_pagination": True,
+                "total_rows": total_rows,
+                "stored_token_address": stored_token_address,
+            }
+        )
+
+        return html

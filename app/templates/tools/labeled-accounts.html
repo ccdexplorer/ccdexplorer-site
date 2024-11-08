@@ -1,0 +1,52 @@
+{% extends "base/base.html" %}
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<h2>Labeled Accounts</h2>
+<div class="container">
+   
+{% for tag in tags["labeled_accounts"] %}
+    {% if tag != 'contracts' %}
+    <div class="row">
+        <h4 class="mt-3">{{tag[0]|upper}}{{tag[1:]}}</h4>
+            
+        <p><small>{{tags["descriptions"][tag]}}</small></p>
+        {% for account in tags["labeled_accounts"][tag] %}
+            {% set color = tags["colors"][tag] %}
+            <div class="card low  m-2 p-2" style="width: 9rem; border-color: rgba{{color|hex_to_rgba(0.5)}};">
+                <div style="background-color: rgba{{color|hex_to_rgba(0.25)}};"  class="card-body m-0 p-0 text-center">
+                    <small><span  class="card-title text-center text-white">
+                        {{account|account_link(net, user,
+                            tags=tags, app=request.app)|safe }}
+                        
+                    
+                    </span></small>
+                    <a class="stretched-link" href="/{{net}}/account/{{account}}"></a>
+                
+                </div>
+                
+            </div>
+            
+            {% endfor %}    
+    </div>
+{% endif %}
+{% endfor %}
+<div class="row">
+    <h4 class="mt-3">Projects</h4>
+    <p><small>Recognized projects on the Concordium blockchain.</small></p>
+{% for project_id, project in projects.items()%}
+    <div class="card low border-success m-2 p-2" style="width: 9rem;">
+        <div style="background-color: rgba(100,100,100,0.25)"  class="card-body m-0 p-0 text-center">
+            <small><span  class="card-title text-center">
+                <a href="/project/{{project_id}}"><small>{{project.display_name}}</small></a>
+                
+        
+        </span></small>
+        <a class="stretched-link" href="/project/{{project_id}}"></a>
+    
+    </div>
+    
+</div>
+{% endfor%}
+</div>
+</div>
+{% endblock %}

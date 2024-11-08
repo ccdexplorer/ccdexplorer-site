@@ -1,35 +1,23 @@
 # ruff: noqa: F403, F405, E402, E501
 
+import base64
 import datetime as dt
+import json
 import typing
 from enum import Enum
-from ccdexplorer_fundamentals.enums import NET
 
+import httpx
+from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
 from ccdexplorer_fundamentals.cns import CNSActions, CNSDomain, CNSEvent
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
-from ccdexplorer_fundamentals.mongodb import Collections, MongoDB
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from ccdexplorer_schema_parser.Schema import Schema
 from pydantic import BaseModel
-from pymongo import ReplaceOne
 
 from app.classes.Enums import *
 from app.env import *
 from app.utils import *
-
-# from ccdexplorer_fundamentals.cis import (
-#     CIS,
-#     StandardIdentifiers,
-#     mintEvent,
-#     burnEvent,
-#     transferEvent,
-#     tokenMetadataEvent,
-#     LoggedEvents,
-#     MongoTypeTokenAddress,
-#     MongoTypeLoggedEvent,
-# )
 
 
 class Outcome(Enum):
@@ -84,14 +72,10 @@ class MakeUpRequest(BaseModel):
         arbitrary_types_allowed = True
 
     net: str
-    grpcclient: GRPCClient
-    mongodb: MongoDB
+    httpx_client: httpx.AsyncClient
     tags: Optional[dict] = None
     user: Optional[UserV2] = None
-    contracts_with_tag_info: Optional[dict[str, MongoTypeTokensTag]] = None
     ccd_historical: Optional[dict[str, float]] = None
-    token_addresses_with_markup: Optional[dict] = None
-    credential_issuers: Optional[list] = None
     app: typing.Any = None
     requesting_route: Optional[RequestingRoute] = None
 
@@ -104,11 +88,6 @@ class MakeUp:
     def __init__(
         self,
         makeup_request: MakeUpRequest,
-        # net: str,
-        # grpcclient,
-        # mongodb: MongoDB,
-        # tags=None,
-        # user: UserV2= None,
     ):
         self.tx_hash = None
         self.block_hash = None
@@ -119,49 +98,62 @@ class MakeUp:
         self.makeup_request = makeup_request
         self.user = makeup_request.user
         self.tags = makeup_request.tags
-        # self.node = node
         self.net = makeup_request.net
-        self.grpcclient = makeup_request.grpcclient
-        self.mongodb = makeup_request.mongodb
-        self.contracts_with_tag_info = makeup_request.contracts_with_tag_info
-        self.token_addresses_with_markup = makeup_request.token_addresses_with_markup
-        self.credential_issuers = makeup_request.credential_issuers
-        self.db_to_use = (
-            self.mongodb.testnet
-            if makeup_request.net == "testnet"
-            else self.mongodb.mainnet
-        )
+        self.httpx_client = makeup_request.httpx_client
+        self.app = makeup_request.app
         self.cns_domain = CNSDomain()
         self.csv = {}
 
         self.smart_contracts_updated = []
 
-    def get_schema_from_source(self, contract_address: CCD_ContractAddress):
-        result = self.db_to_use[Collections.instances].find_one(
-            {"_id": contract_address.to_str()}
+    async def get_schema_from_source(self, contract_address: CCD_ContractAddress):
+        result_from_cache = self.app.schema_cache[self.net].get(contract_address.to_str())
+        if result_from_cache:
+            now = dt.datetime.now().astimezone(dt.UTC)
+            if (now - result_from_cache["timestamp"]).total_seconds() < 5:
+                schema = self.app.schema_cache[self.net][contract_address.to_str()]["schema"]
+                source_module_name = self.app.schema_cache[self.net][contract_address.to_str()]["source_module_name"]
+                return schema, source_module_name
+        
+        api_result = await get_url_from_api(
+            f"{self.app.api_url}/v2/{self.net}/contract/{contract_address.index}/{contract_address.subindex}/schema-from-source",
+            self.httpx_client,
         )
-        module_ref = (
-            result["v1"]["source_module"]
-            if result.get("v1")
-            else result["v0"]["source_module"]
+        api_repsonse = api_result.return_value if api_result.ok else None
+        if not api_repsonse:
+            schema = None
+            source_module_name = None
+            return schema, source_module_name
+
+        
+        ms_bytes = base64.decodebytes(
+            json.loads(api_repsonse["module_source"]).encode()
         )
-        source_module_name = (
-            result["v1"]["name"][5:] if result.get("v1") else result["v0"]["name"][5:]
+
+        schema = (
+            Schema(ms_bytes, 1)
+            if api_repsonse["version"] == "v1"
+            else Schema(ms_bytes, 0)
         )
-        self.grpcclient: GRPCClient
-        ms: VersionedModuleSource = self.grpcclient.get_module_source_original_classes(
-            module_ref, "last_final", net=NET(self.makeup_request.net)
-        )
-        schema = Schema(ms.v1.value, 1) if ms.v1 else Schema(ms.v0.value, 0)
+        source_module_name = api_repsonse["source_module_name"]
+
+        # add to cache
+        self.app.schema_cache[self.net][contract_address.to_str()] = {
+            "schema": schema,
+            "source_module_name": source_module_name,
+            "timestamp": dt.datetime.now().astimezone(dt.UTC)
+        }
 
         return schema, source_module_name
 
-    def prepare_for_display(self, transaction, account_id, account_view):
-        self._classify_transaction(transaction, account_id, account_view=account_view)
+    async def prepare_for_display(self, transaction, account_id, account_view):
+        await self._classify_transaction(
+            transaction, account_id, account_view=account_view
+        )
 
         return self
 
-    def set_cns_action_message(self, effect_updated: CCD_InstanceUpdatedEvent):
+    async def set_cns_action_message(self, effect_updated: CCD_InstanceUpdatedEvent):
         if effect_updated.receive_name == "BictoryCns.register":
             self.amount = self.cns_domain.amount - self.amount
             self.cns_domain.action_message = f'Registered <b>{self.cns_domain.domain_name}</b> for <b>{self.cns_domain.duration_years}</b> year{"s" if self.cns_domain.duration_years > 1 else ""}'  # at {self.cns_domain.register_address}'
@@ -174,13 +166,13 @@ class MakeUp:
             self.cns_domain.action_message = f"Sub domain <b>{self.cns_domain.subdomain }</b> created on <b>{self.cns_domain.domain_name}</b>"
 
         if effect_updated.receive_name == "BictoryCns.setAddress":
-            self.cns_domain.action_message = f"Address (to {account_link(self.cns_domain.set_address, self.net, nothing_=True, from_=False, user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}) set on <b>{self.cns_domain.domain_name}.</b>"
+            self.cns_domain.action_message = f"Address (to {account_link(self.cns_domain.set_address, self.net,user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}) set on <b>{self.cns_domain.domain_name}.</b>"
 
         if effect_updated.receive_name == "BictoryCns.setData":
             self.cns_domain.action_message = f"Data ({self.cns_domain.set_data_key}: {self.cns_domain.set_data_value}) set on <b>{self.cns_domain.domain_name}</b>."
 
         if effect_updated.receive_name == "BictoryCnsNft.transfer":
-            self.cns_domain.action_message = f"<b>Transferred {self.cns_domain.domain_name}</b> to {account_link(self.cns_domain.transfer_to, self.net, nothing_=True, from_=False, user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}"
+            self.cns_domain.action_message = f"<b>Transferred {self.cns_domain.domain_name}</b> to {account_link(self.cns_domain.transfer_to, self.net, user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}"
 
         if effect_updated.receive_name == "BictoryNftAuction.bid":
             self.cns_domain.action_message = f"Bid placed on <b>{self.cns_domain.domain_name}</b> for <b>{micro_ccd_no_decimals(self.cns_domain.amount)}</b>"
@@ -206,33 +198,30 @@ class MakeUp:
                     f"Auction cancelled for <b>{self.cns_domain.domain_name}</b>"
                 )
 
-    def get_domain_from_collection(self):
-        result = self.mongodb.mainnet[Collections.cns_domains].find_one(
-            {"_id": self.cns_domain.tokenId}
-        )
-        if result:
-            self.cns_domain.domain_name = result["domain_name"]
-            print(f"Using cache for {self.cns_domain.domain_name}")
-        else:
-            self.cns_domain.get_cns_domain_name_v2(
-                self.grpcclient, self.cns_domain.tokenId, "mainnet"
-            )
-            document_to_store = ReplaceOne(
-                {
-                    "_id": self.cns_domain.tokenId,
-                },
-                {
-                    "_id": self.cns_domain.tokenId,
-                    "domain_name": self.cns_domain.domain_name,
-                },
-                upsert=True,
-            )
-            result = self.mongodb.mainnet[Collections.cns_domains].bulk_write(
-                [document_to_store]
-            )
-            print(f"Saving cache for {self.cns_domain.domain_name}")
+    async def get_domain_from_collection(self):
+        result_from_cache = self.app.cns_domain_cache[self.net].get(self.cns_domain.tokenId)
+        from_cache = False
+        if result_from_cache:
+            now = dt.datetime.now().astimezone(dt.UTC)
+            if (now - result_from_cache["timestamp"]).total_seconds() < 5:
+                self.cns_domain.domain_name = self.app.cns_domain_cache[self.net][self.cns_domain.tokenId]["domain_name"]
+                from_cache= True
 
-    def set_possible_cns_domain_from_update(
+        if not from_cache:
+            api_result = await get_url_from_api(
+                f"{self.app.api_url}/v2/{self.net}/misc/cns-domain/{self.cns_domain.tokenId}",
+                self.httpx_client,
+            )
+            self.cns_domain.domain_name = api_result.return_value if api_result.ok else ""
+
+
+            # add to cache
+            self.app.cns_domain_cache[self.net][self.cns_domain.tokenId] = {
+                "domain_name": self.cns_domain.domain_name,
+                "timestamp": dt.datetime.now().astimezone(dt.UTC)
+            }
+
+    async def set_possible_cns_domain_from_update(
         self, effect_updated: CCD_InstanceUpdatedEvent
     ):
         self.cns_domain = CNSDomain()
@@ -247,7 +236,7 @@ class MakeUp:
                 self.cns_domain.transfer_to,
             ) = self.cns_domain.decode_transfer_to_from(effect_updated.parameter)
 
-            self.get_domain_from_collection()
+            await self.get_domain_from_collection()
 
         if effect_updated.receive_name == "BictoryCns.register":
             self.cns_domain.amount = effect_updated.amount
@@ -306,7 +295,7 @@ class MakeUp:
                 self.cns_domain.tokenId = token_id_
                 self.cns_domain.amount = amount_
 
-                self.get_domain_from_collection()
+                await self.get_domain_from_collection()
 
         if effect_updated.receive_name == "BictoryNftAuction.finalize":
             self.cns_domain.action = CNSActions.finalize
@@ -332,7 +321,7 @@ class MakeUp:
 
                 self.cns_domain.tokenId = token_id_
 
-                self.get_domain_from_collection()
+                await self.get_domain_from_collection()
 
         if effect_updated.receive_name == "BictoryNftAuction.cancel":
             self.cns_domain.action = CNSActions.cancel
@@ -350,7 +339,7 @@ class MakeUp:
 
                 self.cns_domain.tokenId = token_id_
 
-                self.get_domain_from_collection()
+                await self.get_domain_from_collection()
 
         if effect_updated.receive_name == "BictoryCnsNft.getTokenExpiry":
             self.cns_domain.action = CNSActions.getTokenExpiry
@@ -358,9 +347,9 @@ class MakeUp:
                 effect_updated.parameter
             )
 
-            self.get_domain_from_collection()
+            await self.get_domain_from_collection()
 
-    def set_possible_cns_domain_from_interrupt(
+    async def set_possible_cns_domain_from_interrupt(
         self, effect_interrupted: CCD_ContractTraceElement_Interrupted
     ):
         self.cns_domain = CNSDomain()
@@ -385,9 +374,9 @@ class MakeUp:
 
             self.cns_domain.tokenId = token_id_
 
-            self.get_domain_from_collection()
+            await self.get_domain_from_collection()
 
-    def _classify_transaction(
+    async def _classify_transaction(
         self, t: CCD_BlockItemSummary, account_id=None, account_view=False
     ):
         self.dct = {}
@@ -416,9 +405,10 @@ class MakeUp:
                 "start_4": block_height_link(t.block_info.height, self.net),
                 "end_4": cost_html(t.account_transaction.cost, energy=False),
                 "start_5": account_link(
-                    t.account_transaction.sender,
+                    from_address_to_index(
+                        t.account_transaction.sender, self.net, self.makeup_request.app
+                    ),
                     self.net,
-                    from_=True,
                     user=self.user,
                     tags=self.tags,
                     app=self.makeup_request.app,
@@ -453,76 +443,148 @@ class MakeUp:
 
                 elif effects.contract_initialized:
                     self.classifier = TransactionClassifier.Smart_Contract
-
-                    logged_events = []
-                    try:
-                        schema, source_module_name = self.get_schema_from_source(
-                            effects.contract_initialized.address
-                        )
-                    except ValueError:
-                        schema = None
-                        source_module_name = None
-
-                    for event in effects.contract_initialized.events:
-                        success = False
-                        logged_events, success = self.try_logged_event_parsing(
-                            logged_events,
-                            event,
-                            effects.contract_initialized.address,
-                        )
-                        if not success:
-                            logged_events, success = self.try_schema_parsing_for_event(
-                                logged_events,
-                                schema,
-                                source_module_name,
-                                event,
-                                self.net,
-                                user=self.user,
-                                tags=self.tags,
-                                app=self.makeup_request.app,
-                            )
-
-                    new_event = EventType(
-                        f"Contract Initialized {instance_link_v2(effects.contract_initialized.address, self.user, self.tags, self.net)}",
-                        f'Initializer: {effects.contract_initialized.init_name}<br>Module: <a href="/{self.net}/module/{effects.contract_initialized.origin_ref}">{effects.contract_initialized.origin_ref[:10]}</a>',
-                        None,
-                        logged_events,
-                    )
-                elif effects.contract_update_issued:
-                    self.classifier = TransactionClassifier.Smart_Contract
-                    for effect in effects.contract_update_issued.effects:
-                        if effect.updated:
-                            logged_events = []
-                            try:
-                                schema, source_module_name = (
-                                    self.get_schema_from_source(effect.updated.address)
+                    if (
+                        self.makeup_request.requesting_route
+                        == RequestingRoute.transaction
+                    ):
+                        logged_events = []
+                        try:
+                            schema, source_module_name = (
+                                await self.get_schema_from_source(
+                                    effects.contract_initialized.address
                                 )
-                                parameter_json, _ = (
-                                    self.try_schema_parsing_for_parameter(
+                            )
+                        except ValueError:
+                            schema = None
+                            source_module_name = None
+
+                        for event in effects.contract_initialized.events:
+                            success = False
+                            logged_events, success = (
+                                await self.try_logged_event_parsing(
+                                    logged_events,
+                                    event,
+                                    effects.contract_initialized.address,
+                                )
+                            )
+                            if not success:
+                                logged_events, success = (
+                                    self.try_schema_parsing_for_event(
+                                        logged_events,
                                         schema,
                                         source_module_name,
-                                        effect.updated.receive_name.split(".")[1],
-                                        effect.updated.parameter,
+                                        event,
+                                        self.net,
+                                        user=self.user,
+                                        tags=self.tags,
+                                        app=self.makeup_request.app,
                                     )
                                 )
-                            except ValueError:
-                                schema = None
-                                source_module_name = None
-                                parameter_json = None
 
-                            # don't show logged events if we are not specifically looking at 1 tx.
-                            process_events = self.determine_if_we_show_events(
-                                effect.updated.events
-                            )
+                        new_event = EventType(
+                            f"Contract Initialized {instance_link_v2(effects.contract_initialized.address, self.user, self.tags, self.net)}",
+                            f'Initializer: {effects.contract_initialized.init_name}<br>Module: <a href="/{self.net}/module/{effects.contract_initialized.origin_ref}">{effects.contract_initialized.origin_ref[:10]}</a>',
+                            None,
+                            logged_events,
+                        )
+                elif effects.contract_update_issued:
+                    self.classifier = TransactionClassifier.Smart_Contract
+                    if (
+                        1
+                        == 1
+                        # self.makeup_request.requesting_route
+                        # == RequestingRoute.transaction
+                    ):
+                        for effect in effects.contract_update_issued.effects:
+                            if effect.updated:
+                                logged_events = []
+                                try:
+                                    schema, source_module_name = (
+                                        await self.get_schema_from_source(
+                                            effect.updated.address
+                                        )
+                                    )
+                                    parameter_json, _ = (
+                                        self.try_schema_parsing_for_parameter(
+                                            schema,
+                                            source_module_name,
+                                            effect.updated.receive_name.split(".")[1],
+                                            effect.updated.parameter,
+                                        )
+                                    )
+                                except ValueError:
+                                    schema = None
+                                    source_module_name = None
+                                    parameter_json = None
 
-                            if process_events:
-                                for event in effect.updated.events:
+                                # don't show logged events if we are not specifically looking at 1 tx.
+                                process_events = self.determine_if_we_show_events(
+                                    effect.updated.events
+                                )
+
+                                if process_events:
+                                    for event in effect.updated.events:
+                                        success = False
+                                        logged_events, success = (
+                                            await self.try_logged_event_parsing(
+                                                logged_events,
+                                                event,
+                                                effect.updated.address,
+                                            )
+                                        )
+                                        if not success:
+                                            logged_events, success = (
+                                                self.try_schema_parsing_for_event(
+                                                    logged_events,
+                                                    schema,
+                                                    source_module_name,
+                                                    event,
+                                                    self.net,
+                                                    user=self.user,
+                                                    tags=self.tags,
+                                                    app=self.makeup_request.app,
+                                                )
+                                            )
+
+                                if t.block_info.height < 6_000_000:
+                                    await self.set_possible_cns_domain_from_update(
+                                        effect.updated
+                                    )
+                                    await self.set_cns_action_message(effect.updated)
+                                amount_str = (
+                                    f"<br>Amount: {micro_ccd_display(effect.updated.amount)}"
+                                    if effect.updated.amount > 0
+                                    else ""
+                                )
+                                new_event = EventType(
+                                    f"Updated contract with address {instance_link_v2(effect.updated.address, self.user, self.tags, self.net)}",
+                                    f"Contract: {effect.updated.receive_name.split('.')[0]}<br>Function: {effect.updated.receive_name.split('.')[1]}{amount_str}",
+                                    f"Parameter: {shorten_address(effect.updated.parameter) if not parameter_json else print_schema_dict(parameter_json, self.net, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                    logged_events,
+                                )
+                                self.smart_contracts_updated.append(
+                                    effect.updated.address
+                                )
+
+                            if effect.interrupted:
+                                logged_events = []
+                                try:
+                                    schema, source_module_name = (
+                                        await self.get_schema_from_source(
+                                            effect.interrupted.address
+                                        )
+                                    )
+                                except ValueError:
+                                    schema = None
+                                    source_module_name = None
+
+                                for event in effect.interrupted.events:
                                     success = False
                                     logged_events, success = (
-                                        self.try_logged_event_parsing(
+                                        await self.try_logged_event_parsing(
                                             logged_events,
                                             event,
-                                            effect.updated.address,
+                                            effect.interrupted.address,
                                         )
                                     )
                                     if not success:
@@ -539,88 +601,39 @@ class MakeUp:
                                             )
                                         )
 
-                            if t.block_info.height < 6_000_000:
-                                self.set_possible_cns_domain_from_update(effect.updated)
-                                self.set_cns_action_message(effect.updated)
-                            amount_str = (
-                                f"<br>Amount: {micro_ccd_display(effect.updated.amount)}"
-                                if effect.updated.amount > 0
-                                else ""
-                            )
-                            new_event = EventType(
-                                f"Updated contract with address {instance_link_v2(effect.updated.address, self.user, self.tags, self.net)}",
-                                f"Contract: {effect.updated.receive_name.split('.')[0]}<br>Function: {effect.updated.receive_name.split('.')[1]}{amount_str}",
-                                f"Parameter: {shorten_address(effect.updated.parameter) if not parameter_json else print_schema_dict(parameter_json, self.net, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                                logged_events,
-                            )
-                            self.smart_contracts_updated.append(effect.updated.address)
-
-                        if effect.interrupted:
-                            logged_events = []
-                            try:
-                                schema, source_module_name = (
-                                    self.get_schema_from_source(
-                                        effect.interrupted.address
-                                    )
+                                await self.set_possible_cns_domain_from_interrupt(
+                                    effect.interrupted
                                 )
-                            except ValueError:
-                                schema = None
-                                source_module_name = None
-
-                            for event in effect.interrupted.events:
-                                success = False
-                                logged_events, success = self.try_logged_event_parsing(
+                                new_event = EventType(
+                                    f"Interrupted contract with address {instance_link_v2(effect.interrupted.address, self.user, self.tags, self.net)}",
+                                    None,
+                                    None,
                                     logged_events,
-                                    event,
-                                    effect.interrupted.address,
                                 )
-                                if not success:
-                                    logged_events, success = (
-                                        self.try_schema_parsing_for_event(
-                                            logged_events,
-                                            schema,
-                                            source_module_name,
-                                            event,
-                                            self.net,
-                                            user=self.user,
-                                            tags=self.tags,
-                                            app=self.makeup_request.app,
-                                        )
-                                    )
 
-                            self.set_possible_cns_domain_from_interrupt(
-                                effect.interrupted
-                            )
-                            new_event = EventType(
-                                f"Interrupted contract with address {instance_link_v2(effect.interrupted.address, self.user, self.tags, self.net)}",
-                                None,
-                                None,
-                                logged_events,
-                            )
+                            if effect.transferred:
+                                new_event = EventType(
+                                    f"Transferred {(micro_ccd_display(effect.transferred.amount))} from {instance_link_v2(effect.transferred.sender, self.net)} to {account_link(from_address_to_index(effect.transferred.receiver, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                    None,
+                                    None,
+                                )
 
-                        if effect.transferred:
-                            new_event = EventType(
-                                f"Transferred {(micro_ccd_display(effect.transferred.amount))} from {instance_link_v2(effect.transferred.sender, self.net)} to {account_link(effect.transferred.receiver, self.net, from_=False, nothing_=True, user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                                None,
-                                None,
-                            )
+                            if effect.resumed:
+                                new_event = EventType(
+                                    f"Resumed contract with address {instance_link_v2(effect.resumed.address, self.user, self.tags, self.net)}",
+                                    None,
+                                    None,
+                                )
 
-                        if effect.resumed:
-                            new_event = EventType(
-                                f"Resumed contract with address {instance_link_v2(effect.resumed.address, self.user, self.tags, self.net)}",
-                                None,
-                                None,
-                            )
+                            if effect.upgraded:
+                                new_event = EventType(
+                                    f"Upgraded contract with address {instance_link_v2(effect.upgraded.address, self.user, self.tags, self.net)}",
+                                    f"From module: <a href='/{self.net}/module/{effect.upgraded.from_module}'>{effect.upgraded.from_module[:4]}</a><br>To module: <a href='/{self.net}/module/{effect.upgraded.to_module}'>{effect.upgraded.to_module[:4]}</a>",
+                                    None,
+                                )
 
-                        if effect.upgraded:
-                            new_event = EventType(
-                                f"Upgraded contract with address {instance_link_v2(effect.upgraded.address, self.user, self.tags, self.net)}",
-                                f"From module: <a href='/{self.net}/module/{effect.upgraded.from_module}'>{effect.upgraded.from_module[:4]}</a><br>To module: <a href='/{self.net}/module/{effect.upgraded.to_module}'>{effect.upgraded.to_module[:4]}</a>",
-                                None,
-                            )
-
-                        if new_event:
-                            self.events_list.append(new_event)
+                            if new_event:
+                                self.events_list.append(new_event)
 
                 elif effects.account_transfer:
                     self.classifier = TransactionClassifier.Transfer
@@ -638,20 +651,24 @@ class MakeUp:
                     self.from_account = t.account_transaction.sender
 
                     self.to_link = account_link(
-                        effects.account_transfer.receiver,
+                        from_address_to_index(
+                            effects.account_transfer.receiver,
+                            self.net,
+                            app=self.makeup_request.app,
+                        ),
                         self.net,
-                        from_=False,
-                        nothing_=True,
                         user=self.user,
                         tags=self.tags,
                         app=self.makeup_request.app,
                     )
 
                     self.from_link = account_link(
-                        t.account_transaction.sender,
+                        from_address_to_index(
+                            t.account_transaction.sender,
+                            self.net,
+                            app=self.makeup_request.app,
+                        ),
                         self.net,
-                        from_=True,
-                        nothing_=True,
                         user=self.user,
                         tags=self.tags,
                         app=self.makeup_request.app,
@@ -660,9 +677,12 @@ class MakeUp:
                     dct.update(
                         {
                             "end_5": account_link(
-                                effects.account_transfer.receiver,
+                                from_address_to_index(
+                                    effects.account_transfer.receiver,
+                                    self.net,
+                                    app=self.makeup_request.app,
+                                ),
                                 self.net,
-                                from_=False,
                                 user=self.user,
                                 tags=self.tags,
                                 app=self.makeup_request.app,
@@ -680,7 +700,7 @@ class MakeUp:
                     self.classifier = TransactionClassifier.Baking
                     new_event = EventType(
                         "Validator Added",
-                        f"Restake Earnings: {effects.baker_added.restake_earnings}<br>Staked amount: {micro_ccd_display(effects.baker_added.stake)}",
+                        f"Restake Earnings: {effects.baker_added.restake_earnings}<br>Staked amount: {micro_ccd_no_decimals(effects.baker_added.stake)}",
                         None,
                     )
 
@@ -697,7 +717,7 @@ class MakeUp:
                     )
                     new_event = EventType(
                         f"Validator Stake {movement_str}",
-                        f"New staked amount: {micro_ccd_display(effects.baker_stake_updated.update.new_stake)}",
+                        f"New staked amount: {micro_ccd_no_decimals(effects.baker_stake_updated.update.new_stake)}",
                         None,
                     )
 
@@ -712,7 +732,7 @@ class MakeUp:
                 elif effects.transferred_to_public:
                     new_event = EventType(
                         "Amount Transferred to Public",
-                        f"Amount: {micro_ccd_display(effects.transferred_to_public.amount)}",
+                        f"Amount: {micro_ccd_no_decimals(effects.transferred_to_public.amount)}",
                         None,
                     )
                     self.events_list.append(new_event)
@@ -741,7 +761,7 @@ class MakeUp:
                     self.classifier = TransactionClassifier.Transfer
                     new_event = EventType(
                         "Transferred to Encrypted",
-                        f"{micro_ccd_display(effects.transferred_to_encrypted.amount)}",
+                        f"{micro_ccd_no_decimals(effects.transferred_to_encrypted.amount)}",
                         None,
                     )
 
@@ -749,7 +769,7 @@ class MakeUp:
                     self.classifier = TransactionClassifier.Transfer
                     new_event = EventType(
                         "Transferred to Public",
-                        f"{micro_ccd_display(effects.transferred_to_public.amount)}",
+                        f"{micro_ccd_no_decimals(effects.transferred_to_public.amount)}",
                         None,
                     )
 
@@ -761,9 +781,12 @@ class MakeUp:
                             "schedule": effects.transferred_with_schedule.amount,
                             # 'start_1': event['totalAmount'],
                             "end_5": account_link(
-                                effects.transferred_with_schedule.receiver,
+                                from_address_to_index(
+                                    effects.transferred_with_schedule.receiver,
+                                    self.net,
+                                    app=self.makeup_request.app,
+                                ),
                                 self.net,
-                                from_=False,
                                 user=self.user,
                                 tags=self.tags,
                                 app=self.makeup_request.app,
@@ -806,7 +829,7 @@ class MakeUp:
                         if event.baker_added:
                             new_event = EventType(
                                 "Validator Added",
-                                f"Restake Earnings: {event.baker_added.restake_earnings}<br>Staked amount: {micro_ccd_display(event.baker_added.stake)}",
+                                f"Restake Earnings: {event.baker_added.restake_earnings}<br>Staked amount: {micro_ccd_no_decimals(event.baker_added.stake)}",
                                 None,
                             )
 
@@ -820,14 +843,14 @@ class MakeUp:
                         elif event.baker_stake_increased:
                             new_event = EventType(
                                 f"Validator Stake Increased for validator: {event.baker_stake_increased.baker_id}",
-                                f"New staked amount: {micro_ccd_display(event.baker_stake_increased.new_stake)}",
+                                f"New staked amount: {micro_ccd_no_decimals(event.baker_stake_increased.new_stake)}",
                                 None,
                             )
 
                         elif event.baker_stake_decreased:
                             new_event = EventType(
                                 f"Validator Stake Decreased for validator: {event.baker_stake_decreased.baker_id}",
-                                f"New staked amount: {micro_ccd_display(event.baker_stake_decreased.new_stake)}",
+                                f"New staked amount: {micro_ccd_no_decimals(event.baker_stake_decreased.new_stake)}",
                                 None,
                             )
 
@@ -993,9 +1016,13 @@ class MakeUp:
             }
 
             new_event = EventType(
-                f"Account created: {account_link(t.account_creation.address, self.net,from_=False, nothing_=True, user=self.user, tags=self.tags, app=self.makeup_request.app)}",
-                None,
+                f"Account created: {account_link( from_address_to_index(t.account_creation.address,
+                                    self.net,
+                                    app=self.makeup_request.app,
+                                ),
+                     self.net,user=self.user, tags=self.tags, app=self.makeup_request.app)}",
                 f"Address: {shorten_address(t.account_creation.address, address=True)}",
+                None,  # f"Index: {shorten_address(t.account_creation.address, address=True)}",
             )
             self.events_list.append(new_event)
 
@@ -1076,10 +1103,12 @@ class MakeUp:
 
             elif t.update.payload.foundation_account_update:
                 new_account = (
-                    account_link(
-                        t.update.payload.foundation_account_update,
+                    account_link( from_address_to_index(
+                                    t.update.payload.foundation_account_update,
+                                    self.net,
+                                    app=self.makeup_request.app,
+                                ),
                         self.net,
-                        from_=True,
                         user=self.user,
                         tags=self.tags,
                         app=self.makeup_request.app,
@@ -1167,21 +1196,34 @@ class MakeUp:
             self.dct = dct
 
     def determine_if_we_show_events(self, events: list):
-        process_events = len(events) < 100
-        if self.makeup_request.requesting_route:
-            if (len(events) > 100) and (
-                self.makeup_request.requesting_route == RequestingRoute.transaction
-            ):
-                process_events = True
-        return process_events
+        return self.makeup_request.requesting_route == RequestingRoute.transaction
 
-    def try_logged_event_parsing(
+    async def try_logged_event_parsing(
         self, logged_events: list, event, contract_address: CCD_ContractAddress
     ):
         success = False
-        if (  # only look for logged events to display if we know the tag.
-            contract_address.to_str() in self.contracts_with_tag_info.keys()
-        ) or (contract_address.to_str() in self.credential_issuers):
+        from_cache = False
+        result_from_cache = self.app.token_information_cache[self.net].get(contract_address.to_str())
+        if result_from_cache:
+            now = dt.datetime.now().astimezone(dt.UTC)
+            if (now - result_from_cache["timestamp"]).total_seconds() < 5:
+                token_information =self.app.token_information_cache[self.net][contract_address.to_str()]["token_information"]
+                from_cache = True
+
+        if not from_cache:
+            api_result = await get_url_from_api(
+                f"{self.app.api_url}/v2/{self.net}/contract/{contract_address.index}/{contract_address.subindex}/token-information",
+                self.httpx_client,
+            )
+            token_information = api_result.return_value if api_result.ok else None
+
+        # add to cache
+        self.app.token_information_cache[self.net][contract_address.to_str()] = {
+            "token_information": token_information,
+            "timestamp": dt.datetime.now().astimezone(dt.UTC)
+        }
+
+        if token_information:
             process_event_request = ProcessEventRequest(
                 **{
                     "contract_address": contract_address,
@@ -1189,13 +1231,12 @@ class MakeUp:
                     "net": self.net,
                     "user": self.user,
                     "tags": self.tags,
-                    "db_to_use": self.db_to_use,
-                    "contracts_with_tag_info": self.contracts_with_tag_info,
-                    # "token_addresses_with_markup": self.token_addresses_with_markup,
+                    "httpx_client": self.httpx_client,
+                    "token_information": token_information,
                     "app": self.makeup_request.app,
                 }
             )
-            result = process_event_for_makeup(req=process_event_request)
+            result = await process_event_for_makeup(req=process_event_request)
 
             if result:
                 success = True

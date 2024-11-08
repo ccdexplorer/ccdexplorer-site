@@ -1,0 +1,42 @@
+
+<div class="mt-4">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Accounts</span>
+  
+  <table class="table  ">
+    <thead>
+    <tr class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis">Index</th>
+      
+      <th class="text-end text-secondary-emphasis">Address</th>
+      <th class="text-end text-secondary-emphasis">Available Balance</th>
+      <th class="text-end text-secondary-emphasis">Age</th>
+      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">ID Provider</span><span class="tab-text-small"></span></th>
+      
+      <th class="text-end text-secondary-emphasis">Nonce</th>
+      <!-- <th>Amount</th> -->
+    </tr>
+  </thead>
+    <tbody class="table-group-divider">
+      {% for account_result in accounts %}
+      {% set account=account_result.account_info%}
+      {% set deployment_tx=account_result.deployment_tx%}
+      {% set identity=account_result.identity%}
+
+        <tr class="account-row sm-text">
+          <td class="text-start text-secondary-emphasis"><a href="/{{net}}/account/{{account.index}}"><span class="ccd" >{{account.index}}</a></span></td>
+          <td class="text-end text-secondary-emphasis">
+            {% set copy_value = account.address %}
+            {% set value_type = "account_address" %}
+            {% set display_value = account.address[:4]|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+          </td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd" >{{account.available_balance| micro_ccd_no_decimals | safe }}</span></td>
+          <td class="text-end text-secondary-emphasis">{{deployment_tx.block_info.slot_time|datetime_delta_format_since}}</td>
+          <td class="text-end text-secondary-emphasis"><span class="tab-text-large">{{identity_providers[identity.credentials[0].ip_identity|string].ip_description}}</span><span class="tab-text-small"></span></td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{account.sequence_number|round_x_decimal_with_comma(0) }}</span></td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

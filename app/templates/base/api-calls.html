@@ -1,0 +1,17 @@
+<div class="row mt-4 ms-1">
+  <div class="col">
+    
+      <a class="text-muted" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+        API calls
+      </a>
+    <div class="collapse" id="collapseExample">
+      <div class="card card-body">
+        {% for content, url in request.state.api_calls.items() %}
+          <a href="{{url}}">{{content}}</a>
+        {% endfor %}
+      </div>
+    </div>
+    
+  </div>
+    
+  </div>

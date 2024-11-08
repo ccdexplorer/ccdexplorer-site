@@ -1,40 +1,40 @@
 <!-- <div class="table-responsive"> -->
-<table class="table table-striped ms-1  small">
+    <table class="table table-borderless">
 
     <tbody>
         {% if pool %}
-        <tr>
-            <td>Pool Status</td>
-            <td>{{pool.pool_info.open_status}}</td>
+        <tr  class="sm-text">
+            <td class=" text-secondary-emphasis">Pool Status</td>
+            <td class=" text-end  text-secondary-emphasis">{{pool.pool_info.open_status}}</td>
         </tr>
         {% if pool.pool_info.url %}
-        <tr>
-            <td>URL</td>
-            <td class="small text-end align-middle"> <a href="{{pool.pool_info.url}}">{{ pool.pool_info.url}}</a></td>
+        <tr class="sm-text">
+            <td class=" text-secondary-emphasis">URL</td>
+            <td class=" text-end align-middle"> <a href="{{pool.pool_info.url}}">{{ pool.pool_info.url}}</a></td>
         </tr>
         {% endif %}
         {% if pool.current_payday_info %}
-        <tr>
-            <td>Total Stake</td>
-            <td class="small text-end align-middle">{{ pool.current_payday_info.effective_stake|micro_ccd_no_decimals|safe}}</td>
+        <tr class="sm-text">
+            <td class=" text-secondary-emphasis">Total Stake</td>
+            <td class=" text-end align-middle text-secondary-emphasis">{{ pool.current_payday_info.effective_stake|micro_ccd_no_decimals|safe}}</td>
         </tr>
-        <tr>
-            <td>Total Stake (%)</td>
-            <td class="small text-end align-middle">{{ ((pool.current_payday_info.effective_stake /
+        <tr class="sm-text">
+            <td class=" text-secondary-emphasis">Total Stake (%)</td>
+            <td class=" text-end align-middle text-secondary-emphasis">{{ ((pool.current_payday_info.effective_stake /
                 pool.all_pool_total_capital)* 100)|round_x_decimal_no_comma(5) }}%</td>
         </tr>
         {% endif %}
-        <tr>
-            <td colspan="2"><small><i>Commission Rates</i></small></td>
+        <tr class="sm-text">
+            <td  class=" text-secondary-emphasis" colspan="2"><i>Commission Rates</i></td>
         </tr>
-        <tr>
-            <td class="text-end"><small>Block</small></td>
-            <td class="small text-end align-middle">{{ pool.pool_info.commission_rates.baking* 100 }}%</td>
+        <tr class="sm-text">
+            <td class="text-end text-secondary-emphasis">Block</td>
+            <td class=" text-end align-middle  text-secondary-emphasis">{{ pool.pool_info.commission_rates.baking* 100 }}%</td>
         </tr>
 
-        <tr>
-            <td class="text-end"><small>Transaction</small></td>
-            <td class="small text-end align-middle">{{ pool.pool_info.commission_rates.transaction* 100 }}%</td>
+        <tr class="sm-text">
+            <td class="text-end text-secondary-emphasis">Transaction</td>
+            <td class=" text-end align-middle  text-secondary-emphasis">{{ pool.pool_info.commission_rates.transaction* 100 }}%</td>
         </tr>
         
         {% endif %}

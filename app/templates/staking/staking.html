@@ -1,5 +1,7 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
 {% if error %}
 <p>An error occured: <b>{{error.errorMessage}}</b></p>
 {% else %}
@@ -7,7 +9,7 @@
 <script>
   function getPayDays(requested_page, total_rows) {
     paydays = document.getElementById('paydays');
-    url =  '/ajax_paydays_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
+    url =  '/{{net}}/ajax_paydays/' + requested_page + '/' + total_rows + '/' + api_key;
 
     fetch(url)
       .then((response) => {
@@ -21,16 +23,40 @@
       });
   }
 
-  function prev_v2_paydays(requested_page, total_rows) {
+  function prev_paydays(requested_page, total_rows) {
     getPayDays(requested_page, total_rows)
   };
-  function next_v2_paydays(requested_page, total_rows) {
+  function next_paydays(requested_page, total_rows) {
     getPayDays(requested_page, total_rows)
   };
 
   window.addEventListener('load', (event) => {
     getPayDays(0, 0);
-    console.log('getPayDays');
+    
+  });
+</script>
+
+
+<script>
+  function getPassiveInfo() {
+    passive_info = document.getElementById('passive_info');
+    url =  '/{{net}}/ajax_paydays_passive/';
+
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        passive_info.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  window.addEventListener('load', (event) => {
+    getPassiveInfo();
+    
   });
 </script>
 <!-- Get Pools -->
@@ -39,11 +65,11 @@
 </script>
 <script>
   // "/ajax_pools_html/{key}/{direction}/{limit}/{current_page}/{next_page}/{row_count}/{api_key}"
-  function getPools_v2(status, key, direction, requested_page, total_rows) {
-    pools = document.getElementById('pools_v2');
-    url =  '/ajax_pools_html_v2/' + status + '/' + key + '/' + direction + '/' + requested_page + '/' + total_rows + '/' + api_key;
+  function getPools(status) {
+    pools = document.getElementById('staking_pools');
+    url =  '/ajax_pools/' + status + '/'+ api_key;
     // console.log(url);
-    pools.innerHTML = '{% include "spinner.html" %}'
+    pools.innerHTML = '{% include "base/spinner.html" %}'
     fetch(url)
       .then((response) => {
         return response.text();
@@ -56,36 +82,32 @@
       });
   }
 
-  function prev_v2_pools(requested_page, total_rows) {
-    var key = document.querySelector('#key').value;
-    var direction = document.querySelector('#direction').value;
-    var status = document.querySelector('#status').value;
+  // function prev_pools(requested_page, total_rows) {
+  //   var status = document.querySelector('#status').value;
 
-    getPools_v2(status, key, direction, requested_page, total_rows);
-  };
-  function next_v2_pools(requested_page, total_rows) {
-    var key = document.querySelector('#key').value;
-    var direction = document.querySelector('#direction').value;
-    var status = document.querySelector('#status').value;
+  //   getPools(status, key, direction, requested_page, total_rows);
+  // };
+  // function next_v2_pools(requested_page, total_rows) {
+  //   var key = document.querySelector('#key').value;
+  //   var direction = document.querySelector('#direction').value;
+  //   var status = document.querySelector('#status').value;
 
-    getPools_v2(status, key, direction, requested_page, total_rows);
-  };
+  //   getPools_v2(status, key, direction, requested_page, total_rows);
+  // };
 
   function val() {
 
     // Get the select menu
-    var key = document.querySelector('#key').value;
-    var direction = document.querySelector('#direction').value;
     var status = document.querySelector('#status').value;
-
+    
     // Returns the selected value
-    getPools_v2(status, key, direction, 0, 0);
+    getPools(status);
 
   }
 
 
   window.addEventListener('load', (event) => {
-    getPools_v2('open_for_all', 'block_commission_rate', 'ascending', 0, 0);
+    getPools('open_for_all');
     // console.log('page is fully loaded');
   });
 
@@ -95,8 +117,8 @@
 <!-- Get Delegators -->
 <script>
   function getDelegators(requested_page, total_rows) {
-    delegators = document.getElementById('delegators');
-    url =  '/ajax_passive_delegators_html_v2/' + requested_page + '/' + total_rows + '/' + api_key;
+    delegators = document.getElementById('passive_delegators');
+    url =  '/ajax_passive_delegators/' + requested_page + '/' + total_rows + '/' + api_key;
 
     fetch(url)
       .then((response) => {
@@ -110,55 +132,51 @@
       });
   }
 
-  function prev_v2_passive_delegators(requested_page, total_rows) {
+  function prev_delegators(requested_page, total_rows) {
     getDelegators(requested_page, total_rows)
   };
-  function next_v2_passive_delegators(requested_page, total_rows) {
+  function next_delegators(requested_page, total_rows) {
     getDelegators(requested_page, total_rows)
   };
 
   window.addEventListener('load', (event) => {
     getDelegators(0, 0);
-    console.log('getDelegators');
+    
   });
 </script>
 
-<h2>Staking</h2>
+<h4>Staking</h4>
 
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 active" id="open_v2-tab" data-bs-toggle="tab" data-bs-target="#open_v2"
-      type="button" role="tab" aria-controls="open_v2" aria-selected="true"><small>Pools</small></button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2  " id="passive-tab" data-bs-toggle="tab" data-bs-target="#passive"
-      type="button" role="tab" aria-controls="passive" aria-selected="true"><small>Passive Delegation</small></button>
-  </li>
-  <li class="nav-item" role="presentation">
-
-    <button class="nav-link small ps-2 pe-2" id="payday_v2-tab" data-bs-toggle="tab" data-bs-target="#payday_v2"
-      type="button" role="tab" aria-controls="payday_v2" aria-selected="true"><small>Pay Days</small></button>
-  </li>
-</ul>
-
-<div class="tab-content" id="myTabContent">
-
-  <div class="tab-pane fade show active " style="padding-top: 10px;" id="open_v2" role="tabpanel"
-    aria-labelledby="open_v2-tab">
-    <div id="pools_v2"></div>
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Paydays" %}{% include 'base/box_title.html' %}
+          <div id="paydays"></div>  
+      </div>
+  </div>
+  
+  <div class="col-md-6  col-sm-12 ">
+    <div class="border content curved-border " >
+      {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
+      <div id="passive_info"></div>  
+      <hr>
+      {% set title= "Passive Delegators" %}{% include 'base/box_title.html' %}
+          <div id="passive_delegators"></div>  
+    </div>
+    
   </div>
 
-  <div class="tab-pane fade show  " style="padding-top: 10px;" id="passive" role="tabpanel"
-    aria-labelledby="passive-tab">
-    {% include "staking/staking_passive.html" %}
-  </div>
+</div>  
+<div class="row row-flex">
+  <div class="col-md-12  col-sm-12 ">
+    <div class="border content curved-border " >
+      {% set title= "Staking Pools" %}{% include 'base/box_title.html' %}
+        <div id="staking_pools"></div>
+        
+      </div>
 
-  <div class="tab-pane fade show  " style="padding-top: 10px;" id="payday_v2" role="tabpanel"
-    aria-labelledby="payday_v2-tab">
-    <div id="paydays"></div>
   </div>
-
 </div>
 {% endif %}
 {% endblock content %}

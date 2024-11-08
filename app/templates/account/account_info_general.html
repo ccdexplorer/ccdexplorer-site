@@ -60,7 +60,7 @@
                             <tr class="collapse px-0" id="collapseExample">
 
 
-                                <td class="ps-1 text-end">{{schedule.timestamp | regular_datetime_format}}</td>
+                                <td class="ps-1 text-end">{{schedule.timestamp | datetime_regular}}</td>
                                 <td class="text-center">
                                     {% for tx in schedule.transactions %}
                                         {{tx |tx_hash_link (net, env, True)|safe }}  
@@ -80,11 +80,11 @@
 
         <tr>
             <td>Nonce</td>
-            <td class="small text-end">{{account.sequence_number|baker_ccd }}</td>
+            <td class="small text-end">{{account.sequence_number|round_x_decimal_with_comma(0) }}</td>
         </tr>
         <tr>
             <td>Index</td>
-            <td title="{{account.index}}" id="account_index" class="small text-end">{{account.index|baker_ccd }}</td>
+            <td title="{{account.index}}" id="account_index" class="small text-end">{{account.index|round_x_decimal_with_comma(0) }}</td>
         </tr>
     <!-- </tbody>
 </table>
@@ -93,19 +93,19 @@
     
         <tr>
             <td>Net Worth (CCD)</td>
-            <td  class="small text-end"><span class="ccd">${{(account.amount| ccd_amount * exchange_rates['CCD']['rate'])|baker_ccd}}</span></td>
+            <td  class="small text-end"><span class="ccd">${{((account.amount/1_000_000) * exchange_rates['CCD']['rate'])|round_x_decimal_with_comma(0)}}</span></td>
             
         </tr>
         {% if tokens_available %}
         <tr>
             <td>Net Worth (Tokens)</td>
-            <td  class="small text-end"><span class="ccd">${{tokens_value_USD|baker_ccd}}</span></td>
+            <td  class="small text-end"><span class="ccd">${{tokens_value_USD|round_x_decimal_with_comma(0)}}</span></td>
         </tr>
         <tr>
             <td>Net Worth (Total)
                 
             </td>
-            <td  class="small text-end"><span class="ccd">${{((account.amount| ccd_amount * exchange_rates['CCD']['rate'])+tokens_value_USD)|baker_ccd}}</span></td>
+            <td  class="small text-end"><span class="ccd">${{(((account.amount/1_000_000) * exchange_rates['CCD']['rate'])+tokens_value_USD)|round_x_decimal_with_comma(0)}}</span></td>
         </tr>
         
         {% endif %}

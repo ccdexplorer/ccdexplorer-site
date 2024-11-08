@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SITE_URL = os.environ.get("SITE_URL")
-ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID")
-DEBUG = os.environ.get("DEBUG", False)
-SHOW_DEBUG_LOGS = os.environ.get("SHOW_DEBUG_LOGS", False)
-REQUEST_LIMIT = os.environ.get("REQUEST_LIMIT", 20)
+API_URL = os.environ.get("API_URL")
+CCDEXPLORER_API_KEY = os.environ.get("CCDEXPLORER_API_KEY")
 
 environment = {
     "SITE_URL": SITE_URL,
+    "CCDEXPLORER_API_KEY": CCDEXPLORER_API_KEY,
+    "API_URL": API_URL,
     "NET": "mainnet",
 }

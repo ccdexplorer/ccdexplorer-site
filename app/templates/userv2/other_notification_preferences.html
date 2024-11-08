@@ -4,12 +4,12 @@
     <div class="row">
         <div class="col text-start">
             {% set explanation_key = "other-"+field %}
-            <label><small><b>{{field|format_preference_key}}</b></small></label><br/> <span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+            <label><b>{{field|format_preference_key}}</b></label><br/> <span class="text-secondary-emphasis">{{explanations[explanation_key].explanation}}</span>
     </div>
     </div>
-    <div class="row bg-light">
+    <div class="row ">
         <div class="col text-end">
-            <span><small>Telegram</small></span>
+            <span>Telegram</span>
         </div>
         <div class="col">
             <input class="form-check-input" type="checkbox" name="telegram-{{field}}" {% if all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
@@ -20,7 +20,7 @@
             <div class="col">
                 <input 
                 type="text" 
-                class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+                class=" number-separator form-control form-control-sm  input-sm mb-1 text-end " 
                 data-precision="0" 
                 name="telegram-{{field}}-limit"  
                 id="telegram-{{field}}-limit" 
@@ -33,9 +33,9 @@
     </div>
 
 
-    <div class="row  bg-light">
+    <div class="row  ">
         <div class="col  text-end">
-            <span><small>Email</small></span>
+            <span>Email</span>
         </div>
         <div class="col">
             <input class="form-check-input" type="checkbox" name="email-{{field}}" {% if all_fields_dict[field].email_enabled%} checked {% endif %}></td>
@@ -46,7 +46,7 @@
         <div class="col">
             <input 
             type="text" 
-            class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " 
+            class=" number-separator form-control form-control-sm  input-sm mb-1 text-end " 
             data-precision="0" 
             name="email-{{field}}-limit"  
             id="email-{{field}}-limit" 

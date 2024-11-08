@@ -23,16 +23,16 @@ hx-ext='json-enc'
 hx-target="this" 
 hx-swap="outerHTML"
 >
-    <p><small>Enter an address or index and a label to add a new contract. Adding a new contract enbables no notification preferences. You can set these after adding your new contract.</small></p>
+    <p>Enter an address or index and a label to add a new contract. Adding a new contract enbables no notification preferences. You can set these after adding your new contract.</p>
     
-    <div class="container px-2">
+    <div class="px-2">
     <div class="row">
             <div class="col text-end">
-                <small><b>Contract index</b></small>
+                <b>Contract index</b>
             </div>
-            <div class="col">
+            <div class="col me-2">
                 <input   
-                class="form-control form-control-sm small input-sm mb-1 text-end " type="search" 
+                class="form-control form-control-sm  input-sm mb-1 text-end " type="search" 
                 name="search" 
                 hx-post="/settings/userv2/search-instance" 
                 hx-ext='json-enc' 
@@ -46,33 +46,34 @@ hx-swap="outerHTML"
       </div>
       <div class="row">
         <div class="col text-end">
-            <small><b>Label</b></small>
+            <b>Label</b>
         </div>
-        <div class="col">
-            <input               class=" form-control form-control-sm small input-sm mb-1 text-end " 
+        <div class="col me-2">
+            <input               class=" form-control form-control-sm  input-sm mb-1 text-end " 
             type="text" name="label" id="label">
             
         </div>
+      </div>
         <div class="row">
             <div class="col text-end">
         
             </div>
-            <div class="col text-end">
+            <div class="col ">
                 <div id="search-results"></div>
-            </div>
-        </div>
-  </div>
-
-  {% if error_message %}
-  <div class="row alert alert-danger" id="error_message" role="alert"><small>{{error_message}}</small></div>
-{% endif %}
-    <div><button class="btn small ms-1 mt-0 btn-sm btn-link" >
+                <button class="btn  ms-1 mt-0  btn-link" >
         Add contract
         </button>
+            </div>
+        </div>
+  
+
+  {% if error_message %}
+  <div class="row alert alert-danger" id="error_message" role="alert">{{error_message}}</div>
+{% endif %}
+    <div>
         
     </div>
 </div>
 </form>   
 
-</div>
 <br/>

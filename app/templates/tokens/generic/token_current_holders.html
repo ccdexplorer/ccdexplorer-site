@@ -1,0 +1,48 @@
+{% include 'base/pagination.html' %}
+{% set md = stored_token_address.token_metadata %}
+{% set vi = stored_token_address.verified_information %}
+{% if not md %}
+  {% if not vi %}
+    {% set token_decimals = 0 %}
+  {% else %}
+    {% set token_decimals = vi.decimals %}
+  {% endif %}
+  {% else %}
+    {% set token_decimals = md.decimals %}
+  {% endif %}
+<table class="table table-borderless">
+      <thead>
+        <tr class="sm-text">
+          <th class="text-secondary-emphasis " scope="col">Address</th>
+          <th class="text-secondary-emphasis  text-end" scope="col">Balance</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in co %}
+        <tr class="sm-text">
+          <td>
+            {{row.account_index|account_link(net, user, tags, app=request.app)|safe}}
+            
+          <td class="text-end text-secondary-emphasis ccd">
+            {% set rounding = 6 %}
+            {% if vi %}
+              {% if vi.token_type == 'fungible' %}
+                {% set rounding = 0 %}
+              {% else %}
+                {% set rounding = 6 %}
+              {% endif %}
+            {% endif %}
+            {{row.token_holding.token_amount|token_amount_using_decimals_rounded(token_decimals, rounding) | safe}} 
+            {% if vi %}
+              {% if vi.token_type == 'fungible' %}  
+                {{vi._id}}
+                <!-- <img width="20px;" src="{{vi.logo_url}}"> -->
+              {% endif %}
+            {% endif %}
+                </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+   

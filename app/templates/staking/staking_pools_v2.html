@@ -1,117 +1,53 @@
-<table id="main" class="table table-striped ms-1  small">
+<form>
+    <select class="form-select" id="status" onchange="val()">
+        {% for pool_status in PoolStatus %}
+            <option value="{{pool_status.name}}" {% if pool_status.name == status%}selected{%endif%}>{{pool_status.value}}</option>
+        {% endfor %}
+    </select>
+</form>
+<p class="text-end mt-3"><small>* Columns are sortable</small></p>    
+<table id="main" class="table sortable asc table-borderless ">
     <thead>
-        <tr>
-            <th class="small" scope="col"></th>
-            <th class="small text-end" scope="col">Delegator</th>
-            <th class="small text-end" scope="col" colspan="2">Commission Rates</th>
-            <th class="small text-end" scope="col"></th>
-            <th></th>
+        <tr class="sm-text">
+            <td class="text-secondary-emphasis" scope="col"></td>
+            <td class="text-secondary-emphasis text-end" scope="col">Delegator</td>
+            <td class="text-secondary-emphasis text-center" scope="col" colspan="2">Commission Rates</td>
+            
+            
 
         </tr>
-        <tr>
-            <th class="small" scope="col">Validator ID</th>
+        <tr class="sm-text">
+            <th class="text-secondary-emphasis" scope="col">Validator ID</th>
             
-            <th class="small text-end" scope="col">180d APY</th>
-            <th class="small text-end" scope="col">Block</th>
-            <th class="small text-end" scope="col">Tx</th>
-            <th class="small text-end " scope="col">Total Stake</th>
-            <th></th>
-            <th></th>
+            <th class="text-secondary-emphasis text-end" scope="col">180d APY</th>
+            <th class="text-secondary-emphasis text-end" scope="col">Block</th>
+            <th class="text-secondary-emphasis text-end hide-if-small" scope="col">Tx</th>
+            <th class="text-secondary-emphasis text-end hide-if-small" scope="col">Total Stake</th>
+            <th class="text-secondary-emphasis text-end " scope="col">% of Cap</th>
+            
 
         </tr>
     </thead>
     <tbody>
 
-        </style>
-        {% for row in pools %}
-        {{row.pie|safe}}
-        <tr>
-
-
-            <td class="small"><a href="/mainnet/account/{{row.baker_id}}">{{row.baker_id}}</a> {% if row.url %}
-                <a href="{{ row.url }}"><small>(i)</small></a>
+        {% for validator_id, row in pools.items() %}
+        <tr class="sm-text">
+            <td class="text-secondary-emphasis" data-sort="{{row.baker_id}}"><a href="/mainnet/account/{{row.baker_id}}">{{row.baker_id}}</a> {% if row.url %}
+                <a href="{{ row.url }}">(i)</a>
                 {% endif %}
             </td>
-            
-            <td class="p-1 text-end"><small><i><small><span>{{
-                                row.d180.apy|ql_apy_perc}}</span></small></i></small></td>
-            
-            <td class="p-1 text-end"><small><i><small><span>{{
-                                    row.block_commission_rate|ql_apy_perc}}</span></small></i></small></td>
-                                    <td class="p-1 text-end"><small><i><small><span>{{
-                                        row.tx_commission_rate|ql_apy_perc}}</span></small></i></small></td>
-            <td class="p-1 text-end "><small><span class="small ">{{ row.effective_stake | micro_ccd_no_decimals|safe}}
-                        </span></small></td>
-            <td class="p-1 text-end">
-                <div class="pie_{{row.baker_id}}"></div>
-            </td>
-            <td class="p-1"><a class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse"
-                    href="#baker-{{row.baker_id}}" role="button" aria-expanded="false"
-                    aria-controls="baker-{{row.baker_id}}">↧</a></td>
-        </tr>
-        <tr class="collapse" id="baker-{{row.baker_id}}">
-            <td colspan="5">
+            <td class="text-secondary-emphasis text-end" data-sort="{{row.d180.apy}}">{{
+                row.d180.apy|apy_perc}}</td>
 
-                <table class="table table-striped ms-0  small">
-                    <thead>
-                        <tr>
-                            <th class="small" scope="col">Key</th>
-                            <th class="small text-end" scope="col">Value</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="p-1"><b>Validator Stake:</b></td>
-                            <td class="p-1 text-end"><span class="small">{{
-                                    row.baker_equity_capital |
-                                    micro_ccd_no_decimals|safe}}</span></td>
-                        </tr>
-                        <tr>
-                            <td class="p-1 align-middle"><b>Delegated Stake:
-                                </b></td>
-                            <td class="p-1 text-end"><span class="small">{{
-                                    row.delegated_capital |
-                                    micro_ccd_no_decimals|safe}}</span><br />
-                            {% if row.delegated_capital_cap > 0 %}     
-                                    <i><small>
-                                   
-                                    {{'%0.2f'|format(((row.delegated_capital /
-                                        row.delegated_capital_cap)*100)|float)}}
-                                        % of
-                                        cap</small></i>
-
-                            {% else %}
-                            <i><small>-</small></i>
-                                            {% endif %}
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="p-1"><b>Total Stake:</b></td>
-                            <td class="p-1 text-end"><span class="small ">{{
-                                    row.effective_stake |micro_ccd_no_decimals|safe}}</span></td>
-                        </tr>
-                        <tr>
-                            <td class="p-1"><b>Validator Expectation:</b></td>
-                            <td class="p-1 text-end"><span class="small ccd">{{
-                                    row.expectation
-                                    | baker_ccd}}</span> block(s)</td>
-                        </tr>
-                        <tr>
-                            <td class="p-1"><b>Lottery Power:</b></td>
-                            <td class="p-1 text-end"><span class="small ccd">
-                                    {{'%0.3f'|format((100*row.lottery_power)|float)}}
-                                </span>%</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-            </td>
-        </tr>
-
-
-        </div>
+                
+                <td class="text-secondary-emphasis text-end" data-sort="{{row.block_commission_rate}}">{{row.block_commission_rate|apy_perc}}</td>
+                <td class="text-secondary-emphasis text-end hide-if-small" data-sort="{{row.tx_commission_rate}}">{{row.tx_commission_rate|apy_perc}}</td>
+                <td class="text-secondary-emphasis text-end hide-if-small" data-sort="{{row.effective_stake}}">{{row.effective_stake | micro_ccd_no_decimals|safe}}</td>
+                <td class="text-secondary-emphasis text-end" data-sort="{{row.delegated_percentage}}">{% if row.delegated_capital_cap > 0 %}     
+                                    {{'%0.2f'|format(row.delegated_percentage|float)}}
+                                        %{% else %}
+                    -
+                                            {% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>

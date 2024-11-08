@@ -1,15 +1,15 @@
 <!-- <div class="table-responsive"> -->
     <!-- -Module Contracts table -->
 {% if module.methods %}
-    <table class="table table-striped ms-1 me-1 small">
+    <table class="table table-borderless">
     
     <tbody>
        
        
             {% for method in module.methods %}
-            <tr >
+            <tr class="sm-text">
                 
-            <td><small>{{method}}</small></td>
+            <td class="text-start text-secondary-emphasis">{{method}}</td>
                 
             {% endfor %}
         

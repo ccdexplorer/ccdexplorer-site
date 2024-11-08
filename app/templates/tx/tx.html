@@ -1,0 +1,29 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+    {% include 'base/search_bar_non_home_inclusion.html' %}
+    <div class="row  mt-4">
+        <div class="col">{% include 'tx/tx_header.html' %}</div>  
+    </div>
+    <div class="row  mt-4">
+        <div class="col-lg-6 col-sm-12   p-2">
+            <div class="border curved-border">
+                {% set title= "Transaction Info" %}{% include 'base/box_title.html' %}
+                {% include 'tx/tx_info.html' %}</div>
+        </div>  
+        <div class="col-lg-6 col-sm-12 mb-4 p-2">
+            <div class="border curved-border ">
+                {% if events_list|length == 1 %}
+                    {% set title= "Event" %}
+                {% else %}
+                    {% set title= "Events" %}
+                {% endif %}
+                 {% include 'base/box_title.html' %}
+                {% include 'tx/tx_events.html'%}</div>
+        </div>  
+    </div>
+    
+        
+    
+{% endblock %}

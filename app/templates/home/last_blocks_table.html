@@ -1,0 +1,30 @@
+
+<div class="mt-4">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Finalized Blocks</span>
+  
+  <table class="table  ">
+    <thead>
+    <tr class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis">Hash</th>
+      
+      <th class="text-end text-secondary-emphasis">Age</th>
+      <th class="text-end text-secondary-emphasis">Height</th>
+      <th class="text-end text-secondary-emphasis">Validator</th>
+      <th class="text-end text-secondary-emphasis">Txs</th>
+      <!-- <th>Amount</th> -->
+    </tr>
+  </thead>
+    <tbody class="table-group-divider">
+      {% for row in blocks %}
+        <tr class="account-row sm-text">
+          <td class="text-start text-secondary-emphasis"><a href="/{{net}}/block/{{row.hash}}"><span class="ccd" >{{row.hash|block_hash_link(net)|safe}}</a></span></td>
+          <td class="text-end text-secondary-emphasis">{{row.slot_time|datetime_delta_format_since}}</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd" >{{row.height|round_x_decimal_with_comma(0)}}</span></td>
+          <td class="text-end text-secondary-emphasis"><a class="ccd" href="/{{net}}/account/{{row.baker}}">{{row.baker|round_x_decimal_with_comma(0)}}</a></td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{row.transaction_count|round_x_decimal_with_comma(0) }}</span></td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

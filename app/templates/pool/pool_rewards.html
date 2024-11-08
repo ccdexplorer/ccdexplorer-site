@@ -1,30 +1,36 @@
-<table class="table table-striped ms-1 w-auto small">
-    <thead>
-      <tr>
-        <th class="small" scope="col"></th>
-        <th class="small text-end" scope="col">30d</th>
-        <th class="small text-end" scope="col">90d</th>
-        <th class="small text-end" scope="col">180d</th>
-  
-      </tr>
-    </thead>
-    <tbody>
-  
-      <tr>
-        <td><b>Delegators</b></td>
-        <td class="text-end"><small>{{ (pool_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
-          <i><small><span>{{ (pool_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
-        </td>
-  
-        <td class="text-end"><small>{{(pool_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
-            <i><small><span>{{ (pool_apy_object.d90.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
-        </td>
-  
-        <td class="text-end"><small>{{ (pool_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
-          <i><small><span>{{ (pool_apy_object.d180.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
-        </td>
-  
-      </tr>
-  
-    </tbody>
-  </table>
+
+<table class="table table-borderless">
+  <thead>
+    <tr class="sm-text">
+      <th class="small" scope="col"></th>
+      <th class="text-secondary-emphasis text-end" scope="col">30d</th>
+      <th class="text-secondary-emphasis text-end" scope="col">90d</th>
+      <th class="text-secondary-emphasis text-end" scope="col">180d</th>
+
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr class="sm-text">
+      <td class="text-secondary-emphasis text-start">Delegator<br/>rewards</td>
+      <td class="text-secondary-emphasis text-end"><small>{{ (pool_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+        <i><small><span>{{ (pool_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+      </td>
+
+      <td class="text-secondary-emphasis text-end"><small>{{(pool_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+          <i><small><span>{{ (pool_apy_object.d90.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+      </td>
+
+      <td class="text-secondary-emphasis text-end"><small>{{ (pool_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+        <i><small><span>{{ (pool_apy_object.d180.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+      </td>
+
+    </tr>
+
+  </tbody>
+</table>
+<div
+        hx-trigger="intersect, switched-theme from:body" 
+        hx-post="/{{net}}/account/apy-graph/{{account_index}}"
+        hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+      ></div>

@@ -1,48 +1,24 @@
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 
-    {% if tabs['pool'].children['info'].active %}active{% endif %}
-            " id="poolinfo-tab" data-bs-toggle="tab" data-bs-target="#poolinfo" type="button" role="tab"
-      aria-controls="poolinfo" aria-selected="true"><small>Info</small></button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['pool'].children['rewards'].active %}active{% endif %}"
-      id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards"
-      aria-selected="true"><small>Rewards</small></button>
-  </li>
-
-
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['pool'].children['delegators'].active %}active{% endif %}"
-      id="delegators-tab" data-bs-toggle="tab" data-bs-target="#delegators" type="button" role="tab"
-      aria-controls="delegators" aria-selected="true"><small>Delegators</small></button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['pool'].children['apy'].active %}active{% endif %}"
-      id="apy-graph-tab" data-bs-toggle="tab" data-bs-target="#pool-apy-graph" type="button" role="tab"
-      aria-controls="apyovertime" aria-selected="true"><small>APY over Time</small></button>
-  </li>
-</ul>
-
-<div class="tab-content" id="myTabContent">
-
-  <div class="tab-pane fade show 
-  {% if tabs['pool'].children['info'].active %}active{% endif %}
-      " style="padding-top: 10px;" id="poolinfo" role="tabpanel" aria-labelledby="poolinfo-tab">
-    {% include "pool/pool_info.html" %}
+<div class="row mt-4 row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+        {% set title= "Pool Info" %}{% include 'base/box_title.html' %}
+        {% include "pool/pool_info.html" %}</div>
   </div>
-  <div class="tab-pane fade show {% if tabs['pool'].children['rewards'].active %}active{% endif %}"
-    style="padding-top: 10px;" id="rewards" role="tabpanel" aria-labelledby="rewards-tab">
-    {% include "pool/pool_rewards.html" %}
+  {% if pool.pool_info.open_status != "closed_for_all" %}
+  <div class="col-md-6  col-sm-12">
+      <div id="validator_rewards" class=" content border curved-border  " >
+        {% set title= "Pool Rewards" %}{% include 'base/box_title.html' %}
+        {% include "pool/pool_rewards.html" %}</div>
   </div>
-  <div class="tab-pane fade show {% if tabs['pool'].children['delegators'].active %}active{% endif %}"
-    style="padding-top: 10px;" id="delegators" role="tabpanel" aria-labelledby="delegators-tab">
-    <div id="delegators"></div>
-  </div>
+  {% endif %}
+</div>
 
-  <div class="tab-pane fade show {% if tabs['pool'].children['apy'].active %}active{% endif %}"
-    style="padding-top: 10px;" id="pool-apy-graph" role="tabpanel" aria-labelledby="apy-graph-tab">
-    {% include "account/account_pool_apy_graph.html" %}
+{% if pool.pool_info.open_status != "closed_for_all" %}
+<div class="row mt-4 row-flex">
+  
+  <div class="col-md-6  col-sm-12">
+      <div id="delegators" class=" content border curved-border  " ></div>
   </div>
 </div>
+{% endif %}
+

@@ -1,0 +1,35 @@
+{% set title= "Transaction Information" %}{% include 'base/box_title.html' %}
+{% include 'base/pagination.html' %}
+<table class="table table-borderless">
+    <thead>
+        <tr>
+            <th class="text-start text-secondary-emphasis">Tx Hash</th>
+            <th class="text-end text-secondary-emphasis">Age</th>
+            <!-- <th class="text-center text-secondary-emphasis">Type</th> -->
+            <th class="text-end text-secondary-emphasis">Event</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        {% for tx in transactions %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">{{tx.transaction.hash|tx_hash_link(net)|safe}}</td>
+            <td class="text-end text-secondary-emphasis">{{tx.transaction.block_info.slot_time|datetime_delta_format_since}} ago</td>
+            <!-- <td class="text-center ">{{tx.transaction.type.contents|tx_type_translator("icon")|safe}} <span class="text-secondary-emphasis" >{{tx.transaction.type.contents|tx_type_translator("display")|safe}}</span></td> -->
+            <td class="text-end text-secondary-emphasis">
+                
+                {% set event=tx.events_list[0] %}
+                {{event.update|safe }}
+                        
+            
+            </td>
+        </tr>
+        {% endfor %}
+        {% if transactions|length == 0 %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis" colspan="3">No validator transactions.</td>
+        {% endif %}
+    </tbody>
+    </table>
+
+<!-- </div> -->

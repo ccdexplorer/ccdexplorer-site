@@ -1,0 +1,12 @@
+<div class="mt-4">
+    <span class="text-uppercase sm-text text-secondary-emphasis">CCD Transaction History</span>
+    
+    <div
+        class=" mb-1"
+        hx-trigger="load, switched-theme from:body" 
+        hx-post="/home_tx_graph"
+        hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+    >
+    {{request.state.last_requests.txs_graph}}
+    </div>
+</div>

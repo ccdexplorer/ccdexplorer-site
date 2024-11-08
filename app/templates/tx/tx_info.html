@@ -1,0 +1,74 @@
+<!-- <span class="mb-10 text-secondary-emphasis-emphasis">Transaction Information</span> -->
+<table class="table table-borderless">
+<tbody>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Transaction Hash</td>
+        <td class="text-end text-secondary-emphasis">
+            {% set copy_value = tx.hash %}
+            {% set value_type = "tx_hash" %}
+            {% set display_value = tx.hash|tx_hash_link(net)|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+            
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Block Height</td>
+        <td class="text-end text-secondary-emphasis">{{tx.block_info.height|round_x_decimal_with_comma(0)|safe}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Block Hash</td>
+        <td class="text-end text-secondary-emphasis">{{tx.block_info.hash|block_hash_link(net)|safe}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Timestamp</td>
+        <td class="text-end text-secondary-emphasis">{{tx.block_info.slot_time|datetime_regular}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Age</td>
+        <td class="text-end text-secondary-emphasis">{{tx.block_info.slot_time|datetime_delta_format_since}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Sender</td>
+        <td class="text-end text-secondary-emphasis">{% if tx.account_transaction %}
+            {{tx.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
+            
+          {% else %}
+            Chain  
+          {%endif%}</td>
+    </tr>
+
+    {% if tx.account_transaction %}
+        {% if tx.account_transaction.outcome == 'success' %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Transaction Type</td>
+            <td class="text-end ">
+                {{tx.type.contents|tx_type_translator("icon")|safe}} 
+                <span class="text-secondary-emphasis">{{tx.type.contents|tx_type_translator("display")|safe}}</span></td>
+        </tr>
+        {%endif%}
+    {% elif tx.update %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Transaction Type</td>
+            <td class="text-end ">{{tx.type.contents|tx_type_translator("icon")|safe}} 
+                <span class="text-secondary-emphasis">{{tx.type.contents|tx_type_translator("display")|safe}}</span></td>
+        </tr>
+
+    {%endif%}    
+    
+    {% if tx.account_transaction %}
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Transaction Cost</td>
+        <td class="text-end text-secondary-emphasis">{% if tx.account_transaction %}
+            {{tx.account_transaction.cost|micro_ccd_display|safe}}
+          {% else %}
+            -
+          {%endif%}</td>
+    </tr>
+    {%endif%}    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Energy Spent</td>
+        <td class="text-end ccd text-secondary-emphasis">{{tx.energy_cost|safe}} NRG
+          </td>
+    </tr>
+    
+</tbody>
+</table>

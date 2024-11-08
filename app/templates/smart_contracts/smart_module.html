@@ -1,60 +1,85 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-{% if net %}
-    {% set net_url_string = '?net=testnet' %}
-{% else %}
-    {% set net_url_string = '' %}
-{% endif %}
-<div style="padding-left:10px;">
-<h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
-<h5  class="ms-1">Module: <i>{{ module.module_name }}</i></h5>
-<a href="/{{net}}/smart-contracts"><small>back to overview</small></a>
-<br>
+<script>
+    async function getInstances(requested_page, total_rows) {
+      instances = document.getElementById('instances');
+      var module_ref = document.querySelector('.module_ref').title;
+      url = '/module_instances/{{net}}/' + module_ref + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      instances.innerHTML = '{% include "base/spinner.html" %}'
+      await fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+            instances.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+  
+    function prev_instances(requested_page, total_rows) {
+        getInstances(requested_page, total_rows)
+    };
+    function next_instances(requested_page, total_rows) {
+        getInstances(requested_page, total_rows)
+    };
+  
+    window.addEventListener('load', (event) => {
+        getInstances(0, 0);
+    });
+    
+  </script>
 
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2 active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true"><small>Info</small></button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2 " id="methods-tab" data-bs-toggle="tab" data-bs-target="#methods" type="button" role="tab" aria-controls="methods" aria-selected="true"><small>
-            {% if schema %}
-                Schema
-            {% else %}
-                Methods
-            {%endif%}
-        </small></button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2  " id="passive-tab" data-bs-toggle="tab" data-bs-target="#instances" type="button" role="tab" aria-controls="instances" aria-selected="true"><small>Instances</small></button>
-    </li>    
-    <li class="nav-item" role="presentation">
-        <button class="nav-link small ps-2 pe-2  " id="usage-tab" data-bs-toggle="tab" data-bs-target="#usage" type="button" role="tab" aria-controls="usage" aria-selected="true"><small>Usage</small></button>
-    </li>    
-</ul>
-
-     <div class="tab-content" id="myTabContent">
-
-        <div class="tab-pane fade show  active" style="padding-top: 10px;" id="info" role="tabpanel" aria-labelledby="info-tab">
-            {% include "smart_contracts/smart_module_info.html" %}
-            </div>
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="methods" role="tabpanel" aria-labelledby="methods-tab">
-            {% if schema %}
-                {% include "smart_contracts/smart_module_schema.html" %}
-            {% else  %}
-                {% include "smart_contracts/smart_module_methods.html" %}
-            {% endif %}
-        </div>
-
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="instances" role="tabpanel" aria-labelledby="instances-tab">
-            {% include "smart_contracts/smart_module_instances.html" %}
-        </div>
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="usage" role="tabpanel" aria-labelledby="usage-tab">
-            {% include "smart_contracts/smart_module_usage.html" %}
-        </div>
-    </div>
-
-
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<div class="row  mt-4">
+    <div class="col">{% include 'smart_contracts/module_header.html' %}</div>  
 </div>
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+    <div class="col-md-6  col-sm-12 ">
+        <div class="border content curved-border " >
+            {% set title= "Module Info" %}{% include 'base/box_title.html' %}
+            {% include "smart_contracts/module_info.html" %}</div>
+    </div>
+   
+    
+    <div class="col-md-6  col-sm-12">
+        <div class="border content curved-border " >
+            {% set title= "Module Usage" %}{% include 'base/box_title.html' %}
+            <div
+        hx-trigger="intersect, switched-theme from:body" 
+        hx-post="/{{net}}/module/{{module_ref}}/usage"
+        hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+      >
+    </div>
+    </div>
+    </div>
+  </div>
+  
+  <div class="row row-flex">
+    <div class="col-md-6  col-sm-12">
+        <div class="border content curved-border " id="instances">
+          
+    
+      </div>
+      </div>
+    <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+        
+        {% if schema %}
+        {% set title= "Module Schema" %}{% include 'base/box_title.html' %}
+            {% include "smart_contracts/smart_module_schema.html" %}
+        {% else  %}
+        {% set title= "Module Methods" %}{% include 'base/box_title.html' %}
+            {% include "smart_contracts/smart_module_methods.html" %}
+        {% endif %}
+  
+      </div>
+    </div>
+    
+  </div>
+  
+
   {% endblock content %}
 

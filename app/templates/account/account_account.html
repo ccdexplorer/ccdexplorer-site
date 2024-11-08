@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 
 {% if error %}
@@ -34,28 +34,26 @@ if (ref) {
 <!-- Get Transactions -->
 <script>
   async function getTransactions(requested_page, total_rows) {
-    transactions = document.getElementById('transactions');
+    transactions = document.getElementById('txs');
     var account_id = document.querySelector('.account_id').title;
-    url = '/ajax_account_html/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-    transactions.innerHTML = '{% include "spinner.html" %}'
+    url = '/account_transactions/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    transactions.innerHTML = '{% include "base/spinner.html" %}'
     await fetch(url)
       .then((response) => {
         return response.text();
       })
       .then((data) => {
         transactions.innerHTML = data;
-        // console.log('len data = ', data.length);
-        // console.log(data);
       })
       .catch(function (error) {
         console.log(error);
       });
   }
 
-  function prev_v2_txs(requested_page, total_rows) {
+  function prev_txs(requested_page, total_rows) {
     getTransactions(requested_page, total_rows)
   };
-  function next_v2_txs(requested_page, total_rows) {
+  function next_txs(requested_page, total_rows) {
     getTransactions(requested_page, total_rows)
   };
 
@@ -63,18 +61,47 @@ if (ref) {
 </script>
 
 <script>
-  async function getTokens(requested_page, total_rows) {
+  async function getValidatorTransactions(requested_page, total_rows) {
+    validator_txs = document.getElementById('validator_txs');
+    var account_id = document.querySelector('.account_id').title;
+    url = '/account_validator_transactions/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    validator_txs.innerHTML = '{% include "base/spinner.html" %}'
+    await fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        validator_txs.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_validator_txs(requested_page, total_rows) {
+    getValidatorTransactions(requested_page, total_rows)
+  };
+  function next_validator_txs(requested_page, total_rows) {
+    getValidatorTransactions(requested_page, total_rows)
+  };
+
+  
+</script>
+
+<script>
+  async function getFungibleVerifiedTokens(requested_page, total_rows) {
     try {
-      tokens = document.getElementById('tokens');
+      fungible_verified_tokens = document.getElementById('fungible_verified_tokens');
       var account_id = document.querySelector('.account_id').title;
-      url = '/ajax_account_tokens/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      tokens.innerHTML = '{% include "spinner.html" %}'
+      url = '/ajax_account_tokens/{{net}}/fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      
+      fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
       await fetch(url)
         .then((response) => {
           return response.text();
         })
         .then((data) => {
-          tokens.innerHTML = data;
+          fungible_verified_tokens.innerHTML = data;
         })
         .catch(function (error) {
           console.log(error);
@@ -85,24 +112,83 @@ if (ref) {
 }
   }
 
-  function prev_v2_tokens(requested_page, total_rows) {
-    getTokens(requested_page, total_rows)
+  function prev_f_v_tokens(requested_page, total_rows) {
+    getFungibleVerifiedTokens(requested_page, total_rows)
   };
-  function next_v2_tokens(requested_page, total_rows) {
-    getTokens(requested_page, total_rows)
+  function next_f_v_tokens(requested_page, total_rows) {
+    getFungibleVerifiedTokens(requested_page, total_rows)
+  };
+
+
+  async function getNonFungibleVerifiedTokens(requested_page, total_rows) {
+    try {
+      non_fungible_verified_tokens = document.getElementById('non_fungible_verified_tokens');
+      var account_id = document.querySelector('.account_id').title;
+      url = '/ajax_account_tokens/{{net}}/non-fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      
+      non_fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
+      await fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          non_fungible_verified_tokens.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+  catch (error) {
+    
+}
+  }
+
+  function prev_n_f_v_tokens(requested_page, total_rows) {
+    getNonFungibleVerifiedTokens(requested_page, total_rows)
+  };
+  function next_n_f_v_tokens(requested_page, total_rows) {
+    getNonFungibleVerifiedTokens(requested_page, total_rows)
   };
 
   
+  async function getUnVerifiedTokens(requested_page, total_rows) {
+    try {
+      unverified_tokens = document.getElementById('unverified_tokens');
+      var account_id = document.querySelector('.account_id').title;
+      url = '/ajax_account_tokens/{{net}}/unverified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+      
+      unverified_tokens.innerHTML = '{% include "base/spinner.html" %}'
+      await fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          unverified_tokens.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+  catch (error) {
+    
+}
+  }
+
+  function prev_un_tokens(requested_page, total_rows) {
+    getUnVerifiedTokens(requested_page, total_rows)
+  };
+  function next_un_tokens(requested_page, total_rows) {
+    getUnVerifiedTokens(requested_page, total_rows)
+  };
+
 </script>
 
 
 <script>
-  async function getDelegators_v2(requested_page, total_rows) {
+  async function getDelegators(requested_page, total_rows) {
     try {
       delegators = document.getElementById('delegators');
-      var account_id = document.querySelector('.account_id').title;
-      url = '/ajax_delegators_html_v2/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      // console.log('URL=', url);
+      url = '/account_pool_delegators/{{net}}/{{account_index}}/' + requested_page + '/' + total_rows + '/' + api_key;
       delegators.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
       await fetch(url)
         .then((response) => {
@@ -117,23 +203,22 @@ if (ref) {
     } catch (eroor) {}
   }
 
-  function prev_v2_delegators(requested_page, total_rows) {
-    getDelegators_v2(requested_page, total_rows)
+  function prev_delegators(requested_page, total_rows) {
+    getDelegators(requested_page, total_rows)
   };
-  function next_v2_delegators(requested_page, total_rows) {
-    getDelegators_v2(requested_page, total_rows)
+  function next_delegators(requested_page, total_rows) {
+    getDelegators(requested_page, total_rows)
   };
 
   
 </script>
 <!--Get baker tally -->
 <script>
-  async function getBakerTally(before, after, current_page) {
+  async function getValidatorTally(requested_page, total_rows) {
     try {
-      tally = document.getElementById('baker_tally');
+      tally = document.getElementById('validator_tally');
       var account_id = document.querySelector('.account_id').title;
-      // console.log("account_is_baker=", {{account}});
-      url = '/account/baker-tally/{{net}}/'+account_id;
+      url = '/account/validator-tally/{{net}}/{{account_index}}/' + requested_page + '/' + total_rows + '/' + api_key;
 
       await fetch(url)
         .then((response) => {
@@ -149,183 +234,151 @@ if (ref) {
   }
 
 
-  function prev_tally(before, current_page) {
-    console.log("___PREV:", before, current_page)
-    getBakerTally(before, null, current_page)
+  function prev_results(requested_page, total_rows) {
+    getValidatorTally(requested_page, total_rows)
   };
-  function next_dtally(after, current_page) {
-    console.log("___NEXT:", after, current_page)
-    getBakerTally(null, after, current_page)
+  function next_results(requested_page, total_rows) {
+    getValidatorTally(requested_page, total_rows)
   };
 
   
 </script>
 
-<div class="clearfix">
-  <div class="float-start">
-    <h2>Account{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h2>
-  </div>
-
-  <div class="ps-5"> {% if tag_found %}{{tag_label|safe}}{%endif %}</div>
-  
-</div>
-
-{% if 'error' in transactions %}
-<p>An error occured: <b>{{transactions.errorMessage}}</b></p>
-{% else %}
-{% if possible_block != -1 %}
-<p class="small">Did you mean <a href="/{{net}}/block/{{possible_block}}?block_height={{possible_block}}">Block
-    {{possible_block}}</a>?</p>
-{% endif %}
-{% endif %}
-
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-  <li class="nav-item" role="presentation">
-    <button
-      class="nav-link small ps-2 pe-2 {% if tabs['info'].active %}active{% endif %} "
-      id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info"
-      aria-selected="true">
-      <small>{{tabs["info"].display_name}}</small>
-    </button>
-  </li>
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['identity'].active %}active{% endif %}"
-      id="credentials-tab" data-bs-toggle="tab" data-bs-target="#credentials" type="button" role="tab"
-      aria-controls="credentials" aria-selected="true">
-      <small>{{tabs["identity"].display_name}}</small>
-    </button>
-  </li>
-  {% if net == 'mainnet'%}
-          {% if delegation %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 {% if tabs['delegation'].active %}active{% endif %}" id="delegation-tab"
-              data-bs-toggle="tab" data-bs-target="#delegation" type="button" role="tab" aria-controls="delegation"
-              aria-selected="true">
-              <small>{{tabs["delegation"].display_name}}</small>
-            </button>
-          </li>
-          {% endif %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+    <div class="row  mt-4">
+        <div class="col">{% include 'account/account_header.html' %}</div>  
+    </div>
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active explorer bg-secondary-subtle" id="pills-information-tab" data-bs-toggle="pill" data-bs-target="#pills-information" type="button" role="tab" aria-controls="pills-information" aria-selected="true">
+            <span class="tab-text-large">Information</span><span class="tab-text-small">Info</span>
+        </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
+            <span class="tab-text-large">Transactions</span><span class="tab-text-small">Txs</span>
+        </button>
+        </li>
+        {% if tokens_available %}
+        <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="tokens-pills-tab" data-bs-toggle="pill" data-bs-target="#pills-tokens" type="button" role="tab" aria-controls="pills-tokens" aria-selected="true">
+            <span class="tab-text-large">Tokens</span><span class="tab-text-small">Tokens</span>
+        </button>
+        </li>
+      {% endif %}  
+        {% if delegation %}
+        <li class="nav-item" role="presentation"></li>
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-delegation-tab" data-bs-toggle="pill" data-bs-target="#pills-delegation" type="button" role="tab" aria-controls="pills-delegation" aria-selected="true">
+            <span class="tab-text-large">Delegation</span><span class="tab-text-small">Delegation</span>
+        </button>
+        </li>
+        {% endif %}
+        {% if net=='mainnet' %}
           {% if rewards_no_stake %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 {% if tabs['rewards-no-stake'].active %}active{% endif %}" id="rewards-no-stake-tab"
-              data-bs-toggle="tab" data-bs-target="#rewards-no-stake" type="button" role="tab" aria-controls="rewards-no-stake" aria-selected="true">
-              <small>{{tabs["rewards-no-stake"].display_name}}</small>
-            </button>
+          <li class="nav-item" role="presentation"></li>
+            <button class="nav-link  explorer bg-secondary-subtle" id="pills-nostake-tab" data-bs-toggle="pill" data-bs-target="#pills-nostake" type="button" role="tab" aria-controls="pills-nostake" aria-selected="true">
+              <span class="tab-text-large">Rewards</span><span class="tab-text-small">Rewards</span>
+          </button>
           </li>
           {% endif %}
-          {% if account_is_baker %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 {% if tabs['validator'].active %}active{% endif %}" id="baker-tab"
-              data-bs-toggle="tab" data-bs-target="#baker" type="button" role="tab" aria-controls="baker" aria-selected="true">
-              <small>{{tabs["validator"].display_name}}</small>
-            </button>
-          </li>
           {% endif %}
-          {% if pool %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 {% if tabs['pool'].active %}active{% endif %}" id="pool-tab"
-              data-bs-toggle="tab" data-bs-target="#pool" type="button" role="tab" aria-controls="pool" aria-selected="true">
-              <small>{{tabs["pool"].display_name}}</small>
-            </button>
-          </li>
-          {% endif %}
-  {% endif %}
-  {% if tokens_available %}
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['tokens'].active %}active{% endif %}" id="tokens-tab"
-      data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab" aria-controls="tokens" aria-selected="true">
-      <small>{{tabs["tokens"].display_name}}</small>
-    </button>
-  </li>
-  {% endif %}
-  {% if net == 'mainnet'%}
-          {% if cns_domains_list %}
-          <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 {% if ['cns'] == show_tab_list %}active{% endif %}" id="cns-tab"
-              data-bs-toggle="tab" data-bs-target="#cns" type="button" role="tab" aria-controls="cns" aria-selected="true">
-              <small>CNS ({{cns_domains_list.data.data|length}})</small>
-            </button>
-          </li>
-          {% endif %}
-  {% endif %}
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['txs'].active %}active{% endif %}" id="txs-tab"
-      data-bs-toggle="tab" data-bs-target="#txs" type="button" role="tab" aria-controls="txs" aria-selected="true">
-      <small>{{tabs["txs"].display_name}}
-        {% if user %}
-        {% if account.address in accounts_for_download %}
-        <img onclick="window.location.href = '{{env.SITE_URL}}/user/transactions';" height="16" width="16"
-          src="{{env.SITE_URL}}/static/download-button.svg">
+        {% if account_is_validator %}
+        <li class="nav-item" role="presentation"></li>
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-validator-tab" data-bs-toggle="pill" data-bs-target="#pills-validator" type="button" role="tab" aria-controls="pills-validator" aria-selected="true">
+            <span class="tab-text-large">Validator</span><span class="tab-text-small">Validator</span>
+        </button>
+        </li>
         {% endif %}
+        {% if pool %}
+        <li class="nav-item" role="presentation"></li>
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-pool-tab" data-bs-toggle="pill" data-bs-target="#pills-pool" type="button" role="tab" aria-controls="pills-pool" aria-selected="true">
+            <span class="tab-text-large">Pool</span><span class="tab-text-small">Pool</span>
+        </button>
+        </li>
         {% endif %}
-      </small>
-    </button>
-  </li>
-  
-
 </ul>
 
-<div class="tab-content" id="myTabContent">
+<div class="tab-content" id="pills-tabContent">
+  
+  <div class="tab-pane fade show active" id="pills-information" role="tabpanel" aria-labelledby="pills-information-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-6  col-sm-12">
+        <div class="border curved-border mb-2">
+          {% set title= "Account Info" %}{% include 'base/box_title.html' %}
+          {% include "account/account_info.html" %}</div>
+        {% include "account/account_cooldowns.html"%}
+        {% if net == 'mainnet' %}
+          {% include "account/account_graph_header.html" %}
+        {% endif %}
+      </div>  
+      <div class=" col-md-6  col-sm-12">
+        <div class="border curved-border">{% include "account/account_credentials.html" %}</div>
+      </div>
+    </div>
+  </div>
 
-  <div
-    class="tab-pane fade show {% if tabs['info'].active %}active{% endif %}"
-    style="padding-top: 10px;" id="info" role="tabpanel" aria-labelledby="info-tab">
-    {% include "account/account_info.html" %}
+  <div class="tab-pane fade show " id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-8  col-sm-12">
+        <div class="border curved-border" id="txs"></div>
+      </div>  
+      
+    </div>
   </div>
-  <div class="tab-pane fade show  {% if tabs['identity'].active %}active{% endif %}" style="padding-top: 10px;"
-    id="credentials" role="tabpanel" aria-labelledby="credentials-tab">
-    {% include "account/account_credentials.html" %}
-  </div>
-  {% if net == 'mainnet'%}
-      {% if delegation %}
-      <div class="tab-pane fade show {% if tabs['delegation'].active %}active{% endif %}" style="padding-top: 10px;"
-        id="delegation" role="tabpanel" aria-labelledby="delegation-tab">
-        {% include "account/account_delegation.html" %}
-      </div>
-      {% endif %}
-      {% if rewards_no_stake %}
-      <div class="tab-pane fade show {% if tabs['rewards-no-stake'].active %}active{% endif %} " style="padding-top: 10px;"
-        id="rewards-no-stake" role="tabpanel" aria-labelledby="rewards-no-stake-tab">
-        {% include "account/account_rewards_no_stake.html" %}
-      </div>
-      {% endif %}
-      {% if account_is_baker %}
-      <div class="tab-pane fade show {% if tabs['validator'].active %}active{% endif %} " style="padding-top: 10px;"
-        id="baker" role="tabpanel" aria-labelledby="baker-tab">
-        {% include "account/account_baker.html" %}
-      </div>
-      {% endif %}
-      {% if pool %}
-      <div class="tab-pane fade show {% if tabs['pool'].active %}active{% endif %}" style="padding-top: 10px;"
-        id="pool" role="tabpanel" aria-labelledby="pool-tab">
-        {% include "pool/pool.html" %}
-      </div>
-      {% endif %}
-  {% endif %}  
   {% if tokens_available %}
-  <div class="tab-pane fade show {% if tabs['tokens'].active %}active{% endif %}" style="padding-top: 10px;"
-    id="tokens" role="tabpanel" aria-labelledby="tokens-tab">
-    <div id="tokens"></div>
+  <div class="tab-pane fade show " id="pills-tokens" role="tabpanel" aria-labelledby="pills-tokens-tab" tabindex="0">
+    <div class="row row-flex">
+        <div id="fungible_verified_tokens"></div>
+      
+      
+        <div id="non_fungible_verified_tokens"></div>
+      
+      
+        <div id="unverified_tokens"></div>
+      
+    </div>  
+      
+  </div>
+  {% endif %}
+  {% if rewards_no_stake %}
+  <div class="tab-pane fade show " id="pills-nostake" role="tabpanel" aria-labelledby="pills-nostake-tab" tabindex="0">
+    {% include "account/account_rewards_no_stake.html" %}
+ 
+</div>
+  {% endif %}
+  {% if delegation %}
+  <div class="tab-pane fade show " id="pills-delegation" role="tabpanel" aria-labelledby="pills-delegation-tab" tabindex="0">
+       {% include "account/account_delegation.html" %}
     
   </div>
-  {% endif %}  
-    <div class="tab-pane fade show {% if tabs['txs'].active %}active{% endif %}" style="padding-top: 10px;" id="txs"
-      role="tabpanel" aria-labelledby="txs-tab">
-      <div id="transactions"></div>
-    </div>
+  {% endif %}
+  {% if account_is_validator %}
+  <div class="tab-pane fade show " id="pills-validator" role="tabpanel" aria-labelledby="pills-validator-tab" tabindex="0">
+       {% include "account/account_validator.html" %}
+    
+  </div>
+  {% endif %}
+  {% if pool %}
+  <div class="tab-pane fade show " id="pills-pool" role="tabpanel" aria-labelledby="pills-pool-tab" tabindex="0">
+       {% include "pool/pool.html" %}
+    
+  </div>
+  {% endif %}
 
 </div>
-
 <script>
 window.addEventListener('load', (event) => {
     getTransactions(0, 0);
-    getBakerTally(null, null, 0);
-    getTokens(0, 0);
+    '{% if account_is_validator %}'
+        getValidatorTransactions(0, 0);
+        getValidatorTally(0, 0);
+        getDelegators(0, 0);
+    '{% endif %}'
+    getFungibleVerifiedTokens(0, 0);
+    getNonFungibleVerifiedTokens(0,0);
+    getUnVerifiedTokens(0,0);
   });
-    window.addEventListener('load', (event) => {
-    getDelegators_v2(0, 0);
     
-  });
 </script>
 {% endif %}
 {% endblock content %}

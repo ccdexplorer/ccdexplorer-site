@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+    {% include 'base/search_bar_non_home_inclusion.html' %}
+    <p>You have searched for: <span class="text-success">{{search_value}}</span></p>
+    <div class="row row-flex">
+        <div class="col-md-8  col-sm-12 ">
+          <div class="border content curved-border " >
+            <table class="table table-borderless">
+          <thead>
+            <tr class="sm-text">
+              <th>Type</th>
+              <th>Found</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Account</td>
+              <td>
+                {% for account in accounts_list %}
+                  <a href="/{{net}}/account/{{account.account_index}}">{{account.account_index}}</a>
+                {% endfor %}
+              </td>
+            </tr>
+            <tr>
+              <td>Block</td>
+              <td>
+                {% if block_info %}
+                  <a href="/{{net}}/block/{{block_info.height}}">{{block_info.height}}</a></td>
+                  {% else %}
+                  -{% endif%}
+            </tr>
+            <tr>
+              <td>Transaction</td>
+              <td>
+                {% if tx %}
+                  <a href="/{{net}}/transaction/{{tx.hash}}">{{tx.hash[:4]}}</a>
+                {% else %}
+                -{% endif%}
+              
+              </td>
+            </tr>
+            
+        </tbody>
+        </table>
+          </div>
+      
+        </div>
+    
+        
+    </div>
+    
+        
+    
+{% endblock %}

@@ -1,5 +1,5 @@
 base58
-fastapi
+fastapi[standard]
 chardet
 
 GitPython
@@ -21,8 +21,6 @@ fastapi_profiler
 mkdocs
 mkdocs-material
 sentry-sdk[fastapi]
-vegafusion[embed]
-altair
 pymongo
 ccdexplorer-fundamentals
 ccdexplorer-schema-parser
@@ -48,3 +46,9 @@ aiohttp
 pydantic==2.4.2
 prometheus-fastapi-instrumentator
 pyarrow
+aiofiles~=24.1.0
+httpx
+polars
+pymongo==4.8.0
+APScheduler
+sentry-sdk[fastapi]

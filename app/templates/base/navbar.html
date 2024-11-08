@@ -1,0 +1,105 @@
+
+    <nav class="navbar navbar-expand-lg ">
+        <a class="navbar-brand" href="/mainnet"><img id='logo' src="/static/logos/logo_dark.png" alt="" width="125" ></a>
+        <button class="navbar-toggler order-last" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Blockchain
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/{{net}}/blocks">Blocks</a></li>
+                        <li><a class="dropdown-item" href="/{{net}}/transactions">Transactions</a></li>
+                        <li><a class="dropdown-item" href="/{{net}}/accounts">Accounts</a></li>
+                    </ul>
+                </li>
+                {% if net == 'mainnet' %}
+                <li class="nav-item">
+                    <a class="nav-link " href="/{{net}}/tokens" role="button" aria-expanded="false">
+                        Tokens
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link " href="/{{net}}/statistics" role="button" aria-expanded="false">
+                        Statistics
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Tools
+                    </a>
+                    <ul class="dropdown-menu">
+                        
+                        <li><a class="dropdown-item" href="#">Contracts (Coming soon!)</a></li>
+                        {% if net == 'mainnet' %}
+                            <li><a class="dropdown-item" href="/{{net}}/staking">Staking</a></li>
+                        
+                        <li><a class="dropdown-item" href="/{{net}}/tools/labeled-accounts">Labeled Accounts</a></li>
+                        <li><a class="dropdown-item" href="#">Chain Info (Coming soon!)</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        
+                        <li><a class="dropdown-item" href="#">Statistics - Tricorn (Coming soon!)</a></li>
+                    </ul>
+                </li>
+                {% if net == 'mainnet' %}
+                <li class="nav-item">
+                    <a class="nav-link " href="/{{net}}/nodes" role="button" aria-expanded="false">
+                    Nodes
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link " href="https://api.ccdexplorer.io" role="button" aria-expanded="false">
+                        API
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link " href="https://v1.ccdexplorer.io" role="button" aria-expanded="false">
+                    Missing something?
+                    </a>
+                </li>
+            
+            <li class="nav-item">
+                <a class="nav-link " href="/settings/user/overview" role="button" aria-expanded="false">
+                    {% if user %}
+                    User settings
+                    {% else %}
+                    Login
+                    {% endif %}
+                </a>
+            </li>
+            <!-- <div class="vr d-none d-lg-block ms-3 me-3" ></div>
+            <li class="nav-item mt-2 " id="darkModeSwitch"><i class="bi-moon-stars-fill"></i> Dark</li> -->
+        
+         
+    </ul>
+    
+       
+      
+     
+        </div>
+        <div class="navbar-nav"> 
+               
+        <select class="form-select border-0" aria-label="Net selector" id="net_switcher">
+            <option {% if net == "mainnet" %} selected {% endif %} value="mainnet">Mainnet</option>
+            <option {% if net == "testnet" %} selected {% endif %}value="testnet">Testnet</option>
+            
+          </select>
+                
+            
+        </div>
+        
+    </nav>
+ 
+    <script>
+        // make replacements for data attributes
+        for (let img of document.querySelectorAll('img[data-src]')) {
+            img.src = window[img.dataset.src]
+        }
+        </script>

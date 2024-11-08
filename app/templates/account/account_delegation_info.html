@@ -1,14 +1,14 @@
 {% if delegation %}
 <!-- <div class="table-responsive"> -->
     <!--- Account Account table-->
-<table class="table table-striped ms-1 me-1 small">
+    <table class="table table-borderless">
     {% if delegation_target_address.passive_delegation %}
-        <tr><td>Target:</td><td class="small  align-middle"><a href = "/staking" >Passive Delegation</a></td></tr>
+        <tr class="sm-text"><td class="text-secondary-emphasis">Target:</td><td class="text-secondary-emphasis  text-end"><a href = "/staking" >Passive Delegation</a></td></tr>
     {% else %}
-        <tr><td>Target:</td><td class="small  align-middle"><a href = "/mainnet/account/{{delegation_target_address.baker}}" >{{delegation_target_address.baker}}</a></td></tr>
+        <tr class="sm-text"><td class="text-secondary-emphasis">Target:</td><td class=" text-secondary-emphasis text-end"><a href = "/mainnet/account/{{delegation_target_address.baker}}" >{{delegation_target_address.baker}}</a></td></tr>
     {% endif %}
-    <tr><td>Amount:</td><td colspan="2" class="align-middle">{{account.stake.delegator.staked_amount | micro_ccd_no_decimals|safe}}</td></tr>
-    <tr><td>Restake Earnings:</td><td colspan="2" class="align-middle"><span class="ccd">{{account.stake.delegator.restake_earnings}}</span></td></tr>
+    <tr class="sm-text"><td class="text-secondary-emphasis">Amount:</td><td colspan="2" class=" text-secondary-emphasis text-end">{{account.stake.delegator.staked_amount | micro_ccd_no_decimals|safe}}</td></tr>
+    <tr class="sm-text"><td class="text-secondary-emphasis">Restake Earnings:</td><td colspan="2" class="text-secondary-emphasis text-end"><span class="ccd">{{account.stake.delegator.restake_earnings}}</span></td></tr>
     
 </table>
 <!-- </div> -->

@@ -1,21 +1,20 @@
 <!-- <div class="table-responsive"> -->
-    <table class="table table-striped ms-1 w-auto small">
+    <table class="table table-borderless ms-1 w-auto ">
        
         <tbody>
             
-            <tr><td>Name</td><td title="{{node.nodeName}}" class="small  align-middle"><a href="/{{net}}/node/{{node.nodeId}}">{{ node.nodeName}}</a></td></tr>
-            <tr><td>Id</td><td  class="small">{{node.nodeId}}</td></tr>
-            <tr><td>Version</td><td  class="small">{{node.client}}</td></tr>
-            <tr><td>Finalized Block Height</td><td title="{{node.finalizedBblockHeight}}" class="small  align-middle">{{node.finalizedBlockHeight|int|round_0_decimal_with_comma }}</td></tr>
-            <!--<tr><td>Finalized Block Hash<td class="small align-middle" ><a href = "/block/{{node.finalizedBlock}}" >{{node.finalizedBlock[:8]}}</a></small></td></tr>
-            <tr><td>Finalized Block Slot Time</td><td title="{{node.finalizedTime}}" class="small  align-middle">{{node.finalizedTime|datetime_format_isoparse }}</td></tr> -->
-            <tr><td>Validator ID</td><td title="{{node.consensusBakerId}}" class="small  align-middle"><a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a></td></tr>
-            <tr><td class=" align-middle">Peers</td><td>
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Name</td><td title="{{node.nodeName}}" class="text-secondary-emphasis  align-middle"><a href="/{{net}}/node/{{node.nodeId}}">{{ node.nodeName}}</a></td></tr>
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Id</td><td  class="text-secondary-emphasis">{{node.nodeId}}</td></tr>
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Version</td><td  class="text-secondary-emphasis">{{node.client}}</td></tr>
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Finalized Block Height</td><td title="{{node.finalizedBblockHeight}}" class="text-secondary-emphasis  align-middle">{{node.finalizedBlockHeight|int|round_x_decimal_with_comma(0) }}</td></tr>
+            
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Validator ID</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis  align-middle"><a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a></td></tr>
+            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Peers</td><td>
             {% for peer in node.peersList %}
                 {% if peer in nodes.keys() %}
-                    <small><a href="/{{net}}/node/{{peer}}">{{nodes[peer].nodeName}}</a></small></br>
+                    <a class="text-secondary-emphasis" href="/{{net}}/node/{{peer}}">{{nodes[peer].nodeName}}</a></br>
                 {% else %}
-            <small>{{peer}}</small></br>
+            <span class="text-secondary-emphasis">{{peer}}</span></br>
                 {% endif %}
             {% endfor %}
         </td></tr>

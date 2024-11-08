@@ -2,12 +2,11 @@
        
     {% set tt = event.event_type.split('_')[0]%}
 <tr>
-    <!-- <td class="small   text-start"><span class="ccd">{{event.block_height|block_height_link(net, True, no_text=True)|safe}}</span></td> -->
-    <td class="small text-start">{{event.tx_hash|tx_hash_link(net, None, True, True)|safe}}</td>
-    <td class="small text-start">{{event.sender|account_link(net, False, True, user, tags, app=request.app)|safe}}</td>
-    <td class="small   text-center"><span class="ccd">{{event.timestamp|datetime_format_regular}}</span></td>
+    <td class="text-secondary-emphasis  text-start">{{event.tx_hash|tx_hash_link(net)|safe}}</td>
+    <td class="text-secondary-emphasis  text-start">{{event.sender|account_link(net,user,tags,request.app)|safe}}</td>
+    <td class="text-secondary-emphasis    text-center"><span class="ccd">{{event.timestamp|datetime_delta_format_since_parse}}</span></td>
       
-    <td class="small text-end">{%if event.result.initial_status%}{{event.result.initial_status}}{%else%}{{event.result.new_status}}{%endif%}</td>
+    <td class=" text-end">{%if event.result.initial_status%}{{event.result.initial_status}}{%else%}{{event.result.new_status}}{%endif%}</td>
         
 </tr>
             

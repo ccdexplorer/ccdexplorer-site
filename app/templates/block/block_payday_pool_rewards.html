@@ -1,35 +1,23 @@
-<div class="card mb-2 ms-2 me-2">
-    <div class="card-body p-2">
-        <!-- sdr -->
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th class="small" scope="col">Target</th>
-                    <th class="small text-end" scope="col">tx. Fees</th>
-                    <th class="small text-end" scope="col">Fin. Fees</th>
-                    <th class="small text-end" scope="col">Baking Reward</th>
 
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in rewards %}
-                <tr>
-                    <td><span class="ccd">{% if row.pool_owner =='passive_delegation' %}
-                            Passive
-                            {% else %}
-                            {{row.pool_owner|baker_link_with_label(recurring, user, tags)|safe}}
-                            {% endif %}</span></td>
-                    <td class="text-end"><small>{{row.reward.transaction_fees | micro_ccd_display|safe}}
-                                </small></td>
-                    <td class="text-end"><small>{{row.reward.finalization_reward | micro_ccd_display|safe}}</small></td>
-                    <td class="text-end"><small>{{row.reward.baker_reward | micro_ccd_display|safe}}
-                                </small></td>
 
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <!--class="card-body p-2"-->
-    </div>
-    <!--class="card mb-2 ms-2 me-2"-->
-</div>
+{% include 'base/pagination.html' %}
+<table class="table table-borderless">
+    <tbody>
+      {% for row in rewards %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">
+            {% if row.pool_owner != 'passive_delegation' %}  
+              <a class="" href="/mainnet/account/{{row.pool_owner}}">{{row.pool_owner}}</a>
+            {%else %}
+              {{row.pool_owner}}
+            {% endif %}
+            </td>
+            <td class="text-end text-secondary-emphasis">{{row.reward.transaction_fees | micro_ccd_display|safe}}</td>
+            <td class="text-end text-secondary-emphasis">{{row.reward.finalization_reward | micro_ccd_display|safe}}</td>
+            <td class="text-end text-secondary-emphasis">{{row.reward.baker_reward | micro_ccd_display|safe}}</td>
+            
+        </tr>
+      {% endfor %}
+        
+    </tbody>
+    </table>

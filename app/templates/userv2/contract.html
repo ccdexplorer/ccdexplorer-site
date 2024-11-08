@@ -1,41 +1,41 @@
-<div class="row alert alert-warning" role="alert">
-    <div class="col"><i><small>Editing</small></i></div>
-    <div class="col"><small>{{contract.label}}</small></div>
-    <div class="col"><small>{{contract.contract.index}}</small></div>
-    <div class="col"><small>{{contract.contract_name}}</small></div>
+<div class="row  mx-2 alert alert-warning" role="alert">
+    <div class="col"><i>Editing</i></div>
+    <div class="col">{{contract.label}}</div>
+    <div class="col">{{contract.contract.index}}</div>
+    <div class="col">{{contract.contract_name}}</div>
     
 </div>
 <div class="container px-2">
 <div class="row">
-    <div class="col text-start"><small>Label</small></div>
+    <div class="col text-start">Label</div>
     <div class="col-8">
-        <input                 class=" form-control form-control-sm small input-sm mb-1 text-end " 
+        <input                 class=" form-control form-control-sm  input-sm mb-1 text-end " 
                 type="text" name="label" {% if contract.label %}value="{{contract.label}}"{% endif %}>
     </div>
     <div class="col"></div>
 </div>
 
 {% set explanation_key = "contract-contract_update_issued" %}
-<span class="text-muted"><small><small>{{explanations[explanation_key].explanation}}</small></small></span>
+<span class="text-secondary-emphasis">{{explanations[explanation_key].explanation}}</span>
 {% for field in contract_all_fields %}
     {% if field in contract_all_fields_dict.keys() %}
         <div class="row">
             <div class="col">
                 
-                <label><small><b>{{field|format_preference_key}}</b></small></label> 
+                <label><b>{{field|format_preference_key}}</b></label> 
             </div>
         </div>
-        <div class="row  bg-light">
-            <div class="col text-end"><small>Telegram</small></div>
+        <div class="row  ">
+            <div class="col text-end">Telegram</div>
             <div class="col">
             <input class="form-check-input" type="checkbox" name="telegram-{{field}}" {% if contract_all_fields_dict[field].telegram_enabled%} checked {% endif %}></td>
             </div>
             
         </div>
 
-        <div class="row  bg-light">
+        <div class="row  ">
             <div class="col  text-end">
-                <span><small>Email</small></span>
+                <span>Email</span>
             </div>
             <div class="col">
                 <input class="form-check-input" type="checkbox" name="email-{{field}}" {% if contract_all_fields_dict[field].email_enabled%} checked {% endif %}></td>

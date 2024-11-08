@@ -1,127 +1,107 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-
-##
-from ccdexplorer_fundamentals.enums import NET
-
+import httpx
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockInfo
 from ccdexplorer_fundamentals.mongodb import *
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse
 
-
-from app.ajax_helpers import (
-    process_payday_account_rewards_to_HTML_v2,
-    process_payday_pool_rewards_to_HTML_v2,
-    process_transactions_to_HTML,
-    transactions_html_footer,
-    mongo_transactions_html_header,
+from app.classes.dressingroom import (
+    MakeUp,
+    MakeUpRequest,
+    RequestingRoute,
 )
-from app.classes.dressingroom import MakeUp, TransactionClassifier, MakeUpRequest
-
 from app.env import *
 from app.jinja2_helpers import *
-from app.Recurring.recurring import Recurring
-from ccdexplorer_fundamentals.tooter import Tooter
-from app.state.state import *
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
-
+from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 
 router = APIRouter()
 
 
-@router.get("/block/{block_hash}", response_class=RedirectResponse)
-async def redirect_block_to_mainnet(request: Request, block_hash: str):
-    response = RedirectResponse(url=f"/mainnet/block/{block_hash}", status_code=302)
-    return response
-
-
-@router.get("/{net}/block/{block_value}", response_class=HTMLResponse)
+@router.get("/{net}/block/{height_or_hash}", response_class=HTMLResponse)
 async def request_block(
     request: Request,
     net: str,
-    block_value: str,
-    # block_height: Optional[str] = None,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    recurring: Recurring = Depends(get_recurring),
-    tooter: Tooter = Depends(get_tooter),
+    height_or_hash: int | str,
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    # grpcclient.switch_to_net(env["NET"])
-    # tooter.send(channel=TooterChannel.NOTIFIER, message=f'{user_string(user)} visited a /block/{block_hash}.', notifier_type=TooterType.INFO)
+    request.state.api_calls = {}
+    user: UserV2 = await get_user_detailsv2(request)
 
-    possible_baker = None
-    error = None
-    if block_value.isnumeric():  # it's a block_height
-        # last_finalized_block = grpcclient.get_block_info("last_final", net=NET(net))
+    try:
+        height_or_hash = int(height_or_hash)
+    except ValueError:
+        pass
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height_or_hash}",
+        httpx_client,
+    )
+    block_info = CCD_BlockInfo(**api_result.return_value) if api_result.ok else None
 
-        try:
-            block_info = grpcclient.get_finalized_block_at_height(
-                int(block_value), net=NET(net)
-            )
-        except:
-            block_info = None
+    if not block_info:
+        error = f"Can't find the block at {height_or_hash} on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
 
-        if not block_info:
-            error = {
-                "error": True,
-                "errorMessage": f"No block on {net} found at {block_value}.",
-            }
-            return templates.TemplateResponse(
-                "account/account_account_error.html",
-                {
-                    "env": request.app.env,
-                    "request": request,
-                    "net": net,
-                    "error": error,
-                },
-            )
-    else:
-        try:
-            block_info = grpcclient.get_block_info(block_value, net=NET(net))
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height_or_hash}/payday",
+        httpx_client,
+    )
+    payday_info = api_result.return_value if api_result.ok else None
 
-            possible_baker = None
-        except:
-            error = {
-                "error": True,
-                "errorMessage": f"No block on {net} found at {block_value}.",
-            }
-            return templates.TemplateResponse(
-                "account/account_account_error.html",
-                {
-                    "env": request.app.env,
-                    "request": request,
-                    "net": net,
-                    "error": error,
-                },
-            )
-    # else:
-    #     user = None
+    if not payday_info:
+        error = f"Request error for block at {height_or_hash} on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    request.state.api_calls["Block Info"] = (
+        f"{request.app.api_url}/docs#/Block/get_block_at_height_from_grpc_v2__net__block__height_or_hash__get"
+    )
+    request.state.api_calls["Chain Parameters"] = (
+        f"{request.app.api_url}/docs#/Block/get_block_chain_parameters_v2__net__block__height__chain_parameters_get"
+    )
+    request.state.api_calls["Special Events"] = (
+        f"{request.app.api_url}/docs#/Block/get_block_special_events_v2__net__block__height__special_events_get"
+    )
+    request.state.api_calls["Transactions"] = (
+        f"{request.app.api_url}/docs#/Block/get_block_txs_v2__net__block__height__transactions__skip___limit__get"
+    )
+    request.state.api_calls["Payday Yes/No"] = (
+        f"{request.app.api_url}/docs#/Block/get_block_payday_true_false_v2__net__block__height_or_hash__payday_get"
+    )
+    if payday_info["is_payday"]:
+        request.state.api_calls["Payday Pool Rewards"] = (
+            f"{request.app.api_url}/docs#/Block/get_block_payday_pool_rewards_v2__net__block__height__payday_pool_rewards__skip___limit__get"
+        )
+        request.state.api_calls["Payday Account Rewards"] = (
+            f"{request.app.api_url}/docs#/Block/get_block_payday_account_rewards_v2__net__block__height__payday_account_rewards__skip___limit__get"
+        )
 
-    result = mongodb.mainnet[Collections.paydays].find_one({"_id": block_value})
-    # if True, this block has payday rewards
-    if result:
-        payday = True
-    else:
-        payday = False
-
-    # net_postfix = "/?net=testnet" if "net" in request.query_params else ""
     return templates.TemplateResponse(
         "block/block.html",
         {
             "request": request,
-            # "net_postfix": net_postfix,
             "env": request.app.env,
-            "payday": payday,
-            "baker_nodes": recurring.baker_nodes_by_baker_id,
-            "non_baker_nodes": recurring.non_baker_nodes_by_node_id,
-            "old": False,
+            "payday_info": payday_info,
+            # "baker_nodes": recurring.baker_nodes_by_baker_id,
+            # "non_baker_nodes": recurring.non_baker_nodes_by_node_id,
+            # "old": False,
             "net": net,
             "block_info": block_info,
-            "possible_baker": possible_baker,
             "user": user,
             "tags": tags,
         },
@@ -129,28 +109,41 @@ async def request_block(
 
 
 @router.get(
-    "/ajax_chain_parameters_html_v2/{net}/{block_hash}/{api_key}",
+    "/ajax_chain_parameters_html_v2/{net}/{height}/{api_key}",
     response_class=HTMLResponse,
 )
 async def get_ajax_chain_parameters_html_v2(
     request: Request,
     net: str,
-    block_hash: str,
+    height: int,
     api_key: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     """
     Add {net}.
     """
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
+
     if api_key != request.app.env["API_KEY"]:
         return "No valid api key supplied."
     else:
-        chain_parameters = grpcclient.get_block_chain_parameters(
-            block_hash, net=NET(net)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/block/{height}/chain-parameters",
+            httpx_client,
         )
+        chain_parameters = api_result.return_value if api_result.ok else None
+        if not chain_parameters:
+            error = f"Request error getting chain parameters for block at {height} on {net}."
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": net,
+                },
+            )
         html = templates.get_template("/block/block_chain_parameters.html").render(
             {
                 "cp": chain_parameters,
@@ -166,31 +159,49 @@ async def get_ajax_chain_parameters_html_v2(
 
 
 @router.get(
-    "/ajax_special_events_html_v2/{net}/{block_hash}/{api_key}",
+    "/ajax_special_events_html_v2/{net}/{height}/{api_key}",
     response_class=HTMLResponse,
 )
 async def get_ajax_special_events_html_v2(
     request: Request,
     net: str,
-    block_hash: str,
+    height: int,
     api_key: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
+    # recurring: Recurring = Depends(get_recurring),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if api_key != request.app.env["API_KEY"]:
         return "No valid api key supplied."
     else:
-        special_events = grpcclient.get_block_special_events(block_hash, net=NET(net))
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/block/{height}/special-events",
+            httpx_client,
+        )
+        special_events = api_result.return_value if api_result.ok else None
+
+        if not special_events:
+            error = (
+                f"Request error getting special events for block at {height} on {net}."
+            )
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": net,
+                },
+            )
+
         html = templates.get_template("/block/block_special_events.html").render(
             {
                 "se": special_events,
                 "user": user,
                 "tags": tags,
                 "net": net,
-                "baker_nodes": recurring.baker_nodes_by_baker_id,
+                # "baker_nodes": recurring.baker_nodes_by_baker_id,
                 "request": request,
             }
         )
@@ -199,254 +210,202 @@ async def get_ajax_special_events_html_v2(
 
 
 @router.get(
-    "/ajax_payday_account_rewards_html_v2/{block_hash}/{requested_page}/{total_rows}/{date_string}/{api_key}",
+    "/ajax_payday_account_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,
 )
 async def get_ajax_payday_account_rewards_html_v2(
     request: Request,
-    block_hash: str,
+    block_height: int,
     requested_page: int,
     total_rows: int,
-    date_string: str,
     api_key: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 20
-    user: UserV2 = get_user_detailsv2(request)
+    limit = 30
+    user: UserV2 = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
         if api_key != request.app.env["API_KEY"]:
             return "No valid api key supplied."
         else:
-            result = mongodb.mainnet[Collections.paydays].find_one({"_id": block_hash})
-            # if True, this block has payday rewards
-            if result:
-                # requested page = 0 indicated the first page
-                # requested page = -1 indicates the last page
-                if requested_page > -1:
-                    skip = requested_page * limit
-                else:
-                    nr_of_pages, _ = divmod(total_rows, limit)
-                    skip = nr_of_pages * limit
-
-                result = list(
-                    mongodb.mainnet[Collections.paydays_rewards].aggregate(
-                        [
-                            {"$match": {"date": date_string}},
-                            {"$match": {"account_id": {"$exists": True}}},
-                            {
-                                "$facet": {
-                                    "metadata": [{"$count": "total"}],
-                                    "data": [
-                                        {"$skip": int(skip)},
-                                        {"$limit": int(limit)},
-                                    ],
-                                }
-                            },
-                        ]
-                    )
-                )[0]
-
-                reward_result = [MongoTypeAccountReward(**x) for x in result["data"]]
-                html = process_payday_account_rewards_to_HTML_v2(
-                    request,
-                    reward_result,
-                    result["metadata"][0]["total"],
-                    requested_page,
-                    user,
-                    tags,
+            skip = calculate_skip(requested_page, total_rows, limit)
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/account-rewards/{skip}/{limit}",
+                httpx_client,
+            )
+            account_rewards = api_result.return_value if api_result.ok else None
+            if not account_rewards:
+                error = f"Request error getting account rewards for block at {block_height} on mainnet."
+                return templates.TemplateResponse(
+                    "base/error-request.html",
+                    {
+                        "request": request,
+                        "error": error,
+                        "env": environment,
+                        "net": "mainnet",
+                    },
                 )
 
-                return html
-            else:
-                return None
-    else:
-        return templates.TemplateResponse(
-            "testnet/not-available-single.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "user": user,
-            },
-        )
+            pagination_request = PaginationRequest(
+                total_txs=total_rows,
+                requested_page=requested_page,
+                word="account-reward",
+                action_string="account_reward",
+                limit=limit,
+            )
+            pagination = pagination_calculator(pagination_request)
+            html = templates.get_template(
+                "block/block_payday_account_rewards.html"
+            ).render(
+                {
+                    "rewards": account_rewards,
+                    "user": user,
+                    "tags": tags,
+                    "net": "mainnet",
+                    "request": request,
+                    "pagination": pagination,
+                }
+            )
+            return html
 
 
 @router.get(
-    "/ajax_payday_pool_rewards_html_v2/{block_hash}/{requested_page}/{total_rows}/{date_string}/{api_key}",
+    "/ajax_payday_pool_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,
 )
 async def get_ajax_payday_pool_rewards_html_v2(
     request: Request,
-    block_hash: str,
+    block_height: int,
     requested_page: int,
     total_rows: int,
-    date_string: str,
     api_key: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 20
-    user: UserV2 = get_user_detailsv2(request)
+    limit = 30
+    user: UserV2 = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
         if api_key != request.app.env["API_KEY"]:
             return "No valid api key supplied."
         else:
-            result = mongodb.mainnet[Collections.paydays].find_one({"_id": block_hash})
-            # if True, this block has payday rewards
-            if result:
-                # requested page = 0 indicated the first page
-                # requested page = -1 indicates the last page
-                if requested_page > -1:
-                    skip = requested_page * limit
-                else:
-                    nr_of_pages, _ = divmod(total_rows, limit)
-                    skip = nr_of_pages * limit
-
-                result = list(
-                    mongodb.mainnet[Collections.paydays_rewards].aggregate(
-                        [
-                            {"$match": {"date": date_string}},
-                            {"$match": {"pool_owner": {"$exists": True}}},
-                            {
-                                "$facet": {
-                                    "metadata": [{"$count": "total"}],
-                                    "data": [
-                                        {"$skip": int(skip)},
-                                        {"$limit": int(limit)},
-                                    ],
-                                }
-                            },
-                        ]
-                    )
-                )[0]
-
-                reward_result = [MongoTypePoolReward(**x) for x in result["data"]]
-                html = process_payday_pool_rewards_to_HTML_v2(
-                    request,
-                    reward_result,
-                    result["metadata"][0]["total"],
-                    requested_page,
-                    user,
-                    tags,
+            skip = calculate_skip(requested_page, total_rows, limit)
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
+                httpx_client,
+            )
+            pool_rewards = api_result.return_value if api_result.ok else None
+            if not pool_rewards:
+                error = f"Request error getting pool rewards for block at {block_height} on mainnet."
+                return templates.TemplateResponse(
+                    "base/error-request.html",
+                    {
+                        "request": request,
+                        "error": error,
+                        "env": environment,
+                        "net": "mainnet",
+                    },
                 )
 
-                return html
-            else:
-                return None
-    else:
-        return templates.TemplateResponse(
-            "testnet/not-available-single.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "user": user,
-            },
-        )
+            pagination_request = PaginationRequest(
+                total_txs=total_rows,
+                requested_page=requested_page,
+                word="pool-reward",
+                action_string="pool_reward",
+                limit=limit,
+            )
+            pagination = pagination_calculator(pagination_request)
+            html = templates.get_template(
+                "block/block_payday_pool_rewards.html"
+            ).render(
+                {
+                    "rewards": pool_rewards,
+                    "user": user,
+                    "tags": tags,
+                    "net": "mainnet",
+                    "request": request,
+                    "pagination": pagination,
+                }
+            )
+            return html
 
 
 @router.get(
-    "/ajax_block_transactions_html_v2/{net}/{block_hash}/{requested_page}/{total_rows}/{api_key}",
+    "/ajax_block_transactions_html_v2/{net}/{height}/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,
 )
 async def ajax_block_transactions_html(
     request: Request,
     net: str,
-    block_hash: str,
+    height: int,
     requested_page: int,
     total_rows: int,
     api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
-    ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
     tags: dict = Depends(get_labeled_accounts),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    credential_issuers: list = Depends(get_credential_issuers),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 20
-    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    user: UserV2 = await get_user_detailsv2(request)
 
     if api_key != request.app.env["API_KEY"]:
         return "No valid api key supplied."
     else:
-        tx_tabs: dict[TransactionClassifier, list] = {}
-        tx_tabs_active: dict[TransactionClassifier, bool] = {}
-
-        for tab in TransactionClassifier:
-            tx_tabs[tab] = []
-
-        try:
-            block_info = CCD_BlockInfo(
-                **db_to_use[Collections.blocks].find_one(block_hash)
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/block/{height}/transactions/{skip}/{limit}",
+            httpx_client,
+        )
+        tx_result = api_result.return_value if api_result.ok else None
+        if not api_result.ok:
+            error = (
+                f"Request error getting transactions for block at {height} on {net}."
             )
-        except:
-            block_info = None
-        if not block_info:
-            return ""
-        else:
-            # requested page = 0 indicated the first page
-            # requested page = -1 indicates the last page
-            if requested_page > -1:
-                skip = requested_page * limit
-            else:
-                nr_of_pages, _ = divmod(total_rows, limit)
-                skip = nr_of_pages * limit
-                # special case if total_rows equals a limt multiple
-                if skip == total_rows:
-                    skip = (nr_of_pages - 1) * limit
-
-            tx_result = [
-                CCD_BlockItemSummary(**x)
-                for x in db_to_use[Collections.transactions]
-                .find({"_id": {"$in": block_info.transaction_hashes}})
-                .skip(skip)
-                .limit(limit)
-            ]
-
-            if len(tx_result) > 0:
-                for transaction in tx_result:
-                    makeup_request = MakeUpRequest(
-                        **{
-                            "net": net,
-                            "grpcclient": grpcclient,
-                            "mongodb": mongodb,
-                            "tags": tags,
-                            "user": user,
-                            "ccd_historical": ccd_historical,
-                            "contracts_with_tag_info": contracts_with_tag_info,
-                            # "token_addresses_with_markup": token_addresses_with_markup,
-                            "credential_issuers": credential_issuers,
-                            "app": request.app,
-                        }
-                    )
-                    classified_tx = MakeUp(
-                        makeup_request=makeup_request
-                    ).prepare_for_display(transaction, "", False)
-
-                    tx_tabs[classified_tx.classifier].append(classified_tx)
-
-            tab_selected_to_be_active = False
-            for tab in TransactionClassifier:
-                tx_tabs_active[tab] = False
-                if (not tab_selected_to_be_active) and (len(tx_tabs[tab]) > 0):
-                    tab_selected_to_be_active = True
-                    tx_tabs_active[tab] = True
-
-            html = mongo_transactions_html_header(
-                None,
-                block_info.transaction_count,
-                requested_page,
-                tx_tabs,
-                tx_tabs_active,
-                block_transactions=True,
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": net,
+                },
             )
 
-            for tab in TransactionClassifier:
-                html += process_transactions_to_HTML(
-                    tx_tabs[tab], tab.value, tx_tabs_active[tab], tags
+        made_up_txs = []
+        if len(tx_result) > 0:
+            for transaction in tx_result:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.block,
+                    }
                 )
 
-            html += transactions_html_footer()
-            return html
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
+                made_up_txs.append(classified_tx)
+
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="tx",
+            action_string="tx",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template("block/block_transactions.html").render(
+            {
+                "transactions": made_up_txs,
+                "tags": tags,
+                "net": net,
+                "request": request,
+                "pagination": pagination,
+                "totals_in_pagination": False,
+            }
+        )
+
+        return html

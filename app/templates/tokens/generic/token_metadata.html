@@ -1,0 +1,53 @@
+
+
+<div  class="text-center mb-4 align-items-center align-center" id="media-container" ></div>
+<table class="table table-borderless">
+        {% if md.symbol %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Token Symbol</td>
+                <td class="text-end text-secondary-emphasis">{{ stored_token_address.token_metadata.symbol }}</td>
+            </tr>
+        {% endif %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Description</td>
+                <td class="text-start text-secondary-emphasis word-break">{{ stored_token_address.token_metadata.description }}                
+                    </td>
+            </tr>
+        
+        {% if md.decimals %}
+            <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Decimals</td>
+            <td class="text-end text-secondary-emphasis ccd">
+                {{ md.decimals }}
+                </td>
+            </tr>
+        {% endif %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Metadata URL</td>
+            <td class="text-end text-secondary-emphasis"><a href="{{stored_token_address.metadata_url}}">Metadata URL</a>
+                
+                </td>
+        </tr>
+        {% if md.attributes %}
+            
+            <table class="table table-borderless ">
+                <tr><td class=" text-secondary-emphasis" colspan="2">Attributes</td></tr>
+        
+            {% for a in md.attributes %}
+                <tr class="sm-text"><td class=" text-secondary-emphasis text-break">{{a.name}}</td>
+                {% if a.type == 'date' %}
+                    <td class="ccd  text-secondary-emphasis">{{a.value|int|datetime_format_day_only_from_ms_timestamp}}</td>
+                {% else %}
+                    <td class=" text-secondary-emphasis text-break">{{a.value}}</td>
+                {% endif %}
+                </tr>
+                {% endfor %}
+        {% endif %}
+   
+        
+</tbody>
+</table>
+
+
+
+

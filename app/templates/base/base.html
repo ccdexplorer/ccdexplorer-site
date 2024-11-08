@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <script src="/static/js/net_switcher.js"></script> 
+    <!-- https://issuetracker.google.com/issues/313466551?pli=1#comment45 -->
+    <script>
+      if (window.trustedTypes && window.trustedTypes.createPolicy) {
+        window.trustedTypes.createPolicy('default', {
+          createHTML: string => string,
+          createScriptURL: string => string,
+          createScript: string => string,
+        });
+      }
+    </script>
+    <link id="favicon" rel="icon" type="image/x-icon" href="/static/logos/favicon.ico">
+    <script>const theme=document.querySelector("HTML").getAttribute("data-bs-theme")</script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="/node/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/css/custom_bootstrap.css">
+    <link rel="stylesheet" href="/static/css/custom_ccdexplorer.css">
+    <link rel="stylesheet" href="/node/flatpickr/dist/flatpickr.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap"
+            rel="stylesheet">
+
+    <meta id="meta_data_net" title="{{net}}">
+    <script>base_url = '{{env.SITE_URL}}'</script>
+    <script>api_key = '{{env.API_KEY}}'</script>
+    <script src="/node/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/node/jquery/dist/jquery.min.js"></script>
+    <script src="/node/sortable-tablesort/sortable.min.js"></script>
+    <script src="/node/flatpickr/dist/flatpickr.min.js"></script>
+    
+    
+</head>
+  <body>
+    <div class="container-lg">
+      {%include 'base/navbar.html'%} 
+      {%include 'base/incorrect_domain.html'%} 
+      {% block content %}
+      
+      {% endblock %}
+      
+      {%include 'base/footer-2.html'%} 
+    </div>
+    
+    <script src="/node/plotly.js-dist/plotly.js"></script>
+    <script src="/node/htmx.org/dist/htmx.js"></script>
+    
+    <script src="/node/htmx-ext-class-tools/class-tools.js"></script>
+    <script src="/node/htmx-ext-json-enc/json-enc.js"></script>
+    
+    <script src="/static/js/copyToClipboard.js"></script>
+    <script src="/static/js/jquery.maskMoney.js"></script>
+    
+
+  </body>
+</html>

@@ -1,0 +1,45 @@
+        
+      <div class="row row-flex">
+        <div class="col-md-12  col-sm-12 ">
+          <div class="border content curved-border " >
+            
+            <b>{{ note._id}}</b>  (Release date: {{note.date}})</br>
+                                
+                    </br>
+                {% if note.new %}
+                    <div><i>New: </i></div>
+                    <ul>
+                        {% for nn in note.new %}
+                        <li>{{nn|safe}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if note.updated %}
+                    <div><i>Updated: </i></div>
+                    <ul>
+                        {% for nn in note.updated %}
+                        <li>{{nn|safe}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if note.fixed %}
+                    <div><i>fixed: </i></div>
+                    <ul>
+                        {% for nn in note.fixed %}
+                        <li>{{nn|safe}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if note.removed %}
+                    <div><i>Removed: </i></div>
+                    <ul>
+                        {% for nn in note.removed %}
+                        <li>{{nn|safe}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+              
+            </div>
+        </div>
+        </div>
+            

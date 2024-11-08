@@ -1,0 +1,44 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<script>
+
+function getNodes(category, key, direction) {
+    nodes = document.getElementById('nodes');
+    url = '/ajax_nodes_to_html/{{net}}/'+category+'/'+key+'/'+direction+'/'+api_key;
+  
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        nodes.innerHTML = data;
+      
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  
+    
+  }
+
+  function val() {
+
+    // Get the select menu
+    var key = document.querySelector('#key');
+    var direction = document.querySelector('#direction');
+    var category = document.querySelector('#category');
+
+    // Returns the selected value
+    getNodes(category.value, key.value, direction.value);
+    }
+
+  window.addEventListener('load', (event) => {
+    getNodes('reporting_validators', 'total_stake', 'descending');
+    
+  });
+</script> 
+
+<div id="nodes"></div>
+{% endblock %}

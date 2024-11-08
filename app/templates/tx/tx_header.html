@@ -1,0 +1,16 @@
+<div class="row mb-3 ps-3">
+    <div class="col-sm-12">
+        {% if tx.type.type =="account_transaction" %}Account Transaction{% endif %}
+        {% if tx.type.type =="account_creation" %}Account Creation{% endif %}
+        {% if tx.type.type =="update" %}Update Transaction{% endif %}
+    
+
+    {% if tx.account_transaction %}
+              {% if tx.account_transaction.outcome == 'success' %}
+                <span class="ms-2 text-success">Success</span>
+                {%else%}
+                <span class="ms-2 text-danger">Rejected</span>{%endif%}
+            {% else %}
+             <span class="ms-2 text-success">Success</span>            {%endif%}
+</div>      
+        </div>

@@ -1,0 +1,40 @@
+<table class="table table-borderless">
+    <tbody>
+    {% for event in events_list %}
+        
+            <tr class=" sm-text">
+                {% if events_list|length > 1%}
+                <td  class="text-end text-secondary-emphasis">
+                    {{loop.index}}
+                </td>
+                {%endif%}
+                <td class=" text-start text-secondary-emphasis  parameter">{{event.event | safe}}
+                    {% if event.update %}
+                    <br><span class="  parameter">{{event.update | safe}}</span>
+                    {% endif %}
+                    {% if event.emit %}
+                    <br><span class=" parameter">{{event.emit | safe}}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if event.logged_events %}
+            {% for logged_event in event.logged_events %}
+            <tr >
+                {% if events_list|length > 1%}
+                <td></td>
+                {%endif%}
+                <td class=" p2-4  text-start text-secondary-emphasis">&#8627; {{logged_event.event | safe}}
+                    {% if logged_event.update %}
+                    <br><span class="text-muted">{{logged_event.update | safe}}</span>
+                    {% endif %}
+                    {% if logged_event.emit %}
+                    <br><span class="text-muted">{{logged_event.emit | safe}}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% endif %}        
+    {% endfor %}
+</tbody>
+</table>
+    

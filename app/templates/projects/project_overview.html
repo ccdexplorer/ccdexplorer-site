@@ -1,39 +1,40 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
 <h3>Project: {{project.display_name}}</h3>
-<p><small>Go to <a href="{{project.url}}">{{project.url}}</a> to learn more.</small></p>
+<p>Go to <a href="{{project.url}}">{{project.url}}</a> to learn more.</p>
 <br/><br/>
 <h5>Account Addresses</h5>
 {% if mainnet_accounts|length > 0 %}
 
-    <table class="table  small ">
-        <tr>
-        <th>Address</th>
-        <th>Index</th>
+    <table class="table  table-borderless ">
+        <tr class="sm-text">
+        <th class="text-secondary-emphasis">Address</th>
+        <!-- <th class="text-secondary-emphasis">Index</th> -->
     </tr>
     {% for address in mainnet_accounts%}
-    <tr><td class="ccd"><a href="/mainnet/account/{{address.account_address}}" class="ccd"><small>{{address.account_address}}</small></a></td><td><small>{{address.account_index}}</small></td></tr>
+    <tr class="sm-text"><td class="ccd"><a href="/mainnet/account/{{address.account_index}}" class="ccd">{{address.account_index}}</a></td></tr>
 
     {%endfor%}
     </table>
 {% else %}
-<p><small>No account addresses known.</small></p>
+<p>No account addresses known.</p>
 {% endif %}
 <h5>Contract Addresses</h5>
 
 {% if mainnet_contracts|length > 0 %}
-    <table class="table  small ">
-        <tr>
-        <th>Contract</th>
-        <th>Index</th>
+    <table class="table  table-borderless ">
+        <tr class="sm-text">
+        <th class="text-secondary-emphasis">Contract</th>
+        <th class="text-secondary-emphasis">Index</th>
     </tr>
     {% for address in mainnet_contracts%}
-    <tr><td class="ccd"><a href="/mainnet/instance/{{address.contract_index}}/0" class="ccd"><small><{{address.contract_index}},0></small></a></td><td><small>{{address.contract_index}}</small></td></tr>
+    <tr class="sm-text"><td class="ccd"><a href="/mainnet/instance/{{address.contract_index}}/0" class="ccd"><{{address.contract_index}},0></a></td><td class="text-secondary-emphasis">{{address.contract_index}}</td></tr>
 
     {%endfor%}
     </table>
     {% else %}
-    <p><small>No contract addresses known.</small></p>
+    <p>No contract addresses known.</p>
     {% endif %}
 
 {% endblock content %}

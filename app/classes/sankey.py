@@ -1,14 +1,26 @@
 from enum import Enum
-import plotly.graph_objects as go
-from ..utils import account_tag, contract_tag, convert_contract_str_to_type
+from ..utils import (
+    account_label_on_index,
+    contract_tag,
+    # get_address_identifiers,
+    from_address_to_index,
+)  # , convert_contract_str_to_type
 from ccdexplorer_fundamentals.mongodb import MongoImpactedAddress
 from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
 import math
 
 
 class WhoHasLinkInfo(Enum):
     SOURCE = 0
     TARGET = 1
+
+
+# rng = [
+#             "#AE7CF7",
+#             "#70B785",
+#             "#6E97F7",
+#         ]
 
 
 class NodeColors(Enum):
@@ -21,7 +33,7 @@ class NodeColors(Enum):
 
 
 class SanKey:
-    def __init__(self, account_id, gte, app, token: str = None):
+    def __init__(self, account_id, gte, app, net: str, token: str = None):
         self.labels = {}
         self.gte = gte
         self.colors = []
@@ -33,7 +45,7 @@ class SanKey:
         self.graph_dict = {}
         self.app = app
         self.token = token
-
+        self.net = net
         self.account_id = account_id
         self.add_node(account_id, NodeColors.ACCOUNT)
 
@@ -112,7 +124,7 @@ class SanKey:
                 "amount": self.source_target_combo[(source_id, target_id)],
             }
 
-    def cross_the_streams(self, user, gitbot_tags):
+    async def cross_the_streams(self, user, gitbot_tags, account_ids_to_lookup: dict):
         """
         Method to make sure there are no negative values in the links.
         These will not show up as link in the SanKey diagram, hence
@@ -170,8 +182,8 @@ class SanKey:
             del self.source_target_combo[key]
 
         self.recreate_dicts()
-        self.fill_graph_dict()
-        self.tag_the_labels(user, gitbot_tags)
+        await self.fill_graph_dict()
+        await self.tag_the_labels(user, gitbot_tags, account_ids_to_lookup)
         self.refill_source_target_value()
         pass
 
@@ -180,47 +192,78 @@ class SanKey:
         self.target = [t for (_, t) in self.source_target_combo.keys()]
         self.value = [v for v in self.source_target_combo.values()]
 
-    def tag_the_labels(self, user, gitbot_tags):
+    async def tag_the_labels(self, user, gitbot_tags, account_ids_to_lookup: dict):
         self.tagged_labels = []
         for l in self.labels:
             if len(l) < 29:
-                if l[0] == "<":
+                if l in [
+                    "<---",
+                    "--->",
+                    "Transaction Fees",
+                    "Rewards",
+                    "Encrypted",
+                    "Decrypted",
+                ]:
+                    self.tagged_labels.append(l)
+                else:
                     tag_found, tag_label = contract_tag(
-                        convert_contract_str_to_type(l), None, gitbot_tags
+                        CCD_ContractAddress.from_str(l), None, gitbot_tags
                     )
                     if tag_found:
                         self.tagged_labels.append(tag_label)
                     else:
                         self.tagged_labels.append(l)
-                else:
-                    self.tagged_labels.append(l)
 
             else:
-                tag_found, tag_label = account_tag(
-                    l, user, gitbot_tags, header=True, sankey=True
+                lookup_value = from_address_to_index(l, "mainnet", self.app)
+                tag_found, tag_label = account_label_on_index(
+                    lookup_value,
+                    user,
+                    gitbot_tags,
+                    self.net,
+                    self.app,
+                    header=True,
+                    sankey=True,
                 )
                 if tag_found:
                     self.tagged_labels.append(tag_label)
                 else:
-                    if self.app:
-                        if self.app.nightly_accounts_by_account_id:
-                            if self.app.nightly_accounts_by_account_id.get(l[:29]):
-                                value = self.app.nightly_accounts_by_account_id.get(
-                                    l[:29]
-                                )["index"]
-                                # if not tag_found:
-                                tag_label = f"👤{value}"
-                                self.tagged_labels.append(tag_label)
-                            else:
-                                tag_label = f"👤{l[:8]}"
-                                self.tagged_labels.append(l[:4])
+                    if isinstance(lookup_value, str):
+                        tag_label = f"👤{lookup_value[:4]}"
+                    else:
+                        tag_label = f"👤{lookup_value}"
+                    self.tagged_labels.append(tag_label)
 
         # as we are dumping the class Sankey to JSON, this is needed as app (fastapi) is not jsonable.
         self.app = None
 
-    def fill_graph_dict(self):
-        self.graph_dict["as_receiver_dict"] = self.as_receiver_dict
-        self.graph_dict["as_sender_dict"] = self.as_sender_dict
+    async def fill_graph_dict(self):
+        as_receiver_dict = self.as_receiver_dict
+
+        as_receiver_dict_indexes = {}
+        for k, v in as_receiver_dict.items():
+            if len(k) > 28:
+                account_index = from_address_to_index(k, "mainnet", self.app)
+                as_receiver_dict_indexes[account_index] = {
+                    "account_index": account_index,
+                    "account_id": v["account_id"],
+                    "amount": v["amount"],
+                }
+
+        as_sender_dict = self.as_sender_dict
+
+        as_sender_dict_indexes = {}
+        for k, v in as_sender_dict.items():
+            if len(k) > 28:
+                account_index = from_address_to_index(k, "mainnet", self.app)
+                as_sender_dict_indexes[account_index] = {
+                    "account_index": account_index,
+                    "account_id": v["account_id"],
+                    "amount": v["amount"],
+                }
+
+        self.graph_dict["as_receiver_dict"] = as_receiver_dict_indexes
+        self.graph_dict["as_sender_dict"] = as_sender_dict_indexes
         self.graph_dict["amount_received"] = sum(
             [x["amount"] for x in self.as_receiver_dict.values()]
         )  # self.amount_received
@@ -233,7 +276,7 @@ class SanKey:
         self.graph_dict["sender_accounts"] = len(self.as_sender_dict)
 
     def add_txs_for_account(
-        self, txs_for_account, account_rewards_total, exchange_rates
+        self, txs_for_account, account_rewards_total  # , exchange_rates
     ):
         self.count_txs_as_receiver = 0
         self.count_txs_as_sender = 0

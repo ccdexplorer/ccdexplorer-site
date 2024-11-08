@@ -1,20 +1,24 @@
-{% if show_bar %}
-<div class="tab-pane fade show" style="padding-top: 10px;" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
-{% endif %}
-        
-        {%for transaction in transactions%}
-            {% include "intermediate/transaction.html" %}
-        {% endfor %}
-        
-        <div class="small text-muted p-2">
-            {% if transactions|length == 1 %}
-                {{ transactions|length}} transaction.
+{% set title= "Block Transactions" %}{% include 'base/box_title.html' %}
+{% include 'base/pagination.html' %}
+<table class="table table-borderless">
+    <tbody>
+        {% for tx in transactions %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">{{tx.transaction.hash|tx_hash_link(net)|safe}}</td>
+            <td class="text-start ">{{tx.transaction.type.contents|tx_type_translator("icon")|safe}} <span class="text-secondary-emphasis" >{{tx.transaction.type.contents|tx_type_translator("display")|safe}}</span></td>
+            <td class="text-end text-secondary-emphasis">
+            {% if tx.transaction.account_transaction %}
+            {{tx.transaction.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
             {% else %}
-                {{ transactions|length}} transactions.
-            {% endif %}
-        </div>
-      
-{% if show_bar %}
-    <!--class="tab-pane fade show "--> 
-    </div>   
-{% endif %}
+                Chain  
+            {%endif%}</td>
+        </tr>
+        {% endfor %}
+        {% if transactions|length == 0 %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis" colspan="3">No transactions recorded in block.</td>
+        {% endif %}
+    </tbody>
+    </table>
+
+<!-- </div> -->

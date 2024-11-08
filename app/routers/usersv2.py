@@ -8,11 +8,11 @@ from fastapi.responses import (
 import datetime as dt
 from app.jinja2_helpers import *
 from app.env import *
-from app.state.state import *
+from app.state import *
 
 from app.classes.Enums import *
 from fastapi.encoders import jsonable_encoder
-from ccdexplorer_fundamentals.mongodb import MongoDB, MongoTypeInstance
+from ccdexplorer_fundamentals.mongodb import MongoTypeInstance
 from ccdexplorer_fundamentals.user_v2 import (
     UserV2,
     AccountForUser,
@@ -26,29 +26,37 @@ from ccdexplorer_fundamentals.user_v2 import (
 )
 from typing import Union
 from ccdexplorer_fundamentals.tooter import Tooter
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from pymongo import ReplaceOne
 
 
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+import json
 
 router = APIRouter()
+
+
+async def save_user_to_collection(user: UserV2, app):
+    # save back to collection
+    api_response: APIResponseResult = await put_url_from_api(
+        f"{app.api_url}/v2/site_user/{user.token}/save/user",
+        app.httpx_client,
+        json_put_content={"user": json.loads(user.model_dump_json())},
+    )
+    return api_response.ok
 
 
 @router.get("/token/{token}")
 async def slash_token(
     request: Request,
     token: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    mongodb: MongoDB = Depends(get_mongo_db),
 ):
-    user: UserV2 = get_user_detailsv2(request, token)
+    user: UserV2 = await get_user_detailsv2(request, token)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if user:
         response = RedirectResponse(url="/settings/user/overview", status_code=303)
-        expires = dt.datetime.utcnow() + dt.timedelta(days=30)
+        expires = dt.datetime.now().astimezone(dt.UTC) + dt.timedelta(days=30)
 
         response.set_cookie(
             key="access-token",
@@ -69,17 +77,16 @@ async def logout(request: Request, response: Response):
 
 
 @router.get("/settings/user/overview")
-def user_settings_all(
+async def user_settings_all(
     request: Request,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if user:
         if not isinstance(user, UserV2):
             user = UserV2(**user)
-        html = generate_edit_html_for_other_notification_preferences(user, mongodb)
+        html = await generate_edit_html_for_other_notification_preferences(
+            user, request
+        )
     else:
         html = None
     return templates.TemplateResponse(
@@ -95,13 +102,10 @@ def user_settings_all(
 
 
 @router.get("/settings/userv2/cancel/email-address")
-def cancel_edit_email_address_response(
+async def cancel_edit_email_address_response(
     request: Request,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     return templates.TemplateResponse(
@@ -116,13 +120,10 @@ def cancel_edit_email_address_response(
 
 
 @router.get("/settings/userv2/cancel/other-notification-preferences")
-def cancel_edit_other_notification_preferences_response(
+async def cancel_edit_other_notification_preferences_response(
     request: Request,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     return templates.TemplateResponse(
@@ -137,14 +138,11 @@ def cancel_edit_other_notification_preferences_response(
 
 
 @router.get("/settings/userv2/cancel/contract/{contract_index}")
-def cancel_edit_contract_response(
+async def cancel_edit_contract_response(
     request: Request,
     contract_index: int,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -166,14 +164,11 @@ def cancel_edit_contract_response(
 
 
 @router.get("/settings/userv2/cancel/{account_index}")
-def cancel_edit_user_account_response(
+async def cancel_edit_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -195,47 +190,36 @@ def cancel_edit_user_account_response(
 
 
 @router.put("/settings/userv2/save/email-address", response_class=RedirectResponse)
-def save_email_address_response(
+async def save_email_address_response(
     request: Request,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
     response_as_dict = jsonable_encoder(response_form)
-    user.email_address = response_as_dict["email_address"]
-    user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
-    # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
+    email_address = response_as_dict["email_address"]
+    api_response: APIResponseResult = await put_url_from_api(
+        f"{request.app.api_url}/v2/site_user/{user.token}/save/email-address",
+        request.app.httpx_client,
+        json_put_content={"email_address": email_address},
     )
-    response = RedirectResponse(url="/settings/user/overview", status_code=204)
-    response.headers["HX-Refresh"] = "true"
-    return response
+    if api_response.ok:
+        response = RedirectResponse(url="/settings/user/overview", status_code=204)
+        response.headers["HX-Refresh"] = "true"
+        return response
 
 
 @router.put(
     "/settings/userv2/save/new-account",
     response_class=Union[RedirectResponse, HTMLResponse],
 )
-def save_new_account_response(
+async def save_new_account_response(
     request: Request,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -244,28 +228,13 @@ def save_new_account_response(
 
     id_or_index: str = response_as_dict["id_or_index"]
 
-    if id_or_index.isnumeric():
-        try:
-            account_id = grpcclient.get_account_info(
-                "last_final", account_index=int(id_or_index)
-            ).address
-            account_index = id_or_index
-            lookup_failed = False
-        except:
-            lookup_failed = True
-    elif not id_or_index.isnumeric():
-        try:
-            account_index = grpcclient.get_account_info(
-                "last_final", hex_address=id_or_index
-            ).index
-            account_id = id_or_index
-            lookup_failed = False
-        except:
-            lookup_failed = True
-    else:
-        lookup_failed = True
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/account/{id_or_index}/info",
+        request.app.httpx_client,
+    )
+    account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None
 
-    if lookup_failed:
+    if not account_info:
         return templates.TemplateResponse(
             "userv2/user_new_account_start.html",
             {
@@ -281,19 +250,12 @@ def save_new_account_response(
         label = response_as_dict.get("label")
 
         new_account = AccountForUser(
-            account_id=account_id, account_index=account_index, label=label
+            account_id=account_info.address,
+            account_index=account_info.index,
+            label=label,
         )
-        user.accounts[str(account_index)] = new_account
-        # save back to collection
-        mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-            [
-                ReplaceOne(
-                    {"token": str(user.token)},
-                    user.model_dump(exclude_none=True),
-                    upsert=True,
-                )
-            ]
-        )
+        user.accounts[str(account_info.index)] = new_account
+        await save_user_to_collection(user, request.app)
         response = RedirectResponse(url="/settings/user/overview", status_code=204)
         response.headers["HX-Refresh"] = "true"
         return response
@@ -307,14 +269,11 @@ class SearchTerm(BaseModel):
     "/settings/userv2/search-instance",
     response_class=HTMLResponse,
 )
-def search_instance_response(
+async def search_instance_response(
     request: Request,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     response_as_dict = jsonable_encoder(response_form)
@@ -337,20 +296,23 @@ def search_instance_response(
         #     html += f"<tr><td><small>{r.id}</td><td><small>{name}</td></tr>"
         # html += "</tbody></table>"
 
-        result = mongodb.mainnet[Collections.instances].find_one({"_id": _id})
+        api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/contract/{response_as_dict["search"]}/0/info", request.app.httpx_client
+    )
+        result = api_result.return_value if api_result.ok else {}
         if result:
             r = MongoTypeInstance(**result)
             if r.v0:
                 name = r.v0.name.split("_")[1]
             else:
                 name = r.v1.name.split("_")[1]
-            html = f"<div id='search-results'><span class='small text-muted'><p><small>{r.id} | {name}</small></p></span></div>"
+            html = f"<div id='search-results'><span class=' text-secondary-emphasis'><p>{r.id} | {name}</p></span></div>"
         else:
-            html = "<div id='search-results'><span class='small .text-danger '><p><small>Not a valid contract index</small></p></span></div>"
+            html = "<div id='search-results'><span class='small .text-danger '><p>Not a valid contract index</p></span></div>"
     elif response_as_dict["search"] == "":
-        html = "<div id='search-results'><span class='small '><p><small>...</small></p></span></div>"
+        html = "<div id='search-results'><span class='text-secondary-emphasis'><p>...</p></span></div>"
     else:
-        html = "<div id='search-results'><span class='small .text-danger '><p><small>Not a valid contract index</small></p></span></div>"
+        html = "<div id='search-results'><span class=' text-danger '><p>Not a valid contract index</p></span></div>"
     return html
 
 
@@ -358,14 +320,11 @@ def search_instance_response(
     "/settings/userv2/save/new-contract",
     response_class=Union[RedirectResponse, HTMLResponse],
 )
-def save_new_contract_response(
+async def save_new_contract_response(
     request: Request,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -377,7 +336,10 @@ def save_new_contract_response(
     if contract_index.isnumeric():
         try:
             _id = f"<{contract_index},0>"
-            result = mongodb.mainnet[Collections.instances].find_one({"_id": _id})
+            api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
+        )
+            result = api_result.return_value if api_result.ok else {}
             if result:
                 retrieved_instance = MongoTypeInstance(**result)
                 if retrieved_instance.v0:
@@ -417,15 +379,7 @@ def save_new_contract_response(
         )
         user.contracts[str(contract_index)] = new_contract
         # save back to collection
-        mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-            [
-                ReplaceOne(
-                    {"token": str(user.token)},
-                    user.model_dump(exclude_none=True),
-                    upsert=True,
-                )
-            ]
-        )
+        await save_user_to_collection(user, request.app)
         response = RedirectResponse(url="/settings/user/overview", status_code=204)
         response.headers["HX-Refresh"] = "true"
         return response
@@ -434,14 +388,11 @@ def save_new_contract_response(
 @router.put(
     "/settings/userv2/save/other-notification-preferences", response_class=HTMLResponse
 )
-def save_other_notification_preferences_response(
+async def save_other_notification_preferences_response(
     request: Request,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -512,15 +463,7 @@ def save_other_notification_preferences_response(
     # save back to user
     user.other_notification_preferences = other_notification_preferences
     # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
-    )
+    await save_user_to_collection(user, request.app)
     response = RedirectResponse(url="/settings/user/overview", status_code=204)
     response.headers["HX-Refresh"] = "true"
     return response
@@ -529,31 +472,19 @@ def save_other_notification_preferences_response(
 @router.delete(
     "/settings/userv2/delete/{account_index}", response_class=RedirectResponse
 )
-def delete_user_account_response(
+async def delete_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
     response: Response,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
     # delete account
     user.accounts.pop(str(account_index))
 
-    # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
-    )
+    await save_user_to_collection(user, request.app)
 
     response = RedirectResponse(url="/settings/user/overview", status_code=204)
     response.headers["HX-Refresh"] = "true"
@@ -563,31 +494,19 @@ def delete_user_account_response(
 @router.delete(
     "/settings/userv2/delete/contract/{contract_index}", response_class=RedirectResponse
 )
-def delete_contract_response(
+async def delete_contract_response(
     request: Request,
     contract_index: int,
     response: Response,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
     # delete contract
     user.contracts.pop(str(contract_index))
 
-    # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
-    )
+    await save_user_to_collection(user, request.app)
 
     response = RedirectResponse(url="/settings/user/overview", status_code=204)
     response.headers["HX-Refresh"] = "true"
@@ -597,16 +516,13 @@ def delete_contract_response(
 @router.put(
     "/settings/userv2/save/contract/{contract_index}", response_class=RedirectResponse
 )
-def save_contract_response(
+async def save_contract_response(
     request: Request,
     contract_index: int,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -617,7 +533,10 @@ def save_contract_response(
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
 
     _id = f"<{contract_index},0>"
-    result = mongodb.mainnet[Collections.instances].find_one({"_id": _id})
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
+    )
+    result = api_result.return_value if api_result.ok else {}
     methods = []
     if result:
         retrieved_instance = MongoTypeInstance(**result)
@@ -669,22 +588,7 @@ def save_contract_response(
     contract.contract_notification_preferences = contract_notification_preferences
     user.contracts[str(contract_index)] = contract
     # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
-    )
-    # user: UserV2 = get_user_detailsv2(request)
-    # if not isinstance(user, UserV2):
-    #     user = UserV2(**user)
-    # if not isinstance(user.contracts[str(contract_index)], AccountForUser):
-    #     contracts = ContractForUser(**user.contracts[str(contract_index)])
-    # else:
-    #     contracts = user.contracts[str(contract_index)]
+    await save_user_to_collection(user, request.app)
 
     response = RedirectResponse(url="/settings/user/overview", status_code=204)
     response.headers["HX-Refresh"] = "true"
@@ -693,16 +597,13 @@ def save_contract_response(
 
 
 @router.put("/settings/userv2/save/{account_index}", response_class=RedirectResponse)
-def save_user_account_response(
+async def save_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
     response_form: dict,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -819,16 +720,8 @@ def save_user_account_response(
     user_account.validator_notification_preferences = validator_notification_preferences
     user.accounts[str(account_index)] = user_account
     # save back to collection
-    mongodb.utilities[CollectionsUtilities.users_v2_prod].bulk_write(
-        [
-            ReplaceOne(
-                {"token": str(user.token)},
-                user.model_dump(exclude_none=True),
-                upsert=True,
-            )
-        ]
-    )
-    user: UserV2 = get_user_detailsv2(request)
+    await save_user_to_collection(user, request.app)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -843,76 +736,67 @@ def save_user_account_response(
 
 
 @router.get("/settings/userv2/edit/email-address", response_class=HTMLResponse)
-def edit_email_address(
+async def edit_email_address(
     request: Request,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
-    return generate_edit_html_for_email_address(user)
+    return await generate_edit_html_for_email_address(user)
 
 
 @router.get(
     "/settings/userv2/edit/other-notification-preferences", response_class=HTMLResponse
 )
-def edit_other_notification_preferences_response(
+async def edit_other_notification_preferences_response(
     request: Request,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
-    return generate_edit_html_for_other_notification_preferences(user, mongodb)
+    return await generate_edit_html_for_other_notification_preferences(user, request)
 
 
 # note this needs to be below the other-notification-preferences route,
 # as the order matters! 422 otherwise..
 @router.get("/settings/userv2/edit/{account_index}", response_class=HTMLResponse)
-def edit_user_account_response(
+async def edit_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user_account = AccountForUser(**user.accounts[str(account_index)])
 
-    return generate_edit_html_for_user_account(
-        account_index, user, user_account, grpcclient, mongodb
+    return await generate_edit_html_for_user_account(
+        account_index, user, user_account, request.app
     )
 
 
 @router.get(
     "/settings/userv2/edit/contract/{contract_index}", response_class=HTMLResponse
 )
-def edit_contract_response(
+async def edit_contract_response(
     request: Request,
     contract_index: int,
-    mongodb=Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
 ):
-    user = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     contract = ContractForUser(**user.contracts[str(contract_index)])
     _id = f"<{contract_index},0>"
-    result = mongodb.mainnet[Collections.instances].find_one({"_id": _id})
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
+    )
+    result = api_result.return_value if api_result.ok else {}
     methods = []
     if result:
         retrieved_instance = MongoTypeInstance(**result)
@@ -921,21 +805,22 @@ def edit_contract_response(
         else:
             methods = [x.split(".")[1] for x in retrieved_instance.v1.methods]
 
-    return generate_edit_html_for_contract(
-        contract_index, user, contract, methods, grpcclient, mongodb
+    return await generate_edit_html_for_contract(
+        contract_index, user, contract, methods, request.app
     )
 
 
-def generate_edit_html_for_contract(
+async def generate_edit_html_for_contract(
     contract_index: int,
     user: UserV2,
     contract: ContractForUser,
     methods: list[str],
-    grpcclient: GRPCClient,
-    mongodb: MongoDB,
+    app
 ):
-    result = mongodb.utilities[CollectionsUtilities.preferences_explanations].find({})
-    explanations = {x["_id"]: x for x in result}
+    api_result = await get_url_from_api(
+        f"{app.api_url}/v2/site_user/explanations", app.httpx_client
+    )
+    explanations = api_result.return_value if api_result.ok else {}
     html = f"""
 <form hx-put="/settings/userv2/save/contract/{contract_index}" hx-ext='json-enc' hx-target="this" >
   """
@@ -995,13 +880,13 @@ def generate_edit_html_for_contract(
     html += f"""
     <div class="row">
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link">Save</button>
+    <button class="btn  ms-1 mt-0 btn-link">Save</button>
   </div>
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/cancel/contract/{contract_index}" x-ext='json-enc' >Cancel</button>
+    <button class="btn ms-1 mt-0 btn-link" hx-get="/settings/userv2/cancel/contract/{contract_index}" x-ext='json-enc' >Cancel</button>
   </div>
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link btn-danger" hx-confirm="Are you sure you wish to delete this contract?" hx-delete="/settings/userv2/delete/contract/{contract_index}" x-ext='json-enc' >Delete</button>
+    <button class="btn  ms-1 mt-0 btn-link btn-danger" hx-confirm="Are you sure you wish to delete this contract?" hx-delete="/settings/userv2/delete/contract/{contract_index}" x-ext='json-enc' >Delete</button>
   </div>
 </div>
     </form>
@@ -1010,15 +895,13 @@ def generate_edit_html_for_contract(
     return html
 
 
-def generate_edit_html_for_user_account(
-    account_index: CCD_AccountIndex,
-    user: UserV2,
-    user_account: AccountForUser,
-    grpcclient: GRPCClient,
-    mongodb: MongoDB,
+async def generate_edit_html_for_user_account(
+    account_index: CCD_AccountIndex, user: UserV2, user_account: AccountForUser, app
 ):
-    result = mongodb.utilities[CollectionsUtilities.preferences_explanations].find({})
-    explanations = {x["_id"]: x for x in result}
+    api_result = await get_url_from_api(
+        f"{app.api_url}/v2/site_user/explanations", app.httpx_client
+    )
+    explanations = api_result.return_value if api_result.ok else {}
     html = f"""
 <form hx-put="/settings/userv2/save/{account_index}" hx-ext='json-enc' hx-target="this" >
   """
@@ -1069,9 +952,10 @@ def generate_edit_html_for_user_account(
             }
 
     # we need to check if this account is a validator, otherwise, don't show validator preferences.
-    account_info = grpcclient.get_account_info(
-        "last_final", account_index=account_index
+    api_result = await get_url_from_api(
+        f"{app.api_url}/v2/mainnet/account/{account_index}/info", app.httpx_client
     )
+    account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None
 
     validator_all_fields = ValidatorNotificationPreferences.model_fields
     validator_all_fields_dict = {}
@@ -1135,13 +1019,13 @@ def generate_edit_html_for_user_account(
     html += f"""
     <div class="row">
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link">Save</button>
+    <button class="btn  ms-1 mt-0 btn-link">Save</button>
   </div>
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/cancel/{account_index}" x-ext='json-enc' >Cancel</button>
+    <button class="btn ms-1 mt-0  btn-link" hx-get="/settings/userv2/cancel/{account_index}" x-ext='json-enc' >Cancel</button>
   </div>
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link btn-danger" hx-confirm="Are you sure you wish to delete this account?" hx-delete="/settings/userv2/delete/{account_index}" x-ext='json-enc' >Delete</button>
+    <button class="btn  ms-1 mt-0 btn-link btn-danger" hx-confirm="Are you sure you wish to delete this account?" hx-delete="/settings/userv2/delete/{account_index}" x-ext='json-enc' >Delete</button>
   </div>
 </div>
     </form>
@@ -1150,11 +1034,13 @@ def generate_edit_html_for_user_account(
     return html
 
 
-def generate_edit_html_for_other_notification_preferences(
-    user: UserV2, mongodb: MongoDB
+async def generate_edit_html_for_other_notification_preferences(
+    user: UserV2, request: Request
 ):
-    result = mongodb.utilities[CollectionsUtilities.preferences_explanations].find({})
-    explanations = {x["_id"]: x for x in result}
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/site_user/explanations", request.app.httpx_client
+    )
+    explanations = api_result.return_value if api_result.ok else {}
     html = """
 <form hx-put="/settings/userv2/save/other-notification-preferences" hx-ext='json-enc' hx-target="this" hx-swap="outerHTML">
   """
@@ -1215,8 +1101,8 @@ def generate_edit_html_for_other_notification_preferences(
     html += """
     <div class="row">
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link">Save</button>
-    <button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/cancel/other-notification-preferences" x-ext='json-enc' >Cancel</button>
+    <button class="btn  ms-1 mt-0 btn-link">Save</button>
+    <button class="btn  ms-1 mt-0  btn-link" hx-get="/settings/userv2/cancel/other-notification-preferences" x-ext='json-enc' >Cancel</button>
   </div>
 </div>
     </form>
@@ -1224,7 +1110,7 @@ def generate_edit_html_for_other_notification_preferences(
     return html
 
 
-def generate_edit_html_for_email_address(user: UserV2):
+async def generate_edit_html_for_email_address(user: UserV2):
     html = """
 <form hx-put="/settings/userv2/save/email-address" hx-ext='json-enc' hx-target="this" hx-swap="outerHTML">
   """
@@ -1238,8 +1124,8 @@ def generate_edit_html_for_email_address(user: UserV2):
     html += """
     <div class="row">
   <div class="col">
-    <button class="btn small ms-1 mt-0 btn-sm btn-link">Save</button>
-    <button class="btn small ms-1 mt-0 btn-sm btn-link" hx-get="/settings/userv2/cancel/email-address" x-ext='json-enc' >Cancel</button>
+    <button class="btn  ms-1 mt-0 btn-link">Save</button>
+    <button class="btn  ms-1 mt-0  btn-link" hx-get="/settings/userv2/cancel/email-address" x-ext='json-enc' >Cancel</button>
   </div>
 </div>
     </form>

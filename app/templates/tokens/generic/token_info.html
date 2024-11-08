@@ -1,0 +1,80 @@
+
+
+
+<table class="table table-borderless">
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Token Name</td>
+            <td class="text-end text-secondary-emphasis text-break">
+                {% if "token_metadata" in stored_token_address %}
+                    {{ stored_token_address.token_metadata.name }}
+                {% else %}{{stored_token_address._id}}
+                {% endif%} </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Token Contract</td>
+        <td class="text-end text-secondary-emphasis">
+            {% set copy_value = stored_token_address.contract %}
+            {% set value_type = "contract" %}
+            {% set display_value = stored_token_address.contract|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+            </td>
+        </tr>
+        {% if "token_metadata" in stored_token_address %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Balance</td>
+            <td class="text-end text-secondary-emphasis">
+                {{(stored_token_address.token_amount|
+                    token_amount_using_decimals_rounded(stored_token_address.token_metadata.decimals, 0))}} {{stored_token_address.token_metadata.symbol}}
+                
+                </td>
+        </tr>
+        {% endif %}
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deployed in block</td>
+        <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+        <td class="text-end text-secondary-emphasis">{{tx_deployed.hash|tx_hash_link(net)|safe}}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Age</td>
+        <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Creator</td>
+        <td class="text-end text-secondary-emphasis">{{ tx_deployed.account_transaction.sender|account_link(net,user,tags,request.app)|safe}}
+            
+            </td>
+    </tr>
+    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Last Activity in block</td>
+        <td class="text-end text-secondary-emphasis">{{stored_token_address.last_height_processed|round_x_decimal_with_comma(0)}}
+            
+            </td>
+    </tr>
+    {% if not md %}
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Metadata URL</td>
+        <td class="text-end text-secondary-emphasis"><a href="{{stored_token_address.metadata_url}}">Metadata URL</a>
+            
+            </td>
+    </tr>
+    {% endif %}
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis"># Current Holders</td>
+        <td class="text-end text-secondary-emphasis">{{stored_token_address.current_holders_count|round_x_decimal_with_comma(0)}}
+            
+            </td>
+    </tr>
+</tbody>
+</table>
+
+
+
+

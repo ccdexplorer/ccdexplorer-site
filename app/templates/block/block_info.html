@@ -1,42 +1,47 @@
-<!-- <div class="table-responsive"> -->
-<table class="table table-striped ms-1 w-auto small">
-
-    <tbody>
-
-        <tr>
-            <td>Hash</td>
-            <td title="{{block_info.hash}}" id="copy_me" class="small block_hash align-middle">
-                {{block_info.hash[:8]}} <img onclick="copyToClipboard()"
-                    src="{{env.SITE_URL}}/static/clipboard-check.svg"></td>
-        </tr>
-        <tr>
-            <td>Height</td>
-            <td title="{{block_info.height}}" class="small  align-middle">{{block_info.height }}
-
-                <a type="button" href='/{{net}}/block/{{ block_info.height + 1}}'
-                    class="btn pt-0 float-end pb-0 btn-sm btn-outline-primary">></a>
-                <a type="button" href='/{{net}}/block/{{ block_info.height - 1}}'
-                    class="btn pt-0 float-end pb-0 btn-sm btn-outline-primary">
-                    < </a>
+<table class="table table-borderless">
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Block Hash</td>
+        <td class="text-end text-secondary-emphasis">
+            {% set copy_value = block_info.hash %}
+            {% set value_type = "block_hash" %}
+            {% set display_value = block_info.hash[:4]|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+            
             </td>
-        </tr>
-        <tr>
-            <td>Time</td>
-            <td title="{{block_info.slot_time}}" id="slot_time" class="small  align-middle">
-                {{block_info.slot_time|regular_datetime_format}}</td>
-        </tr>
-
-        <tr>
-            <td>Baker</td>
-            <td title="{{block_info.baker_id}}" class="small  align-middle"><a
-                    href="/{{net}}/account/{{block_info.baker}}">{{block_info.baker}}</a></td>
-        </tr>
-        <tr>
-            <td># Txs</td>
-            <td title="{{block_info.transaction_count}}" class="small  align-middle">{{block_info.transaction_count}}
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Block Height</td>
+        <td class="text-end text-secondary-emphasis">
+            {% set copy_value = block_info.height %}
+            {% set value_type = "block_height" %}
+            {% set display_value = block_info.height|round_x_decimal_with_comma(0)|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+            
             </td>
-        </tr>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Timestamp</td>
+        <td class="text-end text-secondary-emphasis">{{block_info.slot_time|datetime_regular}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Age</td>
+        <td class="text-end text-secondary-emphasis">{{block_info.slot_time|datetime_delta_format_since}} ago</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Validator</td>
+        <td class="text-end text-secondary-emphasis" title="{{block_info.baker_id}}"><a
+                href="/{{net}}/account/{{block_info.baker}}">{{block_info.baker}}</a></td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis"># Transactions</td>
+        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis" id="block_tx_count">{{block_info.transaction_count}}
+        </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Protocol</td>
+        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis" id="block_tx_count">Protocol {{block_info.protocol_version.split("_")[-1]}}
+        </td>
+    </tr>
 
-    </tbody>
+</tbody>
 </table>
-<!-- </div> -->

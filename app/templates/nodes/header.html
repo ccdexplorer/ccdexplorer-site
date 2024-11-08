@@ -1,56 +1,38 @@
-<h2>Nodes and Validators</h2>
-    <div class="clearfix">
-        <table class="table table-striped ms-1 me-1 small">
+<h4>Nodes and Validators</h4>
+
+        <table class="table table-borderless ">
             <thead>
-                <tr><th></th><th class="text-end">Validator</th><th class="text-end">No Validator</th><th class="text-end">Total</th></tr>
+                <tr class="sm-text"><th></th><th class="text-end  text-secondary-emphasis">Validator</th><th class="text-end  text-secondary-emphasis">No Validator</th><th class="text-end  text-secondary-emphasis">Total</th></tr>
             </thead>
             <tbody>
-                <tr>
-                    <td><b>Node</b></td><td class="text-end">{{len_reporting_bakers}}</td><td class="text-end">{{(len_nodes-len_reporting_bakers)}}</td><td class="text-end">{{len_nodes}}</td>
+                <tr class="sm-text ">
+                    <td class=" text-secondary-emphasis">Node</td>
+                    <td class="text-end  text-secondary-emphasis">{{len_reporting_validators}}</td>
+                    <td class="text-end  text-secondary-emphasis">{{(len_nodes-len_reporting_validators)}}</td>
+                    <td class="text-end  text-secondary-emphasis">{{len_nodes}}</td>
                 </tr>
-                <tr>
-                    <td><b>Not Reporting</b></td><td class="text-end">{{(len_bakers-len_reporting_bakers)}}</td><td class="text-end">-</td><td class="text-end">{{(len_bakers-len_reporting_bakers)}}</td>
+                <tr class="sm-text">
+                    <td class=" text-secondary-emphasis">Not Reporting</td>
+                    <td class="text-end text-secondary-emphasis">{{(len_validators-len_reporting_validators)}}</td>
+                    <td class="text-end text-secondary-emphasis">-</td>
+                    <td class="text-end text-secondary-emphasis">{{(len_validators-len_reporting_validators)}}</td>
                 </tr>
-                <tr>
-                    <td><b>Total</b></td><td class="text-end">{{len_bakers}}</td><td class="text-end">{{(len_nodes-len_reporting_bakers)}}</td><td class="text-end">{{(len_bakers+len_nodes-len_reporting_bakers)}}</td>
+                <tr class="sm-text">
+                    <td class=" text-secondary-emphasis">Total</td>
+                    <td class="text-end text-secondary-emphasis">{{len_validators}}</td>
+                    <td class="text-end text-secondary-emphasis">{{(len_nodes-len_reporting_validators)}}</td>
+                    <td class="text-end text-secondary-emphasis">{{(len_validators+len_nodes-len_reporting_validators)}}</td>
                 </tr>
             </tbody>
         </table>
 
 
         </table>
-        <p><small>Information for validator is taken from the <a href='/mainnet/block/{{last_payday.id}}'>first block</a> of the current payday. <br/>
-            Information for nodes is refreshed every minute from the <a href="https://dashboard.mainnet.concordium.software/">Mainnet Dashboard</a>.</small></p>
+        <p>Information for validators is taken from the <a href='/mainnet/block/{{last_payday_block._id}}'>first block</a> of the current payday. <br/>
+            Information for nodes is refreshed every minute from the <a href="https://dashboard.mainnet.concordium.software/">Mainnet Dashboard</a>.</p>
         {% if show_bakers %}
-            <br><i><small>Showing only validators.</small></i>
+            <br><i>Showing only validators.</i>
         {% endif %}
         </p>
 
-        <div class="float-end">
-            <label class="small" for="key">Sort on: </label>
-
-            <select class="form-select-sm" id="key" onchange="val()">
-                
-            {% for sortKey in SortKey %}
-                {% if key == sortKey.name %}
-                    <option class="small" value="{{sortKey.name}}" selected>{{sortKey.value}}</option>
-                {% else %}
-                    <option class="small" value="{{sortKey.name}}">{{sortKey.value}}</option>
-                {% endif %}    
-            {% endfor %}    
-            
-            </select>
-
-            <select class="form-select-sm" id="direction" onchange="val()">
-                
-            {% for direction in Direction %}
-                {% if chosen_direction == direction.name %}
-                    <option value="{{direction.name}}" selected>{{direction.value}}</option>
-                {% else %}
-                    <option value="{{direction.name}}">{{direction.value}}</option>
-                {% endif %}    
-            {% endfor %}    
-            </select>
-        </div>
-    </div>
     

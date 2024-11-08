@@ -1,0 +1,8 @@
+<div class="row mb-3 ps-3">
+    <div class="col-sm-12">
+        Account 
+        <span class="text-end ms-2 text-secondary-emphasis" id="label" >{{account_id|account_link(net,user,tags,request.app)|safe }}</span>
+        <span class="ms-2 text-success">{% if account_is_validator %}Validator{%endif%}</span>
+
+</div>      
+        </div>

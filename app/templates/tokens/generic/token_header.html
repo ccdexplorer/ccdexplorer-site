@@ -1,0 +1,12 @@
+
+<div class="row mb-3 ps-3">
+    <div class="col-sm-12">
+        Token
+        <span class="text-end text-secondary-emphasis" ></span>
+        <span class="ms-2 text-success">{% if "token_metadata" in stored_token_address %}
+            {{ stored_token_address.token_metadata.name }}
+        {% else %}{{stored_token_address._id}}
+        {% endif%}</span>
+
+</div>      
+        </div>

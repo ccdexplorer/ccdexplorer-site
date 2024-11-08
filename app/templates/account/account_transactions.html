@@ -1,0 +1,8 @@
+{% set title= "Transactions" %}{% include 'base/box_title.html' %}
+{% include 'base/pagination.html' %}
+{% for classified_tx in transactions %}
+    {% set transaction = classified_tx.dct %}
+    {% set tx = classified_tx.transaction %}
+    {% set events_list= classified_tx.events_list%}
+    {% include "intermediate/transaction.html"%}
+{% endfor %}

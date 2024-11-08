@@ -1,0 +1,10 @@
+<span title="{{copy_value}}" class=" {{value_type}}" hx-on:click="
+    navigator.clipboard.writeText(this.title); // Copy title (full address) to clipboard
+    if (!this.dataset.originalText) {
+        this.dataset.originalText = this.innerHTML; // Save original content
+    }
+    this.innerHTML = 'Copied'; // Set temporary text
+    setTimeout(() => {
+        this.innerHTML = this.dataset.originalText; // Restore original content
+    }, 1000);
+">{{display_value}} <i class="bi bi-clipboard-check" style="color: #33C364"></i></span>

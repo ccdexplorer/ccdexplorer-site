@@ -1,174 +1,114 @@
+{% set title= "Special Events" %}{% include 'base/box_title.html' %}
 {% if se|length==0 %}
 <p class="small">No special events in block.</p>
 {% else %}
 {% for node in se|reverse %}
 <!--MINT-->
 {% if node.mint %}
-<div class="card mb-2 ms-2 me-2">
-    <div class="card-body p-2">
-        <div class="clearfix">
-            <div class="card-text small float-start small text-muted">Mint</div>
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Mint</th>
+        </tr>
+    </thead>    
+    <tbody>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Validation Reward</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.mint.mint_baking_reward | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Finalization Reward</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.mint.mint_finalization_reward | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Platform Development Charg</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.mint.mint_platform_development_charge | micro_ccd_display|safe}}</td>
+        </tr>
+    </tbody>
+</table>
 
-        </div>
 
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th class="small" scope="col">Fee type</th>
-                    <th class="small text-end" scope="col">Reward</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="small"><small>Baking Reward</td>
-                    <td class="text-end">{{node.mint.mint_baking_reward | micro_ccd_display|safe}}
-                           </small>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Finalization Reward</td>
-                    <td class="text-end">{{node.mint.mint_finalization_reward | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Platform Development Charge</td>
-                    <td class="text-end">{{node.mint.mint_platform_development_charge | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-
-            </tbody>
-        </table>
-
-        <!--class="card-body p-2"-->
-    </div>
-    <!--class="card mb-2 ms-2 me-2"-->
-</div>
 {% endif %}
 
 <!--BlockReward-->
 {% if node.block_reward %}
-<div class="card mb-2 ms-2 me-2">
-    <div class="card-body p-2">
-        <div class="clearfix">
-            <div class="card-text small float-start small text-muted">Block Reward</div>
-
-        </div>
-
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th class="small" scope="col">Key</th>
-                    <th class="small text-end" scope="col">Value</th>
-
-                </tr>
-            </thead>
-            <tbody>
-
-                <tr>
-                    <td class="small"><small>Old Gas Account</td>
-                    <td class="text-end"><span class="ccd">{{node.block_reward.old_gas_account}}</span></small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>New Gas Account</td>
-                    <td class="text-end"><span class="ccd">{{node.block_reward.new_gas_account}}</span></small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Transaction Fees</td>
-                    <td class="text-end">{{node.block_reward.transaction_fees | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Baker Reward</td>
-                    <td class="text-end">{{node.block_reward.baker_reward | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Foundation Charge</td>
-                    <td class="text-end">{{node.block_reward.foundation_charge | micro_ccd_display|safe}}
-                           </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Baker</td>
-                    <td class="text-end"><small><span>{{node.block_reward.baker|account_link(net, True, True, user,
-                                tags, app=request.app)|safe}}</span></small>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <!--class="card-body p-2"-->
-    </div>
-    <!--class="card mb-2 ms-2 me-2"-->
-</div>
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Block Accrue</th>
+        </tr>
+    </thead>    
+    <tbody>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Old Gas Account</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.old_gas_account | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">New Gas Account</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.new_gas_account | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Transaction Fees</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.transaction_fees |micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Foundation Charge</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.foundation_charge | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Validator Reward<br/>
+                {% if node.block_reward.old_gas_account > node.block_reward.new_gas_account %}
+                (= {{node.block_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_reward.foundation_charge | micro_ccd_display|safe}} + {{(node.block_reward.old_gas_account - node.block_reward.new_gas_account) | micro_ccd_display|safe}})
+            {% else %}
+                (= {{node.block_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_reward.foundation_charge | micro_ccd_display|safe}} - {{(node.block_reward.new_gas_account - node.block_reward.old_gas_account) | micro_ccd_display|safe}})
+            {% endif %}
+        </td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.baker_reward | micro_ccd_display|safe}}</td>
+        </tr>
+        
+    </tbody>
+</table>  
 {% endif %}
-
-
 
 <!--BlockAccrue-->
 {% if node.block_accrue_reward %}
-<div class="card mb-2 ms-2 me-2">
-    <div class="card-body p-2">
-        <div class="clearfix">
-            <div class="card-text small float-start small text-muted">Block Accrue</div>
-
-        </div>
-
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th class="small" scope="col">Fee type</th>
-                    <th class="small text-end" scope="col">Reward</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="small"><small>Old Gas Account</small></td>
-                    <td class="text-end"><span class=" ccd">{{node.block_accrue_reward.old_gas_account | micro_ccd_display|safe}}</span></small>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="small"><small>New Gas Account</small></td>
-                    <td class="text-end"><span class="ccd">{{node.block_accrue_reward.new_gas_account | micro_ccd_display|safe}}</span></small>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Transaction Fees</small></td>
-                    <td class="text-end">{{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                
-                <tr>
-                    <td class="small"><small>Foundation Charge</small></td>
-                    <td class="text-end">{{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Baker Reward<br/>
-                    {% if node.block_accrue_reward.old_gas_account > node.block_accrue_reward.new_gas_account %}
-                        (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} + {{(node.block_accrue_reward.old_gas_account - node.block_accrue_reward.new_gas_account) | micro_ccd_display|safe}})
-                    {% else %}
-                        (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} - {{(node.block_accrue_reward.new_gas_account - node.block_accrue_reward.old_gas_account) | micro_ccd_display|safe}})
-                    {% endif %}
-                    </small></td>
-                    <td class="text-end">{{node.block_accrue_reward.baker_reward | micro_ccd_display|safe}}
-                            </small></td>
-                </tr>
-                <tr>
-                    <td class="small"><small>Baker</small></td>
-                    <td class="text-end"><small><span><small><a
-                                        href="/{{net}}/account/{{node.block_accrue_reward.baker}}">{{node.block_accrue_reward.baker}}</a></small></span></small>
-                    </td>
-                </tr>
-
-            </tbody>
-        </table>
-
-        <!--class="card-body p-2"-->
-    </div>
-    <!--class="card mb-2 ms-2 me-2"-->
-</div>
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Block Accrue</th>
+        </tr>
+    </thead>    
+    <tbody>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Old Gas Account</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.old_gas_account | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">New Gas Account</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.new_gas_account | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Transaction Fees</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Foundation Charge</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Validator Reward<br/>
+                {% if node.block_accrue_reward.old_gas_account > node.block_accrue_reward.new_gas_account %}
+                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} + {{(node.block_accrue_reward.old_gas_account - node.block_accrue_reward.new_gas_account) | micro_ccd_display|safe}})
+            {% else %}
+                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} - {{(node.block_accrue_reward.new_gas_account - node.block_accrue_reward.old_gas_account) | micro_ccd_display|safe}})
+            {% endif %}
+        </td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.baker_reward | micro_ccd_display|safe}}</td>
+        </tr>
+        
+    </tbody>
+</table>   
+        
 {% endif %}
 
 <!--finalizationRewards-->
@@ -190,8 +130,8 @@
             <tbody>
                 {% for row in node.bakingRewards.nodes|sort_finalizers %}
                 <tr>
-                    {{row.accountAddress.asString | find_baker_node_info (bakers_by_account_id,
-                    nodes_by_baker_id)|safe}}
+                    {{row.accountAddress.asString}}
+                    
                     <td><small>{{row.amount |micro_ccd_display | safe}}</small></td>
                 </tr>
                 {% endfor %}
@@ -206,39 +146,24 @@
 
 <!--finalizationRewards-->
 {% if node.finalization_rewards %}
-<div class="card mb-2 ms-2 me-2">
-    <div class="card-body p-2">
-        <div class="clearfix">
-            <div class="card-text small float-start small text-muted">Finalization Rewards</div>
-        </div>
-        <table class="table table-striped table-hover table-sm">
-            <thead>
-                <tr>
-                    <th class="small" scope="col">Baker/Node</th>
-                    <th class="small" scope="col">Reward</th>
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Finalization Rewards</th>
+        </tr>
+    </thead>    
+    <tbody>
+        {% for row in node.finalization_rewards.finalization_rewards.entries %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">{{row.account|account_link(net, user,
+                tags, app=request.app)|safe}}</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{row.amount | micro_ccd_display | safe}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in node.finalization_rewards.finalization_rewards.entries %}
-                <tr>
-                    <td class="small"><small>{% set baker = baker_nodes[row.account] %}
-                    {% if baker %}
-                        {{baker_nodes[row.account]['nodeName']}}
-                    {% else %}
-                    {{row.account|account_link(net, True, True, user,
-                        tags, app=request.app)|safe}}
-                    {% endif %}
-                </small></td>
-                    <td><small>{{row.amount | micro_ccd_display | safe}}</small></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <!--class="card-body p-2"-->
-    </div>
-    <!--class="card mb-2 ms-2 me-2"-->
-</div>
+
 {% endif %}
 {% endfor %}
 <!--class="tab-pane fade show "-->

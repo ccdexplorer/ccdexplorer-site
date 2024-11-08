@@ -1,0 +1,181 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+{% set vi = stored_token_address.verified_information %}
+{% set md = stored_token_address.token_metadata %}
+
+<script>
+  async function getHolders(requested_page, total_rows) {
+    try {
+      holders = document.getElementById('current_holders');
+      {% if stored_token_address.token_id == '' %}
+        {% set token_id = "_" %}
+      {% else %}
+      {% set token_id = stored_token_address.token_id %}
+      {% endif %}
+      url = '/{{net}}/token/{{contract.index}}/{{contract.subindex}}/{{token_id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+      console.log(url);
+      holders.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      await fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          holders.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (eroor) {}
+  }
+
+  function prev_holders(requested_page, total_rows) {
+    getHolders(requested_page, total_rows)
+  };
+  function next_holders(requested_page, total_rows) {
+    getHolders(requested_page, total_rows)
+  };
+
+  
+</script>
+
+
+
+
+<div class="row  mt-4">
+  <div class="col">{% include 'tokens/generic/token_header.html' %}</div>  
+  
+</div>
+{% if not compliant_contract%}
+<div class="row  m-1">
+  <div class="col  alert alert-danger " role="alert">
+  This smart contract does not appear to adhere to the CIS-2 Standard, as there are token holders with a negative token amount. 
+</div>
+</div>
+  {% endif %}
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Token Info" %}{% include 'base/box_title.html' %}
+          {% include "tokens/generic/token_info.html" %}</div>
+  </div>
+  {% if vi %}
+  <div class="col-md-6  col-sm-12 ">
+    <div class="border content curved-border " >
+        {% set title= "Verified Information" %}{% include 'base/box_title.html' %}
+        {% include "tokens/generic/token_verified_information.html" %}</div>
+  </div>
+  {% endif %}
+  </div>  
+
+  <div class="row row-flex">
+    {% if md %}
+    <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Token Metadata" %}{% include 'base/box_title.html' %}
+          {% include "tokens/generic/token_metadata.html" %}</div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Current Holders" %}{% include 'base/box_title.html' %}
+          <div id="current_holders"></div>
+    </div>
+  </div>
+    <script>
+      async function load_media(mediaUrl) {
+        console.log(mediaUrl);
+        const containerElement = document.getElementById('media-container');
+        containerElement.innerHTML = '{% include "base/spinner.html" %}'; // Clear previous content
+    
+        try {
+            const response = await fetch(mediaUrl);
+            const contentType = response.headers.get('Content-Type');
+            console.log(contentType);
+            if (!contentType || contentType.startsWith('text')) {
+                // Handle as text response, assuming it contains the actual media URL
+                const data = await response.text();
+                if (data.trim().startsWith('http')) {
+                    // Assume it's a URL
+                    load_media(data.trim());
+                } else {
+                    console.error('Invalid media URL:', data);
+                }
+            } else if (contentType.startsWith('image') || contentType === 'application/octet-stream') {
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                const imageElement = new Image();
+                imageElement.src = imageUrl;
+                {% if md %}imageElement.alt = "{{md.name}}";{% endif %}
+    
+                // Set the maximum width and height for the image
+                const maxWidth = 250; // Adjust this value as needed
+                const maxHeight = 250; // Adjust this value as needed
+    
+                // Ensure the image is loaded before calculating dimensions
+                // console.log(imageElement.width, imageElement.height);
+                imageElement.onload = function () {
+                  // console.log(imageElement.width, imageElement.height);
+                  const aspectRatio = imageElement.width / imageElement.height;
+                    // console.log(aspectRatio);
+                    // Resize the image while maintaining aspect ratio
+                    if (imageElement.width > maxWidth) {
+                        imageElement.width = maxWidth;
+                        imageElement.height = maxWidth / aspectRatio;
+                    }
+    
+                    if (imageElement.height > maxHeight) {
+                        imageElement.height = maxHeight;
+                        imageElement.width = maxHeight * aspectRatio;
+                    }
+                    
+                    // Append the resized image to the container
+                    containerElement.innerHTML = '';
+                    containerElement.appendChild(imageElement);  
+                  
+                    // console.log(imageElement.width, imageElement.height);
+                };
+            } else if (contentType.startsWith('video')) {
+                const blob = await response.blob();
+                const videoUrl = URL.createObjectURL(blob);
+                const videoElement = document.createElement('video');
+                videoElement.src = videoUrl;
+                videoElement.controls = true; // Enable default video controls
+                videoElement.autoplay = true; // Autoplay the video
+                videoElement.style.maxWidth = '350px'; // Limit width to 350px
+    
+                // Append the video element to the container
+                containerElement.innerHTML = '';
+                containerElement.appendChild(videoElement);
+            } else {
+                console.error('Unsupported media type:', contentType);
+            }
+        } catch (error) {
+            console.error('Error loading media:', error);
+        }
+    }
+    
+      window.addEventListener('load', (event) => {
+        
+        
+        {% if md %}
+          {% if md.display %}
+            {% set url = md.display.url %}
+            {% if md.display.url[:4] == "ipfs" %}
+                {% set url = "https://ipfs.io/ipfs/"+metadata.display.url[7:] %}
+            {% endif %}
+              load_media("{{url}}");
+            
+          {% endif %}
+        {% endif %}
+
+        getHolders(0, 0);
+
+      });
+
+      </script>
+{% endblock %}
+

@@ -1,56 +1,160 @@
+<style>
+    .smooth {
+      transition: all 1s ease-in;
+    }
+    </style>
+<table class="table table-borderless">
+    <tbody>
+        {% if account.schedule %}
+        {% set total_locked = account.schedule.total %}
+        {% else %}
+        {% set total_locked = 0 %}
+        {% endif %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Address</td>
+            <td  class=" text-end align-middle text-secondary-emphasis">
+                {% set copy_value = account.address %}
+                {% set value_type = "account_id" %}
+                {% set display_value = account.address | shorten_address(address=True)|safe %}
+                {% include "base/copy_to_clipboard.html"%}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td  class="text-start text-secondary-emphasis">Account Balance</td>
+            <td class=" text-end text-secondary-emphasis">
+                {% if total_locked == 0 %}
+                
+                        {{account.amount | micro_ccd_display | safe}} 
+                
+                        {% else %}
+                
+                <table class="align-end">
+                    <tr  class=" text-end">
+                        <td></td>
+                        <td class="text-end text-secondary-emphasis">
+                            {{account.amount | micro_ccd_display | safe}} 
+                        </td>
+                        <td  class="text-end text-secondary-emphasis">
+                            {% if total_locked > 0 %}(total){% endif %}
+                        </td>
+                    </tr>
+                    {% if total_locked > 0 %}
+                        <tr class="table-row-line-height sm-text">
+                            <td></td>
+                            <td class="text-end text-secondary-emphasis">
+                                {{(account.amount - total_locked) | micro_ccd_display | safe}}
+                            </td>
+                            <td class="text-end text-secondary-emphasis">
+                                 (unlocked)
+                            </td>
+                        </tr>
+
+                        <tr class="table-row-line-height sm-text"><td></td>
+                            <td class="text-end text-secondary-emphasis">
+                                    {{total_locked | micro_ccd_display | safe}}
+                            </td>
+                            <td class="text-end text-secondary-emphasis">
+                                <a data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false"
+                                    aria-controls="collapseExample">
+                                    (locked)</a>
+                                </td>
+                        </tr>
+
+                        {% for schedule in account.schedule.schedules %}
+                            <tr class="collapse px-0 sm-text" id="collapseExample">
 
 
-<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+                                <td class="ps-1 text-end text-secondary-emphasis">{{schedule.timestamp | datetime_regular}}</td>
+                                <td class="text-center text-secondary-emphasis">
+                                    {% for tx in schedule.transactions %}
+                                        {{tx |tx_hash_link (net)|safe }}  
+                                    {% endfor %}
+                                </td>
+                                
+                                <td ><span class=" text-end pe-1 text-secondary-emphasis">{{schedule.amount | micro_ccd_display | safe}}</span></td>
+                                <td></td>    
+                        {% endfor %}
+                        </tr>
+                    {% endif %}
+                </table>
+                {% endif %}
+            </td>
+        </tr>
 
-  
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['info'].children['general'].active %}active{% endif %}"
-      id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab"
-      aria-controls="general" aria-selected="true"><small>General</small></button>
-  </li>
-  <!-- <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2"
-      id="statement-tab" data-bs-toggle="tab" data-bs-target="#statement" type="button" role="tab"
-      aria-controls="statement" aria-selected="true"><small>Account Statement</small></button>
-  </li> -->
-  
-  <li class="nav-item" role="presentation">
-    <button class="nav-link small ps-2 pe-2 {% if tabs['info'].children['flow'].active %}active{% endif %}" id="graph-tab"
-      data-bs-toggle="tab" data-bs-target="#graph" type="button" role="tab" aria-controls="graph" aria-selected="true">
-      <small>Flow Graph</small>
-    </button>
-  </li>
-
-</ul>
-
-<div class="tab-content" id="myTabContent">
-
-  <div class="tab-pane fade show {% if tabs['info'].children['general'].active %}active{% endif %}"
-    style="padding-top: 10px;" id="general" role="tabpanel" aria-labelledby="general-tab">
-    {% include "account/account_info_general.html" %}
-  </div>
-  <!-- <div class="tab-pane fade show "
-    style="padding-top: 10px;" id="statement" role="tabpanel" aria-labelledby="statement-tab">
-    <div id="account_statement"></div>
-  </div> -->
-
-
-
-      
-  <div class="tab-pane fade show  {% if tabs['info'].children['flow'].active %}active{% endif %}" style="padding-top: 10px;"
-  id="graph" role="tabpanel" aria-labelledby="graph-tab">
-  {% if user %}  
-    {% if account.address != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD" %}
-        {% include "account/account_graph_header.html" %}
-    {% else %}
-    <p class="small">The graph for this account is too big to show, but as the name Airdropper suggests, you can pretty
-      much guess what it would look like.</p>
-    {% endif %}
-  {% else %} 
-    <p class="small">Users get access to flow graphs. Go <a href="/settings/user/overview">here</a> to learn more.</p>
+        {% if account.available_balance %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Available Balance</td>
+                <td class=" text-end text-secondary-emphasis">{{account.available_balance| micro_ccd_display | safe }}</td>
+            </tr>
+            {% endif %}  
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Deployed in block</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis">0</td>
+                {% endif %}
+            </tr>
+            {% if not deployed_in_genesis_block %}
+                <tr class="table-row-line-height sm-text">
+                    <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+                    <td class="text-end text-secondary-emphasis">{{tx_deployed.hash|tx_hash_link(net)|safe}}
+                        
+                        </td>
+                </tr>
+            {% endif %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Age</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis">{{genesis_block_slot_time|datetime_delta_format_since}}</td>
+                {% endif %}
+            </tr>
+          
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Nonce</td>
+            <td class=" text-end text-secondary-emphasis">{{account.sequence_number|round_x_decimal_with_comma(0) }}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Index</td>
+            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis">{{account.index|round_x_decimal_with_comma(0) }}</td>
+        </tr>
+        {% if aliases_in_use|length > 0 %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Aliases in use</td>
+            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis">{{aliases_in_use|length|round_x_decimal_with_comma(0) }}</td>
+        </tr>
+        {% endif %}
+    <!-- </tbody>
+</table>
+<table class="table table-striped ms-1 me-1 small"><tbody> -->
+    <tr class="table-row-line-height sm-text"><td></td><td></td></tr>
     
-  {% endif %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Net Worth (CCD)</td>
+            <td  class=" text-end text-secondary-emphasis"><span class="ccd">${{ccd_balance_USD|round_x_decimal_with_comma(0)}}</span></td>
+            
+        </tr>
+        {% if tokens_available %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Net Worth (Tokens)</td>
+            <td  class=" text-end text-secondary-emphasis"><span class="ccd">${{tokens_value_USD|round_x_decimal_with_comma(0)}}</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Net Worth (Total)
+                
+            </td>
+            <td  class=" text-end text-secondary-emphasis"><span class="ccd">${{(ccd_balance_USD+tokens_value_USD)|round_x_decimal_with_comma(0)}}</span></td>
+        </tr>
+        
+        {% endif %}
+
+       
+        
+        
+    </tbody>
+    </table>
+
+
     
-</div>
-  
-</div>

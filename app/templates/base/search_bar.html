@@ -1,0 +1,77 @@
+
+
+{% if net != 'user' %}
+    {% block content %}
+        <div class="mb-4 mt-4">
+            <div id="search-element" class="search-bar-container bg-secondary-subtle border">
+                <div class="input-box">
+                    <select 
+                    class="form-select form-select-sm search_selector" 
+                    aria-label="search select" 
+                    id="search_selector">
+                    
+                        <!-- <option value="all" selected>Search all</option> -->
+                        <option value="account" selected>Account</option>
+                        <option value="transaction">Transaction</option>
+                        <option value="block">Block</option>
+                        <option value="contract">Contract</option>
+                        <option value="module">Module</option>
+                        <option value="token">Token</option>
+
+                      </select>
+                    <input type="text" placeholder="Address | Validator id | Block | Tx | ..." id="search_value"
+                    hx-post="/search" 
+                    hx-ext='json-enc'
+                        hx-vals='js:{
+                            "selector": document.getElementById("search_selector").value, 
+                            "value": document.getElementById("search_value").value,
+                            "net": document.getElementById("meta_data_net").title}'>
+                    <button role="button" class="input-group-text btn btn-secondary" >
+                        <img src="/static/misc/search_btn.png" alt="searc_btn"  hx-post="/search" 
+                        hx-trigger="click" hx-ext='json-enc' hx-vals='js:{
+                            "selector": document.getElementById("search_selector").value, 
+                            "value": document.getElementById("search_value").value,
+                            "net": document.getElementById("meta_data_net").title}
+                            '
+                            >
+                    </button>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+{% endif %}
+
+<script>
+    const search_selector = document.getElementById("search_selector");   
+    const search_value = document.getElementById("search_value");   
+    search_selector.addEventListener('change', request_placeholder); 
+
+    function request_placeholder() {
+        const url = "/search_placeholder";
+        fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                net: '{{net}}',
+                search_selector: search_selector.value,
+                
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+        })
+        .then((response) => {
+            return response.text();
+        })
+        .then((data) => {
+            search_value.placeholder = data;
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    };
+
+    window.addEventListener('load', (event) => {
+    request_placeholder();
+    
+      });
+</script>

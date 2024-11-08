@@ -1,0 +1,151 @@
+{% extends "base/base.html" %}
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+
+
+
+<script>
+  async function getNFTTokens(requested_page, total_rows) {
+    try {
+      nft_tokens = document.getElementById('nft_tokens');
+      url = '/{{net}}/ajax_nft_tokens_for/{{vi._id}}/' + requested_page + '/' + total_rows + '/' + api_key;
+      console.log(url);
+      nft_tokens.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+      await fetch(url)
+        .then((response) => {
+          return response.text();
+        })
+        .then((data) => {
+          nft_tokens.innerHTML = data;
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } catch (eroor) {}
+  }
+
+  function prev_nft_tokens(requested_page, total_rows) {
+    getNFTTokens(requested_page, total_rows)
+  };
+  function next_nft_tokens(requested_page, total_rows) {
+    getNFTTokens(requested_page, total_rows)
+  };
+
+  
+</script>
+
+
+<div class="row  mt-4">
+  <div class="col">{% include 'tokens/nft_tag/nft_tag_header.html' %}</div>  
+</div>
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+  <div class="col-md-8  col-sm-12 ">
+    <div class="border content curved-border " >
+        {% set title= "Verified Information" %}{% include 'base/box_title.html' %}
+        {% include "tokens/nft_tag/nft_tag_verified_information.html" %}</div>
+  </div>
+  <div class="col-md-4  col-sm-12 ">
+    <div class="border content curved-border " >
+        {% set title= "Contracts" %}{% include 'base/box_title.html' %}
+        {% include "tokens/nft_tag/nft_tag_contracts.html" %}</div>
+  </div>
+  </div>  
+
+  <div class="row row-flex">
+    
+    
+    
+    <div class="col-md-12  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Individual Tokens" %}{% include 'base/box_title.html' %}
+          <div id="nft_tokens"></div>
+    </div>
+  </div>
+    <script>
+      async function load_media(mediaUrl) {
+        // console.log(mediaUrl);
+        const containerElement = document.getElementById('media-container');
+        containerElement.innerHTML = '{% include "base/spinner.html" %}'; // Clear previous content
+    
+        try {
+            const response = await fetch(mediaUrl);
+            const contentType = response.headers.get('Content-Type');
+            // console.log(contentType);
+            if (!contentType || contentType.startsWith('text')) {
+                // Handle as text response, assuming it contains the actual media URL
+                const data = await response.text();
+                if (data.trim().startsWith('http')) {
+                    // Assume it's a URL
+                    load_media(data.trim());
+                } else {
+                    console.error('Invalid media URL:', data);
+                }
+            } else if (contentType.startsWith('image') || contentType === 'application/octet-stream') {
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                const imageElement = new Image();
+                imageElement.src = imageUrl;
+                
+    
+                // Set the maximum width and height for the image
+                const maxWidth = 250; // Adjust this value as needed
+                const maxHeight = 250; // Adjust this value as needed
+    
+                // Ensure the image is loaded before calculating dimensions
+                // console.log(imageElement.width, imageElement.height);
+                imageElement.onload = function () {
+                  // console.log(imageElement.width, imageElement.height);
+                  const aspectRatio = imageElement.width / imageElement.height;
+                    // console.log(aspectRatio);
+                    // Resize the image while maintaining aspect ratio
+                    if (imageElement.width > maxWidth) {
+                        imageElement.width = maxWidth;
+                        imageElement.height = maxWidth / aspectRatio;
+                    }
+    
+                    if (imageElement.height > maxHeight) {
+                        imageElement.height = maxHeight;
+                        imageElement.width = maxHeight * aspectRatio;
+                    }
+                    
+                    // Append the resized image to the container
+                    containerElement.innerHTML = '';
+                    containerElement.appendChild(imageElement);  
+                  
+                    // console.log(imageElement.width, imageElement.height);
+                };
+            } else if (contentType.startsWith('video')) {
+                const blob = await response.blob();
+                const videoUrl = URL.createObjectURL(blob);
+                const videoElement = document.createElement('video');
+                videoElement.src = videoUrl;
+                videoElement.controls = true; // Enable default video controls
+                videoElement.autoplay = true; // Autoplay the video
+                videoElement.style.maxWidth = '350px'; // Limit width to 350px
+    
+                // Append the video element to the container
+                containerElement.innerHTML = '';
+                containerElement.appendChild(videoElement);
+            } else {
+                console.error('Unsupported media type:', contentType);
+            }
+        } catch (error) {
+            console.error('Error loading media:', error);
+        }
+    }
+    
+      window.addEventListener('load', (event) => {
+        
+        
+            {% set url = vi.logo_url %}
+              load_media("{{url}}");
+            
+        
+              getNFTTokens(0, 0);
+
+      });
+
+      </script>
+{% endblock %}
+

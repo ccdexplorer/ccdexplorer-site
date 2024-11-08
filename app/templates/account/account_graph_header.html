@@ -1,85 +1,13 @@
-
 <script>
-    function DoSanKey(){
-        sankey = JSON.parse(document.getElementById('hidden_sankey').innerHTML);
-        SANKEY_DIV = document.getElementById('sankey');
-        token = document.getElementById('token').value;
-        var data = {
-            type: "sankey",
-            
-            valuesuffix: " "+token,
-
-            node: {
-              pad: 25,
-              thickness: 10,
-              line: { color: "grey", width: 1.0 },
-              label: sankey.tagged_labels,
-              color: sankey.colors
-            },
-
-            link: {
-              source: sankey.source,
-              target: sankey.target,
-              value: sankey.value,
-              customdata: sankey.labels_link
-            }
-
-            }
-        var account_index = document.getElementById('account_index').title;
-        var layout = {
-          margin: { b: 20, t: 20, l: 20, r: 20 },
-          title: {text:"Flow diagram for account "+account_index + " for token "+token, font: {
-
-// family: 'Courier New, monospace',
-
-size: 12
-
-},}}
-
-        Plotly.newPlot(SANKEY_DIV, [data], layout, {'responsive': true, 'displayModeBar': false});
-      }
-    
-
-    function getSankey() {
-      table = document.getElementById('table');
-      sankey = document.getElementById('sankey');
-      token = document.getElementById('token').value;
-      var gte = document.getElementById('gte').value;
+  function get_gte() {
+        var gte = document.getElementById('gte').value;
           gte = gte.split(' ')[0];
           
           if (typeof gte === 'string' && gte.length === 0) {
             gte = 0;
           }
-          var start_date = document.getElementById("start_date").value;
-          var end_date = document.getElementById("end_date").value;
-        var account_id = document.querySelector('.account_id').title;
-        
-        if (account_id != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD") {
-          url = '/ajax_sankey/{{net}}/'+account_id+'/'+gte+'/'+start_date+'/'+end_date+'/'+token;
-          
-          
-          fetch(url)
-            .then((response) => {
-              return response.text();
-            })
-            .then((data) => {
-              table.innerHTML = data;
-              DoSanKey(); 
-                
-            })
-            .catch(function(error) {
-              console.log(error);
-            });
-          }
-
+          return gte
       }
-    window.addEventListener('load', (event) => {
-       
-      getSankey();
-        console.log('getSankey');
-      });
-</script>
-<script>
   function UpdateSuffix() {
     
     token = document.getElementById('token').value;
@@ -93,15 +21,18 @@ size: 12
   }
     
 </script>
+
+<div class="border curved-border mb-2 mt-4">
+  {% set title= "Flow Graph" %}{% include 'base/box_title.html' %}
 <div class="row ps-3 pe-3">
   <div class="col">
-  <label class = "ccd" for="token">Select token/coin</label>  
+  <label class="sm-text text-end" for="token">Select token/coin</label>  
 </div>
   <div class="col">
-    <select class="small" id="token" onchange="UpdateSuffix()">
-      <option class="small" value="CCD" selected><small>CCD</small></option>
+    <select class="sm-text" id="token" onchange="UpdateSuffix()">
+      <option class="" value="CCD" selected>CCD</option>
       {% for token in token_ids_for_flow %}
-        <option class="small" value="{{token}}" ><small>{{token}}</small></option>
+        <option class="" value="{{token}}" >{{token}}</option>
       {% endfor %}
     </select>
     
@@ -112,35 +43,45 @@ size: 12
 <div class="row ps-3 pe-3">
     
     <div class="col">
-      <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="start_date" id="start_date" placeholder="Start Date"><br>
+      <input type="text" class=" sm-text dates form-control form-control-sm  input-sm mb-1 text-end" data-precision="0" name="start_date" id="start_date" placeholder="Start Date"><br>
     </div>
-    <div class="col small text-center"><span class="ccd">≤ Date ≤</span></div>
+    <div class="col sm-text text-center"><span class="ccd">≤ Date ≤</span></div>
     <div class="col">
-      <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
+      <input type="text" class="sm-text dates form-control form-control-sm  input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
     </div>
   </div>
   <div class="row ps-3 pe-3">
-    <div class="col small">
-      <button onclick='getSankey()' type="button" id="account-add-button" class="ms-3 btn btn-sm btn-primary">Update</button>
+    <div class="col ">
+      <button  hx-trigger="click, load, switched-theme from:body" 
+      hx-post='/ajax_sankey/{{net}}/{{account_id}}'
+      hx-ext='json-enc'
+      hx-target="#sankey"
+      hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+      gte: get_gte(),
+      start_date: document.getElementById("start_date").value,
+      end_date: document.getElementById("end_date").value, 
+      token: document.getElementById("token").value
+    
+      }' type="button" id="account-add-button" class=" sm-text ms-3 btn btn-sm btn-primary">Update</button>
     </div>
-    <div class="col small">
-      <p class="text-end ccd">Lower limit for net transfers</p>
+    <div class="col ">
+      <p class="text-end text-secondary-emphasis ccd">Lower limit for net transfers</p>
     </div>
     <div class="col">
-      <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " data-precision="0" name="gte" id="gte" placeholder="0 CCD"><br>
+      <input type="text" class=" text-secondary-emphasis number-separator form-control form-control-sm  input-sm mb-1 text-end " data-precision="0" name="gte" id="gte" placeholder="0 CCD"><br>
     </div>
   </div>
   <h5>{{token}}</h5>
   <div id="sankey"></div>
+  
   <div id="table"></div>
+</div>
 <script>
     $(function() {
       $('#gte').maskMoney({allowZero:true, suffix: ' '+'{{token}}'});
       
     })
-    // flatpickr(".dates", {defaultDate:"2021-6-29"});
     let now = new Date().toISOString()//.split('T')[0]
-    console.log('now=', now)
     flatpickr("#start_date", {defaultDate:"2021-6-09"});
     flatpickr("#end_date", {defaultDate: now});
 </script>

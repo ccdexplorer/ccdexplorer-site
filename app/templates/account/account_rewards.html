@@ -1,52 +1,27 @@
 
-
-<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-<style>
-  .vega-embed {
-    width: 100%;
-    height: 350px;
-  }
-
-  .vega-embed-small {
-    width: 100%;
-    height: 150px;
-  }
-</style>
-
-
-<script type="text/javascript">
-
-  var width = Math.min(window.innerWidth, 675);
-  var spec = "{{env.SITE_URL}}/{{net}}/account/rewards-bucketed/{{account_id}}/{{account_index}}/" + width;
-  var opt = { renderer: 'svg', actions: false, 'theme':'light' };
-  vegaEmbed('#vis-rewards-bucketed', spec, opt).then(function (result) { }).catch(console.error);
-</script>
-
-<table class="table table-striped ms-1 w-auto small">
+<table class="table table-borderless">
   <thead>
-    <tr>
+    <tr class="sm-text">
       <th class="small" scope="col"></th>
-      <th class="small text-end" scope="col">30d</th>
-      <th class="small text-end" scope="col">90d</th>
-      <th class="small text-end" scope="col">180d</th>
+      <th class="text-secondary-emphasis text-end" scope="col">30d</th>
+      <th class="text-secondary-emphasis text-end" scope="col">90d</th>
+      <th class="text-secondary-emphasis text-end" scope="col">180d</th>
 
     </tr>
   </thead>
   <tbody>
 
-    <tr>
-      <td><b>{% if delegation%}Delegator{% else %}Validator{%endif%}</b></td>
-      <td class="text-end"><small>{{ (account_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+    <tr class="sm-text">
+      <td class="text-secondary-emphasis text-start">{% if delegation%}Delegator{% else %}Validator{%endif%}<br/>rewards</td>
+      <td class="text-secondary-emphasis text-end"><small>{{ (account_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
         <i><small><span>{{ (account_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 
-      <td class="text-end"><small>{{(account_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+      <td class="text-secondary-emphasis text-end"><small>{{(account_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
           <i><small><span>{{ (account_apy_object.d90.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 
-      <td class="text-end"><small>{{ (account_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+      <td class="text-secondary-emphasis text-end"><small>{{ (account_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
         <i><small><span>{{ (account_apy_object.d180.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 
@@ -54,5 +29,12 @@
 
   </tbody>
 </table>
-
-<div class="vega-embed" id="vis-rewards-bucketed"></div>
+<div
+        class=" mb-1"
+        hx-trigger="intersect, switched-theme from:body" 
+        hx-post="/{{net}}/account/rewards-bucketed/{{account_id}}/{{account_index}}"
+        hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+        
+    >
+    
+    </div>

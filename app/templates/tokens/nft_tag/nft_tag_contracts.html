@@ -1,0 +1,21 @@
+
+    {% if vi.contracts %}
+<table class="table table-borderless">
+   
+    <tbody>
+       
+       
+        {% for contract_address in vi.contracts|sort %}
+        <tr  class="sm-text">
+            
+            <td class="text-start text-secondary-emphasis">{{contract_address|instance_link_from_str(net)|safe}}</td>
+            
+        {% endfor %}
+        
+    </tr>    
+
+    </tbody>    
+</table>
+{% else %}
+        No instances found.
+        {% endif %}

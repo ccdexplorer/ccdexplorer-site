@@ -1,36 +1,36 @@
 
-<div hidden id="hidden_sankey">{{sankey}}</div>
-<div id="sankey"></div>
-<p class="small">Note: This graph and the tables below show <i>net</i> transfers.</p>
-<table class="table table-striped  small">
+<div  id="sankey">{{sankey_html|safe}}</div>
+<!-- <div id="sankey"></div> -->
+<p class="">Note: This graph and the tables below show <i>net</i> transfers.</p>
+<table class="table table-borderless  ">
     <thead>
-        <tr>
-            <th class="small">Account Transfer Summary</th>
-            <th class="small text-end">Amount</th>
-            <th class="small text-end"># Txs</th>
-            <th class="small text-end"># Accounts</th></tr>
+        <tr class="sm-text">
+            <th class=" text-secondary-emphasis">Account Transfer Summary</th>
+            <th class=" text-end text-secondary-emphasis">Amount</th>
+            <th class=" text-end text-secondary-emphasis"># Txs</th>
+            <th class=" text-end text-secondary-emphasis"># Accounts</th></tr>
     </thead>
     <tbody>
-        <tr>
-            <td>Received</td>
+        <tr class="sm-text">
+            <td class=" text-secondary-emphasis">Received</td>
             {% if token == "CCD" %}
-                <td class="small text-end">{{(graph_dict.amount_received*1000000)|micro_ccd_no_decimals|safe}}</td>
+                <td class=" text-end text-secondary-emphasis">{{(graph_dict.amount_received*1000000)|micro_ccd_no_decimals|safe}}</td>
             {% else %}
-                <td class="small text-end">{{(graph_dict.amount_received)|token_value_no_decimals(token)|safe}}</td>
+                <td class=" text-end text-secondary-emphasis">{{(graph_dict.amount_received)|token_value_no_decimals(token)|safe}}</td>
             {% endif %}
-            <td class="small text-end">{{graph_dict.receiver_txs}}</td>
-            <td class="small text-end">{{graph_dict.receiver_accounts}}</td>
+            <td class=" text-end text-secondary-emphasis">{{graph_dict.receiver_txs}}</td>
+            <td class=" text-end text-secondary-emphasis">{{graph_dict.receiver_accounts}}</td>
         </tr>
-        <tr>
-            <td>Sent</td>
+        <tr class="sm-text">
+            <td class=" text-secondary-emphasis">Sent</td>
             {% if token == "CCD" %}
-            <td class="small text-end">{{(graph_dict.amount_sent*1000000)|micro_ccd_no_decimals|safe}}</td>
+            <td class=" text-end text-secondary-emphasis">{{(graph_dict.amount_sent*1000000)|micro_ccd_no_decimals|safe}}</td>
             {% else %}
-                <td class="small text-end">{{(graph_dict.amount_sent)|token_value_no_decimals(token)|safe}}</td>
+                <td class=" text-end text-secondary-emphasis">{{(graph_dict.amount_sent)|token_value_no_decimals(token)|safe}}</td>
             {% endif %}
             
-            <td class="small text-end">{{graph_dict.sender_txs}}</td>
-            <td class="small text-end">{{graph_dict.sender_accounts}}</td></tr>
+            <td class=" text-end text-secondary-emphasis">{{graph_dict.sender_txs}}</td>
+            <td class=" text-end text-secondary-emphasis">{{graph_dict.sender_accounts}}</td></tr>
     </tbody>    
     
 </table>
@@ -38,32 +38,32 @@
 <div class="container">
     <div class="row">
       <div class="col">
-        <table class="table table-striped  small ">
+        <table class="table table-borderless  ">
             <thead>
-                <tr>
+                <tr class="sm-text">
                     
-                    <th class="small">Received from</th>
-                    <th class="small text-end">Amount</th>
+                    <th class=" text-secondary-emphasis">Received from</th>
+                    <th class="text-end text-secondary-emphasis">Amount</th>
                     
                 </tr>
             </thead>
             <tbody>
                 {% for k, v in graph_dict.as_receiver_dict.items()|sort(attribute='1.amount', reverse=true) %}
-                <tr>
-                    <td class="small">
+                <tr class="sm-text">
+                    <td class="">
                         
                         {% if v.account_id in ['<---', "--->", 'Transaction Fees', 'Rewards', 'Encrypted', 'Decrypted'] %}
-                            <span class="text-muted"><i>{{v.account_id|safe}}</i></span>
+                            <span class=" text-secondary-emphasis"><i>{{v.account_id|safe}}</i></span>
                         {% elif v.account_id|length < 29%}
                             {{v.account_id|instance_link_from_str(net, user, tags)|safe}}
                         {% else %}
-                            {{v.account_id|account_link(net, True, True, user, tags,  tab='info', subtab='flow', app=request.app)|safe}}
+                            {{v.account_index|account_link(net, user, tags, app=request.app)|safe}}
                         {% endif %}
                     </td>
                     {% if token == "CCD" %}
-                        <td class="small text-end">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                        <td class=" text-end text-secondary-emphasis">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
                     {% else %}
-                        <td class="small text-end">{{v.amount|token_value_no_decimals(token)|safe}}</td>
+                        <td class=" text-end text-secondary-emphasis">{{v.amount|token_value_no_decimals(token)|safe}}</td>
                     {% endif %}
                     
                 </tr>
@@ -74,33 +74,33 @@
         </table>
       </div>
       <div class="col">
-        <table class="table table-striped  small ">
+        <table class="table table-borderless   ">
             <thead>
-                <tr>
+                <tr class="sm-text">
                     
-                    <th class="small ">Sent to</th>
-                    <th class="small text-end">Amount</th>
+                    <th class="  text-secondary-emphasis">Sent to</th>
+                    <th class=" text-end text-secondary-emphasis">Amount</th>
                     
                 </tr>
             </thead>
             <tbody>
                 {% for k, v in graph_dict.as_sender_dict.items()|sort(attribute='1.amount', reverse=true) %}
-                <tr>
+                <tr class="sm-text">
                     
                     
-                    <td class="small">
+                    <td class="">
                         {% if v.account_id in ['--->', "<---", 'Transaction Fees', 'Rewards', 'Encrypted', 'Decrypted'] %}
-                            <span class="text-muted"><i>{{v.account_id|safe}}</i></span> 
+                            <span class=" text-secondary-emphasis"><i>{{v.account_id|safe}}</i></span> 
                         {% elif v.account_id|length < 29%}
                             {{v.account_id|instance_link_from_str(net, user, tags)|safe}}
                         {% else %}
-                            {{v.account_id|account_link(net, True, True, user, tags, tab='info', subtab='flow', app=request.app)|safe}}
+                            {{v.account_index|account_link(net=net, app=app)|safe}}
                         {% endif %}
                     </td>
                     {% if token == "CCD" %}
-                        <td class="small text-end">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
+                        <td class=" text-end text-secondary-emphasis">{{(v.amount*1000000)|micro_ccd_no_decimals|safe}}</td>
                     {% else %}
-                        <td class="small text-end">{{v.amount|token_value_no_decimals(token)|safe}}</td>
+                        <td class=" text-end text-secondary-emphasis">{{v.amount|token_value_no_decimals(token)|safe}}</td>
                     {% endif %}
                 </tr>
                 {% endfor %}

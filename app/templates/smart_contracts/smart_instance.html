@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 <script>
     async function getTokens(requested_page, total_rows) {
       tokens = document.getElementById('tokens');
       var address = document.getElementById('contract_id').title;
       url =  '/ajax_account_tokens/{{net}}/' + address + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      tokens.innerHTML = '{% include "spinner.html" %}'
+      tokens.innerHTML = '{% include "base/spinner.html" %}'
       await fetch(url)
         .then((response) => {
           return response.text();
@@ -26,7 +26,7 @@
     };
   
     window.addEventListener('load', (event) => {
-      getTokens(0, 0);
+    //   getTokens(0, 0);
     });
   </script>
   
@@ -34,11 +34,8 @@
 <script>
     async function getTransactions(requested_page, total_rows) {
         transactions = document.getElementById('instance-transactions');
-        var subindex_text = document.getElementById('contract_id').title.split(',')[1]
-        var contract_index = document.getElementById('contract_id').title.split(',')[0].substring(1);
-        var contract_subindex = subindex_text.substring(0, subindex_text.length - 1);
-        url =  '/ajax_instance_txs_html_v2/{{net}}/' + contract_index + '/' + contract_subindex + '/' + requested_page + '/' + total_rows + '/' + api_key;
-        transactions.innerHTML = '{% include "spinner.html" %}'
+        url =  '/ajax_instance_txs_html_v2/{{net}}/{{index}}/{{subindex}}/' + requested_page + '/' + total_rows + '/' + api_key;
+        transactions.innerHTML = '{% include "base/spinner.html" %}'
         await fetch(url)
             .then((response) => {
                 return response.text();
@@ -51,11 +48,11 @@
             });
     }
 
-    function prev_v2_txs(requested_page, total_rows) {
+    function prev_txs(requested_page, total_rows) {
         console.log("___PREV:", requested_page)
         getTransactions(requested_page, total_rows)
     };
-    function next_v2_txs(requested_page, total_rows) {
+    function next_txs(requested_page, total_rows) {
         console.log("___NEXT:", requested_page)
         getTransactions(requested_page, total_rows)
     };
@@ -68,9 +65,8 @@
     function Track() {
         cis6 = document.getElementById('cis6_tracker');
         item_id = document.getElementById("item_id").value;
-        contract_id= document.getElementById("contract_id").title;
-        url = '/ajax_track_item_id/{{net}}/'+contract_id+"/"+item_id;
-        cis6.innerHTML = '{% include "spinner.html" %}'
+        url = '/ajax_track_item_id/{{net}}/{{index}}/{{subindex}}/'+item_id;
+        cis6.innerHTML = '{% include "base/spinner.html" %}'
         fetch(url)
         .then((response) => {
             return response.text();
@@ -84,78 +80,32 @@
     
   };
 </script>
-<div style="padding-left:10px;">
-    {% if error %}
-    <p>An error occured: <b>{{error.errorMessage}}</b></p>
-    {% else %}
-    <h4 class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
-    {% if contract.v0 %}
+
+{% if contract.v0 %}
     {% set details = contract.v0 %}
-    {%else%}
+{%else%}
     {% set details = contract.v1 %}
-    {% endif %}
+{% endif %}
 
-    
-    <h5 class="ms-1">Instance: <i>{{details.name}}</i></h5>
-    <a href="/{{net}}/smart-contracts"><small>Back to overview</small></a>
-    <br>
-
-    <ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info"
-                type="button" role="tab" aria-controls="info" aria-selected="true"><small>Info</small></button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link small ps-2 pe-2 " id="instance-txs-tab" data-bs-toggle="tab"
-                data-bs-target="#instance-txs" type="button" role="tab" aria-controls="instance-txs"
-                aria-selected="true"><small>Txs</small></button>
-        </li>
-            {% if tokens_available %}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link small ps-2 pe-2 " id="tokens-tab"
-                data-bs-toggle="tab" data-bs-target="#tokens" type="button" role="tab" aria-controls="tokens" aria-selected="true">
-                <small>Tokens</small>
-                </button>
-            </li>
-    {% endif %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<div class="row  mt-4">
+    <div class="col">{% include 'smart_contracts/instance_header.html' %}</div>  
+</div>
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+    {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
+        
+        <div class="border content curved-border " >
+            {% set title= "Instance Info" %}{% include 'base/box_title.html' %}
+            {% include "smart_contracts/smart_instance_info.html" %}</div>
+    </div>
+   
     {% if supports_cis6 %}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link small ps-2 pe-2 " id="cis6-tab"
-                data-bs-toggle="tab" data-bs-target="#cis6" type="button" role="tab" aria-controls="cis6" aria-selected="true">
-                <small>Track Items</small>
-                </button>
-            </li>
-    {% endif %}
-
-    </ul>
-
-    <div class="tab-content" id="myTabContent">
-
-        <div class="tab-pane fade show  active" style="padding-top: 10px;" id="info" role="tabpanel"
-            aria-labelledby="info-tab">
-            {% include "smart_contracts/smart_instance_info.html" %}
-        </div>
-        <div class="tab-pane fade show  " style="padding-top: 10px;" id="instance-txs" role="tabpanel"
-            aria-labelledby="instance-txs-tab">
-            <div id="instance-transactions"></div>
-        </div>
-        {% if tokens_available %}
-        <div class="tab-pane fade show  " style="padding-top: 10px;"
-            id="tokens" role="tabpanel" aria-labelledby="tokens-tab">
-            
-            <div id="tokens"></div>
-            
-        </div>
-        {% endif %}  
-        {% if supports_cis6 %}
-        <div class="tab-pane fade show  " style="padding-top: 10px;"
-            id="cis6" role="tabpanel" aria-labelledby="cis6-tab">
-            <div>
-                <a class="p-1 small" href="{{filename}}" title="Download .csv file for all items" target="_blank">Download .csv file for all items</a>
-            </div>
-            <hr/>
-            <label for="item_id"><small>Track individual item</small></label>
+    <div class="col-md-6  col-sm-12">
+      <div class="border content curved-border " >
+        {% set title= "Track & Track Info" %}{% include 'base/box_title.html' %}
+        <a class="" href="{{filename}}" title="Download .csv file for all items" target="_blank">Download .csv file</a> for all items<br/> or<br/>
+        <label for="item_id">Track individual item</label>
             <select name="item_id" id="item_id" class=" form-select form-select-sm small">
                 
                 {% for item_id in item_ids %}
@@ -169,12 +119,28 @@
               
             
               <div id="cis6_tracker"></div>
-            
-            
         </div>
-        {% endif %}  
     </div>
-
     {% endif %}
-</div>
+    
+  </div>
+  
+  <div class="row row-flex">
+    {% if tokens_available %}
+    <div class="col-md-8  col-sm-12 ">
+      <div class="border content curved-border " >
+        {% set title= "Tokens" %}{% include 'base/box_title.html' %}
+        <div id="tokens"></div>
+  
+      </div>
+    </div>
+    {% endif %}
+    {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
+        <div class="border content curved-border " >
+            <div id="instance-transactions"></div>
+            
+    </div>
+    </div>
+  </div>
+  
 {% endblock content %}

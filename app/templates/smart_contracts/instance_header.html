@@ -1,0 +1,14 @@
+
+{% if contract.v0 %}
+    {% set details = contract.v0 %}
+{%else%}
+    {% set details = contract.v1 %}
+{% endif %}
+<div class="row mb-3 ps-3">
+    <div class="col-sm-12">
+        Instance
+        <span class="text-end text-secondary-emphasis" ></span>
+        <span class="ms-2 text-success">{{ details.name }}</span>
+
+</div>      
+        </div>

@@ -1,6 +1,6 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-
+{% include 'base/search_bar_non_home_inclusion.html' %}
 
 <style>
         .htmx-indicator{
@@ -25,10 +25,8 @@
     }
     </style>
     
-<script src="https://unpkg.com/htmx.org@1.9.6" integrity="sha384-FhXw7b6AlE/jyjlZH5iHa/tTe9EpJ1Y55RjcgPbjeWMskSxZt1v9qkxLJWNJaGni" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/htmx.org/dist/ext/class-tools.js"></script>
-<h2>Node 
-    <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/green_dot.png"/></h2> 
+<h2  class="sm-text">Node 
+    <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/></h2> 
 
 <div hx-get="/ajax_get_node/{{net}}/{{node_id}}" hx-trigger="load, every 2s">
 

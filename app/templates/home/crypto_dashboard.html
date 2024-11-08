@@ -1,0 +1,34 @@
+<!-- <div class="row"> -->
+    <div class="crypto-dashboard bg-secondary-subtle border ">
+        <div class="crypto-logo">
+            <img class="logo-sm inside tiny-logo" id="crypto_logo" src="/static/logos/small-logo_{{theme}}.png" alt="small-logo" height="20px">
+        </div>
+        <div class="crypto-info">
+            <div class="crypto-info-item marketcap">
+                <span class="label">Marketcap</span>
+                <span class="value">$ {{market_cap}} (#{{cmc_rank}})</span>
+             </div>   
+            <div class="crypto-info-item ccd-price">
+                <span class="label">CCD Price</span>
+                <span class="value percentage-add">$ {{ccd_price}} {% if ccd_change > 0 %}<span class="percentage_up">{{(ccd_change)|round_x_decimal_with_comma(1)}}%</span>{% else %}<span class="percentage_down">{{(ccd_change)|round_x_decimal_with_comma(1)}}%</span>{% endif%}</span>
+            </div>
+            <div class="crypto-info-item accounts">
+                <span class="label">Accounts</span>
+                <span class="value">{{total_accounts}}</span>
+            </div>
+            
+            <div class="crypto-info-item total-txns">
+                <span class="label">Txs</span>
+                <span class="value">{{total_txs}} ({{tps_h}} TPS)</span>
+            </div>
+            <div class="crypto-info-item total-tokens">
+                <span class="label">Tokens</span>
+                <span class="value">{{total_tokens}}</span>
+            </div>
+            <div class="crypto-info-item total-validators">
+                <span class="label">Validators</span>
+                <span class="value">{{total_validators}}</span>
+            </div>
+        </div>
+    </div>
+<!-- </div> -->

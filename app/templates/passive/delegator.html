@@ -1,5 +1,0 @@
-<tr>
-    {{row.accountAddress.asString |account_link(net, False, app=request.app)|safe}}
-    <td><small>{{row.stakedAmount | micro_ccd_no_decimals|safe}}</small></td>
-    <td><small>{{row.restakeEarnings}}</small></td>
-</tr>

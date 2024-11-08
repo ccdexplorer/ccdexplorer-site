@@ -1,0 +1,13 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<h4>Release Notes</h4>
+
+{% for note in release_notes %}
+    {% include "base/release_note.html" %}
+
+{% endfor %}
+
+</div>
+{% endblock %}

@@ -29,39 +29,40 @@ hx-ext='json-enc'
 hx-target="this" 
 hx-swap="outerHTML"
 hx-on::after-request=" if(event.detail.successful) this.reset()">
-    <p><small>Enter an address or index and a label to add a new account. Adding a new account enbables no notification preferences. You can set these after adding your new account.</small></p>
-    <div class="container px-2">
+    <p>Enter an address or index and a label to add a new account. Adding a new account enbables no notification preferences. You can set these after adding your new account.</p>
+    <div class="px-2">
   
     <div class="row">
             <div class="col text-end">
-                <small><b>Address/Index</b></small>
+                <b>Address/Index</b>
             </div>
-            <div class="col">
-                <input   onclick="clear_error_message()"            class=" form-control form-control-sm small input-sm mb-1 text-end " 
+            <div class="col me-2">
+                <input   onclick="clear_error_message()"            class=" form-control form-control-sm  input-sm mb-1 text-end " 
                 type="text" name="id_or_index" id="id_or_index" >
                 
             </div>
       </div>
       <div class="row">
         <div class="col text-end">
-            <small><b>Label</b></small>
+            <b>Label</b>
         </div>
-        <div class="col">
-            <input               class=" form-control form-control-sm small input-sm mb-1 text-end " 
+        <div class="col me-2">
+            <input               class=" form-control form-control-sm  input-sm mb-1 text-end " 
             type="text" name="label" id="label">
-            
+            <button class="btn  ms-1 mt-0 b btn-link" >
+                Add account
+                </button>   
         </div>
   </div>
   {% if error_message %}
-  <div class="row alert alert-danger" id="error_message" role="alert"><small>{{error_message}}</small></div>
+  <div class="row alert alert-danger" id="error_message" role="alert">{{error_message}}</div>
 {% endif %}
-    <div><button class="btn small ms-1 mt-0 btn-sm btn-link" >
-        Add account
-        </button>
+    <div>
         
     </div>
     </div>
 </form>   
-    
+<br/>
+<!--     
 </div>
-<br/><br/><br/>
+<br/><br/><br/> -->

@@ -1,0 +1,30 @@
+{% include 'base/pagination.html' %}
+<table class="table table-borderless">
+            <thead>
+                <tr class="sm-text">
+                    <th class=" text-secondary-emphasis text-end" scope="col"></th>
+                    <th class=" text-secondary-emphasis text-end" scope="col"></th>
+                    <th class=" text-secondary-emphasis text-center" colspan="2" scope="col">Blocks per Day</th>
+                    
+                    
+                  </tr>
+                <tr>
+                <th class=" text-secondary-emphasis text-end" scope="col">Date</th>
+                <th class=" text-secondary-emphasis text-end" scope="col">LP (%)</th>
+                <th class=" text-secondary-emphasis text-end" scope="col">Expectation</th>
+                <th class=" text-secondary-emphasis text-end" scope="col">Actual</th>
+                
+              </tr class="sm-text">
+            </thead>
+            <tbody>
+            {% for date, row in data.items() %}
+                <tr class="sm-text">
+                    <td class=" text-secondary-emphasis text-end"><span class="ccd">{{date}}</span></td>
+                    <td class="text-end text-secondary-emphasis"><span class="ccd">{{(row.lp*100) |round_x_decimal_with_comma(6)}}</span></td>
+                    <td class="text-end text-secondary-emphasis"><span class="ccd">{{row.expectation |expectation_view}}</span></td>
+                    <td class="text-end text-secondary-emphasis"><span class="ccd">{{row.actuals|expectation_view }}</span></td>
+    
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>

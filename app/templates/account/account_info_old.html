@@ -1,0 +1,56 @@
+
+
+<ul class="nav nav-tabs ms-1 me-1" id="myTab" role="tablist">
+
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 active"
+      id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab"
+      aria-controls="general" aria-selected="true"><small>General</small></button>
+  </li>
+  <!-- <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2"
+      id="statement-tab" data-bs-toggle="tab" data-bs-target="#statement" type="button" role="tab"
+      aria-controls="statement" aria-selected="true"><small>Account Statement</small></button>
+  </li> -->
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link small ps-2 pe-2 " id="graph-tab"
+      data-bs-toggle="tab" data-bs-target="#graph" type="button" role="tab" aria-controls="graph" aria-selected="true">
+      <small>Flow Graph</small>
+    </button>
+  </li>
+
+</ul>
+
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show "
+    style="padding-top: 10px;" id="general" role="tabpanel" aria-labelledby="general-tab">
+    {% include "account/account_info_general.html" %}
+  </div>
+  <!-- <div class="tab-pane fade show "
+    style="padding-top: 10px;" id="statement" role="tabpanel" aria-labelledby="statement-tab">
+    <div id="account_statement"></div>
+  </div> -->
+
+
+
+      
+  <div class="tab-pane fade show " style="padding-top: 10px;"
+  id="graph" role="tabpanel" aria-labelledby="graph-tab">
+  {% if user %}  
+    {% if account.address != "33BDZ6MhmQrX89HC36gCdVbAVWXVQfXBwJpydUgswCWy7JUyfD" %}
+        {% include "account/account_graph_header.html" %}
+    {% else %}
+    <p class="small">The graph for this account is too big to show, but as the name Airdropper suggests, you can pretty
+      much guess what it would look like.</p>
+    {% endif %}
+  {% else %} 
+    <p class="small">Users get access to flow graphs. Go <a href="/settings/user/overview">here</a> to learn more.</p>
+    
+  {% endif %}
+    
+</div>
+  
+</div>

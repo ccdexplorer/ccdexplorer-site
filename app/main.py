@@ -1,190 +1,140 @@
-# ruff: noqa: F403, F405, E402, E501, E722
-
-import datetime as dt
 import uuid
 from contextlib import asynccontextmanager
-from datetime import timedelta
-
-import urllib3
-from ccdexplorer_fundamentals.enums import NET
-from ccdexplorer_fundamentals.mongodb import MongoDB, MongoMotor
+from ccdexplorer_fundamentals.tooter import Tooter
+from app.env import environment
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi_restful.tasks import repeat_every
-from prometheus_fastapi_instrumentator import Instrumentator
+from fastapi.templating import Jinja2Templates
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_AccountInfo
 
-# from app.Recurring import account
-from app.jinja2_helpers import *
+# from fastapi_restful.tasks import repeat_every
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# from app.__chain import *
-from app.state.state import *
+# import asyncio
+# from scheduler.asyncio import Scheduler
 
-urllib3.disable_warnings()
+from app.routers import home
+from app.routers import transaction
+from app.routers import block
+from app.routers import account
+from app.routers import account_validator
+from app.routers import account_pool
+from app.routers import node
+from app.routers import smart_contracts
+from app.routers import tools
+from app.routers import projects
+from app.routers import usersv2
+from app.routers import statistics
+from app.routers import tokens
+from app.routers import nodes
+from app.routers import staking
+from app.utils import get_url_from_api, add_account_info_to_cache
+import sentry_sdk
+import datetime as dt
+import httpx
+import pickle
 
-from ccdexplorer_fundamentals.ccdscan import CCDScan
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
-from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+if environment["SITE_URL"] != "http://127.0.0.1:8000":
+    sentry_sdk.init(
+        dsn="https://f4713c02eb5646ed84b2642b0fa1501e@o4503924901347328.ingest.us.sentry.io/4503924903313408",
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for tracing.
+        traces_sample_rate=1.0,
+        _experiments={
+            # Set continuous_profiling_auto_start to True
+            # to automatically start the profiler on when
+            # possible.
+            "continuous_profiling_auto_start": True,
+        },
+    )
 
-from app.ajax_helpers import *
-from app.classes.dressingroom import *
-from app.classes.Node_Baker import *
-from app.console import console
-from app.env import *
-from app.Recurring.recurring import Recurring
-from app.routers import (
-    account,
-    block,
-    exchanges,
-    misc,
-    nodes_bakers,
-    projects,
-    smart_contracts,
-    staking,
-    statistics,
-    tokens,
-    transaction,
-    transactions,
-    usersv2,
-)
-
-grpcclient = GRPCClient()
 tooter = Tooter()
-mongodb = MongoDB(tooter)
-motormongo = MongoMotor(tooter)
-
-ccdscan = CCDScan(tooter)
+scheduler = AsyncIOScheduler(timezone=dt.UTC)
 
 
-async def find_release():
-    pp = [{"$sort": {"date": -1}}, {"$limit": 1}]
-    result = list(mongodb.utilities[CollectionsUtilities.release_notes].aggregate(pp))
-    if len(result) > 0:
-        release = result[0]
-        return release["_id"]
-    else:
-        release = "No Release Found"
-        return release
+async def log_request(request):
+    print(
+        f"Request event hook: {request.method} {request.url} {request.headers} - Waiting for response"
+    )
+
+
+async def log_response(response):
+    request = response.request
+    print(
+        f"Response event hook: {request.method} {request.url} {response.headers}- Status {response.status_code}"
+    )
+
+
+def read_addresses_if_available(app):
+    app.addresses_to_indexes = {"mainnet": {}, "testnet": {}}
+    try:
+        for net in ["mainnet", "testnet"]:
+            with open(
+                f"addresses/{net}_addresses_to_indexes.pickle", "rb"
+            ) as fp:  # Unpickling
+                app.addresses_to_indexes[net] = pickle.load(fp)
+    except Exception as _:
+        pass
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    instrumentator.expose(app, endpoint="/api/v1/metrics")
+    app.templates = Jinja2Templates(directory="app/templates")
+    app.api_url = environment["API_URL"]
+    app.httpx_client = httpx.AsyncClient(
+        # event_hooks={"request": [log_request], "response": [log_response]},
+        timeout=None,
+        headers={"x-ccdexplorer-key": environment["CCDEXPLORER_API_KEY"]},
+    )
     app.env = environment
-    app.grpcclient = grpcclient
     app.tooter = tooter
-    app.ccdscan = ccdscan
-    app.recurring = recurring
-
-    app.mongodb = mongodb
-    app.motormongo = motormongo
-    app.env["API_KEY"] = str(uuid.uuid1())
-
-    app.release = await find_release()
-    app.users_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.tokens_tags_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.labeled_accounts_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.exchange_rates_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.memo_transfers_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.blocks_per_day_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.paydays_per_day_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.exchange_rates_ccd_historical_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.nightly_accounts_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.exchange_rates_historical_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.credential_issuers_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.reporting_output_last_requested = dt.datetime.now().astimezone(
-        dt.timezone.utc
-    ) - timedelta(seconds=10)
-    app.contracts_with_tag_info = None
-    app.tags = None
-    app.memo_transfers = None
-    app.user = None
-    app.exchange_rates = None
-    app.exchange_rates_ccd_historical = None
-    app.exchange_rates_historical = None
     app.credential_issuers = None
-    app.blocks_per_day = None
-    app.paydays_per_day = None
-    app.paydays_last_blocks_validated = None
-    app.nightly_accounts_by_account_id = None
-    app.reporting_output = {}
-    app.net = NET.MAINNET
-    app.env = environment
-    app.cns_response = {"updated": False}
-    app.last_block_response = {
-        NET.MAINNET: None,
-        NET.TESTNET: None,
-    }
-    app.last_seen_finalized_height = {
-        NET.MAINNET: 0,
-        NET.TESTNET: 0,
-    }
-
-    recurring.refresh_nodes_from_collection()
-
-    await get_nightly_accounts(app)
-
-    app.grpcclient.check_connection()
+    app.env["API_KEY"] = str(uuid.uuid1())
+    now = dt.datetime.now().astimezone(dt.timezone.utc)
+    app.labeled_accounts_last_requested = now - dt.timedelta(seconds=10)
+    app.users_last_requested = now - dt.timedelta(seconds=10)
+    app.nodes_last_requested = now - dt.timedelta(seconds=10)
+    app.credential_issuers_last_requested = now - dt.timedelta(seconds=10)
+    app.tags = None
+    app.nodes = None
+    read_addresses_if_available(app)
+    app.schema_cache = {"mainnet": {}, "testnet": {}}
+    app.token_information_cache = {"mainnet": {}, "testnet": {}}
+    app.schema_cache = {"mainnet": {}, "testnet": {}}
+    app.cns_domain_cache = {"mainnet": {}, "testnet": {}}
+    app.blocks_cache = {"mainnet": [], "testnet": []}
+    app.transactions_cache = {"mainnet": [], "testnet": []}
+    app.accounts_cache = {"mainnet": [], "testnet": []}
+    app.identity_providers_cache = {"mainnet": {}, "testnet": {}}
+    await repeated_task_get_accounts_id_providers(app)
+    scheduler.start()
     yield
+    scheduler.shutdown()
+    await app.httpx_client.aclose()
     print("END")
     pass
 
 
 app = FastAPI(lifespan=lifespan)
 
-# should be above the routers
-instrumentator = Instrumentator().instrument(app)
-
-app.include_router(smart_contracts.router)
-app.include_router(block.router)
-app.include_router(projects.router)
-app.include_router(misc.router)
-app.include_router(account.router)
-app.include_router(staking.router)
-app.include_router(tokens.router)
-app.include_router(transaction.router)
-app.include_router(statistics.router)
-app.include_router(nodes_bakers.router)
-app.include_router(exchanges.router)
-app.include_router(transactions.router)
-app.include_router(usersv2.router)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-# app.mount("/tmp", StaticFiles(directory="app/tmp", check_dir=True), name="tmp")
+app.mount("/node", StaticFiles(directory="node_modules"), name="node_modules")
+app.mount("/addresses", StaticFiles(directory="addresses"), name="addresses")
 
 origins = [
     "http://127.0.0.1:8000",
     "https://127.0.0.1:8000",
-    "http://dev.concordium-explorer.nl",
-    "https://dev.concordium-explorer.nl",
-    "http://concordium-explorer.nl",
-    "https://concordium-explorer.nl",
+    # "http://dev.concordium-explorer.nl",
+    # "https://dev.concordium-explorer.nl",
+    # "http://concordium-explorer.nl",
+    # "https://concordium-explorer.nl",
     "http://ccdexplorer.io",
     "https://ccdexplorer.io",
     "http://dev.ccdexplorer.io",
     "https://dev.ccdexplorer.io",
+    "https://v2.ccdexplorer.io",
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -194,33 +144,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-recurring = Recurring(ccdscan, mongodb, motormongo, grpcclient)
-
-
-tooter.send(
-    channel=TooterChannel.NOTIFIER,
-    message="(Site): Starting up.",
-    notifier_type=TooterType.INFO,
-)
-
-
-@repeat_every(seconds=60, wait_first=False)
-async def refresh_nodes_from_collection():
-    s = dt.datetime.now()
-    recurring.refresh_nodes_from_collection()
-    console.log(
-        f"refresh_nodes_from_collection: {(dt.datetime.now()-s).total_seconds():,.4} s"
-    )
+app.include_router(home.router)
+app.include_router(transaction.router)
+app.include_router(block.router)
+app.include_router(account.router)
+app.include_router(account_validator.router)
+app.include_router(account_pool.router)
+app.include_router(node.router)
+app.include_router(smart_contracts.router)
+app.include_router(tools.router)
+app.include_router(projects.router)
+app.include_router(usersv2.router)
+app.include_router(statistics.router)
+app.include_router(tokens.router)
+app.include_router(nodes.router)
+app.include_router(staking.router)
 
 
-@repeat_every(seconds=60 * 11, wait_first=False)
-async def refresh_nightly():
-    s = dt.datetime.now()
-    await get_nightly_accounts(app)
-    console.log(f"refresh_nightly: {(dt.datetime.now()-s).total_seconds():,.4} s")
+@scheduler.scheduled_job("interval", seconds=3, args=[app])
+async def repeated_task_get_blocks_and_transactions(app: FastAPI):
+    for net in ["mainnet", "testnet"]:
+
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/blocks/last/50", app.httpx_client
+        )
+        app.blocks_cache[net] = api_result.return_value if api_result.ok else None
+
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/transactions/last/50", app.httpx_client
+        )
+        app.transactions_cache[net] = api_result.return_value if api_result.ok else None
 
 
-@repeat_every(seconds=5, wait_first=False)
-async def check_connection():
-    app.grpcclient.check_connection()
+@scheduler.scheduled_job("interval", seconds=60, args=[app])
+async def repeated_task_get_accounts_id_providers(app: FastAPI):
+    for net in ["mainnet", "testnet"]:
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/accounts/last/50", app.httpx_client
+        )
+        app.accounts_cache[net] = api_result.return_value if api_result.ok else None
+
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/misc/identity-providers",
+            app.httpx_client,
+        )
+        app.identity_providers_cache[net] = (
+            api_result.return_value if api_result.ok else None
+        )
+        if app.accounts_cache[net]:
+            for account_ in app.accounts_cache[net]:
+                account_info: CCD_AccountInfo = CCD_AccountInfo(
+                    **account_["account_info"]
+                )
+                if account_info.address[:29] not in app.addresses_to_indexes[net]:
+                    print(f"Adding {account_info.index} to cache... FROM SCHEDULE")
+                    add_account_info_to_cache(account_info, app, net)

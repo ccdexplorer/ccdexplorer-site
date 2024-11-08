@@ -1,0 +1,41 @@
+
+
+<table class="table table-borderless">
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Display Name</td>
+            <td class="text-end text-secondary-emphasis">{{ vi.display_name }} <img width="20px;"src="{{vi.logo_url}}"></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Token Type</td>
+            <td class="text-end text-secondary-emphasis word-break">{{ vi.token_type.capitalize() }}                
+                </td>
+        </tr>
+        {% if vi.decimals %}
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Decimals</td>
+        <td class="text-end text-secondary-emphasis ccd">
+            {{ vi.decimals }}
+            </td>
+        </tr>
+        {% endif %}
+        {% if vi.owner !="other" %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Owner</td>
+            <td class="text-end text-secondary-emphasis">{{vi.owner}}
+                
+                </td>
+        </tr>
+        {% endif %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Module</td>
+            <td class="text-end text-secondary-emphasis">{{vi.module_name}}
+                
+                </td>
+        </tr>
+    
+</tbody>
+</table>
+
+
+
+

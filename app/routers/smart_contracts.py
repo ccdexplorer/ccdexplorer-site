@@ -1,27 +1,33 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
-import collections
+# import collections
 from bisect import bisect_right
 import numpy as np
 from datetime import timedelta
+import plotly.express as px
 import json
+import base64
 import uuid
-import altair as alt
-from ccdexplorer_fundamentals.cis import StandardIdentifiers
+from app.classes.dressingroom import (
+    MakeUp,
+    MakeUpRequest,
+    RequestingRoute,
+)
+from ccdexplorer_fundamentals.cis import StandardIdentifiers, MongoTypeTokensTag
 import pandas as pd
 from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
 from ccdexplorer_schema_parser.Schema import Schema
 
-from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+# from ccdexplorer_fundamentals.GRPCClient import GRPCClient
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
 from ccdexplorer_fundamentals.mongodb import (
     Collections,
-    MongoDB,
-    MongoMotor,
+    # MongoDB,
+    # MongoMotor,
     MongoTypeInstance,
     MongoTypeModule,
 )
-from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
+from ccdexplorer_fundamentals.tooter import Tooter  # , TooterChannel, TooterType
 from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -29,16 +35,15 @@ from pydantic import BaseModel
 from pymongo import DESCENDING
 from sortedcontainers import SortedDict
 
-from app.ajax_helpers import (
-    mongo_transactions_html_header,
-    process_transactions_to_HTML,
-    transactions_html_footer,
-)
+# from app.ajax_helpers import (
+#     mongo_transactions_html_header,
+#     process_transactions_to_HTML,
+#     transactions_html_footer,
+# )
 from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
 from app.env import *
 from app.jinja2_helpers import *
-from app.Recurring.recurring import Recurring
-from app.state.state import *
+from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 
 router = APIRouter()
 
@@ -69,80 +74,77 @@ async def redirect_instance_to_mainnet(
     return response
 
 
-@router.get(
-    "/ajax_source_module/{net}/{source_module}/{days}/{width}",
+@router.post(
+    "/{net}/module/{module_ref}/usage",
     response_class=HTMLResponse,
 )
 async def request_ajax_source_module(
     request: Request,
     net: str,
-    source_module: str,
-    days: int,
-    width: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    recurring: Recurring = Depends(get_recurring),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
+    module_ref: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-
-    module_class = MongoTypeModule(
-        **db_to_use[Collections.modules].find_one({"_id": source_module})
+    theme = "dark"
+    body = await request.body()
+    if body:
+        theme = body.decode("utf-8").split("=")[1]
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/module/{module_ref}/usage",
+        httpx_client,
     )
-    module_name = module_class.module_name
-    # modules_instances = module_class.contracts
-    module_instances = list(
-        db_to_use[Collections.instances].find({"source_module": module_class.id})
-    )
-    instance_to_source = {}
-    for instance in module_instances:
-        instance_to_source[instance["_id"]] = module_class.id
-    modules_instances = list(instance_to_source.keys())
-    if modules_instances:
-        pipeline = [
-            {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
-            {"$group": {"_id": "$date", "count": {"$sum": 1}}},
-        ]
-        result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
-    else:
-        result = []
+    result = api_result.return_value if api_result.ok else []
     if len(result) == 0:
         return None
 
     df = pd.DataFrame(result)
-    days_alive = (
-        dt.datetime.now() - dt.datetime(2021, 6, 9, 10, 0, 0)
-    ).total_seconds() / (60 * 60 * 24)
-    domain_pd = pd.to_datetime(
-        [
-            dt.date(2021, 6, 9) + dt.timedelta(days=x)
-            for x in range(0, int(days_alive + 1))
-        ]
-    )
 
     df.columns = ["date", "transaction_count"]
     df["date"] = pd.to_datetime(df["date"])
-
-    line = (
-        alt.Chart(df)
-        .mark_bar(
-            color="lightblue",
-            # interpolate='step-after',
-            line=True,
-        )
-        .encode(
-            x=alt.X("date:T", scale=alt.Scale(domain=list(domain_pd))),
-            y="transaction_count",
-        )
+    rng = [
+        "#AE7CF7",
+        "#70B785",
+        "#6E97F7",
+    ]
+    fig = px.bar(
+        df,
+        x="date",
+        y="transaction_count",
+        color_discrete_sequence=rng,
+        # range_x=["2021-06-09", f"{dt.datetime.now().astimezone(dt.UTC):%Y-%m-%d}"],
+        template=ccdexplorer_plotly_template(theme),
+    )
+    fig.update_yaxes(
+        title_text=None,
+        showgrid=False,
+        linewidth=0,
+        zerolinecolor="rgba(0,0,0,0)",
+    )
+    # fig.update_traces(mode="lines")
+    fig.update_xaxes(
+        title=None,
+        type="date",
+        showgrid=False,
+        linewidth=0,
+        zerolinecolor="rgba(0,0,0,0)",
+    )
+    fig.update_layout(
+        height=250,
+        # width=320,
+        legend_y=-0.25,
+        title="Module usage",
+        # title_y=0.46,
+        legend=dict(orientation="h"),
+        # legend_x=0.7,
+        margin=dict(l=0, r=0, t=0, b=0),
     )
 
-    chart = (
-        (line)
-        .resolve_scale(y="independent")
-        .properties(width=width * 0.80 if width < 400 else width, title=module_name)
+    html = fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
     )
-    return chart.to_json(format="vega")
+
+    return html
 
 
 class ReportingRequest(BaseModel):
@@ -171,10 +173,6 @@ def flatten_extend(matrix):
 async def ajax_source_module_reporting(
     request: Request,
     reporting_request: ReportingRequest,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    recurring: Recurring = Depends(get_recurring),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     net = reporting_request.net
@@ -261,89 +259,36 @@ async def ajax_source_module_reporting(
     )
 
 
+@router.get("/ajax_modules/{net}/{year}{month}")  # type:ignore
+async def smart_contracts(
+    request: Request,
+    net: str,
+    year: int,
+    month: int,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/modules/{year}/{month}",
+        httpx_client,
+    )
+    modules_to_show = api_result.return_value if api_result.ok else None
+
+
 @router.get("/{net}/smart-contracts")  # type:ignore
 async def smart_contracts(
     request: Request,
     net: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    # modules = reversed(
-    #     [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
-    # )
-    modules_dict = {
-        x["_id"]: MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()
-    }
-    mm = [
-        CCD_BlockItemSummary(**x)
-        for x in db_to_use[Collections.transactions].find(
-            {"type.contents": "module_deployed"}
-        )
-    ]
-    # for x in mm:
-    #     print(
-    #         f'{x["_id"]} : {x["account_transaction.effects.contract_initialized.origin_ref"]}'
-    #     )
-    inits_dict = {
-        x.account_transaction.effects.module_deployed: x.block_info.slot_time
-        for x in mm
-    }
-    # for x in db_to_use[Collections.transactions].find(
-    #     {"account_transaction.effects.contract_initialized": {"$exists": True}}
-    # )
-    # }
-
-    # update modules_dict with init dates
-    modules_sorted_by_date = SortedDict()
-    for module_ref, module in modules_dict.items():
-        init_date = inits_dict.get(module_ref, None)
-        if init_date:
-            module.init_date = init_date
-            modules_dict[module_ref] = module
-            modules_sorted_by_date[init_date] = module
-
-    # now do an ugly hack to get the modules into year/month buckets
-    max_date = max(modules_sorted_by_date.keys())
-    min_date = min(modules_sorted_by_date.keys())
-    months_list = []
-    cur_date = min_date
-    while cur_date < max_date:
-        end_of_day = dt.datetime.combine(cur_date, dt.time.max)
-        next_month = end_of_day.replace(day=28) + timedelta(days=4)
-        res = next_month - timedelta(days=next_month.day)
-        # print(f"Last date of month is:", res.date())
-        months_list.append(
-            {
-                "display_string": f"{cur_date.year}-{cur_date.month:02}",
-                "end_of_month_date": res,
-            }
-        )
-        cur_date += relativedelta(months=1)
-
-    the_dict = {}
-    for init_date in reversed(modules_sorted_by_date):
-        display_string_for_module = f"{init_date.year}-{init_date.month:02}"
-        already_found_display_dates = the_dict.get(display_string_for_module, None)
-        if not already_found_display_dates:
-            the_dict[display_string_for_module] = [modules_sorted_by_date[init_date]]
-        else:
-            the_dict[display_string_for_module].append(
-                modules_sorted_by_date[init_date]
-            )
-
-    all_instances = {}
-    for inst in [
-        MongoTypeInstance(**x) for x in db_to_use[Collections.instances].find({})
-    ]:
-        if not inst.source_module in all_instances:
-            all_instances[inst.source_module] = []
-        all_instances[inst.source_module].append(inst)
-
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/modules/{module_ref}/instances/{skip}/{limit}",
+        httpx_client,
+    )
+    instances_result = api_result.return_value if api_result.ok else None
     return templates.TemplateResponse(
         "smart_contracts/smart_contracts.html",
         {
@@ -363,10 +308,6 @@ async def smart_contracts(
     request: Request,
     net: str,
     module: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -391,10 +332,6 @@ async def smart_contracts(
 async def smart_contracts_reporting(
     request: Request,
     net: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -419,10 +356,6 @@ async def smart_contracts_reporting(
 async def smart_contracts_usage(
     request: Request,
     net: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
     tags: dict = Depends(get_labeled_accounts),
 ):
     user: UserV2 = get_user_detailsv2(request)
@@ -442,41 +375,125 @@ async def smart_contracts_usage(
     )
 
 
-def get_schema_from_source(
-    db_to_use: dict[Collections, Collection],
-    grpcclient: GRPCClient,
+@router.get(
+    "/module_instances/{net}/{module_ref}/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def get_module_instances(
+    request: Request,
     net: str,
     module_ref: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
 ):
-    ms: VersionedModuleSource = grpcclient.get_module_source_original_classes(
-        module_ref, "last_final", net=NET(net)
-    )
-    schema = Schema(ms.v1.value, 1) if ms.v1 else Schema(ms.v0.value, 0)
+    limit = 10
+    user: UserV2 = await get_user_detailsv2(request)
 
-    return schema
+    if api_key != request.app.env["API_KEY"]:
+        return "No valid api key supplied."
+    else:
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/module/{module_ref}/instances/{skip}/{limit}",
+            httpx_client,
+        )
+        instances_result = api_result.return_value if api_result.ok else None
+        if not instances_result:
+            error = f"Request error getting instances for module {module_ref} on {net}."
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": net,
+                },
+            )
+        module_instances = instances_result["module_instances"]
+        total_rows = instances_result["instances_count"]
+
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="instance",
+            action_string="instance",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template(
+            "smart_contracts/smart_module_instances.html"
+        ).render(
+            {
+                "module_instances": module_instances,
+                "tags": tags,
+                "net": net,
+                "request": request,
+                "pagination": pagination,
+                "totals_in_pagination": True,
+                "total_rows": total_rows,
+            }
+        )
+
+        return html
 
 
-@router.get("/{net}/module/{module_address}")  # type:ignore
+@router.get("/{net}/module/{module_ref}")  # type:ignore
 async def module_module_address(
     request: Request,
     net: str,
-    module_address: str,
-    recurring: Recurring = Depends(get_recurring),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
+    module_ref: str,
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    result = db_to_use[Collections.modules].find_one({"_id": module_address})
+    request.state.api_calls = {}
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/module/{module_ref}",
+        httpx_client,
+    )
+    result = api_result.return_value if api_result.ok else None
+
     schema_available = False
     schema_dict = {}
     schema_methods = {}
-    if result:
-        module = MongoTypeModule(**result)
-        module_name = module.module_name
-        schema = get_schema_from_source(db_to_use, grpcclient, net, module_address)
+    if not result:
+        error = f"Can't find the module at {module_ref} on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    module = MongoTypeModule(**result)
+    module_name = module.module_name
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/module/{module_ref}/deployed", httpx_client
+    )
+    tx_deployed = (
+        CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
+    )
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/module/{module_ref}/schema", httpx_client
+    )
+    schema_result: Schema | None = api_result.return_value if api_result.ok else None
+
+    encoded = schema_result["module_source"]
+    version = schema_result["version"]
+    if version == "v1":
+        ms = VersionedModuleSource()
+        ms.v1.value = base64.decodebytes(json.loads(encoded).encode())
+        schema = Schema(ms.v1.value, 1)
+    else:
+        ms = VersionedModuleSource()
+        ms.v0.value = base64.decodebytes(json.loads(encoded).encode())
+        schema = Schema(ms.v0.value, 0)
+    if schema:
         if schema.schema:
             schema_available = True
             schema_dict["init_param"] = schema.extract_init_param_schema(module_name)
@@ -495,33 +512,55 @@ async def module_module_address(
                         module_name, method_name
                     ),
                 }
-        module_instances = [
-            x["_id"]
-            for x in db_to_use[Collections.instances].find(
-                {"source_module": module_address}
-            )
-        ]
-    else:
-        module = None
-        module_instances = None
-        schema_dict = {}
-        schema_methods = {}
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/module/{module_ref}/instances/0/1",
+            httpx_client,
+        )
+        module_instances_result: list[str] | None = (
+            api_result.return_value if api_result.ok else {"instances_count": 0}
+        )
+        module_instance_count = module_instances_result["instances_count"]
+
+    # else:
+    #     module = None
+    #     module_instances_result = None
+    #     module_instance_count = 0
+    #     schema_dict = {}
+    #     schema_methods = {}
+    #     tx_deployed = None
 
     error = None
     if not module:
         error = {
             "error": True,
-            "errorMessage": f"No instance on {net} found at {module_address}.",
+            "errorMessage": f"No module on {net} found at {module_ref}.",
         }
+    request.state.api_calls["Module Info"] = (
+        f"{request.app.api_url}/docs#/Module/get_module_v2__net__module__module_ref__get"
+    )
+    request.state.api_calls["Deployed Tx"] = (
+        f"{request.app.api_url}/docs#/Module/get_module_deployment_tx_v2__net__module__module_ref__deployed_get"
+    )
+    request.state.api_calls["Module Schema"] = (
+        f"{request.app.api_url}/docs#/Module/get_module_schema_v2__net__module__module_ref__schema_get"
+    )
+    request.state.api_calls["Module Instances"] = (
+        f"{request.app.api_url}/docs#/Module/get_module_instances_v2__net__module__module_ref__instances__skip___limit__get"
+    )
+    request.state.api_calls["Module Usage"] = (
+        f"{request.app.api_url}/docs#/Module/get_module_usage_v2__net__module__module_ref__usage_get"
+    )
     return templates.TemplateResponse(
         "smart_contracts/smart_module.html",
         {
             "env": request.app.env,
             "net": net,
             "request": request,
+            "tx_deployed": tx_deployed,
+            "module_ref": module_ref,
             "error": error,
             "module": module,
-            "module_instances": module_instances,
+            "module_instance_count": module_instance_count,
             "schema": schema_available,
             "schema_dict": schema_dict,
             "schema_methods": schema_methods,
@@ -543,236 +582,134 @@ async def ajax_instance_txs_html_v2(
     requested_page: int,
     total_rows: int,
     api_key: str,
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    mongodb: MongoDB = Depends(get_mongo_db),
-    mongomotor: MongoMotor = Depends(get_mongo_motor),
-    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
     tags: dict = Depends(get_labeled_accounts),
-    # token_addresses_with_markup: dict = Depends(get_token_addresses_with_markup),
-    credential_issuers: list = Depends(get_credential_issuers),
-    ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 20
-    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
+    limit = 10
+    user: UserV2 = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{instance_subindex}>"
-    user: UserV2 = get_user_detailsv2(request)
-    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    tx_tabs: dict[TransactionClassifier, list] = {}
-    tx_tabs_active: dict[TransactionClassifier, bool] = {}
 
-    for tab in TransactionClassifier:
-        tx_tabs[tab] = []
-
-    # txs_hashes = [
-    #     x["tx_hash"]
-    #     for x in db_to_use[Collections.impacted_addresses].find(
-    #         {"impacted_address_canonical": instance_address}
-    #         # {"contract": instance_address}
-    #     )
-    # ]
-
-    # # requested page = 0 indicated the first page
-    # # requested page = -1 indicates the last page
-    # if requested_page > -1:
-    #     skip = requested_page * limit
-    # else:
-    #     nr_of_pages, _ = divmod(total_rows, limit)
-    #     skip = nr_of_pages * limit
-
-    # tx_result = [
-    #     CCD_BlockItemSummary(**x)
-    #     for x in db_to_use[Collections.transactions]
-    #     .find({"_id": {"$in": txs_hashes}})
-    #     .skip(skip)
-    #     .limit(limit)
-    #     .sort("block_info.height", DESCENDING)
-    # ]
-
-    # requested page = 0 indicated the first page
-    # requested page = -1 indicates the last page
-    if requested_page > -1:
-        skip = requested_page * limit
+    if api_key != request.app.env["API_KEY"]:
+        return "No valid api key supplied."
     else:
-        nr_of_pages, _ = divmod(total_rows, limit)
-        skip = nr_of_pages * limit
-        # special case if total_rows equals a limt multiple
-        if skip == total_rows:
-            skip = (nr_of_pages - 1) * limit
-
-    top_list_member = await db_to_use[
-        Collections.impacted_addresses_all_top_list
-    ].find_one({"_id": instance_address})
-
-    if not top_list_member:
-        pipeline = [
-            {
-                "$match": {"impacted_address_canonical": {"$eq": instance_address}},
-            },
-            {  # this filters out account rewards, as they are special events
-                "$match": {"tx_hash": {"$exists": True}},
-            },
-            {"$sort": {"block_height": DESCENDING}},
-            {"$project": {"_id": 0, "tx_hash": 1}},
-            {
-                "$facet": {
-                    "metadata": [{"$count": "total"}],
-                    "data": [{"$skip": skip}, {"$limit": limit}],
-                }
-            },
-            {
-                "$project": {
-                    "data": 1,
-                    "total": {"$arrayElemAt": ["$metadata.total", 0]},
-                }
-            },
-        ]
-        result = (
-            await db_to_use[Collections.impacted_addresses]
-            .aggregate(pipeline)
-            .to_list(limit)
+        skip = calculate_skip(requested_page, total_rows, limit)
+        # note we are using the account api here, as it's also valid for instances.
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
+            httpx_client,
         )
-        all_txs_hashes = [x["tx_hash"] for x in result[0]["data"]]
-        if "total" in result[0]:
-            total_tx_count = result[0]["total"]
-        else:
-            total_tx_count = 0
-
-    else:
-        #### This is a TOP_TX_COUNT account
-        pipeline = [
-            {
-                "$match": {"impacted_address_canonical": {"$eq": instance_address}},
-            },
-            {  # this filters out account rewards, as they are special events
-                "$match": {"tx_hash": {"$exists": True}},
-            },
-            {"$sort": {"block_height": DESCENDING}},
-            {"$skip": skip},
-            {"$limit": limit},
-            {"$project": {"tx_hash": 1}},
-        ]
-        result = (
-            await db_to_use[Collections.impacted_addresses]
-            .aggregate(pipeline)
-            .to_list(limit)
-        )
-        all_txs_hashes = [x["tx_hash"] for x in result]
-        total_tx_count = top_list_member["count"]
-
-    int_result = (
-        await db_to_use[Collections.transactions]
-        .find({"_id": {"$in": all_txs_hashes}})
-        .sort("block_info.height", DESCENDING)
-        .to_list(limit)
-    )
-    tx_result = [CCD_BlockItemSummary(**x) for x in int_result]
-
-    if len(tx_result) > 0:
-        for transaction in tx_result:
-            makeup_request = MakeUpRequest(
-                **{
+        tx_result = api_result.return_value if api_result.ok else None
+        if not tx_result:
+            error = f"Request error getting transactions for contract at {instance_address} on {net}."
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
                     "net": net,
-                    "grpcclient": grpcclient,
-                    "mongodb": mongodb,
-                    "tags": tags,
-                    "user": user,
-                    "contracts_with_tag_info": contracts_with_tag_info,
-                    "ccd_historical": ccd_historical,
-                    # "token_addresses_with_markup": token_addresses_with_markup,
-                    "credential_issuers": credential_issuers,
-                    "app": request.app,
-                }
-            )
-            classified_tx = MakeUp(makeup_request=makeup_request).prepare_for_display(
-                transaction, "", False
+                },
             )
 
-            tx_tabs[classified_tx.classifier].append(classified_tx)
+        tx_result_transactions = tx_result["transactions"]
+        total_rows = tx_result["total_tx_count"]
+        made_up_txs = []
+        if len(tx_result_transactions) > 0:
+            for transaction in tx_result_transactions:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.account,
+                    }
+                )
 
-    tab_selected_to_be_active = False
-    for tab in TransactionClassifier:
-        tx_tabs_active[tab] = False
-        if (not tab_selected_to_be_active) and (len(tx_tabs[tab]) > 0):
-            tab_selected_to_be_active = True
-            tx_tabs_active[tab] = True
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
+                made_up_txs.append(classified_tx)
 
-    html = mongo_transactions_html_header(
-        None,
-        total_tx_count,
-        requested_page,
-        tx_tabs,
-        tx_tabs_active,
-    )
-
-    for tab in TransactionClassifier:
-        html += process_transactions_to_HTML(
-            tx_tabs[tab], tab.value, tx_tabs_active[tab], tags
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="tx",
+            action_string="tx",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template("account/account_transactions.html").render(
+            {
+                "transactions": made_up_txs,
+                "tags": tags,
+                "net": net,
+                "request": request,
+                "pagination": pagination,
+                "totals_in_pagination": True,
+                "total_rows": total_rows,
+            }
         )
 
-    html += transactions_html_footer()
-    return html
+        return html
 
 
-@router.get("/{net}/instance/{instance_address}")  # type:ignore
-async def smart_contract_instance_full_address(
-    request: Request,
-    net: str,
-    instance_address: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tags: dict = Depends(get_labeled_accounts),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+# @router.get("/{net}/instance/{instance_address}")  # type:ignore
+# async def smart_contract_instance_full_address(
+#     request: Request,
+#     net: str,
+#     instance_address: str,
+#     tags: dict = Depends(get_labeled_accounts),
+# ):
+#     user: UserV2 = get_user_detailsv2(request)
+#     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
 
-    result = db_to_use[Collections.instances].find_one({"_id": instance_address})
-    if result:
-        contract = MongoTypeInstance(**result)
-    else:
-        contract = None
+#     result = db_to_use[Collections.instances].find_one({"_id": instance_address})
+#     if result:
+#         contract = MongoTypeInstance(**result)
+#     else:
+#         contract = None
 
-    error = None
-    if not contract:
-        error = {
-            "error": True,
-            "errorMessage": f"No instance found at {instance_address}.",
-        }
+#     error = None
+#     if not contract:
+#         error = {
+#             "error": True,
+#             "errorMessage": f"No instance found at {instance_address}.",
+#         }
 
-    return templates.TemplateResponse(
-        "smart_contracts/smart_instance.html",
-        {
-            "env": request.app.env,
-            "net": net,
-            "request": request,
-            "error": error,
-            "contract": contract,
-            "user": user,
-            "tags": tags,
-        },
-    )
+#     return templates.TemplateResponse(
+#         "smart_contracts/smart_instance.html",
+#         {
+#             "env": request.app.env,
+#             "net": net,
+#             "request": request,
+#             "error": error,
+#             "contract": contract,
+#             "user": user,
+#             "tags": tags,
+#         },
+#     )
 
 
 @router.get(
-    "/ajax_track_item_id/{net}/{instance_address}/{item_id}",
+    "/ajax_track_item_id/{net}/{instance_index}/{subindex}/{item_id}",
     response_class=HTMLResponse,
 )  # type:ignore
 async def ajax_track_item_id(
     request: Request,
     net: str,
-    instance_address: str,
+    instance_index: int,
+    subindex: int,
     item_id: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    pipeline = [
-        {"$match": {"contract": instance_address}},
-        {"$match": {"item_id": item_id}},
-        {"$sort": {"block_height": DESCENDING}},
-    ]
-    item_id_statuses = list(
-        db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/tnt/logged-events/{item_id}",
+        httpx_client,
     )
+    item_id_statuses = api_result.return_value if api_result.ok else []
     html = templates.get_template("smart_contracts/tnt_logged_events.html").render(
         {
             "logged_events": item_id_statuses,
@@ -785,137 +722,107 @@ async def ajax_track_item_id(
     return html
 
 
-@router.get("/{net}/instance/{instance_index}/{subindex}")  # type:ignore
+@router.get("/{net}/instance/{instance_index}/{subindex}")
 async def smart_contract_instance(
     request: Request,
     net: str,
     instance_index: int,
     subindex: int,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
     tags: dict = Depends(get_labeled_accounts),
-    contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    request.state.api_calls = {}
+    user: UserV2 = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{subindex}>"
-    result = db_to_use[Collections.instances].find_one({"_id": instance_address})
-    if result:
-        if result.get("v0"):
-            module_name = result["v0"]["name"][5:]
-        if result.get("v1"):
-            module_name = result["v1"]["name"][5:]
-
-        cis = CIS(
-            grpcclient,
-            instance_index,
-            subindex,
-            f"{module_name}.supports",
-            NET(net),
-        )
-        supports_cis6 = cis.supports_standard(StandardIdentifiers.CIS_6)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/supports-cis-standard/CIS-6",
+        httpx_client,
+    )
+    if api_result.ok:
+        supports_cis6 = api_result.return_value
         if supports_cis6:
-            pipeline = [
-                {
-                    "$match": {"contract": instance_address},
-                },
-                {
-                    "$group": {
-                        "_id": "$item_id",
-                    }
-                },
-                {
-                    "$project": {
-                        "_id": 0,
-                        "distinctValues": "$_id",
-                    }
-                },
-            ]
-            item_ids = [
-                x["distinctValues"]
-                for x in db_to_use[Collections.tnt_logged_events].aggregate(pipeline)
-            ]
-            pipeline_for_all = [
-                {
-                    "$match": {"contract": instance_address},
-                },
-                {
-                    "$project": {
-                        "_id": 0,
-                        # "logged_event": 0,
-                        "result": 1,
-                        # "event_type": 1,
-                        "contract": 1,
-                        "tx_hash": 1,
-                        "sender": 1,
-                        "timestamp": 1,
-                    }
-                },
-            ]
-            all_logged_events = list(
-                db_to_use[Collections.tnt_logged_events].aggregate(pipeline_for_all)
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/tnt/ids",
+                httpx_client,
             )
-            df = pd.json_normalize(all_logged_events)
-            df.drop(
-                [
-                    "result.tag",
-                    "result.metadata.url",
-                    "result.metadata.checksum",
-                    "result.additional_data",
-                ],
-                axis=1,
-                inplace=True,
-            )
-            df["result.new_status"] = df["result.new_status"].fillna("")
-            df["result.initial_status"] = df["result.initial_status"].fillna("")
-            df["item_id"] = df["result.item_id"]
-            df["status"] = np.where(
-                df["result.initial_status"] == "",
-                df["result.new_status"],
-                df["result.initial_status"],
-            )
+            item_ids = api_result.return_value if api_result.ok else []
 
-            df.drop(
-                ["result.new_status", "result.initial_status", "result.item_id"],
-                axis=1,
-                inplace=True,
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/tnt/logged-events",
+                httpx_client,
             )
-            filename = f"/tmp/track_and_trace - contract {instance_address} | {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
-            # df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
-            df.to_csv(filename, index=False)
+            all_logged_events = api_result.return_value if api_result.ok else []
+
+            filename = events_to_file(instance_address, all_logged_events)
         else:
             item_ids = None
             filename = None
 
-        result_list = list(
-            db_to_use[Collections.tokens_links_v2].find(
-                {"account_address_canonical": instance_address}
-            )
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/tokens-available",
+            httpx_client,
         )
-        if len(result_list) > 0:
-            tokens_available = True
-        else:
-            tokens_available = False
+        tokens_available = api_result.return_value if api_result.ok else False
 
-        result = db_to_use[Collections.instances].find_one({"_id": instance_address})
-        if result:
-            contract = MongoTypeInstance(**result)
-            index = contract.id.split(",")[0][1:]
-            subindex = contract.id.split(",")[1][:-1]
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/info",
+            httpx_client,
+        )
+        contract = (
+            MongoTypeInstance(**api_result.return_value) if api_result.ok else None
+        )
+
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/tag-info",
+            httpx_client,
+        )
+        tag_information = (
+            MongoTypeTokensTag(**api_result.return_value) if api_result.ok else None
+        )
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/deployed",
+            httpx_client,
+        )
+        tx_deployed = (
+            CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
+        )
+
+        request.state.api_calls["Instance Info"] = (
+            f"{request.app.api_url}/docs#/Contract/get_instance_information_v2__net__contract__contract_index___contract_subindex__info_get"
+        )
+        request.state.api_calls["Verified Information"] = (
+            f"{request.app.api_url}/docs#/Contract/get_instance_tag_information_v2__net__contract__contract_index___contract_subindex__tag_info_get"
+        )
+        request.state.api_calls["Tokens Available"] = (
+            f"{request.app.api_url}/docs#/Contract/get_contract_tokens_available_v2__net__contract__contract_index___contract_subindex__tokens_available_get"
+        )
+        request.state.api_calls["Deployed Tx"] = (
+            f"{request.app.api_url}/docs#/Contract/get_contract_deployment_tx_v2__net__contract__contract_index___contract_subindex__deployed_get"
+        )
+        request.state.api_calls["Instance Transactions"] = (
+            f"{request.app.api_url}/docs#/Account/get_account_txs_v2__net__account__account_id__transactions__skip___limit__get"
+        )
+        request.state.api_calls["Token Information"] = (
+            f"{request.app.api_url}/docs#/Contract/get_token_information_v2__net__contract__contract_index___contract_subindex__token_information_get"
+        )
+        request.state.api_calls["Schema from Source"] = (
+            f"{request.app.api_url}/docs#/Contract/get_schema_from_source_v2__net__contract__contract_index___contract_subindex__schema_from_source_get"
+        )
+        if contract:
             error = None
-            dressed_up_contract = contracts_with_tag_info.get(contract.id)
+            # dressed_up_contract = contracts_with_tag_info.get(contract.id)
             return templates.TemplateResponse(
                 "smart_contracts/smart_instance.html",
                 {
                     "env": request.app.env,
                     "request": request,
                     "error": error,
+                    "tx_deployed": tx_deployed,
                     "tokens_available": tokens_available,
                     "contract": contract,
-                    "index": index,
+                    "index": instance_index,
                     "subindex": subindex,
-                    "dressed_up_contract": dressed_up_contract,
+                    "tag_information": tag_information,
                     "user": user,
                     "tags": tags,
                     "net": net,
@@ -924,11 +831,18 @@ async def smart_contract_instance(
                     "filename": filename,
                 },
             )
+    # api_result NOT ok
     else:
-        error = {
-            "error": True,
-            "errorMessage": f"No instance found on {net} for {instance_address}.",
-        }
+        if api_result.status_code == 404:
+            error = {
+                "error": True,
+                "errorMessage": f"No instance found on {net} for {instance_address}.",
+            }
+        else:
+            error = {
+                "error": True,
+                "errorMessage": f"Error getting info on {net} for {instance_address}.",
+            }
         contract = None
         return templates.TemplateResponse(
             "smart_contracts/smart_instance.html",
@@ -937,6 +851,37 @@ async def smart_contract_instance(
                 "net": net,
                 "request": request,
                 "error": error,
-                "net": net,
             },
         )
+
+
+def events_to_file(instance_address: str, all_logged_events: list):
+    df = pd.json_normalize(all_logged_events)
+    df.drop(
+        [
+            "result.tag",
+            "result.metadata.url",
+            "result.metadata.checksum",
+            "result.additional_data",
+        ],
+        axis=1,
+        inplace=True,
+    )
+    df["result.new_status"] = df["result.new_status"].fillna("")
+    df["result.initial_status"] = df["result.initial_status"].fillna("")
+    df["item_id"] = df["result.item_id"]
+    df["status"] = np.where(
+        df["result.initial_status"] == "",
+        df["result.new_status"],
+        df["result.initial_status"],
+    )
+
+    df.drop(
+        ["result.new_status", "result.initial_status", "result.item_id"],
+        axis=1,
+        inplace=True,
+    )
+    filename = f"/tmp/track_and_trace - contract {instance_address} | {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
+    # df_group.columns = [f"{tooltip} Ending", "Sum of Fees (CCD)"]
+    df.to_csv(filename, index=False)
+    return filename
