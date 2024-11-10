@@ -107,14 +107,20 @@ class MakeUp:
         self.smart_contracts_updated = []
 
     async def get_schema_from_source(self, contract_address: CCD_ContractAddress):
-        result_from_cache = self.app.schema_cache[self.net].get(contract_address.to_str())
+        result_from_cache = self.app.schema_cache[self.net].get(
+            contract_address.to_str()
+        )
         if result_from_cache:
             now = dt.datetime.now().astimezone(dt.UTC)
             if (now - result_from_cache["timestamp"]).total_seconds() < 5:
-                schema = self.app.schema_cache[self.net][contract_address.to_str()]["schema"]
-                source_module_name = self.app.schema_cache[self.net][contract_address.to_str()]["source_module_name"]
+                schema = self.app.schema_cache[self.net][contract_address.to_str()][
+                    "schema"
+                ]
+                source_module_name = self.app.schema_cache[self.net][
+                    contract_address.to_str()
+                ]["source_module_name"]
                 return schema, source_module_name
-        
+
         api_result = await get_url_from_api(
             f"{self.app.api_url}/v2/{self.net}/contract/{contract_address.index}/{contract_address.subindex}/schema-from-source",
             self.httpx_client,
@@ -125,7 +131,6 @@ class MakeUp:
             source_module_name = None
             return schema, source_module_name
 
-        
         ms_bytes = base64.decodebytes(
             json.loads(api_repsonse["module_source"]).encode()
         )
@@ -141,7 +146,7 @@ class MakeUp:
         self.app.schema_cache[self.net][contract_address.to_str()] = {
             "schema": schema,
             "source_module_name": source_module_name,
-            "timestamp": dt.datetime.now().astimezone(dt.UTC)
+            "timestamp": dt.datetime.now().astimezone(dt.UTC),
         }
 
         return schema, source_module_name
@@ -166,13 +171,13 @@ class MakeUp:
             self.cns_domain.action_message = f"Sub domain <b>{self.cns_domain.subdomain }</b> created on <b>{self.cns_domain.domain_name}</b>"
 
         if effect_updated.receive_name == "BictoryCns.setAddress":
-            self.cns_domain.action_message = f"Address (to {account_link(self.cns_domain.set_address, self.net,user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}) set on <b>{self.cns_domain.domain_name}.</b>"
+            self.cns_domain.action_message = f"Address (to {account_link(self.cns_domain.set_address, self.net,user=self.user, tags=self.tags,app=self.makeup_request.app)}) set on <b>{self.cns_domain.domain_name}.</b>"
 
         if effect_updated.receive_name == "BictoryCns.setData":
             self.cns_domain.action_message = f"Data ({self.cns_domain.set_data_key}: {self.cns_domain.set_data_value}) set on <b>{self.cns_domain.domain_name}</b>."
 
         if effect_updated.receive_name == "BictoryCnsNft.transfer":
-            self.cns_domain.action_message = f"<b>Transferred {self.cns_domain.domain_name}</b> to {account_link(self.cns_domain.transfer_to, self.net, user=self.user, tags=self.tags, white_text=True, app=self.makeup_request.app)}"
+            self.cns_domain.action_message = f"<b>Transferred {self.cns_domain.domain_name}</b> to {account_link(self.cns_domain.transfer_to, self.net, user=self.user, tags=self.tags,  app=self.makeup_request.app)}"
 
         if effect_updated.receive_name == "BictoryNftAuction.bid":
             self.cns_domain.action_message = f"Bid placed on <b>{self.cns_domain.domain_name}</b> for <b>{micro_ccd_no_decimals(self.cns_domain.amount)}</b>"
@@ -199,26 +204,31 @@ class MakeUp:
                 )
 
     async def get_domain_from_collection(self):
-        result_from_cache = self.app.cns_domain_cache[self.net].get(self.cns_domain.tokenId)
+        result_from_cache = self.app.cns_domain_cache[self.net].get(
+            self.cns_domain.tokenId
+        )
         from_cache = False
         if result_from_cache:
             now = dt.datetime.now().astimezone(dt.UTC)
             if (now - result_from_cache["timestamp"]).total_seconds() < 5:
-                self.cns_domain.domain_name = self.app.cns_domain_cache[self.net][self.cns_domain.tokenId]["domain_name"]
-                from_cache= True
+                self.cns_domain.domain_name = self.app.cns_domain_cache[self.net][
+                    self.cns_domain.tokenId
+                ]["domain_name"]
+                from_cache = True
 
         if not from_cache:
             api_result = await get_url_from_api(
                 f"{self.app.api_url}/v2/{self.net}/misc/cns-domain/{self.cns_domain.tokenId}",
                 self.httpx_client,
             )
-            self.cns_domain.domain_name = api_result.return_value if api_result.ok else ""
-
+            self.cns_domain.domain_name = (
+                api_result.return_value if api_result.ok else ""
+            )
 
             # add to cache
             self.app.cns_domain_cache[self.net][self.cns_domain.tokenId] = {
                 "domain_name": self.cns_domain.domain_name,
-                "timestamp": dt.datetime.now().astimezone(dt.UTC)
+                "timestamp": dt.datetime.now().astimezone(dt.UTC),
             }
 
     async def set_possible_cns_domain_from_update(
@@ -1103,11 +1113,12 @@ class MakeUp:
 
             elif t.update.payload.foundation_account_update:
                 new_account = (
-                    account_link( from_address_to_index(
-                                    t.update.payload.foundation_account_update,
-                                    self.net,
-                                    app=self.makeup_request.app,
-                                ),
+                    account_link(
+                        from_address_to_index(
+                            t.update.payload.foundation_account_update,
+                            self.net,
+                            app=self.makeup_request.app,
+                        ),
                         self.net,
                         user=self.user,
                         tags=self.tags,
@@ -1203,11 +1214,15 @@ class MakeUp:
     ):
         success = False
         from_cache = False
-        result_from_cache = self.app.token_information_cache[self.net].get(contract_address.to_str())
+        result_from_cache = self.app.token_information_cache[self.net].get(
+            contract_address.to_str()
+        )
         if result_from_cache:
             now = dt.datetime.now().astimezone(dt.UTC)
             if (now - result_from_cache["timestamp"]).total_seconds() < 5:
-                token_information =self.app.token_information_cache[self.net][contract_address.to_str()]["token_information"]
+                token_information = self.app.token_information_cache[self.net][
+                    contract_address.to_str()
+                ]["token_information"]
                 from_cache = True
 
         if not from_cache:
@@ -1220,7 +1235,7 @@ class MakeUp:
         # add to cache
         self.app.token_information_cache[self.net][contract_address.to_str()] = {
             "token_information": token_information,
-            "timestamp": dt.datetime.now().astimezone(dt.UTC)
+            "timestamp": dt.datetime.now().astimezone(dt.UTC),
         }
 
         if token_information:

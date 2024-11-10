@@ -74,8 +74,8 @@ def read_addresses_if_available(app):
                 f"addresses/{net}_addresses_to_indexes.pickle", "rb"
             ) as fp:  # Unpickling
                 app.addresses_to_indexes[net] = pickle.load(fp)
-    except Exception as _:
-        pass
+    except Exception as error:
+        print(f"ERROR getting addresses: {error}")
 
 
 @asynccontextmanager
