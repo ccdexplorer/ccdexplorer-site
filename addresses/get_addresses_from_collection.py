@@ -1,7 +1,4 @@
-from ccdexplorer_fundamentals.mongodb import (
-    Collections,
-    MongoMotor,
-)
+from ccdexplorer_fundamentals.mongodb import Collections, MongoMotor, MongoDB
 from ccdexplorer_fundamentals.tooter import Tooter
 from app.env import *  # noqa: F403
 import asyncio
@@ -9,6 +6,7 @@ import pickle
 
 tooter = Tooter()
 motormongo = MongoMotor(tooter)
+mongodb = MongoDB(tooter)
 
 
 async def main():
