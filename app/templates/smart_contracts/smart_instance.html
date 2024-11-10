@@ -81,66 +81,74 @@
   };
 </script>
 
-{% if contract.v0 %}
-    {% set details = contract.v0 %}
-{%else%}
-    {% set details = contract.v1 %}
-{% endif %}
-
-{% include 'base/search_bar_non_home_inclusion.html' %}
-<div class="row  mt-4">
-    <div class="col">{% include 'smart_contracts/instance_header.html' %}</div>  
-</div>
-<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
-<div class="row mt-4 row-flex">
-    {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
-        
-        <div class="border content curved-border " >
-            {% set title= "Instance Info" %}{% include 'base/box_title.html' %}
-            {% include "smart_contracts/smart_instance_info.html" %}</div>
-    </div>
-   
-    {% if supports_cis6 %}
-    <div class="col-md-6  col-sm-12">
-      <div class="border content curved-border " >
-        {% set title= "Track & Track Info" %}{% include 'base/box_title.html' %}
-        <a class="" href="{{filename}}" title="Download .csv file for all items" target="_blank">Download .csv file</a> for all items<br/> or<br/>
-        <label for="item_id">Track individual item</label>
-            <select name="item_id" id="item_id" class=" form-select form-select-sm small">
-                
-                {% for item_id in item_ids %}
-                  <option value="{{item_id}}">{{item_id}}</option>
-                {% endfor %}
-                
-              </select> 
-              <br/>
-              
-              <button onclick='Track()' type="button" id="track-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Track Item</button>
-              
-            
-              <div id="cis6_tracker"></div>
-        </div>
-    </div>
-    {% endif %}
-    
+{% if error %}
+<div class="row">
+  <div class=" col-lg-12 ">
+      <p class="bg-danger-subtle border curved-border">{{error.errorMessage}}</p>
   </div>
-  
-  <div class="row row-flex">
-    {% if tokens_available %}
-    <div class="col-md-8  col-sm-12 ">
-      <div class="border content curved-border " >
-        {% set title= "Tokens" %}{% include 'base/box_title.html' %}
-        <div id="tokens"></div>
-  
+</div>
+
+{% else %}
+  {% if contract.v0 %}
+      {% set details = contract.v0 %}
+  {%else%}
+      {% set details = contract.v1 %}
+  {% endif %}
+
+  {% include 'base/search_bar_non_home_inclusion.html' %}
+  <div class="row  mt-4">
+      <div class="col">{% include 'smart_contracts/instance_header.html' %}</div>  
+  </div>
+  <!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+  <div class="row mt-4 row-flex">
+      {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
+          
+          <div class="border content curved-border " >
+              {% set title= "Instance Info" %}{% include 'base/box_title.html' %}
+              {% include "smart_contracts/smart_instance_info.html" %}</div>
+      </div>
+    
+      {% if supports_cis6 %}
+      <div class="col-md-6  col-sm-12">
+        <div class="border content curved-border " >
+          {% set title= "Track & Track Info" %}{% include 'base/box_title.html' %}
+          <a class="" href="{{filename}}" title="Download .csv file for all items" target="_blank">Download .csv file</a> for all items<br/> or<br/>
+          <label for="item_id">Track individual item</label>
+              <select name="item_id" id="item_id" class=" form-select form-select-sm small">
+                  
+                  {% for item_id in item_ids %}
+                    <option value="{{item_id}}">{{item_id}}</option>
+                  {% endfor %}
+                  
+                </select> 
+                <br/>
+                
+                <button onclick='Track()' type="button" id="track-button" class=" ms-4 pe-3 btn btn-sm btn-primary">Track Item</button>
+                
+              
+                <div id="cis6_tracker"></div>
+          </div>
+      </div>
+      {% endif %}
+      
+    </div>
+    
+    <div class="row row-flex">
+      {% if tokens_available %}
+      <div class="col-md-8  col-sm-12 ">
+        <div class="border content curved-border " >
+          {% set title= "Tokens" %}{% include 'base/box_title.html' %}
+          <div id="tokens"></div>
+    
+        </div>
+      </div>
+      {% endif %}
+      {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
+          <div class="border content curved-border " >
+              <div id="instance-transactions"></div>
+              
+      </div>
       </div>
     </div>
-    {% endif %}
-    {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
-        <div class="border content curved-border " >
-            <div id="instance-transactions"></div>
-            
-    </div>
-    </div>
-  </div>
-  
+  {% endif %}  
 {% endblock content %}

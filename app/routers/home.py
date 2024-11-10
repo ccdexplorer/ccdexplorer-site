@@ -40,6 +40,9 @@ class MarketCapInfo(Enum):
     VALIDATORS_COUNT = 5
 
 
+
+
+
 async def get_marketcap_info(
     httpx_client: httpx.AsyncClient,
     info: MarketCapInfo,
@@ -262,17 +265,18 @@ async def search(request: Request, search_request: SearchRequest):
     if search_request.selector == "all":
         url = f"/{search_request.net}/search_all/{search_request.value}"
     if search_request.selector == "account":
-        url = f"/{search_request.net}/account/{search_request.value}"
+        url = f"/{search_request.net}/account/{search_request.value.replace(" ","")}"
     if search_request.selector == "block":
 
-        url = f"/{search_request.net}/block/{search_request.value.replace(",","").replace(".","")}"
+        url = f"/{search_request.net}/block/{search_request.value.replace(" ","").replace(",","").replace(".","")}"
     if search_request.selector == "transaction":
-        url = f"/{search_request.net}/transaction/{search_request.value}"
+        url = f"/{search_request.net}/transaction/{search_request.value.replace(" ","")}"
     if search_request.selector == "contract":
-        url = f"/{search_request.net}/instance/{search_request.value}/0"
+        url = f"/{search_request.net}/instance/{search_request.value.replace(" ","")}/0"
     if search_request.selector == "module":
-        url = f"/{search_request.net}/module/{search_request.value}"
+        url = f"/{search_request.net}/module/{search_request.value.replace(" ","")}"
     if search_request.selector == "token":
+        search_request.value = search_request.value.replace(" ","")
         if "-" in search_request.value:
             splits = search_request.value.split("-")
             if len(splits) == 2:
@@ -736,4 +740,18 @@ async def release_notes(
     return templates.TemplateResponse(
         "base/release_notes.html",
         {"env": request.app.env, "request": request, "release_notes": release_notes},
+    )
+
+
+
+@router.get("/misc/privacy-policy", response_class=HTMLResponse)
+async def release_notes(
+    request: Request,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    request.state.api_calls = {}
+    request.state.api_calls["None"] = ""
+    return templates.TemplateResponse(
+        "base/privacy_policy.html",
+        {"env": request.app.env, "request": request},
     )

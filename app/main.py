@@ -2,7 +2,7 @@ import uuid
 from contextlib import asynccontextmanager
 from ccdexplorer_fundamentals.tooter import Tooter
 from app.env import environment
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -122,6 +122,33 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/node", StaticFiles(directory="node_modules"), name="node_modules")
 app.mount("/addresses", StaticFiles(directory="addresses"), name="addresses")
+
+
+@app.exception_handler(404)
+async def exception_handler_404(request: Request, exc: Exception):
+
+    return app.templates.TemplateResponse(
+        "base/error.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "error": "Can't find the page you are looking for!",
+        },
+    )
+
+
+@app.exception_handler(500)
+async def exception_handler_500(request: Request, exc: Exception):
+
+    return app.templates.TemplateResponse(
+        "base/error.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "error": "Something's not quite right!",
+        },
+    )
+
 
 origins = [
     "http://127.0.0.1:8000",
