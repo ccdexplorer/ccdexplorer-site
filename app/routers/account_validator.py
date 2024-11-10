@@ -235,73 +235,68 @@ async def get_account_validator_transactions(
     limit = 10
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-transactions/{skip}/{limit}",
-            httpx_client,
-        )
-        tx_result = api_result.return_value if api_result.ok else None
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-transactions/{skip}/{limit}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
 
-        if not tx_result:
-            error = f"Request error getting validator transactions for account at {account_id} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
+    if not tx_result:
+        error = f"Request error getting validator transactions for account at {account_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    tx_result_transactions = tx_result["transactions"]
+    total_rows = tx_result["total_tx_count"]
+    made_up_txs = []
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
                     "net": net,
-                },
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.block,
+                }
             )
 
-        tx_result_transactions = tx_result["transactions"]
-        total_rows = tx_result["total_tx_count"]
-        made_up_txs = []
-        if len(tx_result_transactions) > 0:
-            for transaction in tx_result_transactions:
-                transaction = CCD_BlockItemSummary(**transaction)
-                makeup_request = MakeUpRequest(
-                    **{
-                        "net": net,
-                        "httpx_client": httpx_client,
-                        "tags": tags,
-                        "user": user,
-                        "app": request.app,
-                        "requesting_route": RequestingRoute.block,
-                    }
-                )
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
 
-                classified_tx = await MakeUp(
-                    makeup_request=makeup_request
-                ).prepare_for_display(transaction, "", False)
-                made_up_txs.append(classified_tx)
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="tx",
+        action_string="validator_tx",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("account/account_validator_transactions.html").render(
+        {
+            "transactions": made_up_txs,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
 
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="tx",
-            action_string="validator_tx",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template(
-            "account/account_validator_transactions.html"
-        ).render(
-            {
-                "transactions": made_up_txs,
-                "tags": tags,
-                "net": net,
-                "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
-        )
-
-        return html
+    return html
 
 
 @router.get(
@@ -321,46 +316,43 @@ async def get_validator_tally(
     limit = 7
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
-            httpx_client,
-        )
-        tally = api_result.return_value if api_result.ok else None
-        if not tally:
-            error = f"Request error getting validator tally for account at {account_id} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-
-        tally_data = tally["data"]
-        total_rows = tally["total_row_count"]
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="result",
-            action_string="result",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("account/account_validator_tally.html").render(
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
+        httpx_client,
+    )
+    tally = api_result.return_value if api_result.ok else None
+    if not tally:
+        error = f"Request error getting validator tally for account at {account_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "data": tally_data,
-                "net": net,
                 "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
 
-        return html
+    tally_data = tally["data"]
+    total_rows = tally["total_row_count"]
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="result",
+        action_string="result",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("account/account_validator_tally.html").render(
+        {
+            "data": tally_data,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
+
+    return html

@@ -392,52 +392,47 @@ async def get_module_instances(
     limit = 10
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/module/{module_ref}/instances/{skip}/{limit}",
-            httpx_client,
-        )
-        instances_result = api_result.return_value if api_result.ok else None
-        if not instances_result:
-            error = f"Request error getting instances for module {module_ref} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-        module_instances = instances_result["module_instances"]
-        total_rows = instances_result["instances_count"]
-
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="instance",
-            action_string="instance",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template(
-            "smart_contracts/smart_module_instances.html"
-        ).render(
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/module/{module_ref}/instances/{skip}/{limit}",
+        httpx_client,
+    )
+    instances_result = api_result.return_value if api_result.ok else None
+    if not instances_result:
+        error = f"Request error getting instances for module {module_ref} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "module_instances": module_instances,
-                "tags": tags,
-                "net": net,
                 "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
+    module_instances = instances_result["module_instances"]
+    total_rows = instances_result["instances_count"]
 
-        return html
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="instance",
+        action_string="instance",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("smart_contracts/smart_module_instances.html").render(
+        {
+            "module_instances": module_instances,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
+
+    return html
 
 
 @router.get("/{net}/module/{module_ref}")  # type:ignore
@@ -589,71 +584,68 @@ async def ajax_instance_txs_html_v2(
     user: UserV2 = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{instance_subindex}>"
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        # note we are using the account api here, as it's also valid for instances.
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
-            httpx_client,
+    skip = calculate_skip(requested_page, total_rows, limit)
+    # note we are using the account api here, as it's also valid for instances.
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not tx_result:
+        error = f"Request error getting transactions for contract at {instance_address} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
-        tx_result = api_result.return_value if api_result.ok else None
-        if not tx_result:
-            error = f"Request error getting transactions for contract at {instance_address} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
+
+    tx_result_transactions = tx_result["transactions"]
+    total_rows = tx_result["total_tx_count"]
+    made_up_txs = []
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
                     "net": net,
-                },
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.account,
+                }
             )
 
-        tx_result_transactions = tx_result["transactions"]
-        total_rows = tx_result["total_tx_count"]
-        made_up_txs = []
-        if len(tx_result_transactions) > 0:
-            for transaction in tx_result_transactions:
-                transaction = CCD_BlockItemSummary(**transaction)
-                makeup_request = MakeUpRequest(
-                    **{
-                        "net": net,
-                        "httpx_client": httpx_client,
-                        "tags": tags,
-                        "user": user,
-                        "app": request.app,
-                        "requesting_route": RequestingRoute.account,
-                    }
-                )
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
 
-                classified_tx = await MakeUp(
-                    makeup_request=makeup_request
-                ).prepare_for_display(transaction, "", False)
-                made_up_txs.append(classified_tx)
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="tx",
+        action_string="tx",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("account/account_transactions.html").render(
+        {
+            "transactions": made_up_txs,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
 
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="tx",
-            action_string="tx",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("account/account_transactions.html").render(
-            {
-                "transactions": made_up_txs,
-                "tags": tags,
-                "net": net,
-                "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
-        )
-
-        return html
+    return html
 
 
 # @router.get("/{net}/instance/{instance_address}")  # type:ignore

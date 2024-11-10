@@ -94,17 +94,14 @@ async def ajax_token_events(
     token_addresses_with_markup = token_addresses_with_markup_both_nets[NET(net)]
     user: UserV2 = get_user_detailsv2(request)
     db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        now = dt.datetime.utcnow()
-        cutoff = now - timedelta(days=days)
+    now = dt.datetime.utcnow()
+    cutoff = now - timedelta(days=days)
 
-        tx_tabs: dict[TransactionClassifier, list] = {}
-        tx_tabs_active: dict[TransactionClassifier, bool] = {}
+    tx_tabs: dict[TransactionClassifier, list] = {}
+    tx_tabs_active: dict[TransactionClassifier, bool] = {}
 
-        for tab in TransactionClassifier:
-            tx_tabs[tab] = []
+    for tab in TransactionClassifier:
+        tx_tabs[tab] = []
 
     # requested page = 0 indicated the first page
     # requested page = -1 indicates the last page
@@ -495,105 +492,102 @@ async def ajax_logged_events_for_token_address(
     typed_tokens_tag = None
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        stored_token_address = db_to_use[
-            Collections.tokens_token_addresses_v2
-        ].find_one({"_id": token_address_str})
-        typed_token_address = TokenAddress.from_str(token_address_str)
-        if stored_token_address:
-            stored_token_address = MongoTypeTokenAddress(**stored_token_address)
-            typed_tokens_tag = token_tag_if_exists(
-                typed_token_address.contract, db_to_use
-            )
-            metadata = None
-            if not typed_tokens_tag:
-                metadata = retrieve_metadata_for_stored_token_address(
-                    token_address_str, db_to_use
-                )
-
-        if requested_page > -1:
-            skip = requested_page * limit
-        else:
-            nr_of_pages, _ = divmod(total_rows, limit)
-            skip = nr_of_pages * limit
-
+    stored_token_address = db_to_use[
+        Collections.tokens_token_addresses_v2
+    ].find_one({"_id": token_address_str})
+    typed_token_address = TokenAddress.from_str(token_address_str)
+    if stored_token_address:
+        stored_token_address = MongoTypeTokenAddress(**stored_token_address)
+        typed_tokens_tag = token_tag_if_exists(
+            typed_token_address.contract, db_to_use
+        )
         metadata = None
-        decimals = 0 if not typed_tokens_tag else typed_tokens_tag.decimals
         if not typed_tokens_tag:
             metadata = retrieve_metadata_for_stored_token_address(
                 token_address_str, db_to_use
             )
-            if metadata:
-                decimals = metadata.decimals
 
-        pipeline = [
-            {"$match": {"token_address": token_address_str}},
-            {
-                "$sort": {
-                    "block_height": DESCENDING,
-                    "tx_index": DESCENDING,
-                    "ordering": DESCENDING,
-                }
-            },
-            {
-                "$facet": {
-                    "metadata": [{"$count": "total"}],
-                    "data": [{"$skip": skip}, {"$limit": limit}],
-                }
-            },
-            {
-                "$project": {
-                    "data": 1,
-                    "total": {"$arrayElemAt": ["$metadata.total", 0]},
-                }
-            },
-        ]
-        result = (
-            await motor_db_to_use[Collections.tokens_logged_events]
-            .aggregate(pipeline)
-            .to_list(limit)
+    if requested_page > -1:
+        skip = requested_page * limit
+    else:
+        nr_of_pages, _ = divmod(total_rows, limit)
+        skip = nr_of_pages * limit
+
+    metadata = None
+    decimals = 0 if not typed_tokens_tag else typed_tokens_tag.decimals
+    if not typed_tokens_tag:
+        metadata = retrieve_metadata_for_stored_token_address(
+            token_address_str, db_to_use
         )
+        if metadata:
+            decimals = metadata.decimals
 
-        logged_events = [MongoTypeLoggedEvent(**x) for x in result[0]["data"]]
-        for event in logged_events:
-            event.slot_time = CCD_BlockInfo(
-                **db_to_use[Collections.blocks].find_one({"height": event.block_height})
-            ).slot_time
+    pipeline = [
+        {"$match": {"token_address": token_address_str}},
+        {
+            "$sort": {
+                "block_height": DESCENDING,
+                "tx_index": DESCENDING,
+                "ordering": DESCENDING,
+            }
+        },
+        {
+            "$facet": {
+                "metadata": [{"$count": "total"}],
+                "data": [{"$skip": skip}, {"$limit": limit}],
+            }
+        },
+        {
+            "$project": {
+                "data": 1,
+                "total": {"$arrayElemAt": ["$metadata.total", 0]},
+            }
+        },
+    ]
+    result = (
+        await motor_db_to_use[Collections.tokens_logged_events]
+        .aggregate(pipeline)
+        .to_list(limit)
+    )
 
-        if "total" in result[0]:
-            total_event_count = result[0]["total"]
-        else:
-            total_event_count = 0
+    logged_events = [MongoTypeLoggedEvent(**x) for x in result[0]["data"]]
+    for event in logged_events:
+        event.slot_time = CCD_BlockInfo(
+            **db_to_use[Collections.blocks].find_one({"height": event.block_height})
+        ).slot_time
 
-        # logged_events = [
-        #     MongoTypeLoggedEvent(**x)
-        #     for x in db_to_use[Collections.tokens_logged_events]
-        #     .find({"token_address": token_address})
-        #     .sort(
-        #         [
-        #             ("block_height", DESCENDING),
-        #             ("tx_index", DESCENDING),
-        #             ("ordering", DESCENDING),
-        #         ]
-        #     )
-        #     .skip(skip)
-        #     .limit(limit)
-        # ]
-        html = process_logged_events_to_HTML_v2(
-            request,
-            logged_events,
-            total_event_count,
-            requested_page,
-            user,
-            tags,
-            net,
-            metadata,
-            typed_tokens_tag,
-            decimals,
-        )
-        return html
+    if "total" in result[0]:
+        total_event_count = result[0]["total"]
+    else:
+        total_event_count = 0
+
+    # logged_events = [
+    #     MongoTypeLoggedEvent(**x)
+    #     for x in db_to_use[Collections.tokens_logged_events]
+    #     .find({"token_address": token_address})
+    #     .sort(
+    #         [
+    #             ("block_height", DESCENDING),
+    #             ("tx_index", DESCENDING),
+    #             ("ordering", DESCENDING),
+    #         ]
+    #     )
+    #     .skip(skip)
+    #     .limit(limit)
+    # ]
+    html = process_logged_events_to_HTML_v2(
+        request,
+        logged_events,
+        total_event_count,
+        requested_page,
+        user,
+        tags,
+        net,
+        metadata,
+        typed_tokens_tag,
+        decimals,
+    )
+    return html
 
 
 @router.get(
@@ -615,68 +609,65 @@ async def ajax_token_ids_for_tag(
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     # motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
     metadata = None
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        stored_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
-        is_PTRT = tag == "PTRT"
-        if not stored_tag:
-            return None
+    stored_tag = db_to_use[Collections.tokens_tags].find_one({"_id": tag})
+    is_PTRT = tag == "PTRT"
+    if not stored_tag:
+        return None
 
-        pipeline = [
-            {"$match": {"contract": {"$in": stored_tag["contracts"]}}},
-            {"$match": {"hidden": False}},
-        ]
-        result = list(
-            db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline)
-        )
-        token_address_for_tag = None
-        if len(result) > 0:
-            token_address_for_tag = MongoTypeTokenAddress(**result[0])
+    pipeline = [
+        {"$match": {"contract": {"$in": stored_tag["contracts"]}}},
+        {"$match": {"hidden": False}},
+    ]
+    result = list(
+        db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline)
+    )
+    token_address_for_tag = None
+    if len(result) > 0:
+        token_address_for_tag = MongoTypeTokenAddress(**result[0])
 
-        metadata = find_token_address_from_contract_address(
-            db_to_use, stored_tag["contracts"][0]
-        )
-        pipeline = [
-            {"$match": {"token_holding.token_address": token_address_for_tag.id}},
-            {"$match": {"token_holding.token_amount": {"$regex": "-"}}},
-            {"$limit": 1},
-        ]
+    metadata = find_token_address_from_contract_address(
+        db_to_use, stored_tag["contracts"][0]
+    )
+    pipeline = [
+        {"$match": {"token_holding.token_address": token_address_for_tag.id}},
+        {"$match": {"token_holding.token_amount": {"$regex": "-"}}},
+        {"$limit": 1},
+    ]
 
-        any_faulty_holdings = list(
-            db_to_use[Collections.tokens_links_v2].aggregate(pipeline)
-        )
-        non_compliant_contract = len(any_faulty_holdings) > 0
-        return templates.TemplateResponse(
-            "tokens/generic/token_display_fungible.html",
-            {
-                "env": request.app.env,
-                "request": request,
-                "is_PTRT": is_PTRT,
-                "net": net,
-                "non_compliant_contract": non_compliant_contract,
-                "contract": (
-                    token_address_for_tag.contract
-                    if token_address_for_tag
-                    else stored_tag["contracts"][0]
-                ),
-                "token_address_result": (
-                    token_address_for_tag
-                    if token_address_for_tag
-                    else {"id": f"{stored_tag['contracts'][0]}-unknown"}
-                ),
-                "metadata": metadata,
-                "token_id": (
-                    token_address_for_tag.token_id
-                    if token_address_for_tag
-                    else "unknown"
-                ),
-                "tag": tag,
-                "stored_tag": stored_tag,
-                "user": user,
-                "tags": tags,
-            },
-        )
+    any_faulty_holdings = list(
+        db_to_use[Collections.tokens_links_v2].aggregate(pipeline)
+    )
+    non_compliant_contract = len(any_faulty_holdings) > 0
+    return templates.TemplateResponse(
+        "tokens/generic/token_display_fungible.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "is_PTRT": is_PTRT,
+            "net": net,
+            "non_compliant_contract": non_compliant_contract,
+            "contract": (
+                token_address_for_tag.contract
+                if token_address_for_tag
+                else stored_tag["contracts"][0]
+            ),
+            "token_address_result": (
+                token_address_for_tag
+                if token_address_for_tag
+                else {"id": f"{stored_tag['contracts'][0]}-unknown"}
+            ),
+            "metadata": metadata,
+            "token_id": (
+                token_address_for_tag.token_id
+                if token_address_for_tag
+                else "unknown"
+            ),
+            "tag": tag,
+            "stored_tag": stored_tag,
+            "user": user,
+            "tags": tags,
+        },
+    )
 
 
 @router.get(
@@ -988,60 +979,57 @@ async def get_token_current_holders(
 ):
     user: UserV2 = await get_user_detailsv2(request)
     limit = 10
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/info",
-            request.app.httpx_client,
-        )
-        stored_token_address = api_result.return_value if api_result.ok else None
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/holders/{skip}/{limit}",
-            httpx_client,
-        )
-        current_holders = (
-            api_result.return_value["current_holders"] if api_result.ok else None
-        )
-        total_rows = api_result.return_value["total_count"] if api_result.ok else None
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="holder",
-            action_string="holder",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/info",
+        request.app.httpx_client,
+    )
+    stored_token_address = api_result.return_value if api_result.ok else None
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/holders/{skip}/{limit}",
+        httpx_client,
+    )
+    current_holders = (
+        api_result.return_value["current_holders"] if api_result.ok else None
+    )
+    total_rows = api_result.return_value["total_count"] if api_result.ok else None
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="holder",
+        action_string="holder",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
 
-        curren_holder_with_id = current_holders
+    curren_holder_with_id = current_holders
 
-        current_holders = []
-        for holder in curren_holder_with_id:
+    current_holders = []
+    for holder in curren_holder_with_id:
 
-            holder.update(
-                {
-                    "account_index": from_address_to_index(
-                        holder["account_address_canonical"], net, request.app
-                    )
-                }
-            )
-            current_holders.append(holder)
-
-        html = templates.get_template(
-            "tokens/generic/token_current_holders.html"
-        ).render(
+        holder.update(
             {
-                "co": current_holders,
-                "tags": tags,
-                "user": user,
-                "net": net,
-                "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-                "stored_token_address": stored_token_address,
+                "account_index": from_address_to_index(
+                    holder["account_address_canonical"], net, request.app
+                )
             }
         )
+        current_holders.append(holder)
 
-        return html
+    html = templates.get_template(
+        "tokens/generic/token_current_holders.html"
+    ).render(
+        {
+            "co": current_holders,
+            "tags": tags,
+            "user": user,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+            "stored_token_address": stored_token_address,
+        }
+    )
+
+    return html

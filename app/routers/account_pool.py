@@ -197,90 +197,82 @@ async def get_account_pool_delegators(
     """
     limit = 10
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_index}/pool/delegators/{skip}/{limit}",
-            httpx_client,
-        )
-        delegator_dict = api_result.return_value if api_result.ok else None
-        if not delegator_dict:
-            error = f"Request error getting pool delegators for account at {account_index} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-
-        delegators = delegator_dict["delegators"]
-
-        delegators_in_block = delegator_dict["delegators_in_block"]
-        delegators_in_dict = {
-            CCD_DelegatorInfo(**x).account: x for x in delegators_in_block
-        }
-        delegators_current_payday = delegator_dict["delegators_current_payday"]
-        new_delegators = delegator_dict["new_delegators"]
-        new_delegators_dict = {x: delegators_in_dict[x] for x in new_delegators}
-        total_rows = delegator_dict["total_delegators"]
-
-        delegators_current_payday_dict = {
-            CCD_DelegatorRewardPeriodInfo(**x).account: x
-            for x in delegators_current_payday
-        }
-        delegators_in_block_dict = {
-            CCD_DelegatorInfo(**x).account: x for x in delegators_in_block
-        }
-
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="delegator",
-            action_string="delegator",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-
-        delegators_with_ids = delegators
-
-        delegators = []
-        for dele in delegators_with_ids:
-            # if dele["account"][:29] in account_ids_to_lookup:
-            dele.update(
-                {
-                    "account": from_address_to_index(
-                        dele["account"][:29], net, request.app
-                    )
-                }
-            )
-            delegators.append(dele)
-
-        # delegators = [
-        #     x.update({"account": account_ids_to_lookup.get(x["account"], x["account"])})
-        #     for x in delegators_with_ids
-        # ]
-
-        html = templates.get_template("account/account_pool_delegators.html").render(
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_index}/pool/delegators/{skip}/{limit}",
+        httpx_client,
+    )
+    delegator_dict = api_result.return_value if api_result.ok else None
+    if not delegator_dict:
+        error = f"Request error getting pool delegators for account at {account_index} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "delegators": delegators,
-                "tags": tags,
-                "net": net,
                 "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-                "new_delegators": new_delegators_dict,
-                "delegators_current_payday_dict": delegators_current_payday_dict,
-                "delegators_in_block_dict": delegators_in_block_dict,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
 
-        return html
+    delegators = delegator_dict["delegators"]
+
+    delegators_in_block = delegator_dict["delegators_in_block"]
+    delegators_in_dict = {
+        CCD_DelegatorInfo(**x).account: x for x in delegators_in_block
+    }
+    delegators_current_payday = delegator_dict["delegators_current_payday"]
+    new_delegators = delegator_dict["new_delegators"]
+    new_delegators_dict = {x: delegators_in_dict[x] for x in new_delegators}
+    total_rows = delegator_dict["total_delegators"]
+
+    delegators_current_payday_dict = {
+        CCD_DelegatorRewardPeriodInfo(**x).account: x for x in delegators_current_payday
+    }
+    delegators_in_block_dict = {
+        CCD_DelegatorInfo(**x).account: x for x in delegators_in_block
+    }
+
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="delegator",
+        action_string="delegator",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+
+    delegators_with_ids = delegators
+
+    delegators = []
+    for dele in delegators_with_ids:
+        # if dele["account"][:29] in account_ids_to_lookup:
+        dele.update(
+            {"account": from_address_to_index(dele["account"][:29], net, request.app)}
+        )
+        delegators.append(dele)
+
+    # delegators = [
+    #     x.update({"account": account_ids_to_lookup.get(x["account"], x["account"])})
+    #     for x in delegators_with_ids
+    # ]
+
+    html = templates.get_template("account/account_pool_delegators.html").render(
+        {
+            "delegators": delegators,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+            "new_delegators": new_delegators_dict,
+            "delegators_current_payday_dict": delegators_current_payday_dict,
+            "delegators_in_block_dict": delegators_in_block_dict,
+        }
+    )
+
+    return html
 
 
 @router.get(
@@ -300,46 +292,43 @@ async def get_validator_tally(
     limit = 7
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
-            httpx_client,
-        )
-        tally = api_result.return_value if api_result.ok else None
-        if not tally:
-            error = f"Request error getting validator tally for account at {account_id} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-
-        tally_data = tally["data"]
-        total_rows = tally["total_row_count"]
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="result",
-            action_string="result",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("account/account_validator_tally.html").render(
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
+        httpx_client,
+    )
+    tally = api_result.return_value if api_result.ok else None
+    if not tally:
+        error = f"Request error getting validator tally for account at {account_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "data": tally_data,
-                "net": net,
                 "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
 
-        return html
+    tally_data = tally["data"]
+    total_rows = tally["total_row_count"]
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="result",
+        action_string="result",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("account/account_validator_tally.html").render(
+        {
+            "data": tally_data,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
+
+    return html

@@ -756,70 +756,69 @@ async def get_account_transactions(
     limit = 20
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions/{skip}/{limit}",
-            httpx_client,
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions/{skip}/{limit}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not tx_result:
+        error = (
+            f"Request error getting transactions for account at {account_id} on {net}."
         )
-        tx_result = api_result.return_value if api_result.ok else None
-        if not tx_result:
-            error = f"Request error getting transactions for account at {account_id} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    tx_result_transactions = tx_result["transactions"]
+    total_rows = tx_result["total_tx_count"]
+    made_up_txs = []
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
                     "net": net,
-                },
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.account,
+                }
             )
 
-        tx_result_transactions = tx_result["transactions"]
-        total_rows = tx_result["total_tx_count"]
-        made_up_txs = []
-        if len(tx_result_transactions) > 0:
-            for transaction in tx_result_transactions:
-                transaction = CCD_BlockItemSummary(**transaction)
-                makeup_request = MakeUpRequest(
-                    **{
-                        "net": net,
-                        "httpx_client": httpx_client,
-                        "tags": tags,
-                        "user": user,
-                        "app": request.app,
-                        "requesting_route": RequestingRoute.account,
-                    }
-                )
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
 
-                classified_tx = await MakeUp(
-                    makeup_request=makeup_request
-                ).prepare_for_display(transaction, "", False)
-                made_up_txs.append(classified_tx)
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="tx",
+        action_string="tx",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("account/account_transactions.html").render(
+        {
+            "transactions": made_up_txs,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
 
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="tx",
-            action_string="tx",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("account/account_transactions.html").render(
-            {
-                "transactions": made_up_txs,
-                "tags": tags,
-                "net": net,
-                "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": True,
-                "total_rows": total_rows,
-            }
-        )
-
-        return html
+    return html
 
 
 def collapse_tokens_from_aliases_fungible(tokens: list):
@@ -876,8 +875,6 @@ async def get_ajax_tokens_fungible_verified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
@@ -930,8 +927,6 @@ async def get_ajax_tokens_non_fungible_verified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
@@ -985,8 +980,6 @@ async def get_ajax_tokens_unverified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(

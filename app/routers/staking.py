@@ -135,8 +135,6 @@ async def get_ajax_paydays(
     limit = 15
     user: UserV2 = await get_user_detailsv2(request)
     if net == "mainnet":
-        if api_key != request.app.env["API_KEY"]:
-            return "No valid api key supplied."
         skip = calculate_skip(requested_page, total_rows, limit)
         api_result = await get_url_from_api(
             f"{request.app.api_url}/v2/mainnet/accounts/paydays/{skip}/{limit}",
@@ -195,9 +193,6 @@ async def get_ajax_pools(
 
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/mainnet/accounts/paydays/pools/{status}",
         httpx_client,
@@ -232,10 +227,6 @@ async def get_ajax_passive_delegators(
 ):
     limit = 10
     user: UserV2 = await get_user_detailsv2(request)
-
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/mainnet/accounts/paydays/passive-delegators/{skip}/{limit}",

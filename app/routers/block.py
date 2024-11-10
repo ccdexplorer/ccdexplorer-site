@@ -125,37 +125,36 @@ async def get_ajax_chain_parameters_html_v2(
     """
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/block/{height}/chain-parameters",
-            httpx_client,
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height}/chain-parameters",
+        httpx_client,
+    )
+    chain_parameters = api_result.return_value if api_result.ok else None
+    if not chain_parameters:
+        error = (
+            f"Request error getting chain parameters for block at {height} on {net}."
         )
-        chain_parameters = api_result.return_value if api_result.ok else None
-        if not chain_parameters:
-            error = f"Request error getting chain parameters for block at {height} on {net}."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-        html = templates.get_template("/block/block_chain_parameters.html").render(
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "cp": chain_parameters,
-                "user": user,
-                "tags": tags,
-                "net": net,
                 "request": request,
-                # "net_postfix": net_postfix,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
+    html = templates.get_template("/block/block_chain_parameters.html").render(
+        {
+            "cp": chain_parameters,
+            "user": user,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            # "net_postfix": net_postfix,
+        }
+    )
 
-        return html
+    return html
 
 
 @router.get(
@@ -172,41 +171,36 @@ async def get_ajax_special_events_html_v2(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     user: UserV2 = await get_user_detailsv2(request)
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/block/{height}/special-events",
-            httpx_client,
-        )
-        special_events = api_result.return_value if api_result.ok else None
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height}/special-events",
+        httpx_client,
+    )
+    special_events = api_result.return_value if api_result.ok else None
 
-        if not special_events:
-            error = (
-                f"Request error getting special events for block at {height} on {net}."
-            )
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-
-        html = templates.get_template("/block/block_special_events.html").render(
+    if not special_events:
+        error = f"Request error getting special events for block at {height} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "se": special_events,
-                "user": user,
-                "tags": tags,
-                "net": net,
-                # "baker_nodes": recurring.baker_nodes_by_baker_id,
                 "request": request,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
 
-        return html
+    html = templates.get_template("/block/block_special_events.html").render(
+        {
+            "se": special_events,
+            "user": user,
+            "tags": tags,
+            "net": net,
+            # "baker_nodes": recurring.baker_nodes_by_baker_id,
+            "request": request,
+        }
+    )
+
+    return html
 
 
 @router.get(
@@ -225,48 +219,43 @@ async def get_ajax_payday_account_rewards_html_v2(
     limit = 30
     user: UserV2 = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
-        if api_key != request.app.env["API_KEY"]:
-            return "No valid api key supplied."
-        else:
-            skip = calculate_skip(requested_page, total_rows, limit)
-            api_result = await get_url_from_api(
-                f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/account-rewards/{skip}/{limit}",
-                httpx_client,
-            )
-            account_rewards = api_result.return_value if api_result.ok else None
-            if not account_rewards:
-                error = f"Request error getting account rewards for block at {block_height} on mainnet."
-                return templates.TemplateResponse(
-                    "base/error-request.html",
-                    {
-                        "request": request,
-                        "error": error,
-                        "env": environment,
-                        "net": "mainnet",
-                    },
-                )
-
-            pagination_request = PaginationRequest(
-                total_txs=total_rows,
-                requested_page=requested_page,
-                word="account-reward",
-                action_string="account_reward",
-                limit=limit,
-            )
-            pagination = pagination_calculator(pagination_request)
-            html = templates.get_template(
-                "block/block_payday_account_rewards.html"
-            ).render(
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/account-rewards/{skip}/{limit}",
+            httpx_client,
+        )
+        account_rewards = api_result.return_value if api_result.ok else None
+        if not account_rewards:
+            error = f"Request error getting account rewards for block at {block_height} on mainnet."
+            return templates.TemplateResponse(
+                "base/error-request.html",
                 {
-                    "rewards": account_rewards,
-                    "user": user,
-                    "tags": tags,
-                    "net": "mainnet",
                     "request": request,
-                    "pagination": pagination,
-                }
+                    "error": error,
+                    "env": environment,
+                    "net": "mainnet",
+                },
             )
-            return html
+
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="account-reward",
+            action_string="account_reward",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template("block/block_payday_account_rewards.html").render(
+            {
+                "rewards": account_rewards,
+                "user": user,
+                "tags": tags,
+                "net": "mainnet",
+                "request": request,
+                "pagination": pagination,
+            }
+        )
+        return html
 
 
 @router.get(
@@ -285,48 +274,43 @@ async def get_ajax_payday_pool_rewards_html_v2(
     limit = 30
     user: UserV2 = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
-        if api_key != request.app.env["API_KEY"]:
-            return "No valid api key supplied."
-        else:
-            skip = calculate_skip(requested_page, total_rows, limit)
-            api_result = await get_url_from_api(
-                f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
-                httpx_client,
-            )
-            pool_rewards = api_result.return_value if api_result.ok else None
-            if not pool_rewards:
-                error = f"Request error getting pool rewards for block at {block_height} on mainnet."
-                return templates.TemplateResponse(
-                    "base/error-request.html",
-                    {
-                        "request": request,
-                        "error": error,
-                        "env": environment,
-                        "net": "mainnet",
-                    },
-                )
-
-            pagination_request = PaginationRequest(
-                total_txs=total_rows,
-                requested_page=requested_page,
-                word="pool-reward",
-                action_string="pool_reward",
-                limit=limit,
-            )
-            pagination = pagination_calculator(pagination_request)
-            html = templates.get_template(
-                "block/block_payday_pool_rewards.html"
-            ).render(
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
+            httpx_client,
+        )
+        pool_rewards = api_result.return_value if api_result.ok else None
+        if not pool_rewards:
+            error = f"Request error getting pool rewards for block at {block_height} on mainnet."
+            return templates.TemplateResponse(
+                "base/error-request.html",
                 {
-                    "rewards": pool_rewards,
-                    "user": user,
-                    "tags": tags,
-                    "net": "mainnet",
                     "request": request,
-                    "pagination": pagination,
-                }
+                    "error": error,
+                    "env": environment,
+                    "net": "mainnet",
+                },
             )
-            return html
+
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="pool-reward",
+            action_string="pool_reward",
+            limit=limit,
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template("block/block_payday_pool_rewards.html").render(
+            {
+                "rewards": pool_rewards,
+                "user": user,
+                "tags": tags,
+                "net": "mainnet",
+                "request": request,
+                "pagination": pagination,
+            }
+        )
+        return html
 
 
 @router.get(
@@ -346,66 +330,61 @@ async def ajax_block_transactions_html(
     limit = 20
     user: UserV2 = await get_user_detailsv2(request)
 
-    if api_key != request.app.env["API_KEY"]:
-        return "No valid api key supplied."
-    else:
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/block/{height}/transactions/{skip}/{limit}",
-            httpx_client,
-        )
-        tx_result = api_result.return_value if api_result.ok else None
-        if not api_result.ok:
-            error = (
-                f"Request error getting transactions for block at {height} on {net}."
-            )
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": net,
-                },
-            )
-
-        made_up_txs = []
-        if len(tx_result) > 0:
-            for transaction in tx_result:
-                transaction = CCD_BlockItemSummary(**transaction)
-                makeup_request = MakeUpRequest(
-                    **{
-                        "net": net,
-                        "httpx_client": httpx_client,
-                        "tags": tags,
-                        "user": user,
-                        "app": request.app,
-                        "requesting_route": RequestingRoute.block,
-                    }
-                )
-
-                classified_tx = await MakeUp(
-                    makeup_request=makeup_request
-                ).prepare_for_display(transaction, "", False)
-                made_up_txs.append(classified_tx)
-
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="tx",
-            action_string="tx",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("block/block_transactions.html").render(
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height}/transactions/{skip}/{limit}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not api_result.ok:
+        error = f"Request error getting transactions for block at {height} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
             {
-                "transactions": made_up_txs,
-                "tags": tags,
-                "net": net,
                 "request": request,
-                "pagination": pagination,
-                "totals_in_pagination": False,
-            }
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
         )
 
-        return html
+    made_up_txs = []
+    if len(tx_result) > 0:
+        for transaction in tx_result:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
+                    "net": net,
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.block,
+                }
+            )
+
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
+
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="tx",
+        action_string="tx",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("block/block_transactions.html").render(
+        {
+            "transactions": made_up_txs,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": False,
+        }
+    )
+
+    return html
