@@ -190,7 +190,7 @@ app.include_router(nodes.router)
 app.include_router(staking.router)
 
 
-@scheduler.scheduled_job("interval", seconds=3, args=[app])
+@scheduler.scheduled_job("interval", seconds=5, args=[app])
 async def repeated_task_get_blocks_and_transactions(app: FastAPI):
     for net in ["mainnet", "testnet"]:
 

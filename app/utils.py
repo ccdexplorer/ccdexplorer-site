@@ -4,6 +4,7 @@ import io
 import math
 import typing
 from datetime import timedelta
+import asyncio
 from enum import Enum
 from typing import Any, Optional
 from fastapi import Request, FastAPI
@@ -1383,12 +1384,17 @@ async def get_url_from_api(url: str, httpx_client: httpx.AsyncClient):
         if response:
             api_response.status_code = response.status_code
             api_response.return_value = response.json()
+    except asyncio.CancelledError:
+        api_response.return_value = None
+        if response:
+            api_response.status_code = response.status_code
+            api_response.return_value = response.json()
 
     end = dt.datetime.now().astimezone(dt.UTC)
 
     api_response.duration_in_sec = (end - now).total_seconds()
     print(
-        f"GET: {api_response.duration_in_sec:2,.4f}s | status {response.status_code} | {url}"
+        f"GET: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
     )
     return api_response
 
@@ -1418,7 +1424,7 @@ async def post_url_from_api(
 
     api_response.duration_in_sec = (end - now).total_seconds()
     print(
-        f"POST: {api_response.duration_in_sec:2,.4f}s | status {response.status_code} | {url}"
+        f"POST: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
     )
     return api_response
 

@@ -260,7 +260,7 @@ async def ajax_source_module_reporting(
 
 
 @router.get("/ajax_modules/{net}/{year}{month}")  # type:ignore
-async def smart_contracts(
+async def ajax_modules_for_smart_contracts(
     request: Request,
     net: str,
     year: int,
@@ -284,23 +284,33 @@ async def smart_contracts(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     user: UserV2 = await get_user_detailsv2(request)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/modules/{module_ref}/instances/{skip}/{limit}",
-        httpx_client,
-    )
-    instances_result = api_result.return_value if api_result.ok else None
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "smart_contracts/smart_contracts.html",
+        "base/error.html",
         {
-            "env": request.app.env,
             "request": request,
+            "error": error,
+            "env": environment,
             "net": net,
-            "modules": the_dict,
-            "all_instances": all_instances,
-            "user": user,
-            "tags": tags,
         },
     )
+    # api_result = await get_url_from_api(
+    #     f"{request.app.api_url}/v2/{net}/modules/{module_ref}/instances/{skip}/{limit}",
+    #     httpx_client,
+    # )
+    # instances_result = api_result.return_value if api_result.ok else None
+    # return templates.TemplateResponse(
+    #     "smart_contracts/smart_contracts.html",
+    #     {
+    #         "env": request.app.env,
+    #         "request": request,
+    #         "net": net,
+    #         "modules": the_dict,
+    #         "all_instances": all_instances,
+    #         "user": user,
+    #         "tags": tags,
+    #     },
+    # )
 
 
 @router.get("/{net}/smart-contracts/usage/{module}")  # type:ignore
@@ -849,6 +859,8 @@ async def smart_contract_instance(
 
 def events_to_file(instance_address: str, all_logged_events: list):
     df = pd.json_normalize(all_logged_events)
+    if len(df) == 0:
+        return None
     df.drop(
         [
             "result.tag",
