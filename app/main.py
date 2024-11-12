@@ -37,16 +37,9 @@ import pickle
 
 if environment["SITE_URL"] != "http://127.0.0.1:8000":
     sentry_sdk.init(
-        dsn="https://f4713c02eb5646ed84b2642b0fa1501e@o4503924901347328.ingest.us.sentry.io/4503924903313408",
-        # Set traces_sample_rate to 1.0 to capture 100%
-        # of transactions for tracing.
+        dsn=environment["SENTRY_DSN"],
         traces_sample_rate=1.0,
-        _experiments={
-            # Set continuous_profiling_auto_start to True
-            # to automatically start the profiler on when
-            # possible.
-            "continuous_profiling_auto_start": True,
-        },
+        _experiments={"continuous_profiling_auto_start": True},
     )
 
 tooter = Tooter()

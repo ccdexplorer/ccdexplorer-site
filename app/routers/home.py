@@ -40,9 +40,6 @@ class MarketCapInfo(Enum):
     VALIDATORS_COUNT = 5
 
 
-
-
-
 async def get_marketcap_info(
     httpx_client: httpx.AsyncClient,
     info: MarketCapInfo,
@@ -136,10 +133,13 @@ async def ajax_market_cap_table(
     total_accounts = 0
     total_tokens = 0
     total_validators = 0
-    
+
     try:
 
         tps_table = await get_marketcap_info(httpx_client, MarketCapInfo.TPS, api_url)
+        if not tps_table:
+            tps_table = {"hour_tps": 0}
+
         total_txs = await get_marketcap_info(
             httpx_client, MarketCapInfo.TX_COUNT, api_url, "mainnet"
         )
@@ -270,13 +270,15 @@ async def search(request: Request, search_request: SearchRequest):
 
         url = f"/{search_request.net}/block/{search_request.value.replace(" ","").replace(",","").replace(".","")}"
     if search_request.selector == "transaction":
-        url = f"/{search_request.net}/transaction/{search_request.value.replace(" ","")}"
+        url = (
+            f"/{search_request.net}/transaction/{search_request.value.replace(" ","")}"
+        )
     if search_request.selector == "contract":
         url = f"/{search_request.net}/instance/{search_request.value.replace(" ","")}/0"
     if search_request.selector == "module":
         url = f"/{search_request.net}/module/{search_request.value.replace(" ","")}"
     if search_request.selector == "token":
-        search_request.value = search_request.value.replace(" ","")
+        search_request.value = search_request.value.replace(" ", "")
         if "-" in search_request.value:
             splits = search_request.value.split("-")
             if len(splits) == 2:
@@ -741,7 +743,6 @@ async def release_notes(
         "base/release_notes.html",
         {"env": request.app.env, "request": request, "release_notes": release_notes},
     )
-
 
 
 @router.get("/misc/privacy-policy", response_class=HTMLResponse)

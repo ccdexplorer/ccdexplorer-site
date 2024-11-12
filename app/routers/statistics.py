@@ -793,52 +793,62 @@ async def statistics_reporting_subject(
     net: str,
     reporting_subject: str,
 ):
-    pipeline = [
-        {"$match": {"type": "statistics_bridges_and_dexes"}},
-        {"$match": {"reporting_subject": reporting_subject}},
-        {"$match": {"action_types_for_day": {"$exists": True, "$not": {"$size": 0}}}},
-        {
-            "$project": {
-                "yearMonth": {
-                    "$dateToString": {
-                        "format": "%Y-%m",
-                        "date": {"$dateFromString": {"dateString": "$date"}},
-                    }
-                }
-            }
-        },
-        {"$group": {"_id": "$yearMonth"}},
-        {"$sort": {"_id": -1}},  # Optional: Sort the results by year-month
-    ]
-
-    # Execute the aggregation pipeline
-    results = mongodb.mainnet[Collections.statistics].aggregate(pipeline)
-
-    # Extract and print the unique YYYY-MM dates
-    year_months = [result["_id"] for result in results]
-    theme = await get_theme_from_request(request)
-    if net != "mainnet":
-        return templates.TemplateResponse(
-            "testnet/not-available.html",
-            {
-                "env": request.app.env,
-                "net": net,
-                "request": request,
-                "user": user,
-            },
-        )
-    print(f"{net=}")
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "statistics/statistics-bridge-dex-v2.html",
+        "base/error.html",
         {
-            "env": request.app.env,
-            "net": net,
             "request": request,
-            "user": user,
-            "year_months": year_months,
-            "reporting_subject": reporting_subject,
+            "error": error,
+            "env": environment,
+            "net": net,
         },
     )
+    # pipeline = [
+    #     {"$match": {"type": "statistics_bridges_and_dexes"}},
+    #     {"$match": {"reporting_subject": reporting_subject}},
+    #     {"$match": {"action_types_for_day": {"$exists": True, "$not": {"$size": 0}}}},
+    #     {
+    #         "$project": {
+    #             "yearMonth": {
+    #                 "$dateToString": {
+    #                     "format": "%Y-%m",
+    #                     "date": {"$dateFromString": {"dateString": "$date"}},
+    #                 }
+    #             }
+    #         }
+    #     },
+    #     {"$group": {"_id": "$yearMonth"}},
+    #     {"$sort": {"_id": -1}},  # Optional: Sort the results by year-month
+    # ]
+
+    # # Execute the aggregation pipeline
+    # results = mongodb.mainnet[Collections.statistics].aggregate(pipeline)
+
+    # # Extract and print the unique YYYY-MM dates
+    # year_months = [result["_id"] for result in results]
+    # theme = await get_theme_from_request(request)
+    # if net != "mainnet":
+    #     return templates.TemplateResponse(
+    #         "testnet/not-available.html",
+    #         {
+    #             "env": request.app.env,
+    #             "net": net,
+    #             "request": request,
+    #             "user": user,
+    #         },
+    #     )
+    # print(f"{net=}")
+    # return templates.TemplateResponse(
+    #     "statistics/statistics-bridge-dex-v2.html",
+    #     {
+    #         "env": request.app.env,
+    #         "net": net,
+    #         "request": request,
+    #         "user": user,
+    #         "year_months": year_months,
+    #         "reporting_subject": reporting_subject,
+    #     },
+    # )
 
 
 class AnalysisType(Enum):

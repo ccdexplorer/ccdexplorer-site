@@ -12,7 +12,7 @@ The site is built on [FastAPI](https://fastapi.tiangolo.com/), with all data ret
 
 ### Prerequisites
 
-1. An API Key from [api.ccdexplorer.io](https://api.ccdexplorer.io).
+1. An API Key. You can purchase a key on https://api.ccdexplorer.io or request a development API key on Telegram (DM me).
 
 ### Install and Run
 0. Git clone, make a venv (`python3 -m venv .venv`) and activate it. 
@@ -21,7 +21,8 @@ The site is built on [FastAPI](https://fastapi.tiangolo.com/), with all data ret
 pip install -r requirements.txt
 ```
 2. Set ENV variables
-Copy the `.env.sample` to `.env` and adjust the MongoDB and GRPC values if needed. These defaults assume MongoDB and a mainnet and testnet node are running on your local machine. 
+Copy the `.env.sample` to `.env`. Fill in the CCD-EXPLORER-KEY. Note that API keys are scoped to a domain, so an API key requested for api.ccdexplorer.io will NOT work on dev-api.ccdexplorer.io and vice-versa. Adjust your API_URL env variable accordingly.
+
 3. Start FastAPI process
 ```zsh
 uvicorn app.main:app --loop asyncio --host 0.0.0.0 --port 8000
