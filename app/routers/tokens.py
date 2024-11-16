@@ -888,6 +888,8 @@ async def tokens_tag_token_id(
     if tag == "_":
         splits = token_id_or_address.split("-")
         contract = CCD_ContractAddress.from_str(splits[0])
+        contract_index = contract.index
+        contract_subindex = contract.subindex
         token_id = splits[1]
 
         api_result = await get_url_from_api(
@@ -936,6 +938,8 @@ async def tokens_tag_token_id(
             contract_index = contract.index
             contract_subindex = contract.subindex
         else:
+            contract_index = 0
+            contract_subindex = 0
             if not stored_token_address:
                 if not token_id_or_address:
                     error = f"Can't find the token at {tag} on {net}."
