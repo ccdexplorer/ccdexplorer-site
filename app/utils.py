@@ -409,6 +409,9 @@ def generate_dates_from_start_until_end(start: str, end: str):
 
 def millify(n):
     millnames = ["", " Thousand", " M", " B", " Tr"]
+    if not n:
+        return ""
+
     n = float(n)
     millidx = max(
         0,
