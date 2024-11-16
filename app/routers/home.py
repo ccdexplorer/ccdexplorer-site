@@ -746,7 +746,7 @@ async def release_notes(
 
 
 @router.get("/misc/privacy-policy", response_class=HTMLResponse)
-async def release_notes(
+async def privacy_policy(
     request: Request,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
@@ -755,4 +755,21 @@ async def release_notes(
     return templates.TemplateResponse(
         "base/privacy_policy.html",
         {"env": request.app.env, "request": request},
+    )
+
+
+@router.get("/misc/support", response_class=HTMLResponse)
+async def support_explorer(
+    request: Request,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    request.state.api_calls = {}
+    request.state.api_calls["None"] = ""
+    return templates.TemplateResponse(
+        "base/support.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "donations_account_id": "3cunMsEt2M3o9Rwgs2pNdsCWZKB5MkhcVbQheFHrvjjcRLSoGP",
+        },
     )
