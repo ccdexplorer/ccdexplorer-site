@@ -1,4 +1,10 @@
 {% extends "base/base.html" %}
+{% block ogp %}
+<meta property="og:title" content="Account {{account_index}} on Concordium {{net}}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{env.SITE_URL}}/{{net}}/account/{{account_index}}" />
+{% endblock %}
+
 {% block content %}
 
 {% if error %}

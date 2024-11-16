@@ -1,5 +1,9 @@
 {% extends "base/base.html" %}
-
+{% block ogp %}
+<meta property="og:title" content="Block {{block_info.height|round_x_decimal_with_comma(0)}} ({{block_info.hash}}) on Concordium {{net}}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{env.SITE_URL}}/{{net}}/block/{{block_info.height}}" />
+{% endblock %}
 {% block content %}
 
 

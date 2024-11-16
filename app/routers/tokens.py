@@ -492,15 +492,13 @@ async def ajax_logged_events_for_token_address(
     typed_tokens_tag = None
     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
     motor_db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    stored_token_address = db_to_use[
-        Collections.tokens_token_addresses_v2
-    ].find_one({"_id": token_address_str})
+    stored_token_address = db_to_use[Collections.tokens_token_addresses_v2].find_one(
+        {"_id": token_address_str}
+    )
     typed_token_address = TokenAddress.from_str(token_address_str)
     if stored_token_address:
         stored_token_address = MongoTypeTokenAddress(**stored_token_address)
-        typed_tokens_tag = token_tag_if_exists(
-            typed_token_address.contract, db_to_use
-        )
+        typed_tokens_tag = token_tag_if_exists(typed_token_address.contract, db_to_use)
         metadata = None
         if not typed_tokens_tag:
             metadata = retrieve_metadata_for_stored_token_address(
@@ -618,9 +616,7 @@ async def ajax_token_ids_for_tag(
         {"$match": {"contract": {"$in": stored_tag["contracts"]}}},
         {"$match": {"hidden": False}},
     ]
-    result = list(
-        db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline)
-    )
+    result = list(db_to_use[Collections.tokens_token_addresses_v2].aggregate(pipeline))
     token_address_for_tag = None
     if len(result) > 0:
         token_address_for_tag = MongoTypeTokenAddress(**result[0])
@@ -658,9 +654,7 @@ async def ajax_token_ids_for_tag(
             ),
             "metadata": metadata,
             "token_id": (
-                token_address_for_tag.token_id
-                if token_address_for_tag
-                else "unknown"
+                token_address_for_tag.token_id if token_address_for_tag else "unknown"
             ),
             "tag": tag,
             "stored_tag": stored_tag,
@@ -779,6 +773,7 @@ async def get_token_token_address(
         request.app.httpx_client,
     )
     stored_token_address = api_result.return_value if api_result.ok else None
+    og_title = f"Token {token_id} from smart contract ({contract.index}, {contract.subindex}) on Concordium {net}"
     return await show_token_address(
         request,
         net,
@@ -787,6 +782,7 @@ async def get_token_token_address(
         contract_subindex,
         token_id,
         tags,
+        og_title,
     )
 
 
@@ -798,6 +794,7 @@ async def show_token_address(
     contract_subindex: str,
     token_id: str,
     tags: dict,
+    og_title: str,
 ):
     """Only for fungible tags and indivitual token addresses, not non-fungible tags"""
     user: UserV2 = await get_user_detailsv2(request)
@@ -851,6 +848,8 @@ async def show_token_address(
         # "tag": tag,
         "user": user,
         "tags": tags,
+        "ogp_title": og_title,
+        "ogp_url": request.url._url,
         # "owner_history_list": owner_history_list,
     }
 
@@ -885,6 +884,7 @@ async def tokens_tag_token_id(
     token_id_or_address: Optional[str] = None,
     tags: dict = Depends(get_labeled_accounts),
 ):
+    og_title = ""
     if tag == "_":
         splits = token_id_or_address.split("-")
         contract = CCD_ContractAddress.from_str(splits[0])
@@ -895,6 +895,7 @@ async def tokens_tag_token_id(
             request.app.httpx_client,
         )
         stored_token_address = api_result.return_value if api_result.ok else None
+        og_title = f"Token {token_id} from smart contract ({contract.index}, {contract.subindex}) on Concordium {net}"
     else:
         # first request the tag
         # if tag is fungible, continue here.
@@ -920,6 +921,7 @@ async def tokens_tag_token_id(
                 request.app.httpx_client,
             )
             stored_token_address = api_result.return_value if api_result.ok else None
+            og_title = f"Non-Fungible Token {token_id} from {tag} on Concordium {net}"
         else:
             # fungible token
             token_id = ""
@@ -928,6 +930,7 @@ async def tokens_tag_token_id(
                 request.app.httpx_client,
             )
             stored_token_address = api_result.return_value if api_result.ok else None
+            og_title = f"Fungible Token {tag} on Concordium {net}"
         if stored_token_address:
             contract = CCD_ContractAddress.from_str(stored_token_address["contract"])
             contract_index = contract.index
@@ -958,6 +961,7 @@ async def tokens_tag_token_id(
         contract_subindex,
         token_id,
         tags,
+        og_title,
     )
 
 
@@ -1016,9 +1020,7 @@ async def get_token_current_holders(
         )
         current_holders.append(holder)
 
-    html = templates.get_template(
-        "tokens/generic/token_current_holders.html"
-    ).render(
+    html = templates.get_template("tokens/generic/token_current_holders.html").render(
         {
             "co": current_holders,
             "tags": tags,

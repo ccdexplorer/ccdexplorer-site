@@ -51,4 +51,4 @@ COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortab
 COPY ./addresses/mainnet_addresses_to_indexes.pickle /code/addresses/mainnet_addresses_to_indexes.pickle
 COPY ./addresses/testnet_addresses_to_indexes.pickle /code/addresses/testnet_addresses_to_indexes.pickle
 
-CMD ["uvicorn", "app.main:app",  "--log-level", "warning", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--workers", "4"]
+CMD ["uvicorn", "app.main:app",  "--log-level", "warning", "--proxy-headers", "--host", "0.0.0.0", "--port", "80", "--workers", "2"]

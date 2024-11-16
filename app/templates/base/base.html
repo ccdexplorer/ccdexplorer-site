@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" prefix="og: https://ogp.me/ns#">
   <head>
     <script src="/static/js/net_switcher.js"></script> 
     <!-- https://issuetracker.google.com/issues/313466551?pli=1#comment45 -->
@@ -17,8 +17,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     
+    <meta property="og:site_name" content="CCDExplorer.io" />
+      {% block ogp %}{% endblock %}
     
-    <link rel="stylesheet" href="/node/bootstrap-icons/font/bootstrap-icons.min.css">
+      <link rel="stylesheet" href="/node/bootstrap-icons/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/static/css/custom_bootstrap.css">
     <link rel="stylesheet" href="/static/css/custom_ccdexplorer.css">
     <link rel="stylesheet" href="/node/flatpickr/dist/flatpickr.min.css">

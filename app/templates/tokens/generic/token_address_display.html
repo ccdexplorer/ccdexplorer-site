@@ -1,4 +1,9 @@
 {% extends "base/base.html" %}
+{% block ogp %}
+<meta property="og:title" content="{{ogp_title}}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ogp_url}}" />
+{% endblock %}
 {% block content %}
 
 {% include 'base/search_bar_non_home_inclusion.html' %}
