@@ -196,7 +196,7 @@ async def get_account_pool_delegators(
     Add {net}.
     """
     limit = 10
-
+    user: UserV2 = await get_user_detailsv2(request)
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{account_index}/pool/delegators/{skip}/{limit}",
@@ -261,6 +261,7 @@ async def get_account_pool_delegators(
         {
             "delegators": delegators,
             "tags": tags,
+            "user": user,
             "net": net,
             "request": request,
             "pagination": pagination,

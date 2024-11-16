@@ -33,7 +33,8 @@
         {% for row in delegators %}
         <tr class="sm-text">
           <td>
-            {{row.account|account_link(net, user, tags, app=request.app)|safe}}
+            {{row.account|account_link(net,user,tags,request.app)|safe}}
+                          
             
             {% if row.account in delegators_in_block_dict %}
 
