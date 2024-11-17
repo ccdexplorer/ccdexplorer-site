@@ -21,7 +21,7 @@
             <td class="text-end text-secondary-emphasis ccd" >{{node.mint.mint_finalization_reward | micro_ccd_display|safe}}</td>
         </tr>
         <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">Platform Development Charg</td>
+            <td class="text-start text-secondary-emphasis">Platform Development Charge</td>
             <td class="text-end text-secondary-emphasis ccd" >{{node.mint.mint_platform_development_charge | micro_ccd_display|safe}}</td>
         </tr>
     </tbody>
@@ -55,6 +55,7 @@
             <td class="text-start text-secondary-emphasis">Foundation Charge</td>
             <td class="text-end text-secondary-emphasis ccd" >{{node.block_reward.foundation_charge | micro_ccd_display|safe}}</td>
         </tr>
+        
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">Validator Reward<br/>
                 {% if node.block_reward.old_gas_account > node.block_reward.new_gas_account %}
@@ -95,12 +96,18 @@
             <td class="text-start text-secondary-emphasis">Foundation Charge</td>
             <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}}</td>
         </tr>
+        {% if node.block_accrue_reward.passive_reward %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Passive Reward</td>
+            <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.passive_reward | micro_ccd_display|safe}}</td>
+        </tr>
+        {% endif %}
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">Validator Reward<br/>
                 {% if node.block_accrue_reward.old_gas_account > node.block_accrue_reward.new_gas_account %}
-                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} + {{(node.block_accrue_reward.old_gas_account - node.block_accrue_reward.new_gas_account) | micro_ccd_display|safe}})
+                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.passive_reward| micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} + {{(node.block_accrue_reward.old_gas_account - node.block_accrue_reward.new_gas_account) | micro_ccd_display|safe}})
             {% else %}
-                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} - {{(node.block_accrue_reward.new_gas_account - node.block_accrue_reward.old_gas_account) | micro_ccd_display|safe}})
+                (= {{node.block_accrue_reward.transaction_fees |micro_ccd_display|safe}} - {{node.block_accrue_reward.passive_reward| micro_ccd_display|safe}} - {{node.block_accrue_reward.foundation_charge | micro_ccd_display|safe}} - {{(node.block_accrue_reward.new_gas_account - node.block_accrue_reward.old_gas_account) | micro_ccd_display|safe}})
             {% endif %}
         </td>
             <td class="text-end text-secondary-emphasis ccd" >{{node.block_accrue_reward.baker_reward | micro_ccd_display|safe}}</td>
