@@ -25,13 +25,13 @@
                         hx-vals='js:{
                             "selector": document.getElementById("search_selector").value, 
                             "value": document.getElementById("search_value").value,
-                            "net": document.getElementById("meta_data_net").title}'>
+                            "net": document.getElementById("net_switcher").value}'>
                     <button role="button" class="input-group-text btn btn-secondary" >
                         <img src="/static/misc/search_btn.png" alt="searc_btn"  hx-post="/search" 
                         hx-trigger="click" hx-ext='json-enc' hx-vals='js:{
                             "selector": document.getElementById("search_selector").value, 
                             "value": document.getElementById("search_value").value,
-                            "net": document.getElementById("meta_data_net").title}
+                            "net": document.getElementById("net_switcher").value}
                             '
                             >
                     </button>
