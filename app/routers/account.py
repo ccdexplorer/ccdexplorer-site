@@ -875,7 +875,7 @@ async def get_ajax_tokens_fungible_verified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-
+    address = address.replace("&lt;", "<").replace("&gt;", ">")
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{address}/fungible-tokens/{skip}/{limit}/verified",
@@ -927,7 +927,7 @@ async def get_ajax_tokens_non_fungible_verified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-
+    address = address.replace("&lt;", "<").replace("&gt;", ">")
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{address}/non-fungible-tokens/{skip}/{limit}/verified",
@@ -980,7 +980,7 @@ async def get_ajax_tokens_unverified(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-
+    address = address.replace("&lt;", "<").replace("&gt;", ">")
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{address}/tokens/{skip}/{limit}/unverified",

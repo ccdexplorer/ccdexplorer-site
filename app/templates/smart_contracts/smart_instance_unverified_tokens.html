@@ -1,0 +1,45 @@
+{% if unverified_tokens|length > 0 %}
+<div class=" col-md-8  col-sm-12">
+<div  class="border content curved-border">
+{% set title= "Unverified Tokens" %}{% include 'base/box_title.html' %}
+
+  {% include 'base/pagination.html' %}
+  <table class="table table-borderless ">
+        <thead>
+          <tr class="sm-text">
+            <th class="text-secondary-emphasis " scope="col">Issuer</th>
+            <th class="text-secondary-emphasis " scope="col">Token</th>
+            <th class="text-secondary-emphasis  text-end" scope="col">Balance</th>
+
+          </tr>
+        </thead>
+        <tbody>
+          {% for token_address, row in unverified_tokens.items() %}
+          {% set ai = row.address_information %}
+          {% set vi = row.verified_information %}
+              
+          <tr class="sm-text border-bottom">
+            <td>
+              <span class="ccd text-secondary-emphasis">{{row.contract}}</span>
+              
+              </td>
+              
+              <td class=" text-secondary-emphasis">
+                {% if ai.token_metadata %}
+                <a href="/{{net}}/tokens/{{vi._id}}/{{row.token_id}}">{{ai.token_metadata.name}}</a>
+                {% else %}
+                <a href="/{{net}}/token/{{ai._id|split_into_url_slug}}">{{ai.token_id}}</a>
+                {% endif %}
+                </td>
+              <td class="text-end"> 
+                <span class="ccd_decimals  text-secondary-emphasis">{{row.token_amount}}</span>
+                
+              </td>
+              
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}

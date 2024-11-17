@@ -828,6 +828,7 @@ async def smart_contract_instance(
                     "user": user,
                     "tags": tags,
                     "net": net,
+                    "instance_address": instance_address,
                     "supports_cis6": supports_cis6,
                     "item_ids": item_ids,
                     "filename": filename,

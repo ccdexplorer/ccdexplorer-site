@@ -1,0 +1,46 @@
+{% if non_fungible_verified_tokens|length > 0 %}
+<div class=" col-md-8  col-sm-12">  
+<div  class="border content curved-border">
+{% set title= "Verified Non-Fungible Tokens" %}{% include 'base/box_title.html' %}
+
+
+{% include 'base/pagination.html' %}
+<table class="table table-borderless ">
+      <thead>
+        <tr class="sm-text">
+          <th class="text-secondary-emphasis " scope="col">Issuer</th>
+          <th class="text-secondary-emphasis " scope="col">Token</th>
+          <th class="text-secondary-emphasis  text-end" scope="col">Balance</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        {% for token_address, row in non_fungible_verified_tokens.items() %}
+        {% set ai = row.address_information %}
+        {% set vi = row.verified_information %}
+            
+        <tr class="sm-text border-bottom">
+          <td><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+            <span class="ccd text-secondary-emphasis">{{vi.display_name}}</span>
+            
+            </td>
+            
+             <td class=" text-secondary-emphasis">
+              {% if ai.token_metadata %}
+              <a href="/{{net}}/tokens/{{vi._id}}/{{row.token_id}}">{{ai.token_metadata.name}}</a>
+              {% else %}
+              <a href="/{{net}}/tokens/{{vi._id}}/{{row.token_id}}">{{ai.token_id}}</a>
+              {% endif %}
+              </td>
+             <td class="text-end"> 
+              <span class="ccd_decimals  text-secondary-emphasis">{{row.token_amount}}</span>
+              
+            </td>
+            
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+  {% endif %}

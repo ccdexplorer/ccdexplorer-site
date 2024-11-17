@@ -1,33 +1,33 @@
 {% extends "base/base.html" %}
 {% block content %}
 <script>
-    async function getTokens(requested_page, total_rows) {
-      tokens = document.getElementById('tokens');
-      var address = document.getElementById('contract_id').title;
-      url =  '/ajax_account_tokens/{{net}}/' + address + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      tokens.innerHTML = '{% include "base/spinner.html" %}'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          tokens.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
+    // async function getTokens(requested_page, total_rows) {
+    //   tokens = document.getElementById('tokens');
+    //   var address = document.getElementById('contract_id').title;
+    //   url =  '/ajax_account_tokens/{{net}}/' + address + '/' + requested_page + '/' + total_rows + '/' + api_key;
+    //   tokens.innerHTML = '{% include "base/spinner.html" %}'
+    //   await fetch(url)
+    //     .then((response) => {
+    //       return response.text();
+    //     })
+    //     .then((data) => {
+    //       tokens.innerHTML = data;
+    //     })
+    //     .catch(function (error) {
+    //       console.log(error);
+    //     });
+    // }
   
-    function prev_v2_tokens(requested_page, total_rows) {
-      getTokens(requested_page, total_rows)
-    };
-    function next_v2_tokens(requested_page, total_rows) {
-      getTokens(requested_page, total_rows)
-    };
+    // function prev_v2_tokens(requested_page, total_rows) {
+    //   getTokens(requested_page, total_rows)
+    // };
+    // function next_v2_tokens(requested_page, total_rows) {
+    //   getTokens(requested_page, total_rows)
+    // };
   
-    window.addEventListener('load', (event) => {
-    //   getTokens(0, 0);
-    });
+    // window.addEventListener('load', (event) => {
+    // //   getTokens(0, 0);
+    // });
   </script>
   
   
@@ -35,8 +35,7 @@
     async function getFungibleVerifiedTokens(requested_page, total_rows) {
       try {
         fungible_verified_tokens = document.getElementById('fungible_verified_tokens');
-        var account_id = document.querySelector('.account_id').title;
-        url = '/ajax_account_tokens/{{net}}/fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        url = '/ajax_account_tokens/{{net}}/fungible-verified/{{instance_address}}/'+ requested_page + '/' + total_rows + '/' + api_key;
         
         fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
         await fetch(url)
@@ -66,8 +65,7 @@
     async function getNonFungibleVerifiedTokens(requested_page, total_rows) {
       try {
         non_fungible_verified_tokens = document.getElementById('non_fungible_verified_tokens');
-        var account_id = document.querySelector('.account_id').title;
-        url = '/ajax_account_tokens/{{net}}/non-fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        url = '/ajax_account_tokens/{{net}}/non-fungible-verified/{{instance_address}}/'+ requested_page + '/' + total_rows + '/' + api_key;
         
         non_fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
         await fetch(url)
@@ -97,8 +95,7 @@
     async function getUnVerifiedTokens(requested_page, total_rows) {
       try {
         unverified_tokens = document.getElementById('unverified_tokens');
-        var account_id = document.querySelector('.account_id').title;
-        url = '/ajax_account_tokens/{{net}}/unverified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        url = '/ajax_account_tokens/{{net}}/unverified/{{instance_address}}/' + requested_page + '/' + total_rows + '/' + api_key;
         
         unverified_tokens.innerHTML = '{% include "base/spinner.html" %}'
         await fetch(url)
@@ -176,14 +173,7 @@
     
   };
 </script>
-<script>
-  window.addEventListener('load', (event) => {
-      getFungibleVerifiedTokens(0, 0);
-      getNonFungibleVerifiedTokens(0,0);
-      getUnVerifiedTokens(0,0);
-    });
-      
-  </script>
+
 
 {% if error %}
 <div class="row">
@@ -239,13 +229,19 @@
     
     <div class="row row-flex">
       {% if tokens_available %}
-      <div class="col-md-8  col-sm-12 ">
-        <div class="border content curved-border " >
-          {% set title= "Tokens" %}{% include 'base/box_title.html' %}
-          <div id="tokens"></div>
+          
+            <div id="fungible_verified_tokens"></div>
+          
+          
+            <div id="non_fungible_verified_tokens"></div>
+          
+          
+            <div id="unverified_tokens"></div>
+          
+        </div>  
     
-        </div>
-      </div>
+        
+      
       {% endif %}
       {% if supports_cis6 %}<div class="col-md-6  col-sm-12 ">{%else%}<div class=" col-md-8  col-sm-12">{%endif%}
           <div class="border content curved-border " >
@@ -255,4 +251,12 @@
       </div>
     </div>
   {% endif %}  
+  <script>
+    window.addEventListener('load', (event) => {
+        getFungibleVerifiedTokens(0, 0);
+        getNonFungibleVerifiedTokens(0,0);
+        getUnVerifiedTokens(0,0);
+      });
+        
+    </script>
 {% endblock content %}
