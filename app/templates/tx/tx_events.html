@@ -38,3 +38,27 @@
 </tbody>
 </table>
     
+{% if classified_tx.dct.show_table %}
+        
+        <table class="table table-borderless">
+            <thead>
+                <tr class="sm-text">
+                    <th  scope="col" class="text-secondary-emphasis text-start">Unlock Date</th>
+                    <th  scope="col" class="text-secondary-emphasis text-end">Amount</th>
+                
+                </tr>
+            </thead>
+            <tbody>
+        {% for schedule in classified_tx.dct.schedule %}
+        <tr class="sm-text">
+        <td class="text-start text-secondary-emphasis"><span class="ccd">{{schedule.timestamp|datetime_regular }}</span></td>
+        <td class="text-end text-secondary-emphasis"><span >{{schedule.amount |micro_ccd_no_decimals|safe}}</span>  </td> 
+        </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+            </tbody>
+        </table>
+        
+    
+{% endif %}

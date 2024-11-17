@@ -31,6 +31,102 @@
   </script>
   
   
+  <script>
+    async function getFungibleVerifiedTokens(requested_page, total_rows) {
+      try {
+        fungible_verified_tokens = document.getElementById('fungible_verified_tokens');
+        var account_id = document.querySelector('.account_id').title;
+        url = '/ajax_account_tokens/{{net}}/fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        
+        fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
+        await fetch(url)
+          .then((response) => {
+            return response.text();
+          })
+          .then((data) => {
+            fungible_verified_tokens.innerHTML = data;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+    catch (error) {
+      
+  }
+    }
+  
+    function prev_f_v_tokens(requested_page, total_rows) {
+      getFungibleVerifiedTokens(requested_page, total_rows)
+    };
+    function next_f_v_tokens(requested_page, total_rows) {
+      getFungibleVerifiedTokens(requested_page, total_rows)
+    };
+  
+  
+    async function getNonFungibleVerifiedTokens(requested_page, total_rows) {
+      try {
+        non_fungible_verified_tokens = document.getElementById('non_fungible_verified_tokens');
+        var account_id = document.querySelector('.account_id').title;
+        url = '/ajax_account_tokens/{{net}}/non-fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        
+        non_fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
+        await fetch(url)
+          .then((response) => {
+            return response.text();
+          })
+          .then((data) => {
+            non_fungible_verified_tokens.innerHTML = data;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+    catch (error) {
+      
+  }
+    }
+  
+    function prev_n_f_v_tokens(requested_page, total_rows) {
+      getNonFungibleVerifiedTokens(requested_page, total_rows)
+    };
+    function next_n_f_v_tokens(requested_page, total_rows) {
+      getNonFungibleVerifiedTokens(requested_page, total_rows)
+    };
+  
+    
+    async function getUnVerifiedTokens(requested_page, total_rows) {
+      try {
+        unverified_tokens = document.getElementById('unverified_tokens');
+        var account_id = document.querySelector('.account_id').title;
+        url = '/ajax_account_tokens/{{net}}/unverified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
+        
+        unverified_tokens.innerHTML = '{% include "base/spinner.html" %}'
+        await fetch(url)
+          .then((response) => {
+            return response.text();
+          })
+          .then((data) => {
+            unverified_tokens.innerHTML = data;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      }
+    catch (error) {
+      
+  }
+    }
+  
+    function prev_un_tokens(requested_page, total_rows) {
+      getUnVerifiedTokens(requested_page, total_rows)
+    };
+    function next_un_tokens(requested_page, total_rows) {
+      getUnVerifiedTokens(requested_page, total_rows)
+    };
+  
+  </script>
+
+
 <script>
     async function getTransactions(requested_page, total_rows) {
         transactions = document.getElementById('instance-transactions');
@@ -80,6 +176,14 @@
     
   };
 </script>
+<script>
+  window.addEventListener('load', (event) => {
+      getFungibleVerifiedTokens(0, 0);
+      getNonFungibleVerifiedTokens(0,0);
+      getUnVerifiedTokens(0,0);
+    });
+      
+  </script>
 
 {% if error %}
 <div class="row">
