@@ -55,7 +55,7 @@
                         {% if v.account_id in ['<---', "--->", 'Transaction Fees', 'Rewards', 'Encrypted', 'Decrypted'] %}
                             <span class=" text-secondary-emphasis"><i>{{v.account_id|safe}}</i></span>
                         {% elif v.account_id|length < 29%}
-                            {{v.account_id|instance_link_from_str(net, user, tags)|safe}}
+                            {{v.account_id|instance_link_from_str(net, user, tags,app=request.app)|safe}}
                         {% else %}
                             {{v.account_index|account_link(net, user, tags, app=request.app)|safe}}
                         {% endif %}
@@ -92,9 +92,9 @@
                         {% if v.account_id in ['--->', "<---", 'Transaction Fees', 'Rewards', 'Encrypted', 'Decrypted'] %}
                             <span class=" text-secondary-emphasis"><i>{{v.account_id|safe}}</i></span> 
                         {% elif v.account_id|length < 29%}
-                            {{v.account_id|instance_link_from_str(net, user, tags)|safe}}
+                            {{v.account_id|instance_link_from_str(net, user, tags,app=request.app)|safe}}
                         {% else %}
-                            {{v.account_index|account_link(net=net, app=app)|safe}}
+                            {{v.account_index|account_link(net, user, tags,app=request.app)|safe}}
                         {% endif %}
                     </td>
                     {% if token == "CCD" %}
