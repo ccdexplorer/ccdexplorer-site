@@ -712,6 +712,8 @@ async def get_address_identifiers(account_address_or_index: str | int, net: str,
 
 def from_address_to_index(account_address: str, net: str, app):
     """Translate account_address to index. ."""
+    if "." in net:
+        net = net.split(".")[1].lower()
     try:
         int_value = int(account_address)
         return int_value
