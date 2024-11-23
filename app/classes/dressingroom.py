@@ -105,6 +105,8 @@ class MakeUp:
         self.csv = {}
 
         self.smart_contracts_updated = []
+        if "." in self.net:
+            self.net = self.net.split(".")[1].lower()
 
     async def get_schema_from_source(self, contract_address: CCD_ContractAddress):
         result_from_cache = self.app.schema_cache[self.net].get(

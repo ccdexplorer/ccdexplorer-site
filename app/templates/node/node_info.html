@@ -6,17 +6,19 @@
             <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Name</td><td title="{{node.nodeName}}" class="text-secondary-emphasis  align-middle"><a href="/{{net}}/node/{{node.nodeId}}">{{ node.nodeName}}</a></td></tr>
             <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Id</td><td  class="text-secondary-emphasis">{{node.nodeId}}</td></tr>
             <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Version</td><td  class="text-secondary-emphasis">{{node.client}}</td></tr>
-            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Finalized Block Height</td><td title="{{node.finalizedBblockHeight}}" class="text-secondary-emphasis  align-middle">{{node.finalizedBlockHeight|int|round_x_decimal_with_comma(0) }}</td></tr>
-            
-            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Validator ID</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis  align-middle"><a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a></td></tr>
-            <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Peers</td><td>
-            {% for peer in node.peersList %}
-                {% if peer in nodes.keys() %}
-                    <a class="text-secondary-emphasis" href="/{{net}}/node/{{peer}}">{{nodes[peer].nodeName}}</a></br>
-                {% else %}
-            <span class="text-secondary-emphasis">{{peer}}</span></br>
-                {% endif %}
-            {% endfor %}
+            {% if node %}
+                <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Finalized Block Height</td><td title="{{node.finalizedBblockHeight}}" class="text-secondary-emphasis  align-middle">{{node.finalizedBlockHeight|int|round_x_decimal_with_comma(0) }}</td></tr>
+                
+                <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Validator ID</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis  align-middle"><a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a></td></tr>
+                <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Peers</td><td>
+                {% for peer in node.peersList %}
+                    {% if peer in nodes.keys() %}
+                        <a class="text-secondary-emphasis" href="/{{net}}/node/{{peer}}">{{nodes[peer].nodeName}}</a></br>
+                    {% else %}
+                <span class="text-secondary-emphasis">{{peer}}</span></br>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </td></tr>
         </tbody>    
     </table>

@@ -143,9 +143,15 @@ async def ajax_market_cap_table(
         total_txs = await get_marketcap_info(
             httpx_client, MarketCapInfo.TX_COUNT, api_url, "mainnet"
         )
+        if not total_txs:
+            total_txs = 0
+
         total_tokens = await get_marketcap_info(
             httpx_client, MarketCapInfo.TOKENS_COUNT, api_url, "mainnet"
         )
+        if not total_tokens:
+            total_tokens = 0
+
         cmc = await get_marketcap_info(httpx_client, MarketCapInfo.CMC, api_url)
         if not cmc:
             cmc = {
@@ -161,9 +167,14 @@ async def ajax_market_cap_table(
         total_accounts = await get_marketcap_info(
             httpx_client, MarketCapInfo.ACCOUNTS_COUNT, api_url
         )
+        if not total_accounts:
+            total_accounts = 0
+
         total_validators = await get_marketcap_info(
             httpx_client, MarketCapInfo.VALIDATORS_COUNT, api_url
         )
+        if not total_validators:
+            total_validators = 0
 
     except Exception as error:
         print(error)

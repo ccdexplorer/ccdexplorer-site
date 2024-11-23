@@ -1,46 +1,32 @@
 # ruff: noqa: F403, F405, E402, E501, E722
 
 # import collections
-from bisect import bisect_right
-import numpy as np
-from datetime import timedelta
-import plotly.express as px
-import json
 import base64
+import json
 import uuid
+from bisect import bisect_right
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
+
+# from ccdexplorer_fundamentals.GRPCClient import GRPCClient
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
+from ccdexplorer_fundamentals.mongodb import (
+    MongoTypeInstance,
+    MongoTypeModule,
+)
+from ccdexplorer_schema_parser.Schema import Schema
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import BaseModel
 from app.classes.dressingroom import (
     MakeUp,
     MakeUpRequest,
     RequestingRoute,
 )
-from ccdexplorer_fundamentals.cis import StandardIdentifiers, MongoTypeTokensTag
-import pandas as pd
-from ccdexplorer_fundamentals.GRPCClient.types_pb2 import VersionedModuleSource
-from ccdexplorer_schema_parser.Schema import Schema
-
-# from ccdexplorer_fundamentals.GRPCClient import GRPCClient
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
-from ccdexplorer_fundamentals.mongodb import (
-    Collections,
-    # MongoDB,
-    # MongoMotor,
-    MongoTypeInstance,
-    MongoTypeModule,
-)
-from ccdexplorer_fundamentals.tooter import Tooter  # , TooterChannel, TooterType
-from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
-from pymongo import DESCENDING
-from sortedcontainers import SortedDict
-
-# from app.ajax_helpers import (
-#     mongo_transactions_html_header,
-#     process_transactions_to_HTML,
-#     transactions_html_footer,
-# )
-from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
 from app.env import *
 from app.jinja2_helpers import *
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
@@ -48,8 +34,6 @@ from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 router = APIRouter()
 
 
-# NET = 'mainnet'
-# db = mongodb.mainnet if NET == 'mainnet' else mongodb.testnet
 def find_date_for_height(heights, block_end_of_day_dict, height):
     found_index = bisect_right(heights, height)
     # meaning it's today...
@@ -176,85 +160,95 @@ async def ajax_source_module_reporting(
     tags: dict = Depends(get_labeled_accounts),
 ):
     net = reporting_request.net
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    # user: UserV2 = get_user_detailsv2(request)
+    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
 
-    module_classes = [
-        MongoTypeModule(**x)
-        for x in list(
-            db_to_use[Collections.modules].find(
-                {"_id": {"$in": reporting_request.source_modules}}
-            )
-        )
-    ]
-    source_to_name = {x.id: f"{x.id[:4]}-{x.module_name}" for x in module_classes}
-    instance_to_source = {}
-    for module_class in module_classes:
-        module_instances = list(
-            db_to_use[Collections.instances].find({"source_module": module_class.id})
-        )
-        for instance in module_instances:
-            instance_to_source[instance["_id"]] = module_class.id
-    modules_instances = list(instance_to_source.keys())
-    pipeline = [
-        {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
-        {
-            "$group": {
-                "_id": {"date": "$date", "instance": "$impacted_address_canonical"},
-                "count": {"$sum": 1},
-            }
-        },
-    ]
-    result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
-    new_result = []
-    if len(result) > 0:
-        for r in result:
-            source_module = instance_to_source[r["_id"]["instance"]]
-            r.update({"source_module": source_module, "date": r["_id"]["date"]})
-            del r["_id"]
-            new_result.append(r)
+    # module_classes = [
+    #     MongoTypeModule(**x)
+    #     for x in list(
+    #         db_to_use[Collections.modules].find(
+    #             {"_id": {"$in": reporting_request.source_modules}}
+    #         )
+    #     )
+    # ]
+    # source_to_name = {x.id: f"{x.id[:4]}-{x.module_name}" for x in module_classes}
+    # instance_to_source = {}
+    # for module_class in module_classes:
+    #     module_instances = list(
+    #         db_to_use[Collections.instances].find({"source_module": module_class.id})
+    #     )
+    #     for instance in module_instances:
+    #         instance_to_source[instance["_id"]] = module_class.id
+    # modules_instances = list(instance_to_source.keys())
+    # pipeline = [
+    #     {"$match": {"impacted_address_canonical": {"$in": modules_instances}}},
+    #     {
+    #         "$group": {
+    #             "_id": {"date": "$date", "instance": "$impacted_address_canonical"},
+    #             "count": {"$sum": 1},
+    #         }
+    #     },
+    # ]
+    # result = list(db_to_use[Collections.impacted_addresses].aggregate(pipeline))
+    # new_result = []
+    # if len(result) > 0:
+    #     for r in result:
+    #         source_module = instance_to_source[r["_id"]["instance"]]
+    #         r.update({"source_module": source_module, "date": r["_id"]["date"]})
+    #         del r["_id"]
+    #         new_result.append(r)
 
-        df = pd.DataFrame(new_result)
-        df["date"] = pd.to_datetime(df["date"])
-        df_group = (
-            df.groupby(
-                [
-                    "source_module",
-                    # "display_name",
-                    pd.Grouper(key="date", freq=reporting_request.period),
-                ]
-            )
-            .sum()
-            .reset_index()
-        )
+    #     df = pd.DataFrame(new_result)
+    #     df["date"] = pd.to_datetime(df["date"])
+    #     df_group = (
+    #         df.groupby(
+    #             [
+    #                 "source_module",
+    #                 # "display_name",
+    #                 pd.Grouper(key="date", freq=reporting_request.period),
+    #             ]
+    #         )
+    #         .sum()
+    #         .reset_index()
+    #     )
 
-        df_group_all = (
-            df.groupby([pd.Grouper(key="date", freq=reporting_request.period)])
-            .sum()
-            .reset_index()
-        )
-        results_all = df_group_all.to_dict("records")
-        dict_to_send = {}
-        for sm in reporting_request.source_modules:
-            f = df_group["source_module"] == sm
-            df_for_sm = df_group[f]
-            dict_to_send[sm] = df_for_sm.to_dict("records")
-            pass
-    else:
-        dict_to_send = {}
-        results_all = {}
+    #     df_group_all = (
+    #         df.groupby([pd.Grouper(key="date", freq=reporting_request.period)])
+    #         .sum()
+    #         .reset_index()
+    #     )
+    #     results_all = df_group_all.to_dict("records")
+    #     dict_to_send = {}
+    #     for sm in reporting_request.source_modules:
+    #         f = df_group["source_module"] == sm
+    #         df_for_sm = df_group[f]
+    #         dict_to_send[sm] = df_for_sm.to_dict("records")
+    #         pass
+    # else:
+    #     dict_to_send = {}
+    #     results_all = {}
+    # return templates.TemplateResponse(
+    #     "smart_contracts/smart_contracts_reporting_all.html",
+    #     {
+    #         "env": request.app.env,
+    #         "request": request,
+    #         "source_to_name": source_to_name,
+    #         "net": net,
+    #         "results": dict_to_send,
+    #         "results_all": results_all,
+    #         "period": reporting_request.period,
+    #         "user": user,
+    #         "tags": tags,
+    #     },
+    # )
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "smart_contracts/smart_contracts_reporting_all.html",
+        "base/error.html",
         {
-            "env": request.app.env,
             "request": request,
-            "source_to_name": source_to_name,
+            "error": error,
+            "env": environment,
             "net": net,
-            "results": dict_to_send,
-            "results_all": results_all,
-            "period": reporting_request.period,
-            "user": user,
-            "tags": tags,
         },
     )
 
@@ -314,26 +308,36 @@ async def smart_contracts(
 
 
 @router.get("/{net}/smart-contracts/usage/{module}")  # type:ignore
-async def smart_contracts(
+async def smart_contracts_usage(
     request: Request,
     net: str,
     module: str,
     tags: dict = Depends(get_labeled_accounts),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
+    # user: UserV2 = get_user_detailsv2(request)
+    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    # module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
 
+    # return templates.TemplateResponse(
+    #     "smart_contracts/source_module_graph.html",
+    #     {
+    #         "env": request.app.env,
+    #         "request": request,
+    #         "modules": module_list,
+    #         "user": user,
+    #         "tags": tags,
+    #         "net": net,
+    #         "module": module,
+    #     },
+    # )
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "smart_contracts/source_module_graph.html",
+        "base/error.html",
         {
-            "env": request.app.env,
             "request": request,
-            "modules": module_list,
-            "user": user,
-            "tags": tags,
+            "error": error,
+            "env": environment,
             "net": net,
-            "module": module,
         },
     )
 
@@ -344,19 +348,29 @@ async def smart_contracts_reporting(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
+    # user: UserV2 = get_user_detailsv2(request)
+    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    # module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
 
+    # return templates.TemplateResponse(
+    #     "smart_contracts/smart_contracts_reporting.html",
+    #     {
+    #         "env": request.app.env,
+    #         "request": request,
+    #         "modules": module_list,
+    #         "reporting_periods": ReportingPeriods,
+    #         "user": user,
+    #         "tags": tags,
+    #         "net": net,
+    #     },
+    # )
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "smart_contracts/smart_contracts_reporting.html",
+        "base/error.html",
         {
-            "env": request.app.env,
             "request": request,
-            "modules": module_list,
-            "reporting_periods": ReportingPeriods,
-            "user": user,
-            "tags": tags,
+            "error": error,
+            "env": environment,
             "net": net,
         },
     )
@@ -368,21 +382,31 @@ async def smart_contracts_usage(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ):
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-    module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
-
+    user: UserV2 = await get_user_detailsv2(request)
+    error = "Not implemented yet."
     return templates.TemplateResponse(
-        "smart_contracts/source_module_graph.html",
+        "base/error.html",
         {
-            "env": request.app.env,
             "request": request,
-            "modules": module_list,
-            "user": user,
-            "tags": tags,
+            "error": error,
+            "env": environment,
             "net": net,
         },
     )
+    # db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
+    # module_list = [MongoTypeModule(**x) for x in db_to_use[Collections.modules].find()]
+
+    # return templates.TemplateResponse(
+    #     "smart_contracts/source_module_graph.html",
+    #     {
+    #         "env": request.app.env,
+    #         "request": request,
+    #         "modules": module_list,
+    #         "user": user,
+    #         "tags": tags,
+    #         "net": net,
+    #     },
+    # )
 
 
 @router.get(

@@ -70,135 +70,135 @@ def split_token_address(token_address: str) -> tuple[str, str]:
     return (contract, token_id)
 
 
-@router.get(
-    "/ajax_token_events/{net}/{days}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)  # type:ignore
-async def ajax_token_events(
-    request: Request,
-    net: str,
-    days: int,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    tags: dict = Depends(get_labeled_accounts),
-    # contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
-    # token_addresses_with_markup_both_nets: dict = Depends(
-    #     get_token_addresses_with_markup
-    # ),
-    credential_issuers: list = Depends(get_credential_issuers),
-    ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
-):
-    limit = 20
-    contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
-    token_addresses_with_markup = token_addresses_with_markup_both_nets[NET(net)]
-    user: UserV2 = get_user_detailsv2(request)
-    db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
-    now = dt.datetime.utcnow()
-    cutoff = now - timedelta(days=days)
+# @router.get(
+#     "/ajax_token_events/{net}/{days}/{requested_page}/{total_rows}/{api_key}",
+#     response_class=HTMLResponse,
+# )  # type:ignore
+# async def ajax_token_events(
+#     request: Request,
+#     net: str,
+#     days: int,
+#     requested_page: int,
+#     total_rows: int,
+#     api_key: str,
+#     tags: dict = Depends(get_labeled_accounts),
+#     # contracts_with_tag_info_both_nets: dict = Depends(get_contracts_with_tag_info),
+#     # token_addresses_with_markup_both_nets: dict = Depends(
+#     #     get_token_addresses_with_markup
+#     # ),
+#     credential_issuers: list = Depends(get_credential_issuers),
+#     ccd_historical: dict = Depends(get_exchange_rates_ccd_historical),
+# ):
+#     limit = 20
+#     contracts_with_tag_info = contracts_with_tag_info_both_nets[NET(net)]
+#     token_addresses_with_markup = token_addresses_with_markup_both_nets[NET(net)]
+#     user: UserV2 = get_user_detailsv2(request)
+#     db_to_use = mongomotor.testnet if net == "testnet" else mongomotor.mainnet
+#     now = dt.datetime.utcnow()
+#     cutoff = now - timedelta(days=days)
 
-    tx_tabs: dict[TransactionClassifier, list] = {}
-    tx_tabs_active: dict[TransactionClassifier, bool] = {}
+#     tx_tabs: dict[TransactionClassifier, list] = {}
+#     tx_tabs_active: dict[TransactionClassifier, bool] = {}
 
-    for tab in TransactionClassifier:
-        tx_tabs[tab] = []
+#     for tab in TransactionClassifier:
+#         tx_tabs[tab] = []
 
-    # requested page = 0 indicated the first page
-    # requested page = -1 indicates the last page
-    if requested_page > -1:
-        skip = requested_page * limit
-    else:
-        nr_of_pages, _ = divmod(total_rows, limit)
-        skip = nr_of_pages * limit
+#     # requested page = 0 indicated the first page
+#     # requested page = -1 indicates the last page
+#     if requested_page > -1:
+#         skip = requested_page * limit
+#     else:
+#         nr_of_pages, _ = divmod(total_rows, limit)
+#         skip = nr_of_pages * limit
 
-    pipeline = [{"$match": {"slot_time": {"$gte": cutoff}}}]
-    last_block_for_event = (
-        await db_to_use[Collections.blocks].aggregate(pipeline).to_list(1)
-    )
-    last_block_for_event = CCD_BlockInfo(**last_block_for_event[0])
-    pipeline = [
-        {"$match": {"block_height": {"$gte": last_block_for_event.height}}},
-        {"$sort": {"block_height": DESCENDING}},
-        {
-            "$facet": {
-                "metadata": [{"$count": "total"}],
-                # "data": [{"$skip": int(skip)}, {"$limit": int(limit)}],
-                "data": [],
-            }
-        },
-        {
-            "$project": {
-                "data": 1,
-                "total": {"$arrayElemAt": ["$metadata.total", 0]},
-            }
-        },
-    ]
-    dd = (
-        await db_to_use[Collections.tokens_logged_events]
-        .aggregate(pipeline)
-        .to_list(100_000)
-    )
-    tx_hashes = list(set([MongoTypeLoggedEvent(**x).tx_hash for x in dd[0]["data"]]))
-    if "total" in dd[0]:
-        total_row_count = dd[0]["total"]
-    else:
-        total_row_count = 0
+#     pipeline = [{"$match": {"slot_time": {"$gte": cutoff}}}]
+#     last_block_for_event = (
+#         await db_to_use[Collections.blocks].aggregate(pipeline).to_list(1)
+#     )
+#     last_block_for_event = CCD_BlockInfo(**last_block_for_event[0])
+#     pipeline = [
+#         {"$match": {"block_height": {"$gte": last_block_for_event.height}}},
+#         {"$sort": {"block_height": DESCENDING}},
+#         {
+#             "$facet": {
+#                 "metadata": [{"$count": "total"}],
+#                 # "data": [{"$skip": int(skip)}, {"$limit": int(limit)}],
+#                 "data": [],
+#             }
+#         },
+#         {
+#             "$project": {
+#                 "data": 1,
+#                 "total": {"$arrayElemAt": ["$metadata.total", 0]},
+#             }
+#         },
+#     ]
+#     dd = (
+#         await db_to_use[Collections.tokens_logged_events]
+#         .aggregate(pipeline)
+#         .to_list(100_000)
+#     )
+#     tx_hashes = list(set([MongoTypeLoggedEvent(**x).tx_hash for x in dd[0]["data"]]))
+#     if "total" in dd[0]:
+#         total_row_count = dd[0]["total"]
+#     else:
+#         total_row_count = 0
 
-    dd = (
-        await db_to_use[Collections.transactions]
-        .find({"_id": {"$in": tx_hashes}})
-        .sort([("block_info.slot_time", DESCENDING)])
-        .skip(skip)
-        .to_list(limit)
-    )
-    tx_result = [CCD_BlockItemSummary(**x) for x in dd]
+#     dd = (
+#         await db_to_use[Collections.transactions]
+#         .find({"_id": {"$in": tx_hashes}})
+#         .sort([("block_info.slot_time", DESCENDING)])
+#         .skip(skip)
+#         .to_list(limit)
+#     )
+#     tx_result = [CCD_BlockItemSummary(**x) for x in dd]
 
-    if len(tx_result) > 0:
-        for transaction in tx_result:
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "grpcclient": grpcclient,
-                    "mongodb": mongodb,
-                    "tags": tags,
-                    "user": user,
-                    "ccd_historical": ccd_historical,
-                    "contracts_with_tag_info": contracts_with_tag_info,
-                    "token_addresses_with_markup": token_addresses_with_markup,
-                    "credential_issuers": credential_issuers,
-                    "app": request.app,
-                }
-            )
-            classified_tx = MakeUp(makeup_request=makeup_request).prepare_for_display(
-                transaction, "", False
-            )
+#     if len(tx_result) > 0:
+#         for transaction in tx_result:
+#             makeup_request = MakeUpRequest(
+#                 **{
+#                     "net": net,
+#                     "grpcclient": grpcclient,
+#                     "mongodb": mongodb,
+#                     "tags": tags,
+#                     "user": user,
+#                     "ccd_historical": ccd_historical,
+#                     "contracts_with_tag_info": contracts_with_tag_info,
+#                     "token_addresses_with_markup": token_addresses_with_markup,
+#                     "credential_issuers": credential_issuers,
+#                     "app": request.app,
+#                 }
+#             )
+#             classified_tx = MakeUp(makeup_request=makeup_request).prepare_for_display(
+#                 transaction, "", False
+#             )
 
-            tx_tabs[classified_tx.classifier].append(classified_tx)
+#             tx_tabs[classified_tx.classifier].append(classified_tx)
 
-    tab_selected_to_be_active = False
-    for tab in TransactionClassifier:
-        tx_tabs_active[tab] = False
-        if (not tab_selected_to_be_active) and (len(tx_tabs[tab]) > 0):
-            tab_selected_to_be_active = True
-            tx_tabs_active[tab] = True
+#     tab_selected_to_be_active = False
+#     for tab in TransactionClassifier:
+#         tx_tabs_active[tab] = False
+#         if (not tab_selected_to_be_active) and (len(tx_tabs[tab]) > 0):
+#             tab_selected_to_be_active = True
+#             tx_tabs_active[tab] = True
 
-    html = mongo_transactions_html_header(
-        None,
-        total_row_count,
-        requested_page,
-        tx_tabs,
-        tx_tabs_active,
-        block_transactions=False,
-        word="token_event",
-    )
+#     html = mongo_transactions_html_header(
+#         None,
+#         total_row_count,
+#         requested_page,
+#         tx_tabs,
+#         tx_tabs_active,
+#         block_transactions=False,
+#         word="token_event",
+#     )
 
-    for tab in TransactionClassifier:
-        html += process_transactions_to_HTML(
-            tx_tabs[tab], tab.value, tx_tabs_active[tab], tags
-        )
+#     for tab in TransactionClassifier:
+#         html += process_transactions_to_HTML(
+#             tx_tabs[tab], tab.value, tx_tabs_active[tab], tags
+#         )
 
-    html += transactions_html_footer()
-    return html
+#     html += transactions_html_footer()
+#     return html
 
 
 def find_token_address_from_contract_address(db_to_use, contract_address: str):
@@ -715,42 +715,42 @@ async def ajax_nft_tokens_for_tag(
     return html
 
 
-@router.get(
-    "/ajax_statistics_tvl/{token_address}",
-    response_class=Response,
-)
-async def statistics_token_TVL_plotly(
-    request: Request,
-    token_address: str,
-):
-    analysis = "statistics_tvl_for_tokens"
+# @router.get(
+#     "/ajax_statistics_tvl/{token_address}",
+#     response_class=Response,
+# )
+# async def statistics_token_TVL_plotly(
+#     request: Request,
+#     token_address: str,
+# ):
+#     analysis = "statistics_tvl_for_tokens"
 
-    token_address = token_address.replace("&lt;", "<").replace("&gt;", ">")
-    all_data = get_all_data_for_analysis_for_token(analysis, token_address, mongodb)
-    d_date = get_statistics_date(mongodb)
-    df = pd.DataFrame(all_data)
-    df["tvl"] = df["tvl_contribution_for_day_in_usd"].cumsum()
-    rng = ["#70B785"]
-    title = "EUROe"
-    fig = px.line(
-        df,
-        x="date",
-        y="tvl",
-        color_discrete_sequence=rng,
-        template=ccdexplorer_plotly_template(),
-    )
-    fig.update_yaxes(title_text="TVL")
-    fig.update_xaxes(title=None)
-    fig.update_layout(
-        legend_title_text=title,
-        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
-        height=550,
-    )
-    return fig.to_html(
-        config={"responsive": True, "displayModeBar": False},
-        full_html=False,
-        include_plotlyjs=False,
-    )
+#     token_address = token_address.replace("&lt;", "<").replace("&gt;", ">")
+#     all_data = get_all_data_for_analysis_for_token(analysis, token_address, mongodb)
+#     d_date = get_statistics_date(mongodb)
+#     df = pd.DataFrame(all_data)
+#     df["tvl"] = df["tvl_contribution_for_day_in_usd"].cumsum()
+#     rng = ["#70B785"]
+#     title = "EUROe"
+#     fig = px.line(
+#         df,
+#         x="date",
+#         y="tvl",
+#         color_discrete_sequence=rng,
+#         template=ccdexplorer_plotly_template(),
+#     )
+#     fig.update_yaxes(title_text="TVL")
+#     fig.update_xaxes(title=None)
+#     fig.update_layout(
+#         legend_title_text=title,
+#         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+#         height=550,
+#     )
+#     return fig.to_html(
+#         config={"responsive": True, "displayModeBar": False},
+#         full_html=False,
+#         include_plotlyjs=False,
+#     )
 
 
 @router.get(
