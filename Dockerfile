@@ -13,7 +13,7 @@ FROM python:3.12
 # # Ensure the installed binary is on the `PATH`
 # ENV PATH="/root/.cargo/bin/:$PATH"
 
-# WORKDIR /code
+WORKDIR /code
 
 # # 
 # COPY ./requirements.txt /code/requirements.txt
@@ -21,6 +21,26 @@ FROM python:3.12
 # # --system is needed, otherwise error on missing venv
 # RUN uv pip install --system -r requirements.txt
 # # RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+
+
+
+# download concordium-client package
+RUN wget https://distribution.concordium.software/tools/linux/concordium-client_7.0.1-0 -O /code/concordium-client && chmod +x /code/concordium-client
+
+# download rustup install script
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /code/rustup.sh && chmod +x /code/rustup.sh
+
+# install rustup
+RUN /code/rustup.sh -y
+RUN rm /code/rustup.sh
+
+# add rust to path
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# install cargo-concordium
+RUN cargo install cargo-concordium
+
 
 WORKDIR /code
 
