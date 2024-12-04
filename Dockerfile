@@ -69,8 +69,8 @@ COPY ./node_modules/htmx-ext-class-tools/class-tools.js /code/node_modules/htmx-
 COPY ./node_modules/sortable-tablesort/sortable.min.css /code/node_modules/sortable-tablesort/sortable.min.css
 COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortable-tablesort/sortable.min.js
 
-COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
-COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
+# COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
+# COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
 
 
 COPY ./addresses/mainnet_addresses_to_indexes.pickle /code/addresses/mainnet_addresses_to_indexes.pickle
