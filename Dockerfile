@@ -58,6 +58,7 @@ COPY ./node_modules/bootstrap-icons/font/bootstrap-icons.min.css /code/node_modu
 COPY ./node_modules/bootstrap-icons/font/fonts /code/node_modules/bootstrap-icons/font/fonts
 COPY ./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js /code/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js
 COPY ./node_modules/plotly.js-dist/plotly.js /code/node_modules/plotly.js-dist/plotly.js
+COPY ./node_modules/plotly.js-strict-dist-min/plotly-strict.min.js /code/node_modules/plotly.js-strict-dist-min/plotly-strict.min.js
 COPY ./node_modules/htmx.org/dist/htmx.js /code/node_modules/htmx.org/dist/htmx.js
 COPY ./node_modules/flatpickr/dist/flatpickr.min.js /code/node_modules/flatpickr/dist/flatpickr.min.js
 COPY ./node_modules/flatpickr/dist/flatpickr.min.css /code/node_modules/flatpickr/dist/flatpickr.min.css
@@ -67,6 +68,10 @@ COPY ./node_modules/htmx-ext-class-tools/class-tools.js /code/node_modules/htmx-
 
 COPY ./node_modules/sortable-tablesort/sortable.min.css /code/node_modules/sortable-tablesort/sortable.min.css
 COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortable-tablesort/sortable.min.js
+
+COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
+COPY ./node_modules/hightlight.js/styles/atom-one-dark.css /code/node_modules/hightlight.js/styles/atom-one-dark.css
+
 
 COPY ./addresses/mainnet_addresses_to_indexes.pickle /code/addresses/mainnet_addresses_to_indexes.pickle
 COPY ./addresses/testnet_addresses_to_indexes.pickle /code/addresses/testnet_addresses_to_indexes.pickle

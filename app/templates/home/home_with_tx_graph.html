@@ -1,0 +1,31 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+    <div class="row  mt-10">
+        <div class=" {% if net == 'mainnet' %}col-xl-8 col-lg-12{%else%}col-lg-12{%endif%}">
+            {%include 'base/search_bar.html'%}   
+            {% if net == 'mainnet' %}
+                <div class="" 
+                
+                class=" mb-1"
+                hx-trigger="load, every 30s, switched-theme from:body" 
+                hx-post="/mainnet/ajax_market_cap_table"
+                hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+            
+                
+                
+                >{{request.state.last_requests.marketcap}}</div> 
+            {% endif %}
+        </div>
+        <div class="col-xl-4 col-lg-12">
+            {% if net == 'mainnet' %}
+                {%include 'home/txs_graph.html'%}
+            {% endif %}
+        </div>
+    <div class="row  home mt-4" >
+          <div class="col-lg-6 " hx-get="/{{net}}/ajax_last_blocks" hx-trigger="load, every 2s" >{{request.state.last_requests.blocks}}</div>
+          <div class="col-lg-6" hx-get="/{{net}}/ajax_last_transactions" hx-trigger="load, every 2s" >{{request.state.last_requests.txs}}</div>
+    </div>
+        
+    </div>
+{% endblock %}

@@ -21,7 +21,7 @@ fastapi_profiler
 mkdocs
 mkdocs-material
 sentry-sdk[fastapi]
-pymongo
+
 ccdexplorer-fundamentals
 ccdexplorer-schema-parser
 statsmodels

@@ -2,7 +2,7 @@
 
 {% block content %}
     <div class="row  mt-10">
-        <div class=" {% if net == 'mainnet' %}col-xl-8 col-lg-12{%else%}col-lg-12{%endif%}">
+        <div class=" col-lg-12">
             {%include 'base/search_bar.html'%}   
             {% if net == 'mainnet' %}
                 <div class="" 
@@ -17,11 +17,7 @@
                 >{{request.state.last_requests.marketcap}}</div> 
             {% endif %}
         </div>
-        <div class="col-xl-4 col-lg-12">
-            {% if net == 'mainnet' %}
-                {%include 'home/txs_graph.html'%}
-            {% endif %}
-        </div>
+        
     <div class="row  home mt-4" >
           <div class="col-lg-6 " hx-get="/{{net}}/ajax_last_blocks" hx-trigger="load, every 2s" >{{request.state.last_requests.blocks}}</div>
           <div class="col-lg-6" hx-get="/{{net}}/ajax_last_transactions" hx-trigger="load, every 2s" >{{request.state.last_requests.txs}}</div>

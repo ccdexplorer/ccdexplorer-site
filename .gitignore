@@ -25,6 +25,10 @@
 /node_modules/plotly.js-dist/*
 !/node_modules/plotly.js-dist/plotly.js
 
+!/node_modules/plotly.js-strict-dist-min
+/node_modules/plotly.js-strict-dist-min/*
+!/node_modules/plotly.js-strict-dist-min/plotly-strict.min.js
+
 !/node_modules/htmx.org/
 /node_modules/htmx.org/*
 !/node_modules/htmx.org/dist/
