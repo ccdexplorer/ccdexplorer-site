@@ -6,7 +6,7 @@
         <td class="text-end text-secondary-emphasis">
             {% set copy_value = tx.hash %}
             {% set value_type = "tx_hash" %}
-            {% set display_value = tx.hash|tx_hash_link(net)|safe %}
+            {% set display_value = tx.hash[:4]|safe %}
             {% include "base/copy_to_clipboard.html"%}
             
     </tr>
