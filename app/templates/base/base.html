@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark" prefix="og: https://ogp.me/ns#">
   <head>
+    <title>CCDExplorer.io: The most comprehensive explorer for the Concordium blockchain.</title>
     <script src="/static/js/net_switcher.js"></script> 
     <!-- https://issuetracker.google.com/issues/313466551?pli=1#comment45 -->
     <script>
@@ -21,10 +22,10 @@
     <meta property="og:site_name" content="CCDExplorer.io" />
       {% block ogp %}{% endblock %}
     
-      <link rel="stylesheet" href="/node/bootstrap-icons/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="/static/css/custom_bootstrap.css">
-    <link rel="stylesheet" href="/static/css/custom_ccdexplorer.css">
-    <link rel="stylesheet" href="/node/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="/node/bootstrap-icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet"  href="/static/css/custom_bootstrap.css">
+    <link rel="stylesheet"  href="/static/css/custom_ccdexplorer.css">
+    <link rel="preload" as="style" href="/node/flatpickr/dist/flatpickr.min.css">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +42,7 @@
     <script src="/node/sortable-tablesort/sortable.min.js"></script>
     <script src="/node/flatpickr/dist/flatpickr.min.js"></script>
     
-    
+    {% block js %}{% endblock %}
 </head>
   <body>
     <div class="container-lg">
@@ -54,7 +55,7 @@
       {%include 'base/footer-2.html'%} 
     </div>
     
-    <script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+    
     <script src="/node/htmx.org/dist/htmx.js"></script>
     
     <script src="/node/htmx-ext-class-tools/class-tools.js"></script>

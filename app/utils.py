@@ -233,7 +233,7 @@ def tx_type_translator(tx_type_contents: str, request_type: str) -> str:
             elif result.category == TypeContentsCategories.rejected:
                 icon = f'<i  style="color:{result.color};" class="bi bi-ban""></i>'
             elif result.category == TypeContentsCategories.chain:
-                icon = '<img class="tiny-logo" src="/static/logos/small-logo-grey.png" alt="small-logo" height="16px">'
+                icon = '<img class="tiny-logo" src="/static/logos/small-logo-grey.png" alt="small-logo" height="16px" width="16px">'
 
             return icon
         else:

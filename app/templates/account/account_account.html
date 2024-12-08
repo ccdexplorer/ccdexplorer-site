@@ -1,4 +1,9 @@
 {% extends "base/base.html" %}
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+
 {% block ogp %}
 <meta property="og:title" content="Account {{account_index}} on Concordium {{net}}" />
 <meta property="og:type" content="website" />
