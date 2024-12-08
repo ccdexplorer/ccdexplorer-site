@@ -25,21 +25,21 @@ WORKDIR /code
 
 
 
-# download concordium-client package
-RUN wget https://distribution.concordium.software/tools/linux/concordium-client_7.0.1-0 -O /code/concordium-client && chmod +x /code/concordium-client
+# # download concordium-client package
+# RUN wget https://distribution.concordium.software/tools/linux/concordium-client_7.0.1-0 -O /code/concordium-client && chmod +x /code/concordium-client
 
-# download rustup install script
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /code/rustup.sh && chmod +x /code/rustup.sh
+# # download rustup install script
+# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /code/rustup.sh && chmod +x /code/rustup.sh
 
-# install rustup
-RUN /code/rustup.sh -y
-RUN rm /code/rustup.sh
+# # install rustup
+# RUN /code/rustup.sh -y
+# RUN rm /code/rustup.sh
 
-# add rust to path
-ENV PATH="/root/.cargo/bin:${PATH}"
+# # add rust to path
+# ENV PATH="/root/.cargo/bin:${PATH}"
 
-# install cargo-concordium
-RUN cargo install cargo-concordium
+# # install cargo-concordium
+# RUN cargo install cargo-concordium
 
 
 WORKDIR /code
