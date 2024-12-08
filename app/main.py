@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_AccountInfo
+from fastapi.middleware.gzip import GZipMiddleware
 
 # from fastapi_restful.tasks import repeat_every
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -112,7 +113,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 app.mount("/node", StaticFiles(directory="node_modules"), name="node_modules")
