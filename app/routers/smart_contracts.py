@@ -813,6 +813,12 @@ async def smart_contract_instance(
             CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
         )
 
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/supports-cis-standards",
+            httpx_client,
+        )
+        supports_cis_standards = api_result.return_value if api_result.ok else []
+
         request.state.api_calls["Instance Info"] = (
             f"{request.app.api_url}/docs#/Contract/get_instance_information_v2__net__contract__contract_index___contract_subindex__info_get"
         )
@@ -833,6 +839,9 @@ async def smart_contract_instance(
         )
         request.state.api_calls["Schema from Source"] = (
             f"{request.app.api_url}/docs#/Contract/get_schema_from_source_v2__net__contract__contract_index___contract_subindex__schema_from_source_get"
+        )
+        request.state.api_calls["Supports CIS Standards"] = (
+            f"{request.app.api_url}/docs#/Contract/get_instance_CIS_support_multiple_v2__net__contract__contract_index___contract_subindex__supports_cis_standards_get"
         )
         if contract:
             error = None
@@ -856,6 +865,7 @@ async def smart_contract_instance(
                     "supports_cis6": supports_cis6,
                     "item_ids": item_ids,
                     "filename": filename,
+                    "supports_cis_standards": supports_cis_standards,
                 },
             )
     # api_result NOT ok
