@@ -30,6 +30,7 @@ from app.routers import statistics
 from app.routers import tokens
 from app.routers import nodes
 from app.routers import staking
+from app.routers import smart_wallets
 from app.utils import get_url_from_api, add_account_info_to_cache
 import sentry_sdk
 import datetime as dt
@@ -182,6 +183,7 @@ app.include_router(statistics.router)
 app.include_router(tokens.router)
 app.include_router(nodes.router)
 app.include_router(staking.router)
+app.include_router(smart_wallets.router)
 
 
 @scheduler.scheduled_job("interval", seconds=5, args=[app])

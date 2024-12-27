@@ -1,4 +1,7 @@
 {% extends "base/base.html" %}
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
 {% block content %}
 <script>
     async function getInstances(requested_page, total_rows) {
@@ -81,5 +84,26 @@
   </div>
   
 
+  <div class="row row-flex">
+    <div class="col-md-12  col-sm-12">
+        <div class="border content curved-border " >
+          {% set title= "Module Build Info" %}{% include 'base/box_title.html' %}
+          {% include "smart_contracts/smart_module_build_info.html" %}
+    
+      </div>
+    </div>
+    
+  </div>
+  <div class="row row-flex">
+    <div class="col-md-12  col-sm-12">
+        <div class="border content curved-border " >
+          {% set title= "Module Source Code" %}{% include 'base/box_title.html' %}
+          {% include "smart_contracts/smart_module_source.html" %}
+    
+      </div>
+    </div>
+    
+  </div>
+  
   {% endblock content %}
 

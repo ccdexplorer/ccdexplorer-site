@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+
+<h4>Smart Wallets</h4>
+
+
+<div class="row mt-4 row-flex">
+  <div class="col-md-12  col-sm-12 ">
+      <div class="border content curved-border " >
+        {% include 'smart_wallets/search_bar_public_key.html' %}
+          
+      </div>
+  </div>
+  
+
+</div>  
+
+{% endif %}
+{% endblock content %}

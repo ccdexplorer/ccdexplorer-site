@@ -1,0 +1,22 @@
+<table class="table table-borderless">
+    
+    {% for event in logged_events.logged_events_selected %}
+        
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">{{event.event_info.event_type}}</td>
+        <td class="text-end text-secondary-emphasis ccd">{{event.tx_info.date}}</td>
+        <td class="text-end text-secondary-emphasis ccd">
+            {% if "ccd_amount" in event.recognized_event %}
+                {{event.recognized_event.ccd_amount | micro_ccd_display | safe}}
+            {% elif "token_amount" in event.recognized_event %}
+                {{event.recognized_event.token_amount}} {{event.recognized_event.cis2_token_contract_address}}
+            {% endif %}
+            
+            </td>
+    </tr>
+
+    {% endfor %}
+   
+
+</tbody>
+</table>
