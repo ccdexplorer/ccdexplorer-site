@@ -35,7 +35,11 @@
                             
                             
                         </span>
-                        <a class="stretched-link" href="/{{net}}/tokens/{{vi._id}}"></a>
+                        {% if vi._id == "PTRT" %}
+                            <a class="stretched-link" href="https://ptags.provenancechain.io/rewards"></a>
+                        {% else %}
+                            <a class="stretched-link" href="/{{net}}/tokens/{{vi._id}}"></a>
+                        {% endif %}
               
                   
                   <!-- </div> -->
