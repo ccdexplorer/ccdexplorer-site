@@ -77,6 +77,12 @@ async def get_public_key_events(
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
+        httpx_client,
+    )
+    balances = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/{skip}/{limit}",
         httpx_client,
     )
@@ -114,6 +120,7 @@ async def get_public_key_events(
             "totals_in_pagination": True,
             "total_rows": total_rows,
             "cis5_event_translations": cis5_event_translations,
+            "balances": balances,
         }
     )
 
@@ -134,11 +141,6 @@ async def get_public_key_page(
 ):
     request.state.api_calls = {}
     user: UserV2 = await get_user_detailsv2(request)
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/0/20",
-    #     httpx_client,
-    # )
-    # logged_events = api_result.return_value if api_result.ok else None
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
