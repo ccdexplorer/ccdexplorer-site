@@ -1,6 +1,33 @@
 {% extends "base/base.html" %}
 {% block content %}
+<!-- Get Events -->
+<script>
+  async function getCIS5LoggedEvents(requested_page, total_rows) {
+    events = document.getElementById('events');
+    url = '/smart_wallet_events/{{net}}/{{index}}/{{subindex}}/{{public_key}}/'+requested_page + '/'+total_rows + '/' + api_key;
+    console.log(url);
+    events.innerHTML = '{% include "base/spinner.html" %}'
+    await fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        events.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
 
+  function prev_cis5_events(requested_page, total_rows) {
+    getCIS5LoggedEvents(requested_page, total_rows)
+  };
+  function next_cis5_events(requested_page, total_rows) {
+    getCIS5LoggedEvents(requested_page, total_rows)
+  };
+
+  
+</script>
 {% if error %}
 <div class="row">
   <div class=" col-lg-12 ">
@@ -28,10 +55,18 @@
       <div class=" col-md-8  col-sm-12">
           
           <div class="border content curved-border " >
-            {% include 'smart_wallets/public_key_events.html' %}
+            <div id="events"></div>
+            
       </div>
     
       
     </div>
   {%endif %}
+  <script>
+    window.addEventListener('load', (event) => {
+      getCIS5LoggedEvents(0, 0);
+        
+      });
+        
+    </script>
 {% endblock content %}

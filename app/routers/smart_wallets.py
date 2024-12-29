@@ -18,6 +18,7 @@ from app.utils import (
 )
 import httpx
 from pydantic import BaseModel
+from enum import Enum
 
 router = APIRouter()
 
@@ -26,6 +27,17 @@ class SearchRequestPublicKey(BaseModel):
     selector: str
     value: str
     net: str
+
+
+cis5_event_translations = {
+    "CIS-5.nonce_event": "Nonce",
+    "CIS-5.deposit_ccd_event": "Deposit CCD",
+    "CIS-5.deposit_cis2_tokens_event": "Deposit CIS-2 Tokens",
+    "CIS-5.withdraw_ccd_event": "Withdraw CCD",
+    "CIS-5.withdraw_cis2_tokens_event": "Withdraw CIS-2 Tokens",
+    "CIS-5.transfer_ccd_event": "Transfer CCD",
+    "CIS-5.transfer_cis2_tokens_event": "Transfer CIS-2 Tokens",
+}
 
 
 @router.post(
@@ -43,6 +55,72 @@ async def search_public_key(request: Request, search_request: SearchRequestPubli
 
 
 @router.get(
+    "/smart_wallet_events/{net}/{index}/{subindex}/{public_key}/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def get_public_key_events(
+    request: Request,
+    net: str,
+    index: int,
+    subindex: int,
+    public_key: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """ """
+    limit = 10
+    user: UserV2 = await get_user_detailsv2(request)
+
+    skip = calculate_skip(requested_page, total_rows, limit)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/{skip}/{limit}",
+        httpx_client,
+    )
+    logged_events = api_result.return_value if api_result.ok else None
+    if not logged_events:
+        error = (
+            f"Request error getting logged events for account at {public_key} on {net}."
+        )
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    total_rows = logged_events["all_logged_events_count"]
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="event",
+        action_string="cis5_event",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("smart_wallets/public_key_events.html").render(
+        {
+            "logged_events": logged_events,
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+            "cis5_event_translations": cis5_event_translations,
+        }
+    )
+
+    return html
+
+
+@router.get(
     "/{net}/smart-wallet/{index}/{subindex}/{public_key}", response_class=HTMLResponse
 )
 async def get_public_key_page(
@@ -56,17 +134,32 @@ async def get_public_key_page(
 ):
     request.state.api_calls = {}
     user: UserV2 = await get_user_detailsv2(request)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/0/10",
-        httpx_client,
-    )
-    logged_events = api_result.return_value if api_result.ok else None
+    # api_result = await get_url_from_api(
+    #     f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/0/20",
+    #     httpx_client,
+    # )
+    # logged_events = api_result.return_value if api_result.ok else None
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
         httpx_client,
     )
     balances = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/deployed",
+        httpx_client,
+    )
+    tx_deployed = (
+        CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
+    )
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/transaction-count",
+        httpx_client,
+    )
+    tx_count_dict = api_result.return_value if api_result.ok else 0
+
     return templates.TemplateResponse(
         "smart_wallets/sw_public_key_page.html",
         {
@@ -79,7 +172,9 @@ async def get_public_key_page(
             "subindex": subindex,
             "public_key": public_key,
             "balances": balances,
-            "logged_events": logged_events,
+            # "logged_events": logged_events,
+            "tx_deployed": tx_deployed,
+            "tx_count_dict": tx_count_dict,
         },
     )
 

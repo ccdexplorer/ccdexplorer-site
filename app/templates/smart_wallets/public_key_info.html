@@ -6,7 +6,7 @@
             
             </td>
     </tr>
-    <tr><td>Tokens</td></tr>
+    <tr><td>CIS-2 Tokens</td></tr>
 
     {% for token, token_info in balances.items() %}
         {% if token != "ccd" %}
@@ -22,14 +22,23 @@
  
     {% endfor %}
     
-    <tr class="table-row-line-height sm-text border-top">
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+            <td class="text-end text-secondary-emphasis">{{tx_deployed.hash|tx_hash_link(net)|safe}}
+                
+                </td>
+        </tr>
+    <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Age</td>
-        <td class="text-end text-secondary-emphasis">... ago</td>
+        {% if not deployed_in_genesis_block %}
+            <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+        {% else %}
+            <td class="text-end text-secondary-emphasis">{{genesis_block_slot_time|datetime_delta_format_since}}</td>
+        {% endif %}
     </tr>
-    
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis"># Transactions</td>
-        <td  class="text-end text-secondary-emphasis" id="block_tx_count">...
+        <td  class="text-end text-secondary-emphasis" id="block_tx_count">{{tx_count_dict.tx_count}}
         </td>
     </tr>
    

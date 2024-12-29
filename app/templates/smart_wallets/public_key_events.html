@@ -1,13 +1,19 @@
 <table class="table table-borderless">
-    
+    {% include 'base/pagination.html' %}
     {% for event in logged_events.logged_events_selected %}
         
     <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">{{event.event_info.event_type}}</td>
+        <td class="text-start text-secondary-emphasis">        {{event.tx_info.tx_hash|tx_hash_link(net)|safe}}</td>
+        <td class="text-start text-secondary-emphasis">{{cis5_event_translations[event.event_info.event_type]}}</td>
         <td class="text-end text-secondary-emphasis ccd">{{event.tx_info.date}}</td>
         <td class="text-end text-secondary-emphasis ccd">
             {% if "ccd_amount" in event.recognized_event %}
-                {{event.recognized_event.ccd_amount | micro_ccd_display | safe}}
+                {% if event.from_address_canonical == public_key %}
+                    - {{event.recognized_event.ccd_amount | micro_ccd_display | safe}}
+                {% else %}
+                    {{event.recognized_event.ccd_amount | micro_ccd_display | safe}}
+                {% endif %}
+            
             {% elif "token_amount" in event.recognized_event %}
                 {{event.recognized_event.token_amount}} {{event.recognized_event.cis2_token_contract_address}}
             {% endif %}
