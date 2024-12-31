@@ -9,6 +9,7 @@ from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockInfo,
     CCD_AccountInfo,
+    CCD_ContractAddress,
     CCD_BlockItemSummary,
 )
 from app.classes.sankey import SanKey
@@ -321,16 +322,29 @@ async def get_account(
     )
     account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None
     if not account_info:
-        error = f"Can't find the account at {index_or_hash} on {net}."
-        return templates.TemplateResponse(
-            "base/error.html",
-            {
-                "request": request,
-                "error": error,
-                "env": environment,
-                "net": net,
-            },
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/smart-wallet/public-key/{index_or_hash}",
+            httpx_client,
         )
+        public_key_info = api_result.return_value if api_result.ok else None
+        if not public_key_info:
+            error = f"Can't find the account at {index_or_hash} on {net}."
+            return templates.TemplateResponse(
+                "base/error.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": net,
+                },
+            )
+        else:
+            wallet_contract = CCD_ContractAddress.from_str(
+                public_key_info["wallet_contract_address"]
+            )
+            url = f"/{net}/smart-wallet/{wallet_contract.index}/{wallet_contract.subindex}/{public_key_info['public_key']}"
+            response = RedirectResponse(url, status_code=303)
+            return response
 
     # add to address_to_indexes cache if not already there.
     if account_info.address[:29] not in request.app.addresses_to_indexes[net]:
