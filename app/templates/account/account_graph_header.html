@@ -50,9 +50,10 @@
       <input type="text" class="sm-text dates form-control form-control-sm  input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
     </div>
   </div>
+  
   <div class="row ps-3 pe-3">
     <div class="col ">
-      <button  hx-trigger="click, load, switched-theme from:body" 
+      <button  hx-trigger="click, {% if account.sequence_number < 1000 %}load, {%endif%} switched-theme from:body" 
       hx-post='/ajax_sankey/{{net}}/{{account_id}}'
       hx-ext='json-enc'
       hx-target="#sankey"
@@ -72,7 +73,7 @@
     </div>
   </div>
   <h5>{{token}}</h5>
-  <div id="sankey"></div>
+  <div id="sankey">{% if account.sequence_number >= 1000 %}<p class="text-center text-secondary-emphasis ">Click Update to show, might take a while..{%endif%}</p></div>
   
   <div id="table"></div>
 </div>
