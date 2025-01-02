@@ -898,11 +898,16 @@ async def get_ajax_tokens_fungible_verified(
     fungible_verified_tokens = (
         api_result.return_value["tokens"] if api_result.ok else None
     )
+
+    fungible_verified_tokens_count = (
+        api_result.return_value["total_token_count"] if api_result.ok else 0
+    )
+
     fungible_verified_tokens = collapse_tokens_from_aliases_fungible(
         fungible_verified_tokens
     )
     pagination_request = PaginationRequest(
-        total_txs=len(fungible_verified_tokens),
+        total_txs=fungible_verified_tokens_count,
         requested_page=requested_page,
         word="token",
         action_string="f_v_token",
@@ -951,11 +956,15 @@ async def get_ajax_tokens_non_fungible_verified(
         api_result.return_value["tokens"] if api_result.ok else None
     )
 
+    non_fungible_verified_tokens_count = (
+        api_result.return_value["total_token_count"] if api_result.ok else 0
+    )
+
     non_fungible_verified_tokens = collapse_tokens_from_aliases_non_fungible(
         non_fungible_verified_tokens
     )
     pagination_request = PaginationRequest(
-        total_txs=len(non_fungible_verified_tokens),
+        total_txs=non_fungible_verified_tokens_count,
         requested_page=requested_page,
         word="token",
         action_string="n_f_v_token",
