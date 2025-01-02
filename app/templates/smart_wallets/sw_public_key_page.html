@@ -42,17 +42,24 @@
   </div>
   <!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
   <div class="row mt-4 row-flex">
-      <div class=" col-md-8  col-sm-12">
+      <div class=" col-md-6  col-sm-12">
           
           <div class="border content curved-border " >
             {% include 'smart_wallets/public_key_info.html' %}
       </div>
-    
-      
+    </div>
+    {% if cis2_tokens_available %}
+      <div class=" col-md-6  col-sm-12">
+          
+        <div class="border content curved-border " >
+          {% include 'smart_wallets/public_key_cis2.html' %}
     </div>
   </div>
+  {%endif %}
+    
+  </div>
     <div class="row mt-4 row-flex">
-      <div class=" col-md-8  col-sm-12">
+      <div class=" col-md-12  col-sm-12">
           
           <div class="border content curved-border " >
             <div id="events"></div>

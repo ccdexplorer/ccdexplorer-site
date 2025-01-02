@@ -1,7 +1,10 @@
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockItemSummary
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_BlockItemSummary,
+    CCD_ContractAddress,
+)
 from app.jinja2_helpers import templates
 from app.env import environment
 from app.classes.dressingroom import MakeUp, MakeUpRequest, RequestingRoute
@@ -31,12 +34,12 @@ class SearchRequestPublicKey(BaseModel):
 
 cis5_event_translations = {
     "CIS-5.nonce_event": "Nonce",
-    "CIS-5.deposit_ccd_event": "Deposit CCD",
-    "CIS-5.deposit_cis2_tokens_event": "Deposit CIS-2 Tokens",
-    "CIS-5.withdraw_ccd_event": "Withdraw CCD",
-    "CIS-5.withdraw_cis2_tokens_event": "Withdraw CIS-2 Tokens",
-    "CIS-5.transfer_ccd_event": "Transfer CCD",
-    "CIS-5.transfer_cis2_tokens_event": "Transfer CIS-2 Tokens",
+    "CIS-5.deposit_ccd_event": "Deposit",
+    "CIS-5.deposit_cis2_tokens_event": "Deposit",
+    "CIS-5.withdraw_ccd_event": "Withdraw",
+    "CIS-5.withdraw_cis2_tokens_event": "Withdraw",
+    "CIS-5.transfer_ccd_event": "Transfer",
+    "CIS-5.transfer_cis2_tokens_event": "Transfer",
 }
 
 
@@ -82,6 +85,12 @@ async def get_public_key_events(
     )
     balances = api_result.return_value if api_result.ok else None
 
+    balances_all = (
+        balances["ccd"]
+        | balances["fungible"]
+        | balances["non_fungible"]
+        | balances["unverified"]
+    )
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/{skip}/{limit}",
         httpx_client,
@@ -120,6 +129,7 @@ async def get_public_key_events(
             "totals_in_pagination": True,
             "total_rows": total_rows,
             "cis5_event_translations": cis5_event_translations,
+            "balances_all": balances_all,
             "balances": balances,
         }
     )
@@ -141,6 +151,7 @@ async def get_public_key_page(
 ):
     request.state.api_calls = {}
     user: UserV2 = await get_user_detailsv2(request)
+    wallet_contract_address = CCD_ContractAddress.from_index(index, subindex).to_str()
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
@@ -148,6 +159,10 @@ async def get_public_key_page(
     )
     balances = api_result.return_value if api_result.ok else None
 
+    balance_ccd = balances["ccd"]
+    balances_fungible = balances["fungible"]
+    balances_non_fungible = balances["non_fungible"]
+    balances_unverified = balances["unverified"]
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/deployed",
         httpx_client,
@@ -162,6 +177,16 @@ async def get_public_key_page(
     )
     tx_count_dict = api_result.return_value if api_result.ok else 0
 
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallets/overview",
+        httpx_client,
+    )
+    smart_wallets = api_result.return_value if api_result.ok else None
+    cis2_tokens_available = (
+        (len(balances_fungible) > 0)
+        or (len(balances_non_fungible) > 0)
+        or (len(balances_unverified) > 0)
+    )
     return templates.TemplateResponse(
         "smart_wallets/sw_public_key_page.html",
         {
@@ -174,9 +199,16 @@ async def get_public_key_page(
             "subindex": subindex,
             "public_key": public_key,
             "balances": balances,
+            "balance_ccd": balance_ccd,
+            "balances_fungible": balances_fungible,
+            "balances_non_fungible": balances_non_fungible,
+            "balances_unverified": balances_unverified,
             # "logged_events": logged_events,
             "tx_deployed": tx_deployed,
             "tx_count_dict": tx_count_dict,
+            "smart_wallets": smart_wallets,
+            "wallet_contract_address": wallet_contract_address,
+            "cis2_tokens_available": cis2_tokens_available,
         },
     )
 
@@ -191,40 +223,11 @@ async def get_smart_wallets_overview(
     request.state.api_calls = {}
 
     user: UserV2 = await get_user_detailsv2(request)
-    # # api_result = await get_url_from_api(
-    # #     f"{request.app.api_url}/v2/{net}/transaction/{tx_hash}", httpx_client
-    # # )
-    # # result = CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
-    # # if not result:
-    # #     error = f"Can't find the transaction at {tx_hash} on {net}."
-    # #     return templates.TemplateResponse(
-    # #         "base/error.html",
-    # #         {
-    # #             "request": request,
-    # #             "error": error,
-    # #             "env": environment,
-    # #             "net": net,
-    # #         },
-    # #     )
-
-    # makeup_request = MakeUpRequest(
-    #     **{
-    #         "net": net,
-    #         "httpx_client": httpx_client,
-    #         "tags": tags,
-    #         "user": user,
-    #         "ccd_historical": None,
-    #         "app": request.app,
-    #         "requesting_route": RequestingRoute.transaction,
-    #     }
-    # )
-    # classified_tx = await MakeUp(makeup_request=makeup_request).prepare_for_display(
-    #     result, "", False
-    # )
-    # tx_with_makeup = classified_tx.dct
-    # request.state.api_calls["Transaction Info"] = (
-    #     f"{request.app.api_url}/docs#/Transaction/get_transaction_v2__net__transaction__tx_hash__get"
-    # )
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
+        httpx_client,
+    )
+    smart_wallets = api_result.return_value if api_result.ok else None
     return templates.TemplateResponse(
         "smart_wallets/sw_overview.html",
         {
@@ -233,5 +236,6 @@ async def get_smart_wallets_overview(
             "tags": tags,
             "user": user,
             "env": environment,
+            "smart_wallets": smart_wallets,
         },
     )

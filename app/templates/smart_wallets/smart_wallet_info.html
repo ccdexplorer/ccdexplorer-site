@@ -1,0 +1,37 @@
+
+
+<table class="table table-borderless">
+    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Module</td>
+        <td class="text-end text-secondary-emphasis">
+            {% set copy_value = wallet.source_module %}
+            {% set value_type = "source_module" %}
+            {% set display_value = wallet.source_module[:4]|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+            
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis"># Public Keys</td>
+        <td class="text-end text-secondary-emphasis">{{ wallet.count_of_unique_addresses}}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Latest active public keys</td>
+    </tr>
+    {% for public_key in wallet.active_addresses %}
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">{{public_key|account_link(net,user,tags,request.app)|safe}}</td>
+        
+    </tr>
+    {% endfor%}
+    
+</tbody>
+</table>
+
+
+
+

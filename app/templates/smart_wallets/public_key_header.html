@@ -4,6 +4,11 @@
         Smart Wallet Account
         <span class="text-end text-secondary-emphasis" ></span>
         <span class="ms-2 text-success">{{ public_key }}</span>
+        <br/>
+        <span class="text-end text-secondary-emphasis" >Created in: <a href="/{{net}}/instance/{{index}}/{{subindex}}"  title="{{wallet_contract_address}}">
+            {{smart_wallets[wallet_contract_address].name}}
+        </a>
+       </span>
 
     </div>      
 </div>

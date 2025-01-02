@@ -11,14 +11,24 @@
 
 <div class="row mt-4 row-flex">
   <div class="col-md-12  col-sm-12 ">
-      <div class="border content curved-border " >
+      
         {% include 'smart_wallets/search_bar_public_key.html' %}
-          
-      </div>
+      
   </div>
   
 
 </div>  
+<div class="row mt-4 row-flex">
+  {% for wallet_address, wallet in smart_wallets.items() %}
+        <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >    
+        {{wallet.name}}
+        <hr>
+        {% include 'smart_wallets/smart_wallet_info.html' %}
+      </div>
+      </div>
+  {% endfor%}
 
+</div>
 {% endif %}
 {% endblock content %}

@@ -2,58 +2,18 @@
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">CCD Balance</td>
         <td class="text-end text-secondary-emphasis">
-            {{ balances["ccd"].balance| micro_ccd_display | safe}} 
+            {{ balance_ccd["ccd"].balance| micro_ccd_display | safe}} 
             
             </td>
     </tr>
-    {% if balances|length > 1 %}
-    <tr><td class="text-start text-secondary-emphasis" >CIS-2 Tokens</td></tr>
-    {% endif %}
-    {% for token, token_info in balances.items() %}
-        {% if token != "ccd" %}
-      
-        {% set ai = token_info.address_information %}
-          {% set vi = token_info.verified_information %}
-          {% set token_decimals = 0 %}
-          {% if vi %}
-            {% set token_decimals = vi.decimals %}
-          {% else %}
-            {% if ai %}
-              {% set token_decimals = ai.decimals %}
-            {% endif %}
-          {% endif %}
-          <tr class="sm-text border-bottom">
-            <td><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-              <a href="/{{net}}/tokens/{{vi._id}}"><span class="ccd text-secondary-emphasis">{{vi._id}}</span></a>
-              <br/>
-                <span class="ccd_decimals text-secondary-emphasis">{{token_info.token_value|round_x_decimal_with_comma(token_decimals)}} {{vi._id}}</span>
-              </td>
-               <!-- Second column with values -->
-               <td class="text-end text-secondary-emphasis">
-                {% if token_info.token_value %}
-                <span class="ccd text-secondary-emphasis">${{token_info.token_value_USD|round_x_decimal_with_comma(0)}}
-                </span>
-                {% endif %}
-                <br/>
-                {% if token_info.token_value %}
-                <span class="ccd_decimals text-secondary-emphasis">@{{ai.exchange_rate|round_x_decimal_with_comma(3)}}</span>
-                {% endif %}
-                
-              </td>
-          </tr>
-    
     
 
-    {% endif %}
- 
-    {% endfor %}
-    
-        <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">Deployed in tx</td>
-            <td class="text-end text-secondary-emphasis">{{tx_deployed.hash|tx_hash_link(net)|safe}}
-                
-                </td>
-        </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+        <td class="text-end text-secondary-emphasis">{{tx_deployed.hash|tx_hash_link(net)|safe}}
+            
+            </td>
+    </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Age</td>
         {% if not deployed_in_genesis_block %}

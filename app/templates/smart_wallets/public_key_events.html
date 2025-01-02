@@ -1,23 +1,42 @@
 <table class="table table-borderless">
+    <thead>
+        <tr>
+            <th class="text-start text-secondary-emphasis">Tx Hash</th>
+            <th class="text-start text-secondary-emphasis ccd">Date</th>
+            <th class="text-start text-secondary-emphasis">Action</th>
+            <th class="text-start text-secondary-emphasis">CCD/Token</th>
+            <th class="text-end text-secondary-emphasis ccd">Amount</th>
+        </tr>
+    </thead>
     {% include 'base/pagination.html' %}
     {% for event in logged_events.logged_events_selected %}
     {% if "ccd_amount" not in event.recognized_event %}
-        {% set token_info = balances[event.recognized_event.cis2_token_contract_address]%}
+    {% set token_address = [event.recognized_event.cis2_token_contract_address,event.recognized_event.token_id]|join("-")%}
+        {% set token_info = balances_all[token_address]%}
+        {% if token_info %}    
             {% set ai = token_info.address_information %}
             {% set vi = token_info.verified_information %}
+            
             {% set token_decimals = 0 %}
             {% if vi %}
                 {% set token_decimals = vi.decimals %}
+                {% set token_name = vi._id %}
             {% else %}
+                {% set token_name = event.recognized_event.cis2_token_contract_address %}
                 {% if ai %}
                 {% set token_decimals = ai.decimals %}
                 {% endif %}
             {% endif %}
-        {% endif %}
+            {% endif %}
+        {%endif%}
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">        {{event.tx_info.tx_hash|tx_hash_link(net)|safe}}</td>
+        <td class="text-start text-secondary-emphasis ccd">{{event.tx_info.date}}</td>
         <td class="text-start text-secondary-emphasis">{{cis5_event_translations[event.event_info.event_type]}}</td>
-        <td class="text-end text-secondary-emphasis ccd">{{event.tx_info.date}}</td>
+        <td class="text-start text-secondary-emphasis">{%if "ccd" in event.event_info.event_type%}CCD{%else%}<img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+            <a href="/{{net}}/token/{{token_address|split_into_url_slug}}">{{token_name}}{%endif%}</td>
+
+        
         <td class="text-end text-secondary-emphasis ccd">
             {% if "ccd_amount" in event.recognized_event %}
                 {% if event.from_address_canonical == public_key %}
@@ -27,7 +46,12 @@
                 {% endif %}
             
             {% elif "token_amount" in event.recognized_event %}
-            <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} {{vi._id}}</span>
+            {% if vi %}
+                <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} {{vi._id}}</span>
+            {% else %}
+                <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} </span>
+            {%endif%}
+            
             <!-- {{event.recognized_event.token_amount}} {{event.recognized_event.cis2_token_contract_address}} -->
             {% endif %}
             
