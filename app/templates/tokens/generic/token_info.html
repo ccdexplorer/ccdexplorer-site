@@ -19,7 +19,7 @@
             {% include "base/copy_to_clipboard.html"%}
             </td>
         </tr>
-        {% if "token_metadata" in stored_token_address %}
+        <!-- {% if "token_metadata" in stored_token_address %}
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">Balance</td>
             <td class="text-end text-secondary-emphasis">
@@ -28,7 +28,7 @@
                 
                 </td>
         </tr>
-        {% endif %}
+        {% endif %} -->
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Deployed in block</td>
         <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
