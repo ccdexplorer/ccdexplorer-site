@@ -753,6 +753,7 @@ async def ajax_nft_tokens_for_tag(
 #     )
 
 
+@router.get("/{net}/token/{contract_index}/{contract_subindex}")
 @router.get(
     "/{net}/token/{contract_index}/{contract_subindex}/{token_id}"
 )  # type:ignore
@@ -761,7 +762,7 @@ async def get_token_token_address(
     net: str,
     contract_index: int,
     contract_subindex: int,
-    token_id: str,
+    token_id: Optional[str] = "_",
     tags: dict = Depends(get_labeled_accounts),
 ):
     # user: UserV2 = await get_user_detailsv2(request)

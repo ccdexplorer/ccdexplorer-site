@@ -758,9 +758,12 @@ def account_link(
         tag_found, tag_label = account_label_on_index(value, user, tags, net, app)
     if not tag_found:
         if isinstance(value, str):
-            tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i>{value[:4]}'
+            if len(value) == 64:
+                tag_label = f'<i style="color:#F6DB9A;" class="bi bi-filetype-key pe-1"></i><span style="font-family: monospace, monospace;">{value[:6]}</span>'
+            else:
+                tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{value[:4]}</span>'
         else:
-            tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i>{value}'
+            tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{value}</span>'
 
     return f'<a class="" href="/{net}/account/{value}">{tag_label}</a>'
 

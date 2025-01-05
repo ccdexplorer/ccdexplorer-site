@@ -34,7 +34,7 @@
 {% endif %}
 <span >
     <a href="/{{net}}/{{url_verb}}/{{copy_value}}" class=" {{value_type}}" title="{{title_value}}">
-        {{display_value}}
+        <span style="font-family: monospace, monospace;">{{display_value}}</span>
     </a>
     <i class="bi bi-clipboard-check" style="color: #33C364; cursor: pointer;" hx-on:click="
         navigator.clipboard.writeText(this.previousElementSibling.title); // Copy title (full address) to clipboard
