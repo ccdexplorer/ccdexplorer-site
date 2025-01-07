@@ -898,25 +898,37 @@ def events_to_file(instance_address: str, all_logged_events: list):
         return None
     df.drop(
         [
-            "result.tag",
-            "result.metadata.url",
-            "result.metadata.checksum",
-            "result.additional_data",
+            "recognized_event.tag",
+            "recognized_event.metadata.url",
+            "recognized_event.metadata.checksum",
+            "recognized_event.additional_data",
+            "event_info.logged_event",
+            "event_info.effect_index",
+            "event_info.event_index",
+            "event_info.standard",
+            "event_info.logged_event",
+            "tx_info.tx_index",
         ],
         axis=1,
         inplace=True,
     )
-    df["result.new_status"] = df["result.new_status"].fillna("")
-    df["result.initial_status"] = df["result.initial_status"].fillna("")
-    df["item_id"] = df["result.item_id"]
+    df["recognized_event.new_status"] = df["recognized_event.new_status"].fillna("")
+    df["recognized_event.initial_status"] = df[
+        "recognized_event.initial_status"
+    ].fillna("")
+    df["item_id"] = df["recognized_event.item_id"]
     df["status"] = np.where(
-        df["result.initial_status"] == "",
-        df["result.new_status"],
-        df["result.initial_status"],
+        df["recognized_event.initial_status"] == "",
+        df["recognized_event.new_status"],
+        df["recognized_event.initial_status"],
     )
 
     df.drop(
-        ["result.new_status", "result.initial_status", "result.item_id"],
+        [
+            "recognized_event.new_status",
+            "recognized_event.initial_status",
+            "recognized_event.item_id",
+        ],
         axis=1,
         inplace=True,
     )
