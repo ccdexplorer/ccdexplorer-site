@@ -919,7 +919,7 @@ def print_schema_dict(schema_dict, net, user, tags, app):
         if isinstance(schema_dict, list):
             schema_dict = schema_dict[0]
     if isinstance(schema_dict, dict):
-        out = '<div class=" parameter ps-4 pe-2">'
+        out = '<div class="text-secondary-emphasis parameter ps-4 pe-2">'
         for key, value in schema_dict.items():
             if isinstance(value, dict):
                 out += parse_account_or_contract(key, value, net, user, tags, app)
