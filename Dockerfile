@@ -65,6 +65,7 @@ COPY ./node_modules/flatpickr/dist/flatpickr.min.css /code/node_modules/flatpick
 COPY ./node_modules/jquery/dist/jquery.min.js /code/node_modules/jquery/dist/jquery.min.js
 COPY ./node_modules/htmx-ext-json-enc/json-enc.js /code/node_modules/htmx-ext-json-enc/json-enc.js
 COPY ./node_modules/htmx-ext-class-tools/class-tools.js /code/node_modules/htmx-ext-class-tools/class-tools.js
+COPY ./node_modules/microlight/microlights.js /code/node_modules/microlight/microlight.js
 
 COPY ./node_modules/sortable-tablesort/sortable.min.css /code/node_modules/sortable-tablesort/sortable.min.css
 COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortable-tablesort/sortable.min.js

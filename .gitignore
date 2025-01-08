@@ -43,6 +43,10 @@
 /node_modules/htmx-ext-json-enc/*
 !/node_modules/htmx-ext-json-enc/json-enc.js
 
+!/node_modules/microlight/
+/node_modules/microlight/*
+!/node_modules/microlight/microlight.js
+
 !/node_modules/flatpickr/
 /node_modules/flatpickr/*
 !/node_modules/flatpickr/dist/

@@ -404,3 +404,8 @@ button.nav-link.explorer {
 }
 
 /*# sourceMappingURL=sortable.css.map */
+
+.microlight {
+  font-family : monospace;
+  white-space : pre;
+}
