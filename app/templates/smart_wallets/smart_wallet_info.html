@@ -19,17 +19,28 @@
             
             </td>
     </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Latest active public keys</td>
-    </tr>
-    {% for public_key in wallet.active_addresses %}
+
+</table>
+
+    <span class="text-secondary-emphasis">Latest active public keys</span>
+
+<table class="table table-borderless">
+    <thead>
+        <tr  class="table-row-line-height sm-text">
+            <th class="text-start text-secondary-emphasis">Public Key</th>
+            <th class="text-start text-secondary-emphasis">Date</th>
+            <th class="text-end text-secondary-emphasis">Block</th>
+    </thead>
+    
+    {% for public_key, info in wallet.active_addresses.items() %}
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">{{public_key|account_link(net,user,tags,request.app)|safe}}</td>
-        
+        <td class="text-start text-secondary-emphasis ccd">{{info.last_active_date}}</td>
+        <td class="text-end text-secondary-emphasis ccd">{{info.last_active_block|round_x_decimal_with_comma(0)}}</td>
     </tr>
     {% endfor%}
     
-</tbody>
+
 </table>
 
 

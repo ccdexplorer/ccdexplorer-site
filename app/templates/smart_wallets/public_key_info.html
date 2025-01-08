@@ -1,5 +1,14 @@
 <table class="table table-borderless">
     <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Public Key</td>
+        <td  class=" text-end align-middle text-secondary-emphasis">
+            {% set copy_value = public_key %}
+            {% set value_type = "public_key" %}
+            {% set display_value = public_key | shorten_address(address=True)|safe %}
+            {% include "base/copy_to_clipboard.html"%}
+        </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">CCD Balance</td>
         <td class="text-end text-secondary-emphasis">
             {{ balance_ccd["ccd"].balance| micro_ccd_display | safe}} 

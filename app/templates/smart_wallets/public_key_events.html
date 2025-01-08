@@ -1,3 +1,4 @@
+{% set title= "Transactions" %}{% include 'base/box_title.html' %}
 <table class="table table-borderless">
     <thead>
         <tr>
@@ -20,7 +21,7 @@
             {% set token_decimals = 0 %}
             {% if vi %}
                 {% set token_decimals = vi.decimals %}
-                {% set token_name = vi._id %}
+                {% set token_name = vi.display_name %}
             {% else %}
                 {% set token_name = event.recognized_event.cis2_token_contract_address %}
                 {% if ai %}
@@ -29,12 +30,24 @@
             {% endif %}
             {% endif %}
         {%endif%}
+        {% if ai %}
+            {% if ai.token_metadata %}
+                {% set token_name = ai.token_metadata.name %}
+                
+            {% endif %}
+        {%endif%}
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">        {{event.tx_info.tx_hash|tx_hash_link(net)|safe}}</td>
         <td class="text-start text-secondary-emphasis ccd">{{event.tx_info.date}}</td>
         <td class="text-start text-secondary-emphasis">{{cis5_event_translations[event.event_info.event_type]}}</td>
-        <td class="text-start text-secondary-emphasis">{%if "ccd" in event.event_info.event_type%}CCD{%else%}<img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
-            <a href="/{{net}}/token/{{token_address|split_into_url_slug}}">{{token_name}}{%endif%}</td>
+        <td class="text-start text-secondary-emphasis">
+            {%if "ccd" in event.event_info.event_type%}
+                CCD
+            {%else%}
+                <img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+                <a href="/{{net}}/token/{{token_address|split_into_url_slug}}">{{token_name}}
+            {%endif%}
+        </td>
 
         
         <td class="text-end text-secondary-emphasis ccd">
@@ -47,7 +60,12 @@
             
             {% elif "token_amount" in event.recognized_event %}
             {% if vi %}
-                <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} {{vi._id}}</span>
+                {% if vi.token_type == "fungible" %}
+                    {% set unit = vi._id %}
+                {% else %}
+                    {% set unit = "" %}
+                {% endif %}
+                <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} {{unit}}</span>
             {% else %}
                 <span class="ccd text-secondary-emphasis">{{event.recognized_event.token_amount|int|token_amount_using_decimals_rounded(token_decimals, token_decimals)}} </span>
             {%endif%}
