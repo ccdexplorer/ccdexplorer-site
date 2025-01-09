@@ -16,6 +16,17 @@ import httpx
 router = APIRouter()
 
 
+async def get_data_for_chain_transactions_for_dates(
+    app, start_date: str, end_date: str
+) -> list[str]:
+    api_result = await get_url_from_api(
+        f"{app.api_url}/v2/mainnet/misc/statistics-chain/{start_date}/{end_date}",
+        app.httpx_client,
+    )
+    result = api_result.return_value if api_result.ok else []
+    return result
+
+
 @router.get(
     "/{net}/tools/labeled-accounts", response_class=HTMLResponse | RedirectResponse
 )
