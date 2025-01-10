@@ -2468,7 +2468,7 @@ async def statistics_network_summary_accounts_per_day_standalone(
         showlegend=False,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
         template=ccdexplorer_plotly_template(theme),
-        height=550,
+        height=400,
     )
 
     return fig.to_html(
