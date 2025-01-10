@@ -1,0 +1,151 @@
+{% extends "base/base.html" %}
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+{% block content %}
+
+
+<style>
+    .noUi-target {
+  background: #787878;
+  /* border-radius: 4px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  display: block;
+  margin-top: 10px;
+  padding: 10px;
+  width: 100%; */
+}
+#slider-date {
+    padding: 0 16px;
+}
+
+</style>
+
+
+<div    
+    class=""
+    hx-ext='json-enc'
+    hx-trigger="update_event from:#update, load, switched-theme from:body" 
+    hx-post="{{env.SITE_URL}}/{{net}}/ajax_statistics_standalone/statistics_network_summary_accounts_per_day"
+    hx-vals='js:{
+        theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+        start_date: document.getElementById("event-start").innerText,
+        end_date: document.getElementById("event-end").innerText,
+        group_by_selection: document.querySelector("input[name=\"group_by\"]:checked").id,
+        trace_selection: document.querySelector("input[name=\"trace_selection\"]:checked").id
+        }'
+></div>
+
+
+  
+  <script>
+    flatpickr("#start_date", {defaultDate:"2021-06-09"});
+    let now = new Date().toISOString()//.split('T')[0]
+    flatpickr("#end_date", {defaultDate: now});</script>
+
+<div class="row mt-4">
+    <div class=" col-sm-12">
+      <div class="border curved-border mb-2">
+        {% set title= "Graph Settings" %}{% include 'base/box_title.html' %}
+        
+
+
+        <p>Group By:</p>
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="btnradio_grouping">
+          <input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
+          <label class="btn btn-outline-primary" for="daily">Daily</label>
+        
+          <input type="radio" class="btn-check" name="group_by" id="weekly" autocomplete="off">
+          <label class="btn btn-outline-primary" for="weekly">Weekly</label>
+        
+          <input type="radio" class="btn-check" name="group_by" id="monthly" autocomplete="off">
+          <label class="btn btn-outline-primary" for="monthly">Monthly</label>
+        </div>
+      </br></br>
+      <p>Select Traces:</p>
+        <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="btnradio">
+          <input type="radio" class="btn-check" name="trace_selection" id="native" autocomplete="off" >
+          <label class="btn btn-outline-primary" for="native">Native</label>
+        
+          <input type="radio" class="btn-check" name="trace_selection" id="cis5" autocomplete="off">
+          <label class="btn btn-outline-primary" for="cis5">CIS-5</label>
+        
+          <input type="radio" class="btn-check" name="trace_selection" id="all" autocomplete="off" checked> 
+          <label class="btn btn-outline-primary" for="all">All</label>
+        </div>
+        <br/><br/><br/>
+        <div id="slider-date"></div>
+        <br/>
+  <span>Start date: </spam><span id="event-start"></span></span><br/>
+  <span>End date: <span id="event-end"></span></span>
+        <br/>
+        <button  type="button" id="update" class=" ms-4 pe-3 btn btn-sm btn-primary">Update</button>
+        
+
+
+    </div>  
+</div>
+
+
+  <script>
+        document.getElementById('update').addEventListener('click', function() {
+          var event = new CustomEvent('update_event');
+          this.dispatchEvent(event);
+        });
+      </script>
+      <script>
+
+var dateSlider = document.getElementById('slider-date');
+
+function timestamp(str) {
+    return new Date(str).getTime();
+}
+
+noUiSlider.create(dateSlider, {
+// Create two timestamps to define a range.
+    range: {
+        min: timestamp('{{chain_start|safe}}'),
+        max: timestamp('{{yesterday|safe}}')
+    },
+
+    step: 24 * 60 * 60 * 1000,
+    // tooltips: [true, true],
+    // connect:[False, False],
+    start: [timestamp('{{chain_start|safe}}'), timestamp('{{yesterday|safe}}')],
+    connect: [true, false, true],
+    // format: { to: toFormat, from: Number },
+});
+// noUiSlider.updateOptions({
+//         padding: 10,
+//     });
+function toFormat ( v ) {
+    return formatDate(new Date(v));
+}
+
+function formatDate ( date ) {
+    return date.getDate() + " " +
+        date.getMonth() + " " +
+        date.getFullYear();
+}
+        
+
+var dateValues = [
+    document.getElementById('event-start'),
+    document.getElementById('event-end')
+];
+
+var formatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'UTC'
+});
+
+dateSlider.noUiSlider.on('update', function (values, handle) {
+    dateValues[handle].innerHTML = formatter.format(new Date(+values[handle]));
+});
+
+
+      </script>
+{% endblock %}

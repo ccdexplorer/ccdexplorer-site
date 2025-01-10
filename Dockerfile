@@ -66,6 +66,8 @@ COPY ./node_modules/jquery/dist/jquery.min.js /code/node_modules/jquery/dist/jqu
 COPY ./node_modules/htmx-ext-json-enc/json-enc.js /code/node_modules/htmx-ext-json-enc/json-enc.js
 COPY ./node_modules/htmx-ext-class-tools/class-tools.js /code/node_modules/htmx-ext-class-tools/class-tools.js
 COPY ./node_modules/microlight/microlight.js /code/node_modules/microlight/microlight.js
+COPY ./node_modules/nouislider/dist/nouislider.js /code/node_modules/nouislider/dist/nouislider.js
+COPY ./node_modules/nouislider/dist/nouislider.css /code/node_modules/flatpicnouisliderkr/dist/nouislider..css
 
 COPY ./node_modules/sortable-tablesort/sortable.min.css /code/node_modules/sortable-tablesort/sortable.min.css
 COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortable-tablesort/sortable.min.js

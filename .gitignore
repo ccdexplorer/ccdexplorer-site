@@ -43,6 +43,14 @@
 /node_modules/htmx-ext-json-enc/*
 !/node_modules/htmx-ext-json-enc/json-enc.js
 
+!/node_modules/nouislider/
+/node_modules/nouislider/*
+!/node_modules/nouislider/dist/
+/node_modules/nouislider/dist/*
+!/node_modules/nouislider/dist/nouislider.js
+!/node_modules/nouislider/dist/nouislider.css
+
+
 !/node_modules/microlight/
 /node_modules/microlight/*
 !/node_modules/microlight/microlight.js
