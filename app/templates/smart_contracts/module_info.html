@@ -13,8 +13,14 @@
             </td>
     </tr>
     <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Verification Status</td>
+        <td class="text-end text-secondary-emphasis">{% if module.verification.verified %}Verified{% else %}Unverifiable{% endif %}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Deployed in block</td>
-        <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
+        <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
             
             </td>
     </tr>
@@ -26,7 +32,7 @@
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Age</td>
-        <td class="text-end text-secondary-emphasis">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+        <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Sender</td>

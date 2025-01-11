@@ -1,6 +1,9 @@
+{% set v = module.verification %}
 <table class="table-borderless">
-    <tr><td>Build Image Used:</td><td class="ms-5">{{module.verification.build_image_used}}</td>
-    <tr><td>Build Command Used:</td><td class="ms-5">{{module.verification.build_command_used}}</td>
-    <tr><td>Archive Hash:</td><td class="ms-5 ccd">{{module.verification.archive_hash}}</td>
-    <tr><td>Link to Source Code:</td><td class="ms-5"><a href="{{module.verification.link_to_source_code}}">Source Code</a></td>
+    <tr><td>Verification performed at:</td><td class="ms-5">{{v.verification_timestamp}}</td>
+    <tr><td>Build Image Used:</td><td class="ms-5">{% if v.build_image_used %}{{v.build_image_used}}{%else%}N/A{% endif%}</td>
+    <tr><td>Build Command Used:</td><td class="ms-5">{% if v.build_command_used%}{{v.build_command_used}}{%else%}N/A{% endif%}</td>
+    <tr><td>Archive Hash:</td><td class="ms-5 ccd">{% if v.archive_hash %}{{v.archive_hash}}{%else%}N/A{% endif%}</td>
+    <tr><td>Link to Source Code:</td><td class="ms-5">{% if v.link_to_source_code %}<a href="{{v.link_to_source_code}}">Source Code</a>{%else%}N/A{% endif%}</td>
+    <tr><td>Explanation:</td><td class="ms-5">{{v.explanation}}</td>
     </table>
