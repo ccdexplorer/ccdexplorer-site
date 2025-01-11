@@ -64,7 +64,7 @@
         <td class="text-end text-secondary-emphasis"><a href="{{stored_token_address.metadata_url}}">{{stored_token_address.metadata_url|shorten_address(true)|safe}}</a>
             <a href="#" data-bs-toggle="popover" tabindex="0" id="failed_attempt" data-bs-trigger="focus" data-bs-title="Error fetching metadata" data-bs-content="
             I've tried already <b>{{stored_token_address.failed_attempt.attempts}}</b> times to fetch this metadata.</br></br>The last error recorded is: </br></br><i>{{stored_token_address.failed_attempt.last_error}}.</i><br/><br/>
-            Will try again {{stored_token_address.failed_attempt.do_not_try_before|datetime_delta_format_between_dates}} from now.
+            Will try again {{stored_token_address.failed_attempt.do_not_try_before|datetime_delta_format_between_dates}} from now. <br/><br/>Do you want me to retry now? Then send a POST request to <a href='{{env.API_URL}}/v2/{{net}}/token/{{stored_token_address._id|split_into_url_slug}}/refresh'>Token Refresh URL</a>
                         "><i style="color:red;" class="bi bi-exclamation-square"></i></a>
             
             </td>
