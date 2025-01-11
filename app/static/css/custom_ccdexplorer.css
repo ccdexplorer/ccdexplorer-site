@@ -92,6 +92,16 @@ body {
     border: 1px solid var(--border-color-secondary);
 }
 
+.graph-filter {
+  /* display: flex;
+  align-items: center; */
+  gap: 10px;
+  padding: 5px;
+  /* background: var(--background-color-dropdown-menu); */
+  border-radius: 8px;
+  /* border: 1px solid var(--border-color-secondary); */
+}
+
 .search_selector {
     max-width: 120px;
 }

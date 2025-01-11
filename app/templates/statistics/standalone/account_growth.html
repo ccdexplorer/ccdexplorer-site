@@ -7,19 +7,25 @@
 
 <style>
     .noUi-target {
-  background: #787878;
-  /* border-radius: 4px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  display: block;
-  margin-top: 10px;
-  padding: 10px;
-  width: 100%; */
+  background: #0f0f0f;
+  
 }
-#slider-date {
+#slider-date-pretty {
     padding: 0 16px;
 }
+.c-2-color { background: #2485DF }
 
+.noUi-tooltip {
+	display: block;
+	position: absolute;
+	border: 1px solid #D9D9D9;
+  font-size: smaller;
+	border-radius: 4px;
+	background: #0f0f0f;
+	color: #a7acb1;
+	padding: 5px;
+	text-align: center;
+}
 </style>
 
 
@@ -30,57 +36,60 @@
     hx-post="{{env.SITE_URL}}/{{net}}/ajax_statistics_standalone/statistics_network_summary_accounts_per_day"
     hx-vals='js:{
         theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
-        start_date: document.getElementById("event-start").innerText,
-        end_date: document.getElementById("event-end").innerText,
+        start_date: document.getElementById("event-start-pretty").innerText,
+        end_date: document.getElementById("event-end-pretty").innerText,
         group_by_selection: document.querySelector("input[name=\"group_by\"]:checked").id,
         trace_selection: document.querySelector("input[name=\"trace_selection\"]:checked").id
         }'
 ></div>
 
-
-  
-  <script>
-    flatpickr("#start_date", {defaultDate:"2021-06-09"});
-    let now = new Date().toISOString()//.split('T')[0]
-    flatpickr("#end_date", {defaultDate: now});</script>
-
 <div class="row mt-4">
     <div class=" col-sm-12">
       <div class="border curved-border mb-2">
         {% set title= "Graph Settings" %}{% include 'base/box_title.html' %}
-        
+        <div class="row">
+        <div class=" col-sm-6">
 
-
-        <p>Group By:</p>
-        <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="btnradio_grouping">
-          <input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
-          <label class="btn btn-outline-primary" for="daily">Daily</label>
+        <div class="btn-group-sm" role="group"  id="btnradio_grouping">
+          Group By:<input type="radio" class="btn-check  " name="group_by" id="daily" autocomplete="off" checked>
+          <label class="btn btn-outline-secondary " for="daily">Daily</label>
         
           <input type="radio" class="btn-check" name="group_by" id="weekly" autocomplete="off">
-          <label class="btn btn-outline-primary" for="weekly">Weekly</label>
+          <label class="btn btn-outline-secondary " for="weekly">Weekly</label>
         
           <input type="radio" class="btn-check" name="group_by" id="monthly" autocomplete="off">
-          <label class="btn btn-outline-primary" for="monthly">Monthly</label>
+          <label class="btn btn-outline-secondary" for="monthly">Monthly</label>
         </div>
-      </br></br>
-      <p>Select Traces:</p>
-        <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="btnradio">
-          <input type="radio" class="btn-check" name="trace_selection" id="native" autocomplete="off" >
-          <label class="btn btn-outline-primary" for="native">Native</label>
+      </div>
+      <div class=" col-sm-6">
+      
+      
+      <div class="btn-group-sm" role="group"  id="btnradio">
+        Select Traces: <input type="radio" class="btn-check" name="trace_selection" id="native" autocomplete="off" >
+          <label class="btn btn-outline-secondary" for="native">Native</label>
         
           <input type="radio" class="btn-check" name="trace_selection" id="cis5" autocomplete="off">
-          <label class="btn btn-outline-primary" for="cis5">CIS-5</label>
+          <label class="btn btn-outline-secondary" for="cis5">CIS-5</label>
         
           <input type="radio" class="btn-check" name="trace_selection" id="all" autocomplete="off" checked> 
-          <label class="btn btn-outline-primary" for="all">All</label>
+          <label class="btn btn-outline-secondary" for="all">All</label>
         </div>
+      </div>
         <br/><br/><br/>
-        <div id="slider-date"></div>
-        <br/>
-  <span>Start date: </spam><span id="event-start"></span></span><br/>
-  <span>End date: <span id="event-end"></span></span>
-        <br/>
-        <button  type="button" id="update" class=" ms-4 pe-3 btn btn-sm btn-primary">Update</button>
+      </div>
+        <div class="row mt-4">
+          <p></p>
+          <div class=" col-sm-12 mt-4">
+            
+            <div class=" ms-3 me-3" id="slider-date-pretty"></div>
+            <span id="event-start-pretty" class="d-none"></span><br/>
+              <span id="event-end-pretty" class="d-none"></span>
+      </div>  
+      </div>  
+
+           
+
+        <button  type="button" id="update" class="d-none ">Update</button>
         
 
 
@@ -88,63 +97,179 @@
 </div>
 
 
+
   <script>
-        document.getElementById('update').addEventListener('click', function() {
-          var event = new CustomEvent('update_event');
-          this.dispatchEvent(event);
+        // document.getElementById('update').addEventListener('click', function() {
+        //   var event = new CustomEvent('update_event');
+        //   this.dispatchEvent(event);
+        // });
+        // Radio group changes
+    document.querySelectorAll('input[name="group_by"], input[name="trace_selection"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            var event = new CustomEvent('update_event');
+            document.getElementById('update').dispatchEvent(event);
         });
-      </script>
+    });
+  </script>
       <script>
 
-var dateSlider = document.getElementById('slider-date');
+ function mergeTooltips(slider, threshold, separator) {
+
+var textIsRtl = getComputedStyle(slider).direction === 'rtl';
+var isRtl = slider.noUiSlider.options.direction === 'rtl';
+var isVertical = slider.noUiSlider.options.orientation === 'vertical';
+var tooltips = slider.noUiSlider.getTooltips();
+var origins = slider.noUiSlider.getOrigins();
+
+// Move tooltips into the origin element. The default stylesheet handles this.
+tooltips.forEach(function (tooltip, index) {
+    if (tooltip) {
+        origins[index].appendChild(tooltip);
+    }
+});
+
+slider.noUiSlider.on('update', function (values, handle, unencoded, tap, positions) {
+
+    var pools = [[]];
+    var poolPositions = [[]];
+    var poolValues = [[]];
+    var atPool = 0;
+
+    // Assign the first tooltip to the first pool, if the tooltip is configured
+    if (tooltips[0]) {
+        pools[0][0] = 0;
+        poolPositions[0][0] = positions[0];
+        poolValues[0][0] = values[0];
+    }
+
+    for (var i = 1; i < positions.length; i++) {
+        if (!tooltips[i] || (positions[i] - positions[i - 1]) > threshold) {
+            atPool++;
+            pools[atPool] = [];
+            poolValues[atPool] = [];
+            poolPositions[atPool] = [];
+        }
+
+        if (tooltips[i]) {
+            pools[atPool].push(i);
+            poolValues[atPool].push(values[i]);
+            poolPositions[atPool].push(positions[i]);
+        }
+    }
+
+    pools.forEach(function (pool, poolIndex) {
+        var handlesInPool = pool.length;
+
+        for (var j = 0; j < handlesInPool; j++) {
+            var handleNumber = pool[j];
+
+            if (j === handlesInPool - 1) {
+                var offset = 0;
+
+                poolPositions[poolIndex].forEach(function (value) {
+                    offset += 1000 - value;
+                });
+
+                var direction = isVertical ? 'bottom' : 'right';
+                var last = isRtl ? 0 : handlesInPool - 1;
+                var lastOffset = 1000 - poolPositions[poolIndex][last];
+                offset = (textIsRtl && !isVertical ? 100 : 0) + (offset / handlesInPool) - lastOffset;
+
+                // Center this tooltip over the affected handles
+                tooltips[handleNumber].innerHTML = poolValues[poolIndex].join(separator);
+                tooltips[handleNumber].style.display = 'block';
+                tooltips[handleNumber].style[direction] = offset + '%';
+            } else {
+                // Hide this tooltip
+                tooltips[handleNumber].style.display = 'none';
+            }
+        }
+    });
+});
+}
+
+
+// pretty tooltips
+const MONTH_MS = 1000 * 60 * 60 * 24 * 30.5
 
 function timestamp(str) {
-    return new Date(str).getTime();
+  return new Date(str).getTime()
 }
 
-noUiSlider.create(dateSlider, {
-// Create two timestamps to define a range.
-    range: {
-        min: timestamp('{{chain_start|safe}}'),
-        max: timestamp('{{yesterday|safe}}')
-    },
+  months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+]
 
-    step: 24 * 60 * 60 * 1000,
-    // tooltips: [true, true],
-    // connect:[False, False],
-    start: [timestamp('{{chain_start|safe}}'), timestamp('{{yesterday|safe}}')],
-    connect: [false, true, false],
-    // format: { to: toFormat, from: Number },
-});
-// noUiSlider.updateOptions({
-//         padding: 10,
-//     });
-function toFormat ( v ) {
-    return formatDate(new Date(v));
+function formatDate(date) {
+  return (
+    
+    months[date.getMonth()] +
+    " " +
+    date.getFullYear()
+  )
 }
 
-function formatDate ( date ) {
-    return date.getDate() + " " +
-        date.getMonth() + " " +
-        date.getFullYear();
+var date = new Date()
+
+// set previous month
+var previousMonth = new Date()
+previousMonth.setMonth(previousMonth.getMonth() - 1)
+
+var dateSliderPretty = document.getElementById("slider-date-pretty")
+
+function toFormat(v) {
+  return formatDate(new Date(v))
 }
-        
 
-var dateValues = [
-    document.getElementById('event-start'),
-    document.getElementById('event-end')
-];
+// nouislider settings
+noUiSlider.create(dateSliderPretty, {
+  behaviour: "tap",
+  connect: true,
+  tooltips: [true, true],
+  format: { to: toFormat, from: Number },
+  range: {
+    min: timestamp('{{chain_start|safe}}'),
+    max: timestamp(date),
+  },
+  step:MONTH_MS,
+  start: [timestamp('{{chain_start|safe}}'), timestamp(date)],
+})
 
-var formatter = new Intl.DateTimeFormat('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'UTC'
-});
+// get range infos at html
+var dateValuesPretty = [
+  document.getElementById("event-start-pretty"),
+  document.getElementById("event-end-pretty"),
+]
 
-dateSlider.noUiSlider.on('update', function (values, handle) {
-    dateValues[handle].innerHTML = formatter.format(new Date(+values[handle]));
-});
+dateSliderPretty.noUiSlider.on("update", function (values, handle) {
+  dateValuesPretty[handle].innerHTML = values[handle];
+  var event = new CustomEvent('update_event');
+            document.getElementById('update').dispatchEvent(event);
+})
+
+var connect = dateSliderPretty.querySelectorAll('.noUi-connect');
+var classes = ['c-2-color'];
+
+for (var i = 0; i < connect.length; i++) {
+    connect[i].classList.add(classes[i]);
+}
+
+
+mergeTooltips(dateSliderPretty, 20, ' - ');
+
+
+
 
 
       </script>

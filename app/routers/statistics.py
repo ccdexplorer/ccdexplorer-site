@@ -23,6 +23,7 @@ from ccdexplorer_fundamentals.user_v2 import UserV2, NotificationPreferences
 from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
 from pymongo import ASCENDING, DESCENDING
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_PoolInfo,
     CCD_CurrentPaydayStatus,
@@ -2366,6 +2367,19 @@ async def statistics_network_summary_accounts_per_day_standalone(
 ):
     # theme = await get_theme_from_request(request)
     theme = post_data.theme
+    start_date_str = post_data.start_date
+    end_date_str = post_data.end_date
+    parsed_date: dt.datetime = dateutil.parser.parse(post_data.start_date)
+    post_data.start_date = dt.datetime(parsed_date.year, parsed_date.month, 1).strftime(
+        "%Y-%m-%d"
+    )
+
+    end_parsed: dt.datetime = dateutil.parser.parse(post_data.end_date)
+    next_month = dt.datetime(end_parsed.year, end_parsed.month, 1) + relativedelta(
+        months=1
+    )
+    last_day = next_month - relativedelta(days=1)
+    post_data.end_date = last_day.strftime("%Y-%m-%d")
     analysis = "statistics_network_summary"
     if net != "mainnet":
         return templates.TemplateResponse(
@@ -2419,11 +2433,14 @@ async def statistics_network_summary_accounts_per_day_standalone(
             request.app.httpx_client,
         )
         result = api_result.return_value if api_result.ok else []
-        df_cis5 = pd.DataFrame(result)
-        df_cis5.rename(
-            columns={"_id": "date", "count": "growth_cis5"},
-            inplace=True,
-        )
+        if len(result) == 0:
+            df_cis5 = pd.DataFrame(columns=["date", "growth_cis5"])
+        else:
+            df_cis5 = pd.DataFrame(result)
+            df_cis5.rename(
+                columns={"_id": "date", "count": "growth_cis5"},
+                inplace=True,
+            )
     if post_data.trace_selection == "all":
         if len(df_cis5) > 0:
             df_merged = pd.merge(df_per_day, df_cis5, on="date", how="outer").fillna(0)
@@ -2462,11 +2479,17 @@ async def statistics_network_summary_accounts_per_day_standalone(
             )
 
     fig.update_xaxes(type="date")
-    title = f"Accounts (Native and CIS-5) Growth per {tooltip}"
+    if post_data.trace_selection == "all":
+        title = f"Accounts (Native and CIS-5) Growth per {tooltip}"
+    if post_data.trace_selection == "native":
+        title = f"Accounts (Native) Growth per {tooltip}"
+    if post_data.trace_selection == "cis5":
+        title = f"Accounts (CIS-5) Growth per {tooltip}"
+
     fig.update_layout(
         barmode="stack",
         showlegend=False,
-        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        title=f"<b>{title}</b><br><sup>{start_date_str} - {end_date_str}</sup>",
         template=ccdexplorer_plotly_template(theme),
         height=400,
     )
