@@ -19,6 +19,9 @@ templates.env.filters["lottery_power"] = lottery_power  # noqa: F405
 templates.env.filters["datetime_delta_format_since"] = (
     datetime_delta_format_since  # noqa: F405
 )
+templates.env.filters["datetime_delta_format_between_dates"] = (
+    datetime_delta_format_between_dates  # noqa: F405
+)
 templates.env.filters["datetime_delta_format_since_parse"] = (
     datetime_delta_format_since_parse  # noqa: F405
 )

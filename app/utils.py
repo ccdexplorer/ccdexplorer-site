@@ -546,6 +546,23 @@ def datetime_delta_format_since(value: dt.datetime):
         return ""
 
 
+def datetime_delta_format_between_dates(
+    date1: dt.datetime, date2: dt.datetime | None = None
+):
+    """Always outputs a positive delta."""
+    if isinstance(date1, str):
+        date1 = dateutil.parser.parse(date1).astimezone(dt.timezone.utc)
+    if date2 and isinstance(date2, str):
+        date2 = dateutil.parser.parse(date2).astimezone(dt.timezone.utc)
+
+    if not date2:
+        date2 = dt.datetime.now(dt.timezone.utc)
+    if date1 > date2:
+        date1, date2 = date2, date1
+    delta = date2.astimezone(dt.timezone.utc) - date1.astimezone(dt.timezone.utc)
+    return verbose_timedelta(delta)
+
+
 def datetime_delta_format_since_parse(value: str):
     value_parsed: dt.datetime = dateutil.parser.parse(value)
     if value_parsed:

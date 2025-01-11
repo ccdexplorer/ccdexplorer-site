@@ -61,7 +61,11 @@
     {% if not md %}
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Metadata URL</td>
-        <td class="text-end text-secondary-emphasis"><a href="{{stored_token_address.metadata_url}}">Metadata URL</a>
+        <td class="text-end text-secondary-emphasis"><a href="{{stored_token_address.metadata_url}}">{{stored_token_address.metadata_url|shorten_address(true)|safe}}</a>
+            <a href="#" data-bs-toggle="popover" tabindex="0" id="failed_attempt" data-bs-trigger="focus" data-bs-title="Error fetching metadata" data-bs-content="
+            I've tried already <b>{{stored_token_address.failed_attempt.attempts}}</b> times to fetch this metadata.</br></br>The last error recorded is: </br></br><i>{{stored_token_address.failed_attempt.last_error}}.</i><br/><br/>
+            Will try again after {{stored_token_address.failed_attempt.do_not_try_before|datetime_delta_format_between_dates}}.
+                        "><i style="color:red;" class="bi bi-exclamation-square"></i></a>
             
             </td>
     </tr>
@@ -75,6 +79,10 @@
 </tbody>
 </table>
 
+<script>
+    const failed_attempt = document.getElementById('failed_attempt')
+    const popover_failed_attempt = new bootstrap.Popover(failed_attempt, {trigger: 'focus', html:true})
+  </script>
 
 
 
