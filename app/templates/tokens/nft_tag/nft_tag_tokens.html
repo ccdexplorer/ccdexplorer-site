@@ -7,7 +7,7 @@
           <th class="text-secondary-emphasis " scope="col">Contract</th>
           <th class="text-secondary-emphasis " scope="col">Token</th>
           <th class="text-secondary-emphasis text-end" scope="col">Last Activity in Block</th>
-          <th class="text-secondary-emphasis  text-end" scope="col">Balance</th>
+          <!-- <th class="text-secondary-emphasis  text-end" scope="col">Balance</th> -->
 
         </tr>
       </thead>
@@ -25,10 +25,10 @@
               {% endif %}
               </td>
               <td class="text-end text-secondary-emphasis ccd"><a href="/{{net}}/block/{{row.last_height_processed}}">{{row.last_height_processed|round_x_decimal_with_comma(0)}}</a></td>
-             <td class="text-end"> 
+             <!-- <td class="text-end"> 
               <span class="ccd_decimals  text-secondary-emphasis">{{row.token_amount}}</span>
               
-            </td>
+            </td> -->
             
         </tr>
         {% endfor %}
