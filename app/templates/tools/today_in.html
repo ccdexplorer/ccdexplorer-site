@@ -14,10 +14,9 @@
     </div>
   </div>
   
-  <div class="row ps-3 pe-3">
-    <div class="col ">
+ 
       <div  hx-trigger="load, update_event from:#date, switched-theme from:body" 
-      hx-post='/{{net}}/ajax_today_in'
+      hx-post='{{env.SITE_URL}}/{{net}}/ajax_today_in/'
       hx-ext='json-enc'
       hx-target="#today_in"
       hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
