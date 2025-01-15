@@ -1,0 +1,39 @@
+{% extends "base/base.html" %}
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+
+<div class="row">
+    
+    <div class="col-sm-6">
+      
+              <label class="ms-3 " for="date">What happened on chain on: </label>
+    </div>
+    <div class="col-sm-6">
+              <input type="text" class="form-control-sm  " data-precision="0" name="date" id="date" placeholder="Select Date">
+      
+    </div>
+  </div>
+  
+  <div class="row ps-3 pe-3">
+    <div class="col ">
+      <div  hx-trigger="load, update_event from:#date, switched-theme from:body" 
+      hx-post='/{{net}}/ajax_today_in'
+      hx-ext='json-enc'
+      hx-target="#today_in"
+      hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+      date: document.getElementById("date").value,
+      
+      }'></div>
+       
+<script>
+    flatpickr("#date", {defaultDate:'{{yesterday}}'});
+
+    document.querySelectorAll('input[name="date"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        var event = new CustomEvent('update_event');
+        document.getElementById('date').dispatchEvent(event);
+    });
+});
+</script>
+<div id="today_in"></div>
+{% endblock %}

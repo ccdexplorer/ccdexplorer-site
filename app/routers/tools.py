@@ -6,12 +6,13 @@ from app.env import environment
 from app.jinja2_helpers import templates
 from app.state import (
     get_httpx_client,
-    get_original_labeled_accounts,
     get_labeled_accounts,
     get_user_detailsv2,
 )
+import datetime as dt
 from app.utils import get_url_from_api
 import httpx
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -52,6 +53,74 @@ async def labeled_accounts(
                 "user": user,
                 "tags": tags,
                 "projects": projects,
+                "net": net,
+            },
+        )
+    else:
+        response = RedirectResponse(
+            url="/mainnet/tools/labeled-accounts", status_code=302
+        )
+        return response
+
+
+class TodayInRequest(BaseModel):
+    theme: str
+    date: str
+
+
+@router.post(
+    "/{net}/ajax_today_in/",
+    response_class=HTMLResponse,
+)
+async def ajax_today_in(
+    request: Request,
+    net: str,
+    post_data: TodayInRequest,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/misc/today-in/{post_data.date}",
+        httpx_client,
+    )
+    today_in = api_result.return_value if api_result.ok else []
+
+    if net == "mainnet":
+        return templates.TemplateResponse(
+            "/tools/today_in_day.html",
+            {
+                "env": environment,
+                "request": request,
+                "user": user,
+                "tags": tags,
+                "today_in": today_in,
+                "date": post_data.date,
+                "net": net,
+            },
+        )
+
+
+@router.get("/{net}/today-in", response_class=HTMLResponse | RedirectResponse)
+async def today_in(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    # tags_community: dict = Depends(get_community_labeled_accounts),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
+    if net == "mainnet":
+        return templates.TemplateResponse(
+            "/tools/today_in.html",
+            {
+                "env": environment,
+                "request": request,
+                "user": user,
+                "tags": tags,
+                "yesterday": yesterday,
                 "net": net,
             },
         )
