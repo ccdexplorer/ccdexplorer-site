@@ -423,7 +423,9 @@ def millify(n):
     return "{:.0f}{}".format(n / 10 ** (3 * millidx), millnames[millidx])
 
 
-def contract_tag(value, user: UserV2 = None, community_labels=None, header=False):
+def contract_tag(
+    value: CCD_ContractAddress, user: UserV2 = None, community_labels=None, header=False
+):
     """ """
 
     tag_label = None
@@ -431,11 +433,10 @@ def contract_tag(value, user: UserV2 = None, community_labels=None, header=False
 
     if not tag_label:
         if community_labels:
-            account_labeled = str(value) in community_labels
-            if account_labeled:
-                tag = community_labels[str(value)]
-                tag_label = tag
-                account_labeled = True
+            tag_found = value.to_str() in community_labels["labels_melt"]
+            if tag_found:
+                tag = community_labels["labels_melt"][value.to_str()]
+                tag_label = tag["label"]
 
         # if tags:
         #     tag_found = False
@@ -468,8 +469,8 @@ def instance_link_v2(
         user = UserV2(**user)
     tag_found, tag_label = contract_tag(value, user, tags)
     if not tag_found:
-        tag_label = f"{(value.to_str())}"
-    return f'<a class="sm-text" href="/{net}/instance/{value.index}/{value.subindex}"><i class="bi bi-card-checklist"></i>{tag_label}</a>'
+        tag_label = f"<cpan class='ccd'>{(value.to_str())}</span>"
+    return f'<a class="sm-text" href="/{net}/instance/{value.index}/{value.subindex}"><i class="bi bi-card-checklist"></i> {tag_label}</a>'
 
 
 def micro_ccd_display(value: str):
@@ -758,8 +759,9 @@ def account_link(
 
     if isinstance(value, str):
         if "<" in value:
-            contract = CCD_ContractAddress.from_str(value)
-            return f'<a class="" href="/{net}/instance/{contract.index}/{contract.subindex}"><i class="bi bi-card-checklist pe-1"></i>{value}</a>'
+            return instance_link_from_str(value, net, user, tags)
+            # contract = CCD_ContractAddress.from_str(value)
+            # return f'<a class="" href="/{net}/instance/{contract.index}/{contract.subindex}"><i class="bi bi-card-checklist pe-1"></i>{value}</a>'
         # value is now an index if found, otherwise still an address
         value = from_address_to_index(value, net, app)
 

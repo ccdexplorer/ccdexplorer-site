@@ -177,7 +177,7 @@ async def get_ajax_special_events_html_v2(
     )
     special_events = api_result.return_value if api_result.ok else None
 
-    if not special_events:
+    if not isinstance(special_events, list):
         error = f"Request error getting special events for block at {height} on {net}."
         return templates.TemplateResponse(
             "base/error-request.html",

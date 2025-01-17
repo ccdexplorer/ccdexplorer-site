@@ -1,0 +1,8 @@
+{% extends "base/base.html" %}
+{% block content %}
+    {% set hx_post_url = env.SITE_URL ~ '/' ~ net ~ '/ajax_transaction_types_reporting' %}
+    {% set include_trace_selection = False %}
+    {% set include_dropdown = True %}
+    
+    {% include 'charts/standalone_chart.html' %}
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base/base.html" %}
+{% block content %}
+    {% set hx_post_url = env.SITE_URL ~ '/' ~ net ~ '/ajax_statistics_standalone/statistics_network_summary_accounts_per_day' %}
+    {% set include_dropdown = False %}
+    {% set include_trace_selection = True %}
+    {% set traces = {'native': 'Native', 'cis5': 'CIS-5'} %}
+    {% include 'charts/standalone_chart.html' %}
+{% endblock %}

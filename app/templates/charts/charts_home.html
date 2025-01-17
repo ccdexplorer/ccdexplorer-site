@@ -1,0 +1,10 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+    <div class="row  mt-12">
+        Charts
+        <a href="/{{net}}/charts/accounts-growth" class="btn btn-outline-secondary">Accounts Growth</a>
+        <a href="/{{net}}/charts/transactions-count" class="btn btn-outline-secondary">Transactions Count</a>
+</div>  
+{% endblock %}

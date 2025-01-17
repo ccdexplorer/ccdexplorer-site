@@ -25,7 +25,7 @@
       }'></div>
        
 <script>
-    flatpickr("#date", {defaultDate:'{{yesterday}}'});
+    flatpickr("#date", {defaultDate:'{{yesterday}}', minDate:"2021-06-09", maxDate:'{{yesterday}}'});
 
     document.querySelectorAll('input[name="date"]').forEach(radio => {
     radio.addEventListener('change', function() {

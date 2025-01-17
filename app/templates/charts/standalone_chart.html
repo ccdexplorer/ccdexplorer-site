@@ -1,0 +1,101 @@
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+{% block content %}
+
+
+<style>
+    .noUi-target {
+  background: #0f0f0f;
+  
+}
+#slider-date-pretty {
+    padding: 0 16px;
+}
+.c-2-color { background: #2485DF }
+
+.noUi-tooltip {
+	display: block;
+	position: absolute;
+	border: 1px solid #D9D9D9;
+  font-size: smaller;
+	border-radius: 4px;
+	background: #0f0f0f;
+	color: #a7acb1;
+	padding: 5px;
+	text-align: center;
+}
+</style>
+{% include 'charts/graph_htmx_div.html' %}
+
+
+<div class="row mt-4">
+    <div class=" col-sm-12">
+      <div class="border curved-border mb-2">
+        {% set title= "Graph Settings" %}{% include 'base/box_title.html' %}
+        <div class="row">
+        <div class=" col-sm-6">
+
+        <div class="btn-group-sm" role="group"  id="btnradio_grouping">
+          Group By:<input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
+          <label class="btn btn-outline-secondary " for="daily">Daily</label>
+        
+          <input type="radio" class="btn-check" name="group_by" id="weekly" autocomplete="off">
+          <label class="btn btn-outline-secondary " for="weekly">Weekly</label>
+        
+          <input type="radio" class="btn-check" name="group_by" id="monthly" autocomplete="off">
+          <label class="btn btn-outline-secondary" for="monthly">Monthly</label>
+        </div>
+      </div>
+      <div class=" col-sm-6">
+      
+      {% if include_dropdown %}
+          <label for="dropdown_id" class="small">Select transaction types:</label>
+          <select name="dropdown_name" id="dropdown_id" multiple class=" form-select form-select-sm small">
+            <option selected value="all">All</option>
+            {% for element in dropdown_elements %}
+                <option value="{{element}}">{{element}}</option>
+            {% endfor %}
+          </select> 
+      {% endif %} 
+
+      {% if include_trace_selection %}
+      <div class="btn-group-sm" role="group"  id="btnradio">
+        Select Traces: 
+          {% for trace_value, trace_name in traces.items() %}
+              <input type="radio" class="btn-check" name="trace_selection" id="{{trace_value}}" autocomplete="off" >
+              <label class="btn btn-outline-secondary" for="{{trace_value}}">{{trace_name}}</label>
+          {% endfor %}
+          <input type="radio" class="btn-check" name="trace_selection" id="all" autocomplete="off" checked> 
+          <label class="btn btn-outline-secondary" for="all">All</label>
+        </div>
+      </div>
+      {% endif %}
+
+        <br/><br/><br/>
+      </div>
+        <div class="row mt-4">
+          <p></p>
+          <div class=" col-sm-12 mt-4">
+            
+            <div class=" ms-3 me-3" id="slider-date-pretty"></div>
+            <span id="event-start-pretty" class="d-none"></span><br/>
+              <span id="event-end-pretty" class="d-none"></span>
+              <button  type="button" id="update" class="d-none ">Update</button>
+      </div>  
+      </div>  
+
+           
+
+        
+        
+
+
+    </div>  
+</div>
+
+{% include 'charts/event_emit.html' %}
+
+{% include 'charts/slider.html' %}
+{% endblock %}
