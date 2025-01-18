@@ -470,7 +470,7 @@ def instance_link_v2(
     tag_found, tag_label = contract_tag(value, user, tags)
     if not tag_found:
         tag_label = f"<cpan class='ccd'>{(value.to_str())}</span>"
-    return f'<a class="sm-text" href="/{net}/instance/{value.index}/{value.subindex}"><i class="bi bi-card-checklist"></i> {tag_label}</a>'
+    return f'<a class="" href="/{net}/instance/{value.index}/{value.subindex}"><i class="bi bi-card-checklist"></i> {tag_label}</a>'
 
 
 def micro_ccd_display(value: str):
