@@ -78,6 +78,8 @@ async def redirect_to_mainnet(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
     user: UserV2 = await get_user_detailsv2(request)
     request.state.api_calls = {}
     if "last_requests" not in request.state._state:
@@ -210,6 +212,9 @@ async def search_all(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
 
     # order: account, block, transaction, module, instance, token
@@ -390,7 +395,7 @@ async def home_tx_graph(
     if not all_data:
         error = "Request error getting tx data.."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -451,12 +456,15 @@ async def ajax_last_blocks(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
-    latest_blocks = request.app.blocks_cache[net]
+    latest_blocks = request.app.blocks_cache.get(net)
     if not latest_blocks:
         error = f"Request error getting the most recent blocks on {net}."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -489,16 +497,19 @@ async def ajax_last_txs(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/transactions/last/10", httpx_client
     # )
     # latest_txs = api_result.return_value if api_result.ok else None
-    latest_txs = request.app.transactions_cache[net]
+    latest_txs = request.app.transactions_cache.get(net)
     if not latest_txs:
         error = f"Request error getting the most recent transactions on {net}."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -533,16 +544,19 @@ async def ajax_last_txs_own_page(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/transactions/last/50", httpx_client
     # )
     # latest_blocks = api_result.return_value if api_result.ok else None
-    latest_txs = request.app.transactions_cache[net]
+    latest_txs = request.app.transactions_cache.get(net)
     if not latest_txs:
         error = f"Request error getting the most recent transactions on {net}."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -577,12 +591,15 @@ async def ajax_last_blocks_own_page(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
-    latest_blocks = request.app.blocks_cache[net]
+    latest_blocks = request.app.blocks_cache.get(net)
     if not latest_blocks:
         error = f"Request error getting the most recent blocks on {net}."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -615,23 +632,26 @@ async def ajax_last_accounts_own_page(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
-    # print(list(request.app.addresses_to_indexes[net].values())[:10])
+    # print(list(request.app.addresses_to_indexes.get(net).values())[:10])
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/accounts/last/50", httpx_client
     # )
     # latest_accounts = api_result.return_value if api_result.ok else None
-    latest_accounts = request.app.accounts_cache[net]
+    latest_accounts = request.app.accounts_cache.get(net)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/misc/identity-providers",
     #     httpx_client,
     # )
     # identity_providers = api_result.return_value if api_result.ok else None
-    identity_providers = request.app.identity_providers_cache[net]
+    identity_providers = request.app.identity_providers_cache.get(net)
     if not latest_accounts:
         error = f"Request error getting the most recent accounts on {net}."
         return templates.TemplateResponse(
-            "base/error-request.html",
+            "base/error.html",
             {
                 "request": request,
                 "error": error,
@@ -671,6 +691,9 @@ async def transactions_page(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Txs"] = (
@@ -695,6 +718,9 @@ async def blocks_page(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Blocks"] = (
@@ -719,6 +745,9 @@ async def accounts_page(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
     user: UserV2 = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Accounts"] = (
