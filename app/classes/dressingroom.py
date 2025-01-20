@@ -1274,6 +1274,7 @@ class MakeUp:
         }
 
         # if token_information:
+        ProcessEventRequest.model_rebuild()
         process_event_request = ProcessEventRequest(
             **{
                 "contract_address": contract_address,
