@@ -7,7 +7,7 @@ import typing
 from enum import Enum
 
 import httpx
-from ccdexplorer_fundamentals.cis import MongoTypeTokensTag, MongoTypeLoggedEventV2
+from ccdexplorer_fundamentals.cis import *
 from ccdexplorer_fundamentals.cns import CNSActions, CNSDomain, CNSEvent
 from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
