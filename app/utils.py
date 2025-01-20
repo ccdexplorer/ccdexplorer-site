@@ -10,9 +10,16 @@ from typing import Any, Optional
 from fastapi import Request, FastAPI
 import dateutil
 import httpx
+from rich import print
+
+# from app.jinja2_helpers import templates
 import plotly.graph_objects as go
 from ccdexplorer_fundamentals.cis import (
     CIS,
+    depositCIS2TokensEvent,
+    withdrawCIS2TokensEvent,
+    transferCIS2TokensEvent,
+    MongoTypeLoggedEventV2,
     LoggedEvents,
     MongoTypeTokenAddress,
     MongoTypeTokensTag,
@@ -250,6 +257,7 @@ class ProcessEventRequest(BaseModel):
     net: str
     user: Optional[UserV2] = None
     tags: Optional[dict] = None
+    logged_event_from_collection: Optional[MongoTypeLoggedEventV2] = None
     httpx_client: httpx.AsyncClient
     token_information: Optional[MongoTypeTokensTag] = None
     token_addresses_with_markup: Optional[dict] = None
@@ -938,7 +946,7 @@ def print_schema_dict(schema_dict, net, user, tags, app):
         if isinstance(schema_dict, list):
             schema_dict = schema_dict[0]
     if isinstance(schema_dict, dict):
-        out = '<div class="text-secondary-emphasis parameter ps-4 pe-2">'
+        out = '<div class="text-secondary-emphasis parameter  ps-4 pe-2">'
         for key, value in schema_dict.items():
             if isinstance(value, dict):
                 out += parse_account_or_contract(key, value, net, user, tags, app)
@@ -962,7 +970,7 @@ def print_schema_dict(schema_dict, net, user, tags, app):
                     out += f"{key}: {shorten_address(value)}"
             elif key == "url":
                 if value != "":
-                    out += f"{key}: <a href='{value}'>{value}</a>"
+                    out += f"{key}: <a href='{value}'>{shorten_address(value)}</a>"
             elif key == "tokens":
                 if value != "":
                     out += f"{key}: <a href='/{net}/token'>{value}</a>"
@@ -972,7 +980,11 @@ def print_schema_dict(schema_dict, net, user, tags, app):
 
         out += "</div>"
     else:
-        out = schema_dict
+        out = out = (
+            '<div class="text-secondary-emphasis parameter  ps-4 pe-2">'
+            + schema_dict
+            + "</div>"
+        )
     return out
 
 
@@ -999,250 +1011,191 @@ def token_amount_using_decimals_rounded(
 
 
 async def process_event_for_makeup(req: ProcessEventRequest):
-    cis = CIS()
+    # cis = CIS()
     if isinstance(req.user, dict):
         req.user = UserV2(**req.user)
 
-    if req.token_information:
-        token_tag = req.token_information.id
-        single_use_contract = req.token_information.single_use_contract
-        decimals = req.token_information.decimals
-    else:
-        token_tag = None
-        single_use_contract = None
-        decimals = None
-
-    tag_, result = cis.process_log_events(req.event)
+    result = req.logged_event_from_collection.recognized_event
+    event_info = req.logged_event_from_collection.event_info
+    event_type = req.logged_event_from_collection.event_info.event_type
+    standard = req.logged_event_from_collection.event_info.standard
     if result:
-        if tag_ in [255, 254, 253, 252, 251, 250]:
-            event_type = LoggedEvents(tag_).name
-            if "token_id" in result.__dict__:
-                token_address = f"<{req.contract_address.index},{req.contract_address.subindex}>-{result.token_id}"
+        if standard == "CIS-2":
+            token_address_as_class = await get_token_info_from_collection(
+                req, CCD_ContractAddress.from_str(event_info.contract)
+            )
+            return EventType(
+                f"{event_type}",
+                req.app.templates.get_template("tx/logged_events/cis-2.html").render(
+                    {
+                        "result": result,
+                        "token_address_as_class": token_address_as_class,
+                        "request": req,
+                        "net": req.net,
+                        "tags": req.tags,
+                        "user": req.user,
+                    },
+                ),
+                None,
+            )
+        elif standard == "CIS-3":
+            return EventType(
+                f"{event_type}",
+                req.app.templates.get_template("tx/logged_events/cis-3.html").render(
+                    {
+                        "result": result,
+                        "request": req,
+                        "net": req.net,
+                        "tags": req.tags,
+                        "user": req.user,
+                    },
+                ),
+                None,
+            )
 
-                tagified_token_address = tagified_token_address = (
-                    f"<a href='/{req.net}/tokens/_/{token_address}'>{token_address}</a>"
+        elif standard == "CIS-4":
+            return EventType(
+                f"{event_type}",
+                req.app.templates.get_template("tx/logged_events/cis-4.html").render(
+                    {
+                        "result": result,
+                        "request": req,
+                        "net": req.net,
+                        "tags": req.tags,
+                        "user": req.user,
+                    },
+                ),
+                None,
+            )
+
+        elif standard == "CIS-5":
+            if isinstance(
+                result,
+                depositCIS2TokensEvent
+                | withdrawCIS2TokensEvent
+                | transferCIS2TokensEvent,
+            ):
+                token_address_as_class = await get_token_info_from_collection(
+                    req,
+                    CCD_ContractAddress.from_str(result.cis2_token_contract_address),
                 )
+            else:
+                token_address_as_class = None
+            return EventType(
+                f"{event_type}",
+                req.app.templates.get_template("tx/logged_events/cis-5.html").render(
+                    {
+                        "result": result,
+                        "token_address_as_class": token_address_as_class,
+                        "request": req,
+                        "net": req.net,
+                        "tags": req.tags,
+                        "user": req.user,
+                    },
+                ),
+                None,
+            )
 
-                # special case to show the Web23 domain name
-
-                tagified_token_address = tagified_token_address = (
-                    f"<a  class='ccd' href='/{req.net}/tokens/_/{token_address}'>{result.token_id}</a>"
-                )
-
-                # token_request = req.db_to_use[
-                #     Collections.tokens_token_addresses_v2
-                # ].find_one({"_id": token_address})
-
-                try:
-                    response: httpx.Response = await req.httpx_client.get(
-                        f"{req.app.api_url}/v2/{req.net}/token/{req.contract_address.index}/{req.contract_address.subindex}{result.token_id}/info"
-                    )
-                    response.raise_for_status()
-                    token_address_as_class = MongoTypeTokenAddress(**response.json())
-                except httpx.HTTPError:
-                    token_address_as_class = None
-
-                display_name = ""
-                if token_address_as_class:
-                    if token_address_as_class.token_metadata:
-                        if token_address_as_class.token_metadata.name:
-                            display_name = f"Token name: {token_address_as_class.token_metadata.name}<br/>"
-
-                if token_tag:
-                    if single_use_contract:
-                        tagified_token_address = f"<a class='ccd' href='/{req.net}/tokens/{token_tag}'>{token_tag}</a>"
-                    else:
-                        token_display = f"{token_tag}-{result.token_id[:8]}"
-
-                        tagified_token_address = f"<a  class='ccd' href='/{req.net}/tokens/{token_tag}/{result.token_id}'>{token_display}</a>"
-                        # f"{token_tag}-{result.token_id}"
-
-            if "token_amount" in result.__dict__:
-                if not decimals:
-                    amount = result.token_amount
-                else:
-                    amount = token_amount_using_decimals(result.token_amount, decimals)
-
-                postfix = "s"
-                if amount == 1:
-                    postfix = ""
-
-                token_string = f"token{postfix}" if not token_tag else f"{token_tag}"
-                if token_tag:
-                    if single_use_contract:
-                        token_string = f"{token_tag}"
-                    else:
-                        token_string = ""
-
-            if tag_ in [252]:
-                owner = address_link(result.owner, req.net, req.user, req.tags, req.app)
-                operator = address_link(
-                    result.operator, req.net, req.user, req.tags, req.app
-                )
-
-            if tag_ in [255, 253]:
-                from_address = address_link(
-                    result.from_address, req.net, req.user, req.tags, req.app
-                )
-
-            if tag_ in [255, 254]:
-                to_address = address_link(
-                    result.to_address, req.net, req.user, req.tags, req.app
-                )
-
-            if tag_ == 250:
-                sponsoree = address_link(
-                    result.sponsoree, req.net, req.user, req.tags, req.app
-                )
-
-            if tag_ == 255:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "tagified_token_address": tagified_token_address,
-                            "display_name": display_name,
-                            "amount": amount,
-                            "token_string": token_string,
-                            "from_address": from_address,
-                            "to_address": to_address,
-                        }
-                    ),
-                    None,
-                )
-            if tag_ == 254:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "tagified_token_address": tagified_token_address,
-                            "display_name": display_name,
-                            "amount": amount,
-                            "token_string": token_string,
-                            "to_address": to_address,
-                        }
-                    ),
-                    None,
-                )
-
-            if tag_ == 253:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "tagified_token_address": tagified_token_address,
-                            "display_name": display_name,
-                            "amount": amount,
-                            "token_string": token_string,
-                            "from_address": from_address,
-                        }
-                    ),
-                    None,
-                )
-
-            if tag_ == 252:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "result": result,
-                            "owner": owner,
-                            "operator": operator,
-                        }
-                    ),
-                    None,
-                )
-            if tag_ == 251:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "tagified_token_address": tagified_token_address,
-                            "display_name": display_name,
-                            "result": result,
-                        }
-                    ),
-                    None,
-                )
-
-            if tag_ == 250:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render(
-                        {
-                            "sponsoree": sponsoree,
-                            "result": result,
-                        }
-                    ),
-                    None,
-                )
-
-        elif tag_ in [249, 248, 247, 246, 245, 244]:
-            event_type = LoggedEvents(tag_).name
-            if tag_ == 249:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
-            if tag_ == 248:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
-            if tag_ == 247:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
-            if tag_ == 246:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
-            if tag_ == 245:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
-            if tag_ == 244:
-                return EventType(
-                    f"{event_type}",
-                    req.app.templates.get_template(
-                        f"tx/logged_events/{tag_}.html"
-                    ).render({"result": result}),
-                    None,
-                )
         else:
             return None
     else:
-        return None
+        return EventType(
+            "Non CIS event",
+            req.app.templates.get_template(
+                "tx/logged_events/unrecognized_event.html"
+            ).render({"logged_event": req.logged_event_from_collection}),
+            None,
+        )
+
+
+async def get_token_info_from_collection(
+    req: ProcessEventRequest, contract_address: CCD_ContractAddress
+):
+    if req.logged_event_from_collection.recognized_event:
+        token_id = (
+            "_"
+            if req.logged_event_from_collection.recognized_event.token_id == ""
+            else req.logged_event_from_collection.recognized_event.token_id
+        )
+        api_result = await get_url_from_api(
+            f"{req.app.api_url}/v2/{req.net}/token/{contract_address.index}/{contract_address.subindex}/{token_id}/info",
+            req.httpx_client,
+        )
+        token_address_as_class = api_result.return_value if api_result.ok else None
+    else:
+        token_address_as_class = None
+    return token_address_as_class
+
+
+# async def extract_token_information(
+#     req, token_tag, single_use_contract, decimals, result, cis_5: bool = False
+# ):
+#     if "token_id" in result.__dict__:
+#         if cis_5:
+#             cis_2_contract_address = CCD_ContractAddress.from_str(
+#                 result.cis2_token_contract_address
+#             )
+#             index = cis_2_contract_address.index
+#             subindex = cis_2_contract_address.subindex
+#         else:
+#             index = req.contract_address.index
+#             subindex = req.contract_address.subindex
+
+#         token_address = f"<{index},{subindex}>-{result.token_id}"
+
+#         tagified_token_address = tagified_token_address = (
+#             f"<a href='/{req.net}/tokens/_/{token_address}'>{token_address}</a>"
+#         )
+
+#         # special case to show the Web23 domain name
+
+#         tagified_token_address = tagified_token_address = (
+#             f"<a  class='ccd' href='/{req.net}/tokens/_/{token_address}'>{result.token_id}</a>"
+#         )
+
+#         try:
+#             response: httpx.Response = await req.httpx_client.get(
+#                 f"{req.app.api_url}/v2/{req.net}/token/{index}/{subindex}{result.token_id}/info"
+#             )
+#             response.raise_for_status()
+#             token_address_as_class = MongoTypeTokenAddress(**response.json())
+#         except httpx.HTTPError:
+#             token_address_as_class = None
+
+#         display_name = ""
+#         if token_address_as_class:
+#             if token_address_as_class.token_metadata:
+#                 if token_address_as_class.token_metadata.name:
+#                     display_name = (
+#                         f"Token name: {token_address_as_class.token_metadata.name}<br/>"
+#                     )
+
+#         if token_tag:
+#             if single_use_contract:
+#                 tagified_token_address = f"<a class='ccd' href='/{req.net}/tokens/{token_tag}'>{token_tag}</a>"
+#             else:
+#                 token_display = f"{token_tag}-{result.token_id[:8]}"
+
+#                 tagified_token_address = f"<a  class='ccd' href='/{req.net}/tokens/{token_tag}/{result.token_id}'>{token_display}</a>"
+#                 # f"{token_tag}-{result.token_id}"
+
+#     if "token_amount" in result.__dict__:
+#         if not decimals:
+#             amount = result.token_amount
+#         else:
+#             amount = token_amount_using_decimals(result.token_amount, decimals)
+
+#         postfix = "s"
+#         if amount == 1:
+#             postfix = ""
+
+#         token_string = f"token{postfix}" if not token_tag else f"{token_tag}"
+#         if token_tag:
+#             if single_use_contract:
+#                 token_string = f"{token_tag}"
+#             else:
+#                 token_string = ""
+#     return tagified_token_address, display_name, amount, token_string
 
 
 def address_link(value, net, user, tags, app):

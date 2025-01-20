@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from app.jinja2_helpers import templates
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_AccountInfo
 from fastapi.middleware.gzip import GZipMiddleware
 
@@ -79,7 +80,8 @@ def read_addresses_if_available(app):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.templates = Jinja2Templates(directory="app/templates")
+    # app.templates = Jinja2Templates(directory="app/templates")
+    app.templates = templates
     app.api_url = environment["API_URL"]
     app.httpx_client = httpx.AsyncClient(
         # event_hooks={"request": [log_request], "response": [log_response]},

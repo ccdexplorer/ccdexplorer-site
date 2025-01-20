@@ -7,7 +7,7 @@ import typing
 from enum import Enum
 
 import httpx
-from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
+from ccdexplorer_fundamentals.cis import MongoTypeTokensTag, MongoTypeLoggedEventV2
 from ccdexplorer_fundamentals.cns import CNSActions, CNSDomain, CNSEvent
 from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
@@ -434,6 +434,8 @@ class MakeUp:
                 "schedule": [],
             }
 
+            # don't show logged events if we are not specifically looking at 1 tx.
+            process_events = self.determine_if_we_show_events()
             if t.account_transaction.outcome == Outcome.reject.value:
                 dct.update({"events": None, "memo": t.type.contents})
                 new_event = EventType(f"Reason: {t.type.contents}", None, None)
@@ -454,6 +456,13 @@ class MakeUp:
                     )
 
                 elif effects.contract_initialized:
+                    api_result = await get_url_from_api(
+                        f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
+                        self.httpx_client,
+                    )
+                    logged_events_source = (
+                        api_result.return_value if api_result.ok else None
+                    )
                     self.classifier = TransactionClassifier.Smart_Contract
                     if (
                         self.makeup_request.requesting_route
@@ -474,6 +483,9 @@ class MakeUp:
                             success = False
                             logged_events, success = (
                                 await self.try_logged_event_parsing(
+                                    logged_events_source.get(
+                                        f"{effect_index},{event_index}"
+                                    ),
                                     logged_events,
                                     event,
                                     effects.contract_initialized.address,
@@ -500,6 +512,14 @@ class MakeUp:
                             logged_events,
                         )
                 elif effects.contract_update_issued:
+
+                    api_result = await get_url_from_api(
+                        f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
+                        self.httpx_client,
+                    )
+                    logged_events_source = (
+                        api_result.return_value if api_result.ok else None
+                    )
                     self.classifier = TransactionClassifier.Smart_Contract
                     if (
                         1
@@ -507,7 +527,10 @@ class MakeUp:
                         # self.makeup_request.requesting_route
                         # == RequestingRoute.transaction
                     ):
-                        for effect in effects.contract_update_issued.effects:
+                        for effect_index, effect in enumerate(
+                            effects.contract_update_issued.effects
+                        ):
+
                             if effect.updated:
                                 logged_events = []
                                 try:
@@ -529,16 +552,16 @@ class MakeUp:
                                     source_module_name = None
                                     parameter_json = None
 
-                                # don't show logged events if we are not specifically looking at 1 tx.
-                                process_events = self.determine_if_we_show_events(
-                                    effect.updated.events
-                                )
-
                                 if process_events:
-                                    for event in effect.updated.events:
+                                    for event_index, event in enumerate(
+                                        effect.updated.events
+                                    ):
                                         success = False
                                         logged_events, success = (
                                             await self.try_logged_event_parsing(
+                                                logged_events_source.get(
+                                                    f"{effect_index},{event_index}"
+                                                ),
                                                 logged_events,
                                                 event,
                                                 effect.updated.address,
@@ -590,28 +613,34 @@ class MakeUp:
                                     schema = None
                                     source_module_name = None
 
-                                for event in effect.interrupted.events:
-                                    success = False
-                                    logged_events, success = (
-                                        await self.try_logged_event_parsing(
-                                            logged_events,
-                                            event,
-                                            effect.interrupted.address,
-                                        )
-                                    )
-                                    if not success:
+                                if process_events:
+                                    for event_index, event in enumerate(
+                                        effect.interrupted.events
+                                    ):
+                                        success = False
                                         logged_events, success = (
-                                            self.try_schema_parsing_for_event(
+                                            await self.try_logged_event_parsing(
+                                                logged_events_source.get(
+                                                    f"{effect_index},{event_index}"
+                                                ),
                                                 logged_events,
-                                                schema,
-                                                source_module_name,
                                                 event,
-                                                self.net,
-                                                user=self.user,
-                                                tags=self.tags,
-                                                app=self.makeup_request.app,
+                                                effect.interrupted.address,
                                             )
                                         )
+                                        if not success:
+                                            logged_events, success = (
+                                                self.try_schema_parsing_for_event(
+                                                    logged_events,
+                                                    schema,
+                                                    source_module_name,
+                                                    event,
+                                                    self.net,
+                                                    user=self.user,
+                                                    tags=self.tags,
+                                                    app=self.makeup_request.app,
+                                                )
+                                            )
 
                                 await self.set_possible_cns_domain_from_interrupt(
                                     effect.interrupted
@@ -1208,11 +1237,15 @@ class MakeUp:
 
             self.dct = dct
 
-    def determine_if_we_show_events(self, events: list):
+    def determine_if_we_show_events(self):
         return self.makeup_request.requesting_route == RequestingRoute.transaction
 
     async def try_logged_event_parsing(
-        self, logged_events: list, event, contract_address: CCD_ContractAddress
+        self,
+        logged_event_from_collection: MongoTypeLoggedEventV2,
+        logged_events: list,
+        event,
+        contract_address: CCD_ContractAddress,
     ):
         success = False
         from_cache = False
@@ -1240,24 +1273,25 @@ class MakeUp:
             "timestamp": dt.datetime.now().astimezone(dt.UTC),
         }
 
-        if token_information:
-            process_event_request = ProcessEventRequest(
-                **{
-                    "contract_address": contract_address,
-                    "event": event,
-                    "net": self.net,
-                    "user": self.user,
-                    "tags": self.tags,
-                    "httpx_client": self.httpx_client,
-                    "token_information": token_information,
-                    "app": self.makeup_request.app,
-                }
-            )
-            result = await process_event_for_makeup(req=process_event_request)
+        # if token_information:
+        process_event_request = ProcessEventRequest(
+            **{
+                "contract_address": contract_address,
+                "event": event,
+                "net": self.net,
+                "user": self.user,
+                "tags": self.tags,
+                "logged_event_from_collection": logged_event_from_collection,
+                "httpx_client": self.httpx_client,
+                "token_information": token_information,
+                "app": self.makeup_request.app,
+            }
+        )
+        result = await process_event_for_makeup(req=process_event_request)
 
-            if result:
-                success = True
-                logged_events.append(result)
+        if result:
+            success = True
+            logged_events.append(result)
         return logged_events, success
 
     def try_schema_parsing_for_event(

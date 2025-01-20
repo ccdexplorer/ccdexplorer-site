@@ -1,0 +1,56 @@
+{% set ai = token_address_as_class %}
+{% set vi = token_address_as_class.verified_information %}
+{% set token_decimals = 0 %}
+{% set token_string = "" %}
+{% if vi %}
+    {% if vi.token_type == "fungible" %}
+        {% set token_string = vi._id %}
+        {% endif %}
+    {% if vi.decimals %}
+        {% set token_decimals = vi.decimals %}
+    {% endif %}
+{% else %}
+    {% if ai %}
+        {% if ai.decimals %}
+            {% set token_decimals = ai.decimals %}
+        {% endif %}
+    {% endif %}
+{% endif %}
+
+
+
+<table class="table table-borderless">
+    {% if result.token_address %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Token address</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.token_address|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.token_amount %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Amount</td>
+        <td><span class='text-secondary-emphasis ms-4 ccd'>{{display_name|safe}}{{result.token_amount|token_amount_using_decimals(token_decimals)|safe}} {{token_string|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.from_address %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>From</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.from_address|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.to_address %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>To</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.to_address|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+    </tr>{% endif %}
+
+    {% if result.operator_update %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Action</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.operator_update|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.operator %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Operator</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.operator|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.owner %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Owner</td>
+        <td><span class='text-secondary-emphasis ms-4'>{{result.owner|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+    </tr>{% endif %}
+    {% if result.metadata %}<tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Metadata Url</td>
+        <td><span class='text-secondary-emphasis ms-4'><a href='{{result.metadata.url}}'>{{result.metadata.url[8:15]}}...{{result.metadata.url[-6:]}}</a></span></td>
+    </tr>{% endif %}
+</table>
