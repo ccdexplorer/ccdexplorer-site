@@ -431,6 +431,10 @@ def millify(n):
     return "{:.0f}{}".format(n / 10 ** (3 * millidx), millnames[millidx])
 
 
+def none(value):
+    return value is None
+
+
 def contract_tag(
     value: CCD_ContractAddress, user: UserV2 = None, community_labels=None, header=False
 ):
@@ -982,7 +986,7 @@ def print_schema_dict(schema_dict, net, user, tags, app):
     else:
         out = out = (
             '<div class="text-secondary-emphasis parameter  ps-4 pe-2">'
-            + schema_dict
+            + str(schema_dict)
             + "</div>"
         )
     return out

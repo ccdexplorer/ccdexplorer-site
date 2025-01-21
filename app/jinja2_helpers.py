@@ -58,3 +58,4 @@ templates.env.filters["user_string"] = user_string  # noqa: F405
 templates.env.filters["split_contract_into_url_slug_and_token_id"] = (
     split_contract_into_url_slug_and_token_id  # noqa: F405
 )
+templates.env.filters["none"] = none  # noqa: F405
