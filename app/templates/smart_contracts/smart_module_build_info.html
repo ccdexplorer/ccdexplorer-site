@@ -1,5 +1,5 @@
 {% set v = module.verification %}
-{% if v%}
+{% if v.verification_status != "not_started" %}
 <table class="table-borderless">
     <tr><td>Verification performed at:</td><td class="ms-5">{% if "timestamp" in v%}{{v.verification_timestamp}}{%else%} Verification pending{%endif%}</td>
     <tr><td>Build Image Used:</td><td class="ms-5">{% if v.build_image_used %}{{v.build_image_used}}{%else%}N/A{% endif%}</td>
@@ -9,5 +9,5 @@
     <tr><td>Explanation:</td><td class="ms-5">{{v.explanation}}</td>
 </table>
 {% else %}
-<span class="text-secondary-emphasis">Verification pending</span>
+<span class="text-secondary-emphasis">Verification not started</span>
 {% endif %}

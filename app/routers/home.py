@@ -464,7 +464,7 @@ async def ajax_last_blocks(
     if not latest_blocks:
         error = f"Request error getting the most recent blocks on {net}."
         return templates.TemplateResponse(
-            "base/error.html",
+            "base/error-request.html",
             {
                 "request": request,
                 "error": error,
@@ -509,7 +509,7 @@ async def ajax_last_txs(
     if not latest_txs:
         error = f"Request error getting the most recent transactions on {net}."
         return templates.TemplateResponse(
-            "base/error.html",
+            "base/error-request.html",
             {
                 "request": request,
                 "error": error,
