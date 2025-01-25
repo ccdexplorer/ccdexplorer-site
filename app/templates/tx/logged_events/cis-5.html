@@ -30,10 +30,10 @@
         <td class='text-secondary-emphasis'>Token</td>
         <td><span class='text-secondary-emphasis'><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
             <a href="/{{net}}/tokens/{{vi._id}}">{{token_string}}</span></td></tr>{% endif %}
-    {% if not result.ccd_amount|none %}<tr class="table-row-line-height sm-text">
+    {% if 'ccd_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
         <td class='text-secondary-emphasis'>CCD Amount</td>
         <td><span class='text-secondary-emphasis'>{{result.ccd_amount|micro_ccd_display | safe}}</span></td></tr>{% endif %}
-    {% if not result.token_amount|none %}<tr class="table-row-line-height sm-text">
+    {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
             <td class='text-secondary-emphasis'>Amount</td>
             <td><span class='text-secondary-emphasis ccd'>{{result.token_amount|token_amount_using_decimals(token_decimals)|safe}}  {{token_string|safe}}</span></td></tr>{% endif %}
     
