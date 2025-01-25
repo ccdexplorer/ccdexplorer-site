@@ -479,13 +479,14 @@ class MakeUp:
                             schema = None
                             source_module_name = None
 
-                        for event in effects.contract_initialized.events:
+                        for event_index, event in enumerate(
+                            effects.contract_initialized.events
+                        ):
                             success = False
                             logged_events, success = (
                                 await self.try_logged_event_parsing(
-                                    logged_events_source.get(
-                                        f"{effect_index},{event_index}"
-                                    ),
+                                    # there is no effect_index for a contract initialized event
+                                    logged_events_source.get(f"0,{event_index}"),
                                     logged_events,
                                     event,
                                     effects.contract_initialized.address,
