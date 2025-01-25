@@ -11,7 +11,7 @@
                 (not currently active)
             {% endif %}
         </td></tr>
-        <tr class="sm-text"><td  class="text-start text-secondary-emphasis">Uptime</td><td class="  text-secondary-emphasis text-end">
+        <tr class="sm-text"><td  class="text-start text-secondary-emphasis">Uptime</td><td class=" ccd text-secondary-emphasis text-end">
             {% if node.nodeName %}
                 {{ node.uptime|int|uptime }}
             {% else %}
@@ -20,7 +20,7 @@
             
         </td></tr>
 
-        <tr class="sm-text"><td  class="text-start text-secondary-emphasis">Version</td><td class="  text-secondary-emphasis text-end">
+        <tr class="sm-text"><td  class="text-start text-secondary-emphasis">Version</td><td class=" ccd text-secondary-emphasis text-end">
             {% if node.nodeName %}
                 {{ node.client }}
             {% else %}
@@ -32,7 +32,7 @@
     {% if account_is_validator %}
     <tr class="sm-text">
         <td class="text-start text-secondary-emphasis">Validator id</td>
-        <td  class="text-end text-secondary-emphasis">{{account.stake.baker.baker_info.baker_id}}</td>
+        <td  class="text-end text-secondary-emphasis ccd">{{account.stake.baker.baker_info.baker_id|round_x_decimal_with_comma(0)}}</td>
     </tr>
 
     {% set staked_amount = account.stake.baker.staked_amount | int %}
@@ -102,7 +102,7 @@
                 {% if pool.current_payday_info %}
                 <tr class="sm-text">
                     <td class="text-start text-secondary-emphasis">Lottery Power:</td>
-                    <td  class="text-end text-secondary-emphasis"colspan="2" >
+                    <td  class="text-end text-secondary-emphasis ccd"colspan="2" >
                         {{pool.current_payday_info.lottery_power | lottery_power}}%</td>
                 </tr>
 
@@ -120,7 +120,7 @@
                 <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/>
                     </td>
                     
-                    <td  class="text-end text-secondary-emphasis"colspan="2"  hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/current-payday-stats" hx-trigger="load, every 10s" ></td>
+                    <td  class="text-end text-secondary-emphasis ccd"colspan="2"  hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/current-payday-stats" hx-trigger="load, every 10s" ></td>
                     
                 </tr>
                 {% endif %}
@@ -132,7 +132,7 @@
                         <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/></h2> 
 
                     </td>
-                    <td  class="text-end text-secondary-emphasis"hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/earliest-win-time" hx-trigger="load, every 10s" colspan="2" ></td></tr>
+                    <td  class="text-end text-secondary-emphasis ccd"hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/earliest-win-time" hx-trigger="load, every 10s" colspan="2" ></td></tr>
                 {% endif %}
             
 

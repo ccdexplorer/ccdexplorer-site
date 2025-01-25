@@ -20,7 +20,7 @@
         </tr>
         <tr class="sm-text">
             <td class=" text-secondary-emphasis">Total Stake (%)</td>
-            <td class=" text-end align-middle text-secondary-emphasis">{{ ((pool.current_payday_info.effective_stake /
+            <td class=" text-end align-middle text-secondary-emphasis ccd">{{ ((pool.current_payday_info.effective_stake /
                 pool.all_pool_total_capital)* 100)|round_x_decimal_no_comma(5) }}%</td>
         </tr>
         {% endif %}
@@ -29,12 +29,12 @@
         </tr>
         <tr class="sm-text">
             <td class="text-end text-secondary-emphasis">Block</td>
-            <td class=" text-end align-middle  text-secondary-emphasis">{{ pool.pool_info.commission_rates.baking* 100 }}%</td>
+            <td class=" text-end align-middle  text-secondary-emphasis ccd">{{ pool.pool_info.commission_rates.baking* 100 }}%</td>
         </tr>
 
         <tr class="sm-text">
             <td class="text-end text-secondary-emphasis">Transaction</td>
-            <td class=" text-end align-middle  text-secondary-emphasis">{{ pool.pool_info.commission_rates.transaction* 100 }}%</td>
+            <td class=" text-end align-middle  text-secondary-emphasis ccd">{{ pool.pool_info.commission_rates.transaction* 100 }}%</td>
         </tr>
         
         {% endif %}
