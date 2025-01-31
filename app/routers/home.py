@@ -16,7 +16,6 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Resp
 from pydantic import BaseModel
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypeInstance,
-    MongoTypeModule,
 )
 from app.env import environment
 from app.jinja2_helpers import templates

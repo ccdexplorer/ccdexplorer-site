@@ -105,6 +105,9 @@ body {
 .search_selector {
     max-width: 120px;
 }
+.search_selector_filter {
+  max-width: 180px;
+}
 .all-filters-search-button {
     width: 108px;
     height: 40px;

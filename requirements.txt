@@ -52,3 +52,5 @@ polars
 pymongo==4.8.0
 APScheduler
 sentry-sdk[fastapi]
+mkdocs
+mkdocstrings[python]

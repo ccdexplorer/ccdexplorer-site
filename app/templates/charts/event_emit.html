@@ -14,11 +14,19 @@ document.querySelectorAll('input[name="group_by"]').forEach(radio => {
     });
 });
 '{% if include_trace_selection %}'
-    document.querySelectorAll('input[name="trace_selection"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            var event = new CustomEvent('update_event');
-            document.getElementById('update').dispatchEvent(event);
-        });
+document.querySelectorAll('input[name="trace_selection"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        // Check if any remain checked
+        const checkedBoxes = document.querySelectorAll('input[name="trace_selection"]:checked');
+        if (checkedBoxes.length === 0) {
+            this.checked = true;
+            // No checkboxes checked, so skip dispatching update_event
+            return;
+        }
+        // Otherwise dispatch the event
+        var event = new CustomEvent('update_event');
+        document.getElementById('update').dispatchEvent(event);
     });
+});
 '{% endif %}'
 </script>

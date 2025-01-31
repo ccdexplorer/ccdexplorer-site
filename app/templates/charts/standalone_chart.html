@@ -61,16 +61,13 @@
       {% endif %} 
 
       {% if include_trace_selection %}
-      <div class="btn-group-sm" role="group"  id="btnradio">
-        Select Traces: 
-          {% for trace_value, trace_name in traces.items() %}
-              <input type="radio" class="btn-check" name="trace_selection" id="{{trace_value}}" autocomplete="off" >
-              <label class="btn btn-outline-secondary" for="{{trace_value}}">{{trace_name}}</label>
-          {% endfor %}
-          <input type="radio" class="btn-check" name="trace_selection" id="all" autocomplete="off" checked> 
-          <label class="btn btn-outline-secondary" for="all">All</label>
-        </div>
-      </div>
+      <div class="btn-group-sm" role="group" id="btncheckgroup">
+        Select Traces:
+        {% for trace_value, trace_name in traces.items() %}
+            <input type="checkbox" class="btn-check" name="trace_selection" id="{{trace_value}}" autocomplete="off" checked>
+            <label class="btn btn-outline-secondary" for="{{trace_value}}">{{trace_name}}</label>
+        {% endfor %}
+    </div>
       {% endif %}
 
         <br/><br/><br/>

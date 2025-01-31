@@ -9,8 +9,12 @@ from app.state import (
     get_labeled_accounts,
     get_user_detailsv2,
 )
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockItemSummary
 import datetime as dt
-from app.utils import get_url_from_api
+from app.utils import (
+    get_url_from_api,
+    tx_type_translation,
+)
 import httpx
 from pydantic import BaseModel
 
@@ -129,3 +133,88 @@ async def today_in(
             url="/mainnet/tools/labeled-accounts", status_code=302
         )
         return response
+
+
+@router.get("/{net}/transactions-by-type", response_class=HTMLResponse)
+async def transactions_by_type_page(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+
+    request.state.api_calls = {}
+    request.state.api_calls["Latest Txs"] = (
+        f"{request.app.api_url}/docs#/Transactions/get_last_transactions_v2__net__transactions_last__count__get"
+    )
+
+    return templates.TemplateResponse(
+        "tools/transactions_by_type.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+            "requested_page": 1,
+            "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
+        },
+    )
+
+
+class PostData(BaseModel):
+    theme: str
+    filter: str
+    requested_page: int
+
+
+@router.post("/{net}/ajax_last_transactions_by_type", response_class=HTMLResponse)
+async def ajax_last_txs_by_type(
+    request: Request,
+    net: str,
+    post_data: PostData,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    limit = 20
+    skip = (post_data.requested_page - 1) * limit
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/transactions/last/{limit}/{skip}/{post_data.filter}",
+        httpx_client,
+    )
+    latest_txs = api_result.return_value if api_result.ok else None
+    if not latest_txs:
+        error = f"Request error getting the most recent transactions on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    result = [CCD_BlockItemSummary(**x) for x in latest_txs]
+
+    html = templates.TemplateResponse(
+        "tools/last_txs_table_by_type.html",
+        {
+            "request": request,
+            "tx_type_translation": tx_type_translation,
+            "txs": result,
+            "net": net,
+            "filter": post_data.filter,
+            "requested_page": post_data.requested_page,
+            "tags": tags,
+            "user": user,
+        },
+    )
+
+    return html

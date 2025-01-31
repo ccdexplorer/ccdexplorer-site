@@ -1,0 +1,69 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<span id="requested_page" data-requested-page="{{requested_page}}" style="display:none;"></span>
+  
+    <div class="row  mt-10">
+        <span class="mb-3 text-uppercase sm-text text-secondary-emphasis">Transactions by Type</span>
+        
+        <div class="col ">
+            <div class="input-box mt-1 d-flex justify-content-start">
+                <select 
+                class="form-select form-select-sm search_selector_filter text-end" 
+                id="tx_type_contents_selector"
+                name="tx_type_contents_selector">
+                
+                    <!-- <option value="all" selected>Search all</option> -->
+                    <!-- <option value="all" selected>All</option> -->
+                    <option value="transfers" selected>Transfers</option>
+                    <option value="smart_contracts">Smart Contracts</option>
+                    <option value="identity">Identity</option>
+                    <option value="staking">Staking / Delegation</option>
+                    <option value="rejected">Rejected TXs</option>
+                    <option value="data">Data</option>
+                    <option value="chain">Chain</option>
+            
+                </select>
+                    
+            </div>
+          
+        </div>
+        <div class="col">
+           
+            <ul class="pagination pagination-sm justify-content-end ">
+                <li onclick="decreaseRequestedPage()"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-backward-btn"></i></li>
+                <li onclick="increaseRequestedPage()"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-forward-btn"></i></li>
+                
+                 
+              </ul>  
+        </div>
+          <div class="col-lg-12 " 
+          
+    hx-ext='json-enc'
+    hx-trigger="update_event from:#tx_type_contents_selector, load, switched-theme from:body" 
+    hx-post="/{{net}}/ajax_last_transactions_by_type"
+    hx-vals='js:{
+        theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+        filter: document.getElementById("tx_type_contents_selector").selectedOptions[0].value,
+        requested_page: document.getElementById("requested_page").getAttribute("data-requested-page")
+        }'
+         ></div>
+          
+    </div>
+        
+    <script>
+        const doc = document.getElementById('tx_type_contents_selector');
+        doc.addEventListener('change', function() {
+            // Reset requested_page to 1
+            const requestedPageElement = document.getElementById('requested_page');
+            requestedPageElement.setAttribute('data-requested-page', 1);
+        var event = new CustomEvent('update_event', {
+             bubbles: true 
+        });
+        doc.dispatchEvent(event);
+        
+    });
+    </script>
+{% endblock %}
