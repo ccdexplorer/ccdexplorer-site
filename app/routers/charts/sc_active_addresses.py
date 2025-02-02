@@ -183,6 +183,7 @@ async def statistics_active_addresses(
         height=400,
     )
 
+    # test
     # Remove the "complete" column
     df_merged = df_merged.drop(columns=["complete"])
 
