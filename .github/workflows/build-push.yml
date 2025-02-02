@@ -3,12 +3,12 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Publish feature image
+name: Publish main image
 
 on:
   push:
     branches:
-      - 'feature**'
+      - '**'
   
 jobs:
   build-container:
@@ -27,8 +27,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ccdexplorer/ccdexplorer-site-feature
-          tags: type=ref,event=branch
+          images: ccdexplorer/ccdexplorer-site
+          tags: |
+            ${{ github.ref_name }} | split: '/' | first
               
       - name: Build and push
         uses: docker/build-push-action@v5
