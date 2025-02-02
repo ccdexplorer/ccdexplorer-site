@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Publish feature image
+name: Publish develop image
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ccdexplorer/ccdexplorer-site-feature
+          images: ccdexplorer/ccdexplorer-site-develop
           tags: type=ref,event=branch
               
       - name: Build and push
