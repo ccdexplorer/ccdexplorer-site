@@ -8,7 +8,7 @@ name: Publish develop image
 on:
   push:
     branches:
-      - 'feature**'
+      - 'develop**'
   
 jobs:
   build-container:
