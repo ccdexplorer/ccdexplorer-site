@@ -174,14 +174,6 @@ async def statistics_active_addresses(
             title = (
                 f"Unique Active Addresses ({', '.join(selected_titles)}) per {tooltip}"
             )
-    # if len(post_data.trace_selection) == 3:
-    #     title = f"Unique Active Addresses (Native, Contract and CIS-5) per {tooltip}"
-    # if post_data.trace_selection == "address":
-    #     title = f"Unique Active Addresses per {tooltip}"
-    # if post_data.trace_selection == "public_key":
-    #     title = f"Unique Active CIS-5 Addresses per {tooltip}"
-    # if post_data.trace_selection == "contract":
-    #     title = f"Unique Active Contracts per {tooltip}"
 
     fig.update_layout(
         barmode="stack",
