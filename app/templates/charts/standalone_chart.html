@@ -33,10 +33,10 @@
 <div class="row mt-4">
     <div class=" col-sm-12">
       <div class="border curved-border mb-2">
-        {% set title= "Graph Settings" %}{% include 'base/box_title.html' %}
+        {% set title= "Graph Settings" %}{% include 'base/box_title.html' %} 
         <div class="row">
         <div class=" col-sm-6">
-
+          
         <div class="btn-group-sm" role="group"  id="btnradio_grouping">
           Group By:<input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
           <label class="btn btn-outline-secondary " for="daily">Daily</label>
@@ -70,13 +70,14 @@
     </div>
       {% endif %}
 
-        <br/><br/><br/>
+        
       </div>
         <div class="row mt-4">
           <p></p>
           <div class=" col-sm-12 mt-4">
             
             <div class=" ms-3 me-3" id="slider-date-pretty"></div>
+            
             <span id="event-start-pretty" class="d-none"></span><br/>
               <span id="event-end-pretty" class="d-none"></span>
               <button  type="button" id="update" class="d-none ">Update</button>

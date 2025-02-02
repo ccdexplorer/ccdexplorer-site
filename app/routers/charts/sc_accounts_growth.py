@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
-
+import uuid
 from app.jinja2_helpers import templates
 from app.routers.statistics import (
     ccdexplorer_plotly_template,
@@ -28,6 +28,7 @@ async def get_accounts_growth(
         yesterday = (
             dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)
         ).strftime("%Y-%m-%d")
+        filename = f"/tmp/accounts-growth - {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
         return templates.TemplateResponse(
             "charts/sc_accounts_growth.html",
             {
@@ -36,6 +37,7 @@ async def get_accounts_growth(
                 "request": request,
                 "chain_start": chain_start,
                 "yesterday": yesterday,
+                "filename": filename,
             },
         )
     else:
@@ -55,6 +57,7 @@ class PostData(BaseModel):
     end_date: str
     group_by_selection: str
     trace_selection: str
+    filename: str
 
 
 @router.post(
@@ -190,6 +193,13 @@ async def statistics_network_summary_accounts_per_day_standalone(
         height=400,
     )
 
+    # Convert non-date columns to integers
+    non_date_columns = df_merged.columns.difference(["date"])
+    # Fill NA values with 0
+    df_merged = df_merged.fillna(0)
+    df_merged[non_date_columns] = df_merged[non_date_columns].astype(int)
+
+    df_merged.to_csv(post_data.filename, index=False)
     return fig.to_html(
         config={"responsive": True, "displayModeBar": False},
         full_html=False,

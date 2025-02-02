@@ -1,4 +1,5 @@
 import datetime as dt
+import uuid
 
 import dateutil
 import pandas as pd
@@ -13,7 +14,6 @@ from app.routers.statistics import (
     ccdexplorer_plotly_template,
     get_all_data_for_analysis_limited,
 )
-from app.utils import get_url_from_api
 
 router = APIRouter()
 
@@ -28,6 +28,7 @@ async def get_accounts_growth(
         yesterday = (
             dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)
         ).strftime("%Y-%m-%d")
+        filename = f"/tmp/active-addresses - {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
         return templates.TemplateResponse(
             "charts/sc_active_addresses.html",
             {
@@ -36,6 +37,7 @@ async def get_accounts_growth(
                 "request": request,
                 "chain_start": chain_start,
                 "yesterday": yesterday,
+                "filename": filename,
             },
         )
     else:
@@ -55,6 +57,7 @@ class PostData(BaseModel):
     end_date: str
     group_by_selection: str
     trace_selection: str
+    filename: str
 
 
 @router.post(
@@ -188,6 +191,15 @@ async def statistics_active_addresses(
         height=400,
     )
 
+    # Remove the "complete" column
+    df_merged = df_merged.drop(columns=["complete"])
+
+    # Convert non-date columns to integers
+    non_date_columns = df_merged.columns.difference(["date"])
+    # Fill NA values with 0
+    df_merged = df_merged.fillna(0)
+    df_merged[non_date_columns] = df_merged[non_date_columns].astype(int)
+    df_merged.to_csv(post_data.filename, index=False)
     return fig.to_html(
         config={"responsive": True, "displayModeBar": False},
         full_html=False,

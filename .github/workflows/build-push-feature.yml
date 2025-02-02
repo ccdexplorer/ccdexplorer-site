@@ -8,7 +8,7 @@ name: Publish DockerHub image
 on:
   push:
     branches:
-      - '**'
+      - 'feature**'
   
 jobs:
   build-container:
@@ -27,10 +27,8 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: |
-            ccdexplorer/ccdexplorer-site${{ github.ref != 'refs/heads/main' && '-${{ github.ref_name }}' || '' }}
-          tags: |
-            type=ref,event=branch
+          images: ccdexplorer/ccdexplorer-site-feature
+          tags: type=ref,event=branch
               
       - name: Build and push
         uses: docker/build-push-action@v5
