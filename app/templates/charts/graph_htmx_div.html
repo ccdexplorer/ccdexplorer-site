@@ -8,6 +8,7 @@
         theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
         start_date: document.getElementById("event-start-pretty").innerText,
         end_date: document.getElementById("event-end-pretty").innerText,
+        filename: "{{filename}}",
         group_by_selection: document.querySelector("input[name=\"group_by\"]:checked").id,
         {%if include_trace_selection %}trace_selection: [...document.querySelectorAll("input[name=\"trace_selection\"]:checked")].map(el => el.id).join(","),{% endif %}
         {%if include_dropdown %}dropdown_values: [...(document.getElementById("tx_types")?.selectedOptions || [])].map(opt => opt.value){% endif %}
