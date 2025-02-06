@@ -1,0 +1,15 @@
+<table class="table table-borderless">
+    {% for k, v in result.model_dump().items() %}
+    <tr class="table-row-line-height sm-text ">
+        <td class='text-secondary-emphasis'>{{k.replace("_"," ")}}</td>
+        <td><span class='text-secondary-emphasis ccd text-break'>
+            {% if k == 'timestamp' %}
+            {{v|int|datetime_format_normal_from_ms_timestamp}}
+            {% else %}
+            {{v}}
+            {% endif %}
+            
+        </span></td>
+    </tr>
+    {% endfor %}
+</table>
