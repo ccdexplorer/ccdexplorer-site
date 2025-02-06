@@ -997,6 +997,11 @@ def datetime_format_day_only_from_ms_timestamp(value):
     return f"{ddt:%Y-%m-%d}"
 
 
+def datetime_format_normal_from_ms_timestamp(value):
+    ddt = dt.datetime.fromtimestamp(value / 1000)
+    return f"{ddt:%Y-%m-%d %H:%M:%S}"
+
+
 def token_amount_using_decimals(value: int, decimals: int = None):
     if not decimals:
         return f"{value}"
@@ -1101,7 +1106,21 @@ async def process_event_for_makeup(req: ProcessEventRequest):
             )
 
         else:
-            return None
+            return EventType(
+                f"{event_type}",
+                req.app.templates.get_template(
+                    "tx/logged_events/custom_event.html"
+                ).render(
+                    {
+                        "result": result,
+                        "request": req,
+                        "net": req.net,
+                        "tags": req.tags,
+                        "user": req.user,
+                    },
+                ),
+                None,
+            )
     else:
         return EventType(
             "Non CIS event",
