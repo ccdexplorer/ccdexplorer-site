@@ -6,6 +6,9 @@ templates = Jinja2Templates(directory="app/templates")
 templates.env.filters["datetime_format_day_only_from_ms_timestamp"] = (
     datetime_format_day_only_from_ms_timestamp  # noqa: F405
 )
+templates.env.filters["datetime_format_normal_from_ms_timestamp"] = (
+    datetime_format_normal_from_ms_timestamp  # noqa: F405
+)
 templates.env.filters["hex_to_rgba"] = hex_to_rgba  # noqa: F405
 templates.env.filters["token_value_no_decimals"] = token_value_no_decimals  # noqa: F405
 templates.env.filters["uptime"] = uptime  # noqa: F405
