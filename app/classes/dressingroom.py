@@ -483,15 +483,16 @@ class MakeUp:
                             effects.contract_initialized.events
                         ):
                             success = False
-                            logged_events, success = (
-                                await self.try_logged_event_parsing(
-                                    # there is no effect_index for a contract initialized event
-                                    logged_events_source.get(f"0,{event_index}"),
-                                    logged_events,
-                                    event,
-                                    effects.contract_initialized.address,
+                            if logged_events_source:
+                                logged_events, success = (
+                                    await self.try_logged_event_parsing(
+                                        # there is no effect_index for a contract initialized event
+                                        logged_events_source.get(f"0,{event_index}"),
+                                        logged_events,
+                                        event,
+                                        effects.contract_initialized.address,
+                                    )
                                 )
-                            )
                             if not success:
                                 logged_events, success = (
                                     self.try_schema_parsing_for_event(
@@ -558,16 +559,17 @@ class MakeUp:
                                         effect.updated.events
                                     ):
                                         success = False
-                                        logged_events, success = (
-                                            await self.try_logged_event_parsing(
-                                                logged_events_source.get(
-                                                    f"{effect_index},{event_index}"
-                                                ),
-                                                logged_events,
-                                                event,
-                                                effect.updated.address,
+                                        if logged_events_source:
+                                            logged_events, success = (
+                                                await self.try_logged_event_parsing(
+                                                    logged_events_source.get(
+                                                        f"{effect_index},{event_index}"
+                                                    ),
+                                                    logged_events,
+                                                    event,
+                                                    effect.updated.address,
+                                                )
                                             )
-                                        )
                                         if not success:
                                             logged_events, success = (
                                                 self.try_schema_parsing_for_event(
@@ -619,16 +621,17 @@ class MakeUp:
                                         effect.interrupted.events
                                     ):
                                         success = False
-                                        logged_events, success = (
-                                            await self.try_logged_event_parsing(
-                                                logged_events_source.get(
-                                                    f"{effect_index},{event_index}"
-                                                ),
-                                                logged_events,
-                                                event,
-                                                effect.interrupted.address,
+                                        if logged_events_source:
+                                            logged_events, success = (
+                                                await self.try_logged_event_parsing(
+                                                    logged_events_source.get(
+                                                        f"{effect_index},{event_index}"
+                                                    ),
+                                                    logged_events,
+                                                    event,
+                                                    effect.interrupted.address,
+                                                )
                                             )
-                                        )
                                         if not success:
                                             logged_events, success = (
                                                 self.try_schema_parsing_for_event(
