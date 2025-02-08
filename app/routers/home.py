@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 from enum import Enum
 
 import httpx
@@ -10,13 +11,14 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockInfo,
     CCD_BlockItemSummary,
 )
-from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
-from pydantic import BaseModel
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypeInstance,
 )
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from pydantic import BaseModel
+
 from app.env import environment
 from app.jinja2_helpers import templates
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
@@ -367,8 +369,14 @@ async def search_placeholder(
 
 @router.get("/tmp/{filename}", response_class=FileResponse)
 async def tmp_files(request: Request, filename: str):
-    headers = {"Content-Disposition": f'attachment; filename="/tmp/{filename}"'}
-    return FileResponse(f"/tmp/{filename}", headers=headers, media_type="text/csv")
+    file_path = f"/tmp/{filename}"
+
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return FileResponse(file_path, headers=headers, media_type="text/csv")
 
 
 @router.post(
