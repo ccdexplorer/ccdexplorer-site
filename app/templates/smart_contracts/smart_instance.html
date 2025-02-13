@@ -253,6 +253,36 @@
       </div>
       </div>
     </div>
+
+    <div class="row row-flex">
+      <div class="col-md-12  col-sm-12">
+          <div class="border content curved-border " >
+            {% set title= "Module Build Info" %}{% include 'base/box_title.html' %}
+            {% include "smart_contracts/smart_module_build_info.html" %}
+      
+        </div>
+      </div>
+      
+    </div>
+    {% if module %}
+        {% set v = module.verification %}
+    {% else %}
+        {% set v = contract.module_verification %}
+    {% endif %}
+    {%if v.verified%}
+  <div class="row row-flex">
+    <div class="col-md-12  col-sm-12">
+        <div class="border content curved-border " >
+          {% set title= "Module Source Code" %}{% set copy_source=True %}{% include 'base/box_title.html' %} 
+    
+          {% include "smart_contracts/smart_module_source.html" %}
+    
+      </div>
+    </div>
+    
+  </div>
+  {% endif %}
+
   {% endif %}  
   <script>
     window.addEventListener('load', (event) => {

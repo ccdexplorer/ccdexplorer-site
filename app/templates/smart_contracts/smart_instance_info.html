@@ -61,7 +61,7 @@
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Verification Status</td>
-        <td class="text-end text-secondary-emphasis">{% if contract.module_verification.verification_status == "not_started" %}Not Started{%elif contract.module_verification.verification_status == "verified_success"%}Verified{% else %}Unverifiable{% endif %}
+        <td class="text-end text-secondary-emphasis">{% if contract.module_verification.verification_status == "not_started" %}Not Started{%elif contract.module_verification.verification_status == "verified_success"%}Verified <i class="text-success bi bi-patch-check-fill"></i>{% else %}Unverifiable{% endif %}
             
             </td>
     </tr>

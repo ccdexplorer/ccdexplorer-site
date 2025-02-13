@@ -1,4 +1,8 @@
-{% set v = module.verification %}
+{% if module %}
+    {% set v = module.verification %}
+{% else %}
+    {% set v = contract.module_verification %}
+{% endif %}
 {% if v.verification_status != "not_started" %}
 <table class="table-borderless">
     <tr><td>Verification Status:</td><td class="ms-5">{{v.verification_status}}</td></tr>
