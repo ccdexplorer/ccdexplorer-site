@@ -1,0 +1,18 @@
+{% set title_value = copy_value %}
+
+<span >
+    <i class="bi bi-clipboard-check" style="color: #33C364; cursor: pointer;" hx-on:click="
+        const codeElement = document.getElementById('source_code_container');
+        if (!codeElement) return;
+
+        // Copy the text (innerText preserves line breaks from <code>)
+        navigator.clipboard.writeText(codeElement.innerText);
+
+        // Provide temporary feedback to the user
+        this.dataset.originalIcon = this.innerHTML;
+        this.innerHTML = 'Copied!';
+        setTimeout(() => {
+        this.innerHTML = this.dataset.originalIcon;
+        }, 1000);
+    "></i>
+</span>

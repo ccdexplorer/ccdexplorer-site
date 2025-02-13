@@ -83,7 +83,7 @@
     
   </div>
   
-  {%if module.verification.verified%}
+  
   <div class="row row-flex">
     <div class="col-md-12  col-sm-12">
         <div class="border content curved-border " >
@@ -94,29 +94,17 @@
     </div>
     
   </div>
+  {%if module.verification.verified%}
   <div class="row row-flex">
     <div class="col-md-12  col-sm-12">
         <div class="border content curved-border " >
-          {% set title= "Module Source Code" %}{% include 'base/box_title.html' %}
+          {% set title= "Module Source Code" %}{% set copy_source=True %}{% include 'base/box_title.html' %}
           {% include "smart_contracts/smart_module_source.html" %}
     
       </div>
     </div>
     
   </div>
-  {% else %}
-  <div class="row row-flex">
-    <div class="col-md-12  col-sm-12">
-        <div class="border content curved-border " >
-          {% set title= "Verification Results" %}{% include 'base/box_title.html' %}
-          {% include "smart_contracts/smart_module_build_info.html" %}
-          
-    
-      </div>
-    </div>
-    
-  </div>
-
   {% endif %}
   {% endblock content %}
 

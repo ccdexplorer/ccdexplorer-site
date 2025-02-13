@@ -194,6 +194,8 @@ payload_translation["cooldown_parameters_cpv_1_update"] = "cooldown parameters"
 payload_translation["pool_parameters_cpv_1_update"] = "pool parameters"
 payload_translation["time_parameters_cpv_1_update"] = "time parameters"
 payload_translation["mint_distribution_cpv_1_update"] = "mint distribution"
+payload_translation["validator_score_parameters_update"] = "validator score parameters"
+payload_translation["mint_distribution_cpv_1_update"] = "mint distribution"
 payload_translation["finalization_committee_parameters_update"] = (
     "finalization committee parameters"
 )
