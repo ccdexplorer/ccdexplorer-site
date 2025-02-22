@@ -39,6 +39,14 @@ async def get_sc_transactions_count(
     all_transaction_effects = list(
         set(CCD_AccountTransactionEffects.model_fields.keys()) - set(["none"])
     )
+    dropdown_elements = [
+        "account",
+        "staking",
+        "smart ctr",
+        "transfer",
+        "register data",
+    ]
+    filename = f"/tmp/transactions-types - {dt.datetime.now():%Y-%m-%d %H-%M-%S} - {uuid.uuid4()}.csv"
     return templates.TemplateResponse(
         "charts/sc_transactions_count.html",
         {
@@ -48,17 +56,20 @@ async def get_sc_transactions_count(
             "net": net,
             "chain_start": chain_start,
             "yesterday": yesterday,
-            "dropdown_elements": all_transaction_effects,
+            "dropdown_elements": dropdown_elements,
+            "filename": filename,
         },
     )
 
 
 class TXCountReportingRequest(BaseModel):
     # net: str
+    theme: str
     start_date: str
     end_date: str
     group_by_selection: str
-    dropdown_values: Optional[list] = None
+    trace_selection: str
+    filename: str
 
 
 @router.post(
@@ -70,6 +81,8 @@ async def ajax_transaction_types_reporting(
     net: str,
     post_data: TXCountReportingRequest,
 ):
+    post_data.trace_selection = post_data.trace_selection.split(",")
+    theme = post_data.theme
     if net != "mainnet":
         return templates.TemplateResponse(
             "testnet/not-available.html",
@@ -80,8 +93,6 @@ async def ajax_transaction_types_reporting(
             },
         )
 
-    if not post_data.dropdown_values:
-        post_data.dropdown_values = ["all"]
     start_date_str = post_data.start_date
     end_date_str = post_data.end_date
     parsed_date: dt.datetime = dateutil.parser.parse(post_data.start_date)
@@ -95,100 +106,172 @@ async def ajax_transaction_types_reporting(
     )
     last_day = next_month - relativedelta(days=1)
     post_data.end_date = last_day.strftime("%Y-%m-%d")
-    analysis = "statistics_network_summary"
+    analysis = "statistics_mongo_transactions"
 
     if post_data.group_by_selection == "daily":
         letter = "D"
         tooltip = "Day"
     if post_data.group_by_selection == "weekly":
-        letter = "W"
+        letter = "W-MON"
         tooltip = "Week"
     if post_data.group_by_selection == "monthly":
-        letter = "ME"
+        letter = "MS"
         tooltip = "Month"
 
     all_data = await get_all_data_for_analysis_limited(
         analysis, request.app, post_data.start_date, post_data.end_date
     )
     df = pd.json_normalize(all_data)
+    df.fillna(0)
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.groupby([pd.Grouper(key="date", axis=0, freq=letter)]).sum().reset_index()
+
     # only continue if we have data
     if len(df) > 0:
         # make sure we can sum up values
         df.fillna(0)
-        # as we can have more than 1 address per usecase, we need to
-        # groupby date.
-        df_group = df.groupby("date").sum().reset_index()
-        df_group["date"] = pd.to_datetime(df_group["date"])
-        # address not needed anymore
-        if "address" in df_group.columns:
-            df_group.drop(["address"], axis=1, inplace=True)
-        # this removes the table name prefix
-        cols = [x.replace("tx_type_counts.", "") for x in df_group.columns]
-        df_group.columns = cols
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.fillna(0)
 
-        # now we are ready to only work with selected columns
-        if post_data.dropdown_values != ["all"]:
-            cols = set(df_group.columns) - set(["date"])
-            cols_to_drop = cols - set(post_data.dropdown_values)
-            df_group.drop(cols_to_drop, axis=1, inplace=True)
+        # Account
+        df = add_if_present(
+            "account",
+            ["account_creation", "credential_keys_updated", "credentials_updated"],
+            df,
+        )
 
-            # df_group.drop(
-            #     ["last_block_processed", "based_on_addresses"], axis=1, inplace=True
-            # )
-        # now ready to add a totals column for succesfull txs
-        success_columns = list(
-            (
-                set(CCD_AccountTransactionEffects.model_fields.keys())
-                - set(["none", "date"])
+        # Staking
+        df = add_if_present(
+            "staking",
+            [
+                "baker_configured",
+                "baker_added",
+                "baker_removed",
+                "baker_keys_updated",
+                "baker_restake_earnings_updated",
+                "baker_stake_updated",
+                "delegation_configured",
+            ],
+            df,
+        )
+
+        # Smart Contracts
+        df = add_if_present(
+            "smart ctr",
+            ["contract_initialized", "contract_update_issued", "module_deployed"],
+            df,
+        )
+
+        # Data
+        df = add_if_present("register data", ["data_registered"], df)
+
+        # Transfer
+        df = add_if_present(
+            "transfer",
+            [
+                "account_transfer",
+                "transferred_to_encrypted",
+                "transferred_to_public",
+                "encrypted_amount_transferred",
+                "transferred_with_schedule",
+            ],
+            df,
+        )
+
+        fig = go.Figure()
+        if "account" in post_data.trace_selection:
+            fig.add_trace(
+                go.Bar(
+                    x=df["date"].to_list(),
+                    y=df["account"].to_list(),
+                    name="Account",
+                    marker=dict(color="#EE9B54"),
+                )
             )
-            & set(df_group.columns)
-        )
-        rejected_columns = list(
-            (set(CCD_RejectReason.model_fields.keys()) - set(["date"]))
-            & set(df_group.columns)
-        )
-        # cols = list(set(df_group.columns) - set(["date"]))
-        # df_group["total_success_count"] = df_group[success_columns].sum(axis=1)
-        df_group["tx_rejected"] = df_group[rejected_columns].sum(axis=1)
-        df_group["total_tx_count"] = df_group[success_columns].sum(axis=1) + df_group[
-            rejected_columns
-        ].sum(axis=1)
+        if "transfer" in post_data.trace_selection:
+            fig.add_trace(
+                go.Bar(
+                    x=df["date"].to_list(),
+                    y=df["transfer"].to_list(),
+                    name="Transfer",
+                    marker=dict(color="#F7D30A"),
+                )
+            )
 
-        df_group.drop(rejected_columns, axis=1, inplace=True)
+        if "smart ctr" in post_data.trace_selection:
+            fig.add_trace(
+                go.Bar(
+                    x=df["date"].to_list(),
+                    y=df["smart ctr"].to_list(),
+                    name="Smart Contracts",
+                    marker=dict(color="#6E97F7"),
+                )
+            )
 
-        df_grouped = (
-            df_group.groupby([pd.Grouper(key="date", axis=0, freq=letter)])
-            .sum()
-            .reset_index()
+        if "staking" in post_data.trace_selection:
+            fig.add_trace(
+                go.Bar(
+                    x=df["date"].to_list(),
+                    y=df["staking"].to_list(),
+                    name="Staking",
+                    marker=dict(color="#F36F85"),
+                )
+            )
+
+        if "register data" in post_data.trace_selection:
+            fig.add_trace(
+                go.Bar(
+                    x=df["date"].to_list(),
+                    y=df["register data"].to_list(),
+                    name="Data",
+                    marker=dict(color="#AE7CF7"),
+                )
+            )
+
+        title = "Account Transaction Types"
+        trace_titles = {
+            "account": "Account",
+            "transfer": "Transfer",
+            "smart ctr": "Smart Contracts",
+            "staking": "Staking",
+            "register data": "Data",
+        }
+        # Generate title based on selected traces
+        selected_traces = post_data.trace_selection
+
+        selected_titles = [
+            trace_titles[trace] for trace in selected_traces if trace in trace_titles
+        ]
+
+        title = (
+            f"Account Transaction Types ({', '.join(selected_titles)}) per {tooltip}"
         )
-        df_grouped.sort_values(by="date", ascending=False, inplace=True)
-        df_grouped["date"] = df_grouped["date"].dt.strftime("%Y-%m-%d")
-        # return df_grouped.to_dict("records")
-        records = df_grouped.to_dict("records")
-        filename = f"/tmp/transactions count - {dt.datetime.now():%Y-%m-%d %H-%M-%S} grouped {post_data.group_by_selection.lower()} - {uuid.uuid4()}.csv"
-        if "based_on_addresses" in df_grouped.columns:
-            df_grouped.drop("based_on_addresses", axis=1, inplace=True)
-        if "last_block_processed" in df_grouped.columns:
-            df_grouped.drop("last_block_processed", axis=1, inplace=True)
-        df_grouped.to_csv(filename, index=False)
 
-    else:
-        records = []
-    return records
-    # html = templates.get_template(
-    #     "/transactions_search/transaction_count_table.html"
-    # ).render(
-    #     {
-    #         "env": request.app.env,
-    #         "net": net,
-    #         "request": request,
-    #         "records": records,
-    #         "reporting_request": post_data,
-    #         "type": post_data.group_by_selection,
-    #         "filename": filename,
-    #     },
-    # )
-    # return html
+        fig.update_layout(
+            barmode="stack",
+            showlegend=False,
+            title=f"<b>{title}</b><br><sup>{start_date_str} - {end_date_str}</sup>",
+            template=ccdexplorer_plotly_template(theme),
+            height=400,
+        )
+
+        df = df[["date"] + post_data.trace_selection]
+        df["total_selected"] = df[post_data.trace_selection].sum(axis=1)
+        df.to_csv(post_data.filename, index=False)
+        return fig.to_html(
+            config={"responsive": True, "displayModeBar": False},
+            full_html=False,
+            include_plotlyjs=False,
+        )
+
+
+def add_if_present(grouper_name: str, column_names: list[str], df: pd.DataFrame):
+    for column_name in column_names:
+        if column_name in df.columns:
+            if grouper_name not in df.columns:
+                df[grouper_name] = 0
+            df[grouper_name] += df[column_name]
+    return df
 
 
 class PostData(BaseModel):

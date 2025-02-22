@@ -1,8 +1,12 @@
 {% extends "base/base.html" %}
 {% block content %}
     {% set hx_post_url = env.SITE_URL ~ '/' ~ net ~ '/ajax_transaction_types_reporting' %}
-    {% set include_trace_selection = False %}
-    {% set include_dropdown = True %}
-    
+    {% set include_dropdown = False %}
+    {% set include_trace_selection = True %}
+    {% set traces = {
+        'account': 'Account', 'staking': 'Staking', 'smart ctr': 'Smart Contracts', 
+        'transfer': 'Transfer', 'register data': 'Data'
+    } %}
     {% include 'charts/standalone_chart.html' %}
+    {% include 'charts/download_link.html' %}
 {% endblock %}

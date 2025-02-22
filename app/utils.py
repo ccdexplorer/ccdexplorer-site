@@ -774,9 +774,6 @@ def account_link(
     if isinstance(value, str):
         if "<" in value:
             return instance_link_from_str(value, net, user, tags)
-            # contract = CCD_ContractAddress.from_str(value)
-            # return f'<a class="" href="/{net}/instance/{contract.index}/{contract.subindex}"><i class="bi bi-card-checklist pe-1"></i>{value}</a>'
-        # value is now an index if found, otherwise still an address
         value = from_address_to_index(value, net, app)
 
     if net == "testnet":
