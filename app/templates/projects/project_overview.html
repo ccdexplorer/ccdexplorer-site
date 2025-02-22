@@ -29,7 +29,7 @@
         <th class="text-secondary-emphasis">Index</th>
     </tr>
     {% for address in mainnet_contracts%}
-    <tr class="sm-text"><td class="ccd"><a href="/mainnet/instance/{{address.contract_index}}/0" class="ccd"><{{address.contract_index}},0></a></td><td class="text-secondary-emphasis">{{address.contract_index}}</td></tr>
+    <tr class="sm-text"><td class="ccd"><a href="/mainnet/contract/{{address.contract_index}}/0" class="ccd"><{{address.contract_index}},0></a></td><td class="text-secondary-emphasis">{{address.contract_index}}</td></tr>
 
     {%endfor%}
     </table>
