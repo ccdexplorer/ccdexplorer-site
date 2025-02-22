@@ -1,3 +1,4 @@
+
 <table class="table table-borderless">
     <tbody>
     {% for event in events_list %}
@@ -38,8 +39,9 @@
 </tbody>
 </table>
     
+
 {% if classified_tx.dct.show_table %}
-        
+    
         <table class="table table-borderless">
             <thead>
                 <tr class="sm-text">
@@ -55,6 +57,10 @@
         <td class="text-end text-secondary-emphasis"><span >{{schedule.amount |micro_ccd_no_decimals|safe}}</span>  </td> 
         </tr>
         {% endfor %}
+        {% if classified_tx.dct.to_account %}
+        <td class="text-start text-secondary-emphasis">Receiver</td><td  class="text-end text-secondary-emphasis"><span>{{classified_tx.dct.to_account|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+        {% endif %}
+
             </tbody>
         </table>
             </tbody>

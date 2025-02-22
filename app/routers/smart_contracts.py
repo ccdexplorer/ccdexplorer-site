@@ -43,17 +43,18 @@ def find_date_for_height(heights, block_end_of_day_dict, height):
         return block_end_of_day_dict[heights[found_index]]
 
 
+@router.get("/contract/{instance_index}/{subindex}", response_class=RedirectResponse)
 @router.get("/instance/{instance_index}/{subindex}", response_class=RedirectResponse)
 async def redirect_instance_to_mainnet(
     request: Request, instance_index: int, subindex: int, net="mainnet"
 ):
     if net == "testnet":
         response = RedirectResponse(
-            url=f"/testnet/instance/{instance_index}/{subindex}", status_code=302
+            url=f"/testnet/contract/{instance_index}/{subindex}", status_code=302
         )
     else:
         response = RedirectResponse(
-            url=f"/mainnet/instance/{instance_index}/{subindex}", status_code=302
+            url=f"/mainnet/contract/{instance_index}/{subindex}", status_code=302
         )
     return response
 
@@ -682,43 +683,6 @@ async def ajax_instance_txs_html_v2(
     return html
 
 
-# @router.get("/{net}/instance/{instance_address}")  # type:ignore
-# async def smart_contract_instance_full_address(
-#     request: Request,
-#     net: str,
-#     instance_address: str,
-#     tags: dict = Depends(get_labeled_accounts),
-# ):
-#     user: UserV2 = get_user_detailsv2(request)
-#     db_to_use = mongodb.testnet if net == "testnet" else mongodb.mainnet
-
-#     result = db_to_use[Collections.instances].find_one({"_id": instance_address})
-#     if result:
-#         contract = MongoTypeInstance(**result)
-#     else:
-#         contract = None
-
-#     error = None
-#     if not contract:
-#         error = {
-#             "error": True,
-#             "errorMessage": f"No instance found at {instance_address}.",
-#         }
-
-#     return templates.TemplateResponse(
-#         "smart_contracts/smart_instance.html",
-#         {
-#             "env": request.app.env,
-#             "net": net,
-#             "request": request,
-#             "error": error,
-#             "contract": contract,
-#             "user": user,
-#             "tags": tags,
-#         },
-#     )
-
-
 @router.get(
     "/ajax_track_item_id/{net}/{instance_index}/{subindex}/{item_id}",
     response_class=HTMLResponse,
@@ -748,6 +712,7 @@ async def ajax_track_item_id(
     return html
 
 
+@router.get("/{net}/contract/{instance_index}/{subindex}")
 @router.get("/{net}/instance/{instance_index}/{subindex}")
 async def smart_contract_instance(
     request: Request,

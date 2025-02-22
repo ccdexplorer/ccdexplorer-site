@@ -291,7 +291,7 @@ async def search(request: Request, search_request: SearchRequest):
             f"/{search_request.net}/transaction/{search_request.value.replace(" ","")}"
         )
     if search_request.selector == "contract":
-        url = f"/{search_request.net}/instance/{search_request.value.replace(" ","")}/0"
+        url = f"/{search_request.net}/contract/{search_request.value.replace(" ","")}/0"
     if search_request.selector == "module":
         url = f"/{search_request.net}/module/{search_request.value.replace(" ","")}"
     if search_request.selector == "token":
