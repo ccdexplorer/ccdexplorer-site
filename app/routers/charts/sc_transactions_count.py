@@ -31,14 +31,12 @@ async def get_sc_transactions_count(
     request: Request,
     net: str,
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     chain_start = dt.date(2021, 6, 9).strftime("%Y-%m-%d")
     yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
         "%Y-%m-%d"
     )
-    all_transaction_effects = list(
-        set(CCD_AccountTransactionEffects.model_fields.keys()) - set(["none"])
-    )
+
     dropdown_elements = [
         "account",
         "staking",
