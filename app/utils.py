@@ -1136,19 +1136,25 @@ async def process_event_for_makeup(req: ProcessEventRequest):
 async def get_token_info_from_collection(
     req: ProcessEventRequest, contract_address: CCD_ContractAddress
 ):
-    if req.logged_event_from_collection.recognized_event:
-        token_id = (
-            "_"
-            if req.logged_event_from_collection.recognized_event.token_id == ""
-            else req.logged_event_from_collection.recognized_event.token_id
-        )
-        api_result = await get_url_from_api(
-            f"{req.app.api_url}/v2/{req.net}/token/{contract_address.index}/{contract_address.subindex}/{token_id}/info",
-            req.httpx_client,
-        )
-        token_address_as_class = api_result.return_value if api_result.ok else None
-    else:
-        token_address_as_class = None
+    if not req.logged_event_from_collection.recognized_event:
+        return None
+    if (
+        "token_id"
+        not in req.logged_event_from_collection.recognized_event.model_fields_set
+    ):
+        return None
+
+    token_id = (
+        "_"
+        if req.logged_event_from_collection.recognized_event.token_id == ""
+        else req.logged_event_from_collection.recognized_event.token_id
+    )
+    api_result = await get_url_from_api(
+        f"{req.app.api_url}/v2/{req.net}/token/{contract_address.index}/{contract_address.subindex}/{token_id}/info",
+        req.httpx_client,
+    )
+    token_address_as_class = api_result.return_value if api_result.ok else None
+
     return token_address_as_class
 
 
