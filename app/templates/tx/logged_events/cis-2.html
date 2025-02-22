@@ -39,7 +39,7 @@
 
     {% if result.operator_update %}<tr class="table-row-line-height sm-text">
         <td class='text-secondary-emphasis'>Action</td>
-        <td><span class='text-secondary-emphasis'>{{result.operator_update|account_link(net, user, tags, app=request.app)|safe}}</span></td>
+        <td><span class='text-secondary-emphasis'>{{result.operator_update}}</span></td>
     </tr>{% endif %}
     {% if result.operator %}<tr class="table-row-line-height sm-text">
         <td class='text-secondary-emphasis'>Operator</td>
