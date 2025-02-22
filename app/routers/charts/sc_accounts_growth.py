@@ -100,10 +100,10 @@ async def statistics_network_summary_accounts_per_day_standalone(
         letter = "D"
         tooltip = "Day"
     if post_data.group_by_selection == "weekly":
-        letter = "W"
+        letter = "W-MON"
         tooltip = "Week"
     if post_data.group_by_selection == "monthly":
-        letter = "ME"
+        letter = "MS"
         tooltip = "Month"
 
     if "native" in post_data.trace_selection:
