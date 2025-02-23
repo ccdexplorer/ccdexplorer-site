@@ -1,21 +1,6 @@
 
 
 <table class="table table-borderless">
-    <tr class="table-row-line-height sm-text">
-        <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">Contract Name</td>
-            <td class="text-end text-secondary-emphasis">{{ details.name[5:] }}</td>
-        </tr>
-        <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Contract Reference</td>
-        <td class="text-end text-secondary-emphasis">
-            {% set copy_value = contract.id %}
-            {% set value_type = "contract_id" %}
-            {% set display_value = contract.id|safe %}
-            {% include "base/copy_to_clipboard.html"%}
-            </td>
-        </tr>
-    </tr>
     {% if supports_cis_standards|length > 0 %}
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">CIS Standard(s)</td>
@@ -42,29 +27,7 @@
         <td class="text-start text-secondary-emphasis">Age</td>
         <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
     </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Creator</td>
-        <td class="text-end text-secondary-emphasis">{{ details.owner|account_link(net,user,tags,request.app)|safe}}
-            
-            </td>
-    </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Module</td>
-        <td class="text-end text-secondary-emphasis">
-            {% set copy_value = details.source_module %}
-            {% set value_type = "source_module" %}
-            {% set display_value = details.source_module[:4]|safe %}
-            {% include "base/copy_to_clipboard.html"%}
-            
-            
-            </td>
-    </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Verification Status</td>
-        <td class="text-end text-secondary-emphasis">{% if contract.module_verification.verification_status == "not_started" %}Not Started{%elif contract.module_verification.verification_status == "verified_success"%}Verified <i class="text-success bi bi-patch-check-fill"></i>{% else %}Unverifiable{% endif %}
-            
-            </td>
-    </tr>
+    
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Balance</td>
         <td class="text-end text-secondary-emphasis">{{details.amount|micro_ccd_no_decimals|safe}}

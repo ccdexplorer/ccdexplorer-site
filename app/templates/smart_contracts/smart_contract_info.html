@@ -16,32 +16,8 @@
             </td>
         </tr>
     </tr>
-    {% if supports_cis_standards|length > 0 %}
-        <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">CIS Standard(s)</td>
-            <td class="text-end text-secondary-emphasis">
-            {% for st in supports_cis_standards %}
-                <a href = "http://proposals.concordium.software/CIS/{{st|lower()}}.html">{{st}}</a>
-            {% endfor %}
-            </td>
-        </tr>
-    {% endif %}
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Deployed in block</td>
-        <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
-            
-            </td>
-    </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Deployed in tx</td>
-        <td class="text-end text-secondary-emphasis"><span style="font-family: monospace, monospace;">{{tx_deployed.hash|tx_hash_link(net)|safe}}</span>
-            
-            </td>
-    </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Age</td>
-        <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
-    </tr>
+    
+    
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Creator</td>
         <td class="text-end text-secondary-emphasis">{{ details.owner|account_link(net,user,tags,request.app)|safe}}
@@ -65,18 +41,8 @@
             
             </td>
     </tr>
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Balance</td>
-        <td class="text-end text-secondary-emphasis">{{details.amount|micro_ccd_no_decimals|safe}}
-            
-            </td>
-    </tr>
-    {% if dressed_up_contract %}
-    <tr class="table-row-line-height sm-text">
-        <td class="text-start text-secondary-emphasis">Related CIS-2 Token</td>
-        <td class="text-end text-secondary-emphasis">{{dressed_up_contract.token_tag_id}}</td>
-    </tr>
-    {% endif %}
+    
+   
     
 </tbody>
 </table>
