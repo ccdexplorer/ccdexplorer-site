@@ -27,6 +27,8 @@
     <link rel="stylesheet" href="/static/css/custom_ccdexplorer.css">
     <link rel="stylesheet" href="/node/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="/node/nouislider/dist/nouislider.css" type="text/css">
+    <link rel="stylesheet" href="/node/highlight.js/styles/github-dark-dimmed.min.css">
+
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +44,12 @@
     <script src="/node/jquery/dist/jquery.min.js"></script>
     <script src="/node/sortable-tablesort/sortable.min.js"></script>
     <script src="/node/flatpickr/dist/flatpickr.min.js"></script>
+    <script src="/node/highlight.js/highlight.min.js"></script>
+    <script src="/node/highlight.js/languages/rust.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
     <script src="/node/nouislider/dist/nouislider.js"></script>
+
     
     {% block js %}{% endblock %}
 </head>
