@@ -5,11 +5,11 @@
 {% endif %}
 {% if v.verification_status != "not_started" %}
 <table class="table-borderless">
-    <tr><td>Verification Status:</td><td class="ms-5">{{v.verification_status}}</td></tr>
+    <tr><td>Verification Status:</td><td class="ms-5">{%if v.verification_status == "verified_success"%}Verified <i class="text-success bi bi-patch-check-fill"></i>{% else %}Unverifiable{% endif %}</td></tr>
     {% if "timestamp" in v%}<tr><td>Verification performed at:</td><td class="ms-5">{{v.verification_timestamp}}</td></tr>{%endif%}
-    <tr><td>Build Image Used:</td><td class="ms-5">{% if v.build_image_used %}{{v.build_image_used}}{%else%}N/A{% endif%}</td></tr>
-    <tr><td>Build Command Used:</td><td class="ms-5">{% if v.build_command_used%}{{v.build_command_used}}{%else%}N/A{% endif%}</td></tr>
-    <tr><td>Archive Hash:</td><td class="ms-5 ccd">{% if v.archive_hash %}{{v.archive_hash}}{%else%}N/A{% endif%}</td></tr>
+    <tr><td>Build Image Used:</td><td class="ms-5 ccd">{% if v.build_image_used %}{{v.build_image_used}}{%else%}N/A{% endif%}</td></tr>
+    <tr><td>Build Command Used:</td><td class="ms-5 ccd">{% if v.build_command_used%}{{v.build_command_used}}{%else%}N/A{% endif%}</td></tr>
+    <tr><td>Archive Hash:</td><td class="ms-5 ccd text-break">{% if v.archive_hash %}{{v.archive_hash}}{%else%}N/A{% endif%}</td></tr>
     <tr><td>Link to Source Code:</td><td class="ms-5">{% if v.link_to_source_code %}<a href="{{v.link_to_source_code}}">Source Code</a>{%else%}N/A{% endif%}</td></tr>
     <tr><td>Explanation:</td><td class="ms-5">{{v.explanation}}</td></tr>
 </table>

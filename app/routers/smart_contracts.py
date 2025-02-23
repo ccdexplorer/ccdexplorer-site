@@ -641,24 +641,24 @@ async def ajax_instance_txs_html_v2(
     tx_result_transactions = tx_result["transactions"]
     total_rows = tx_result["total_tx_count"]
     made_up_txs = []
-    if len(tx_result_transactions) > 0:
-        for transaction in tx_result_transactions:
-            transaction = CCD_BlockItemSummary(**transaction)
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "httpx_client": httpx_client,
-                    "tags": tags,
-                    "user": user,
-                    "app": request.app,
-                    "requesting_route": RequestingRoute.account,
-                }
-            )
+    # if len(tx_result_transactions) > 0:
+    #     for transaction in tx_result_transactions:
+    #         transaction = CCD_BlockItemSummary(**transaction)
+    #         makeup_request = MakeUpRequest(
+    #             **{
+    #                 "net": net,
+    #                 "httpx_client": httpx_client,
+    #                 "tags": tags,
+    #                 "user": user,
+    #                 "app": request.app,
+    #                 "requesting_route": RequestingRoute.account,
+    #             }
+    #         )
 
-            classified_tx = await MakeUp(
-                makeup_request=makeup_request
-            ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
+    #         classified_tx = await MakeUp(
+    #             makeup_request=makeup_request
+    #         ).prepare_for_display(transaction, "", False)
+    #         made_up_txs.append(classified_tx)
 
     pagination_request = PaginationRequest(
         total_txs=total_rows,
@@ -668,11 +668,12 @@ async def ajax_instance_txs_html_v2(
         limit=limit,
     )
     pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("account/account_transactions.html").render(
+    html = templates.get_template("base/transactions_simple_list.html").render(
         {
-            "transactions": made_up_txs,
+            "transactions": [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
             "tags": tags,
             "net": net,
+            "show_amounts": False,
             "request": request,
             "pagination": pagination,
             "totals_in_pagination": True,
@@ -714,7 +715,7 @@ async def ajax_track_item_id(
 
 @router.get("/{net}/contract/{instance_index}/{subindex}")
 @router.get("/{net}/instance/{instance_index}/{subindex}")
-async def smart_contract_instance(
+async def smart_contract_page(
     request: Request,
     net: str,
     instance_index: int,
@@ -812,7 +813,7 @@ async def smart_contract_instance(
             error = None
             # dressed_up_contract = contracts_with_tag_info.get(contract.id)
             return templates.TemplateResponse(
-                "smart_contracts/smart_instance.html",
+                "smart_contracts/smart_contract.html",
                 {
                     "env": request.app.env,
                     "request": request,
@@ -838,7 +839,7 @@ async def smart_contract_instance(
         if api_result.status_code == 404:
             error = {
                 "error": True,
-                "errorMessage": f"No instance found on {net} for {instance_address}.",
+                "errorMessage": f"No contract found on {net} for {instance_address}.",
             }
         else:
             error = {
@@ -847,7 +848,7 @@ async def smart_contract_instance(
             }
         contract = None
         return templates.TemplateResponse(
-            "smart_contracts/smart_instance.html",
+            "smart_contracts/smart_contract.html",
             {
                 "env": request.app.env,
                 "net": net,
