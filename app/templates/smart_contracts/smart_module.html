@@ -35,76 +35,175 @@
   </script>
 
 {% include 'base/search_bar_non_home_inclusion.html' %}
-<div class="row  mt-4">
-    <div class="col">{% include 'smart_contracts/module_header.html' %}</div>  
-</div>
-<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
-<div class="row mt-4 row-flex">
-    <div class="col-md-6  col-sm-12 ">
-        <div class="border content curved-border " >
-            {% set title= "Module Info" %}{% include 'base/box_title.html' %}
-            {% include "smart_contracts/module_info.html" %}</div>
-    </div>
-   
+
+
+
+<div class="row row-flex">
+  <div class=" col-md-6  col-sm-12">
+    <div class="border content curved-border ">
+      {% set title= "Module Overview" %}{% include 'base/box_title.html' %}
+      {% include "smart_contracts/module_info.html" %}</div>
     
-    <div class="col-md-6  col-sm-12">
+  </div>  
+  <div class=" col-md-6  col-sm-12">
+    <div class="border content curved-border mb-2">
+      {% set title= "More Info" %}{% include 'base/box_title.html' %}
+      {% include "smart_contracts/module_more_info.html" %}</div>
+    
+  </div> 
+  
+</div>
+
+
+<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link  active explorer bg-secondary-subtle" id="tokens-code-tab" data-bs-toggle="pill" data-bs-target="#pills-code" type="button" role="tab" aria-controls="pills-code" aria-selected="true">
+      <span class="tab-text-large">Source Code</span><span class="tab-text-small">Source</span>
+  </button>
+  </li>
+  
+  
+  <li class="nav-item" role="presentation">
+    <button class="nav-link   explorer bg-secondary-subtle" id="tokens-contracts-tab" data-bs-toggle="pill" data-bs-target="#pills-contracts" type="button" role="tab" aria-controls="pills-contracts" aria-selected="true">
+      <span class="tab-text-large">Contracts</span><span class="tab-text-small">Contracts</span>
+  </button>
+  </li>
+  
+  <li class="nav-item" role="presentation"></li>
+    <button class="nav-link  explorer bg-secondary-subtle" id="pills-schema-tab" data-bs-toggle="pill" data-bs-target="#pills-schema" type="button" role="tab" aria-controls="pills-schema" aria-selected="true">
+      <span class="tab-text-large">{% if schema %}Schema{%else%}Methods{%endif%}</span><span class="tab-text-small">{% if schema %}Schema{%else%}Methods{%endif%}</span>
+  </button>
+  </li>
+
+  <li class="nav-item" role="presentation"></li>
+    <button class="nav-link  explorer bg-secondary-subtle" id="pills-analytics-tab" data-bs-toggle="pill" data-bs-target="#pills-analytics" type="button" role="tab" aria-controls="pills-analytics" aria-selected="true">
+      <span class="tab-text-large">Analytics</span><span class="tab-text-small">Analytics</span>
+  </button>
+  </li>
+  
+</ul>
+
+<div class="tab-content" id="pills-tabContent">
+
+  <div class="tab-pane fade show active" id="pills-code" role="tabpanel" aria-labelledby="pills-code-tab" tabindex="0">
+        <div class="row row-flex">
+          <div class="col-sm-12">
+              <div class="border content curved-border " >
+                {% set title= "Module Build Info" %}{% include 'base/box_title.html' %}
+                {% include "smart_contracts/smart_module_build_info.html" %}
+          
+            </div>
+          </div>
+          
+        </div>
+        {%if module.verification.verified%}
+        <div class="row row-flex">
+          <div class="col-sm-12">
+              <div class="border content curved-border " >
+                {% set title= "Module Source Code" %}{% set copy_source=True %}{% include 'base/box_title.html' %}
+                {% include "smart_contracts/smart_module_source.html" %}
+          
+            </div>
+          </div>
+          
+        </div>
+        {% endif %}
+    </div>  
+  
+  
+<div class="tab-pane fade show " id="pills-contracts" role="tabpanel" aria-labelledby="pills-contracts-tab" tabindex="0">
+  <div class="row mt-4">
+    <div class="col-sm-12">
+      <div class="border curved-border" id="instances">
+          
+      </div>
+  </div>  
+
+</div>
+</div>
+
+<div class="tab-pane fade show " id="pills-schema" role="tabpanel" aria-labelledby="pills-schema-tab" tabindex="0">
+<div class="row row-flex">
+  <div class="row row-flex">
+    <div class="col-sm-12">
         <div class="border content curved-border " >
-            {% set title= "Module Usage" %}{% include 'base/box_title.html' %}
+          {% set copy_source=False %}
+          {% if schema %}
+          {% set title= "Module Schema" %}{% include 'base/box_title.html' %}
+              {% include "smart_contracts/smart_module_schema.html" %}
+          {% else  %}
+          {% set title= "Module Methods" %}{% include 'base/box_title.html' %}
+              {% include "smart_contracts/smart_module_methods.html" %}
+          {% endif %}
+    
+      </div>
+      </div>
+
+</div>  
+
+</div>
+</div>
+<div class="tab-pane fade show " id="pills-analytics" role="tabpanel" aria-labelledby="pills-analytics-tab" tabindex="0">
+<div class="row">
+  <div class="col-sm-12">
+      <div class="border  curved-border " >
+              {% set copy_source=False %}
+              {% set title= "Module Usage" %}{% include 'base/box_title.html' %}
             <div
         hx-trigger="intersect, switched-theme from:body" 
         hx-post="/{{net}}/module/{{module_ref}}/usage"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
       >
     </div>
-    </div>
-    </div>
-  </div>
+          </div>
+      </div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
-  <div class="row row-flex">
-    <div class="col-md-6  col-sm-12">
-        <div class="border content curved-border " id="instances">
-          
-    
-      </div>
-      </div>
-    <div class="col-md-6  col-sm-12 ">
-      <div class="border content curved-border " >
-        
-        {% if schema %}
-        {% set title= "Module Schema" %}{% include 'base/box_title.html' %}
-            {% include "smart_contracts/smart_module_schema.html" %}
-        {% else  %}
-        {% set title= "Module Methods" %}{% include 'base/box_title.html' %}
-            {% include "smart_contracts/smart_module_methods.html" %}
-        {% endif %}
-  
-      </div>
-    </div>
-    
-  </div>
-  
-  
-  <div class="row row-flex">
-    <div class="col-md-12  col-sm-12">
-        <div class="border content curved-border " >
-          {% set title= "Module Build Info" %}{% include 'base/box_title.html' %}
-          {% include "smart_contracts/smart_module_build_info.html" %}
-    
-      </div>
-    </div>
-    
-  </div>
-  {%if module.verification.verified%}
-  <div class="row row-flex">
-    <div class="col-md-12  col-sm-12">
-        <div class="border content curved-border " >
-          {% set title= "Module Source Code" %}{% set copy_source=True %}{% include 'base/box_title.html' %}
-          {% include "smart_contracts/smart_module_source.html" %}
-    
-      </div>
-    </div>
-    
-  </div>
-  {% endif %}
   {% endblock content %}
 
+
+  

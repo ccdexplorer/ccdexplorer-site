@@ -152,7 +152,9 @@ async def statistics_network_summary_accounts_per_day_standalone(
 
     df_merged["date"] = pd.to_datetime(df_merged["date"])
     df_merged = (
-        df_merged.groupby([pd.Grouper(key="date", axis=0, freq=letter)])
+        df_merged.groupby(
+            [pd.Grouper(key="date", axis=0, freq=letter, label="left", closed="left")]
+        )
         .sum()
         .reset_index()
     )

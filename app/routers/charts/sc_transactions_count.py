@@ -122,7 +122,13 @@ async def ajax_transaction_types_reporting(
     df = pd.json_normalize(all_data)
     df.fillna(0)
     df["date"] = pd.to_datetime(df["date"])
-    df = df.groupby([pd.Grouper(key="date", axis=0, freq=letter)]).sum().reset_index()
+    df = (
+        df.groupby(
+            [pd.Grouper(key="date", axis=0, freq=letter, label="left", closed="left")]
+        )
+        .sum()
+        .reset_index()
+    )
 
     # only continue if we have data
     if len(df) > 0:

@@ -75,6 +75,7 @@ COPY ./node_modules/sortable-tablesort/sortable.min.js /code/node_modules/sortab
 COPY ./node_modules/highlight.js/highlight.min.js /code/node_modules/highlight.js/highlight.min.js
 COPY ./node_modules/highlight.js/styles/github-dark-dimmed.min.css /code/node_modules/highlight.js/styles/github-dark-dimmed.min.css
 COPY ./node_modules/highlight.js/languages/rust.min.js /code/node_modules/highlight.js/languages/rust.min.js
+COPY ./node_modules/highlight.js/languages/json.min.js /code/node_modules/highlight.js/languages/json.min.js
 
 
 COPY ./addresses/mainnet_addresses_to_indexes.pickle /code/addresses/mainnet_addresses_to_indexes.pickle
