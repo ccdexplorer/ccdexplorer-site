@@ -1,0 +1,29 @@
+<table class="table table-borderless">
+    
+    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deployed in block</td>
+        <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+        <td class="text-end text-secondary-emphasis"><span style="font-family: monospace, monospace;">{{tx_deployed.hash|tx_hash_link(net)|safe}}</span>
+            
+            </td>
+    </tr>
+    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Methods</td>
+        <td class="text-end text-secondary-emphasis">{% if module.methods %}{{module.methods|length}}{% else %}0{% endif %}
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Contracts</td>
+        <td class="text-end text-secondary-emphasis">{{module_instance_count}}</td>
+    </tr>
+    
+</tbody>
+</table>

@@ -4,17 +4,20 @@
         <div class="accordion-item">
             <p class="d-inline-flex gap-1">
                 {% if schema_dict["init_param"] %}
-                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_param" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#collapse-method-receive_param" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
                     Parameters
                 </button>
                 {% endif %}
                 {% if schema_dict["init_error"] %}
-                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_error" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" 
+                data-bs-target="#collapse-method-receive_error" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
                 Errors
             </button>
             {% endif %}
             {% if schema_dict["event"] %}
-            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-method-receive_return" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
+            <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" 
+            data-bs-target="#collapse-method-receive_return" aria-expanded="false" aria-controls="collapse-{{method_name}}-receive_param">
             Event
         </button>
         {% endif %}
@@ -23,7 +26,7 @@
     <div class="collapse" id="collapse-method-receive_param">
       <div class="card card-body mt-2">
         <small><span class="text-muted">Parameters</span></small>
-        <small><pre><code >{{ schema_dict["init_param"]}}</code></pre></small>
+        <small><pre><code class="language-json">{{ schema_dict["init_param"]}}</code></pre></small>
       </div>
     </div>
         
@@ -31,14 +34,14 @@
     <div class="collapse" id="collapse-method-receive_error">
       <div class="card card-body mt-2">
         <small><span class="text-muted">Errors</span></small>
-        <small><pre><code >{{ schema_dict["init_error"]}}</code></pre></small>
+        <small><pre><code class="language-json">{{ schema_dict["init_error"]}}</code></pre></small>
       </div>
     </div>
         
     <div class="collapse" id="collapse-method-receive_return">
         <div class="card card-body mt-2">
           <small><span class="text-muted">Event</span></small>
-          <small><pre><code >{{ schema_dict["event"]}}</code></pre></small>
+          <small><pre><code class="language-json">{{ schema_dict["event"]}}</code></pre></small>
         </div>
     </div>
  
@@ -78,7 +81,7 @@
                 <div class="collapse" id="collapse-{{method_name}}-receive_param">
                 <div class="card card-body mt-2">
                     <small><span class="text-muted">Parameters</span></small>
-                    <small><pre><code >{{ dict["receive_param"]}}</code></pre></small>
+                    <small><pre><code class="language-json">{{ dict["receive_param"]}}</code></pre></small>
                 </div>
                 </div>
                     
@@ -86,14 +89,14 @@
                 <div class="collapse" id="collapse-{{method_name}}-receive_error">
                 <div class="card card-body mt-2">
                     <small><span class="text-muted">Errors</span></small>
-                    <small><pre><code >{{ dict["receive_error"]}}</code></pre></small>
+                    <small><pre><code class="language-json">{{ dict["receive_error"]}}</code></pre></small>
                 </div>
                 </div>
                     
                 <div class="collapse" id="collapse-{{method_name}}-receive_return">
                     <div class="card card-body mt-2">
                     <small><span class="text-muted">Return</span></small>
-                    <small><pre><code >{{ dict["receive_return"]}}</code></pre></small>
+                    <small><pre><code class="language-json">{{ dict["receive_return"]}}</code></pre></small>
                     </div>
                 </div>
             
