@@ -71,8 +71,8 @@ class TXCountReportingRequest(BaseModel):
 
 
 @router.post(
-    "/{net}/ajax_transaction_types_reporting/",
-    response_class=HTMLResponse,
+    "/{net}/ajax_transaction_types_reporting",
+    response_class=Response,
 )
 async def ajax_transaction_types_reporting(
     request: Request,
