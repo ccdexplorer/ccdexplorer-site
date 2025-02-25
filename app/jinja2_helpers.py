@@ -62,3 +62,6 @@ templates.env.filters["split_contract_into_url_slug_and_token_id"] = (
     split_contract_into_url_slug_and_token_id  # noqa: F405
 )
 templates.env.filters["none"] = none  # noqa: F405
+templates.env.filters["account_label_on_index_for_label"] = (
+    account_label_on_index_for_label  # noqa: F405
+)

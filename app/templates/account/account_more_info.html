@@ -1,0 +1,65 @@
+<style>
+    .smooth {
+      transition: all 1s ease-in;
+    }
+    </style>
+<table class="table table-borderless">
+    <tbody>
+        {% if  account.index|account_label_on_index_for_label(user,tags,net, request.app) %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Label</td>
+            <td class="text-end text-secondary-emphasis">{{account.index|account_link(net, user, tags, app=request.app)|safe}}</td>
+            
+        </tr>
+        {% endif %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Deployed in block</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis ccd">0</td>
+                {% endif %}
+            </tr>
+            {% if not deployed_in_genesis_block %}
+                <tr class="table-row-line-height sm-text">
+                    <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+                    <td class="text-end text-secondary-emphasis"><span style="font-family: monospace, monospace;">{{tx_deployed.hash|tx_hash_link(net)|safe}}</span>
+                        
+                        </td>
+                </tr>
+            {% endif %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Age</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis ccd">{{genesis_block_slot_time|datetime_delta_format_since}}</td>
+                {% endif %}
+            </tr>
+          
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Nonce</td>
+            <td class=" text-end text-secondary-emphasis ccd">{{account.sequence_number|round_x_decimal_with_comma(0) }}</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Credentials</td>
+            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{identity.credentials|length|round_x_decimal_with_comma(0) }}
+                {%if identity.credentials|length > identity.threshold %}({{identity.threshold|round_x_decimal_with_comma(0)}} to sign){%endif%}</td>
+        </tr>
+        {% if aliases_in_use|length > 0 %}
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Aliases in use</td>
+            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{aliases_in_use|length|round_x_decimal_with_comma(0) }}</td>
+        </tr>
+        {% endif %}
+   
+        
+   
+       
+        
+        
+    </tbody>
+    </table>
+
+
+    

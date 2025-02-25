@@ -87,9 +87,35 @@
                 <td class=" text-end text-secondary-emphasis">{{account.available_balance| micro_ccd_display | safe }}</td>
             </tr>
             {% endif %}  
-            
-            
-        
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Deployed in block</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis ccd">0</td>
+                {% endif %}
+            </tr>
+            {% if not deployed_in_genesis_block %}
+                <tr class="table-row-line-height sm-text">
+                    <td class="text-start text-secondary-emphasis">Deployed in tx</td>
+                    <td class="text-end text-secondary-emphasis"><span style="font-family: monospace, monospace;">{{tx_deployed.hash|tx_hash_link(net)|safe}}</span>
+                        
+                        </td>
+                </tr>
+            {% endif %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Age</td>
+                {% if not deployed_in_genesis_block %}
+                    <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+                {% else %}
+                    <td class="text-end text-secondary-emphasis ccd">{{genesis_block_slot_time|datetime_delta_format_since}}</td>
+                {% endif %}
+            </tr>
+          
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Nonce</td>
+            <td class=" text-end text-secondary-emphasis ccd">{{account.sequence_number|round_x_decimal_with_comma(0) }}</td>
+        </tr>
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">Index</td>
             <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{account.index|round_x_decimal_with_comma(0) }}</td>
