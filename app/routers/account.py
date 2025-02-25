@@ -793,6 +793,26 @@ async def get_account_transactions(
     tx_result_transactions = tx_result["transactions"]
     total_rows = tx_result["total_tx_count"]
 
+    made_up_txs = []
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
+                    "net": net,
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.account,
+                }
+            )
+
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
+
     pagination_request = PaginationRequest(
         total_txs=total_rows,
         requested_page=requested_page,
@@ -804,7 +824,7 @@ async def get_account_transactions(
 
     html = templates.get_template("base/transactions_simple_list.html").render(
         {
-            "transactions": [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
+            "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
             "tags": tags,
             "user": user,
             "net": net,

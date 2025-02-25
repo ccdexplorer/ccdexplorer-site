@@ -2,8 +2,9 @@
 
 {% block content %}
 {% include 'base/search_bar_non_home_inclusion.html' %}
+
     <div class="row  mt-10">
-        
+        <span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions</span>
           <div class="col-lg-12 " hx-get="/{{net}}/ajax_last_transactions_own_page" hx-trigger="load, every 2s" ></div>
           
     </div>

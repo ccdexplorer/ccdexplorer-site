@@ -627,6 +627,27 @@ def micro_ccd_no_decimals(value: str):
     return f'<span class="ccd">Ͼ{splits[0]}</span>'
 
 
+def account_label_on_index_for_label(
+    account_index: int,
+    user: UserV2 = None,
+    community_labels=None,
+    net=None,
+    app=None,
+    header=False,
+    sankey=False,
+):
+    found, label = account_label_on_index(
+        account_index,
+        user,
+        community_labels,
+        net,
+        app,
+        header,
+        sankey,
+    )
+    return label
+
+
 def account_label_on_index(
     account_index: int,
     user: UserV2 = None,

@@ -11,6 +11,11 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockInfo,
     CCD_BlockItemSummary,
 )
+from app.classes.dressingroom import (
+    MakeUp,
+    MakeUpRequest,
+    RequestingRoute,
+)
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypeInstance,
 )
@@ -572,15 +577,37 @@ async def ajax_last_txs_own_page(
             },
         )
 
-    result = [CCD_BlockItemSummary(**x) for x in latest_txs]
+    made_up_txs = []
+    if len(latest_txs) > 0:
+        for transaction in latest_txs:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
+                    "net": net,
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.other,
+                }
+            )
+
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
+    # result = [CCD_BlockItemSummary(**x) for x in latest_txs]
     if "last_requests" not in request.state._state:
         request.state.last_requests = {}
     html = templates.TemplateResponse(
-        "home/last_txs_table_own_page.html",
+        "base/transactions_simple_list.html",
         {
             "request": request,
             "tx_type_translation": tx_type_translation,
-            "txs": result,
+            "transactions": made_up_txs,
+            "pagination": None,
+            "totals_in_pagination": True,
+            "total_rows": 50,
             "net": net,
             "tags": tags,
             "user": user,
