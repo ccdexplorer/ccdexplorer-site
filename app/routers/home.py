@@ -10,6 +10,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountInfo,
     CCD_BlockInfo,
     CCD_BlockItemSummary,
+    CCD_ConsensusDetailedStatus,
 )
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypeInstance,
@@ -762,6 +763,80 @@ async def accounts_page(
     )
     return templates.TemplateResponse(
         "home/accounts.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+            "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
+        },
+    )
+
+
+@router.get("/{net}/ajax_consensus_own_page", response_class=HTMLResponse)
+async def ajax_consensus_own_page(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+    try:
+        latest_consensus = CCD_ConsensusDetailedStatus(
+            **request.app.consensus_cache.get(net)
+        )
+    except:  # noqa: E722
+        latest_consensus = None
+
+    if not latest_consensus:
+        error = (
+            f"Request error getting the most recent consensus detailed status on {net}."
+        )
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    latest_consensus.epoch_bakers = None
+    if "last_requests" not in request.state._state:
+        request.state.last_requests = {}
+    html = templates.TemplateResponse(
+        "home/last_consensus_own_page.html",
+        {
+            "request": request,
+            "consensus": latest_consensus,
+            "net": net,
+            "tags": tags,
+            "user": user,
+        },
+    )
+    request.state.last_requests["blocks"] = html
+    return html
+
+
+@router.get("/{net}/consensus", response_class=HTMLResponse)
+async def consensus_page(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+    request.state.api_calls = {}
+    request.state.api_calls["Consensus Detailed Status"] = (
+        f"{request.app.api_url}/docs#/Misc/get_consensus_detailed_status_v2__net__misc_consensus_detailed_status_get"
+    )
+    return templates.TemplateResponse(
+        "home/consensus.html",
         {
             "env": request.app.env,
             "request": request,
