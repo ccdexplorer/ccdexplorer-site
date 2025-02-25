@@ -65,6 +65,7 @@ class RequestingRoute(Enum):
     transaction = "transaction"
     transactions = "transactions"
     smart_contract = "smart_contract"
+    other = "other"
 
 
 class MakeUpRequest(BaseModel):
@@ -400,6 +401,9 @@ class MakeUp:
         self.amount = 0
         self.tokenId = None
         self.classifier = TransactionClassifier.Unclassified
+        self.additional_info = (
+            None  # will become dict {"type": "address" / "contract","value": value}
+        )
         self.events_list = []
 
         if t.type.type == TransactionClass.AccountTransaction.value:
@@ -449,21 +453,31 @@ class MakeUp:
 
                 if effects.module_deployed:
                     self.classifier = TransactionClassifier.Smart_Contract
+                    self.additional_info = {
+                        "type": "module",
+                        "value": effects.module_deployed,
+                    }
                     new_event = EventType(
                         f'Contract Module Deployed: <a href="/{self.net}/module/{effects.module_deployed}">{effects.module_deployed[:10]}</a>',
                         None,
                         None,
                     )
-
                 elif effects.contract_initialized:
-                    api_result = await get_url_from_api(
-                        f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
-                        self.httpx_client,
-                    )
-                    logged_events_source = (
-                        api_result.return_value if api_result.ok else None
-                    )
+                    if process_events:
+                        api_result = await get_url_from_api(
+                            f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
+                            self.httpx_client,
+                        )
+                        logged_events_source = (
+                            api_result.return_value if api_result.ok else None
+                        )
+                    else:
+                        logged_events_source = None
                     self.classifier = TransactionClassifier.Smart_Contract
+                    self.additional_info = {
+                        "type": "contract",
+                        "value": effects.contract_initialized.address.to_str(),
+                    }
                     if (
                         self.makeup_request.requesting_route
                         == RequestingRoute.transaction
@@ -514,20 +528,55 @@ class MakeUp:
                             logged_events,
                         )
                 elif effects.contract_update_issued:
-
-                    api_result = await get_url_from_api(
-                        f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
-                        self.httpx_client,
-                    )
-                    logged_events_source = (
-                        api_result.return_value if api_result.ok else None
-                    )
+                    if process_events:
+                        api_result = await get_url_from_api(
+                            f"{self.app.api_url}/v2/{self.net}/transaction/{t.hash}/logged-events",
+                            self.httpx_client,
+                        )
+                        logged_events_source = (
+                            api_result.return_value if api_result.ok else None
+                        )
+                    else:
+                        logged_events_source = None
                     self.classifier = TransactionClassifier.Smart_Contract
+                    self.additional_info = {"type": "contract"}
+                    if effects.contract_update_issued.effects[0].transferred:
+                        self.additional_info.update(
+                            {
+                                "value": effects.contract_update_issued.effects[
+                                    0
+                                ].transferred.sender.to_str()
+                            }
+                        )
+                    elif effects.contract_update_issued.effects[0].updated:
+                        self.additional_info.update(
+                            {
+                                "value": effects.contract_update_issued.effects[
+                                    0
+                                ].updated.address.to_str()
+                            }
+                        )
+                    elif effects.contract_update_issued.effects[0].resumed:
+                        self.additional_info.update(
+                            {
+                                "value": effects.contract_update_issued.effects[
+                                    0
+                                ].resumed.address.to_str()
+                            }
+                        )
+                    elif effects.contract_update_issued.effects[0].interrupted:
+                        self.additional_info.update(
+                            {
+                                "value": effects.contract_update_issued.effects[
+                                    0
+                                ].interrupted.address.to_str()
+                            }
+                        )
                     if (
-                        1
-                        == 1
-                        # self.makeup_request.requesting_route
-                        # == RequestingRoute.transaction
+                        # 1
+                        # == 1
+                        self.makeup_request.requesting_route
+                        == RequestingRoute.transaction
                     ):
                         for effect_index, effect in enumerate(
                             effects.contract_update_issued.effects
@@ -679,9 +728,14 @@ class MakeUp:
 
                             if new_event:
                                 self.events_list.append(new_event)
+                    pass
 
                 elif effects.account_transfer:
                     self.classifier = TransactionClassifier.Transfer
+                    self.additional_info = {
+                        "type": "amount",
+                        "value": effects.account_transfer.amount,
+                    }
                     self.amount = effects.account_transfer.amount
 
                     memo = (
@@ -820,6 +874,16 @@ class MakeUp:
 
                 elif effects.transferred_with_schedule:
                     self.classifier = TransactionClassifier.Transfer
+                    self.amount = sum(
+                        [
+                            int(x.amount)
+                            for x in effects.transferred_with_schedule.amount
+                        ]
+                    )
+                    self.additional_info = {
+                        "type": "amount",
+                        "value": self.amount,
+                    }
                     dct.update(
                         {
                             "show_table": True,
@@ -845,12 +909,7 @@ class MakeUp:
                     )
                     self.to_account = effects.transferred_with_schedule.receiver
                     dct.update({"to_account": self.to_account})
-                    self.amount = sum(
-                        [
-                            int(x.amount)
-                            for x in effects.transferred_with_schedule.amount
-                        ]
-                    )
+
                     dct.update({"start_1": self.amount})
                     new_event = EventType(
                         "Transferred with Schedule", memo if memo else None, None
