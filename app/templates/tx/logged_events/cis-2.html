@@ -20,10 +20,18 @@
 
 
 <table class="table table-borderless">
-    {% if result.token_address %}<tr class="table-row-line-height sm-text">
-        <td class='text-secondary-emphasis'>Token address</td>
-        <td><span class='text-secondary-emphasis'>{{result.token_address|safe}}</span></td>
-    </tr>{% endif %}
+    {% if 'token_id' in result.model_fields_set %}
+    <tr class="table-row-line-height sm-text">
+        <td class='text-secondary-emphasis'>Token</td>
+        <td><span class='text-secondary-emphasis ccd'>    <a class="ccd" href="/{{net}}/token/{{ai.contract|split_contract_into_url_slug_and_token_id(result.token_id)}}">
+           {% if ai.token_metadata %} 
+                {{ai.token_metadata.name}}
+            {% else %}
+                {{result.token_id}}
+            {% endif %}
+        </a></span></td>
+    {% endif %}
+    
     {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
         <td class='text-secondary-emphasis'>Amount</td>
         <td><span class='text-secondary-emphasis ccd'>{{display_name|safe}}{{result.token_amount|token_amount_using_decimals(token_decimals)|safe}} {{token_string|safe}}</span></td>

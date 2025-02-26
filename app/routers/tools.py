@@ -14,7 +14,10 @@ from app.classes.dressingroom import (
     MakeUpRequest,
     RequestingRoute,
 )
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockItemSummary
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_BlockItemSummary,
+    CCD_AccountPending,
+)
 import datetime as dt
 from app.utils import (
     get_url_from_api,
@@ -244,3 +247,194 @@ async def ajax_last_txs_by_type(
     )
 
     return html
+
+
+@router.get("/{net}/accounts-scheduled-release", response_class=HTMLResponse)
+async def accounts_scheduled_release(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+
+    request.state.api_calls = {}
+    request.state.api_calls["Accounts Scheduled Release"] = (
+        f"{request.app.api_url}/docs#/Accounts/get_scheduled_release_accounts_v2__net__accounts_scheduled_release_get"
+    )
+
+    return templates.TemplateResponse(
+        "tools/accounts-scheduled-release.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+            "requested_page": 1,
+            "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
+        },
+    )
+
+
+@router.get(
+    "/{net}/ajax_accounts_scheduled_release",
+    response_class=HTMLResponse | RedirectResponse,
+)
+async def ajax_accounts_scheduled_release(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    # tags_community: dict = Depends(get_community_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/scheduled-release",
+        httpx_client,
+    )
+    accounts = api_result.return_value if api_result.ok else []
+    if accounts:
+        accounts = [CCD_AccountPending(**x) for x in accounts]
+    return templates.TemplateResponse(
+        "/tools/accounts-scheduled-release-content.html",
+        {
+            "env": environment,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "accounts": accounts,
+            "net": net,
+        },
+    )
+
+
+@router.get("/{net}/accounts-cooldown", response_class=HTMLResponse)
+async def accounts_cooldown(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+) -> HTMLResponse:
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+
+    request.state.api_calls = {}
+    request.state.api_calls["Accounts Cooldown"] = (
+        f"{request.app.api_url}/docs#/Accounts/get_cooldown_accounts_v2__net__accounts_cooldown_get"
+    )
+    request.state.api_calls["Accounts Pre Cooldown"] = (
+        f"{request.app.api_url}/docs#/Accounts/get_pre_cooldown_accounts_v2__net__accounts_pre_cooldown_get"
+    )
+    request.state.api_calls["Accounts Pre Pre Cooldown"] = (
+        f"{request.app.api_url}/docs#/Accounts/get_pre_pre_cooldown_accounts_v2__net__accounts_pre_pre_cooldown_get"
+    )
+    return templates.TemplateResponse(
+        "tools/accounts-cooldown.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "net": net,
+            "requested_page": 1,
+            "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
+        },
+    )
+
+
+@router.get(
+    "/{net}/ajax_accounts_cooldown",
+    response_class=HTMLResponse | RedirectResponse,
+)
+async def ajax_accounts_cooldown(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    # tags_community: dict = Depends(get_community_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/cooldown",
+        httpx_client,
+    )
+    accounts = api_result.return_value if api_result.ok else []
+    if accounts:
+        accounts = [CCD_AccountPending(**x) for x in accounts]
+    return templates.TemplateResponse(
+        "/tools/accounts-cooldown-content.html",
+        {
+            "env": environment,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "accounts": accounts,
+            "net": net,
+        },
+    )
+
+
+@router.get(
+    "/{net}/ajax_accounts_pre_cooldown",
+    response_class=HTMLResponse | RedirectResponse,
+)
+async def ajax_accounts_pre_cooldown(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    # tags_community: dict = Depends(get_community_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/pre-cooldown",
+        httpx_client,
+    )
+    accounts = api_result.return_value if api_result.ok else []
+    # if accounts:
+    #     accounts = [CCD_AccountPending(**x) for x in accounts]
+    return templates.TemplateResponse(
+        "/tools/accounts-pre-cooldown-content.html",
+        {
+            "env": environment,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "accounts": accounts,
+            "net": net,
+        },
+    )
+
+
+@router.get(
+    "/{net}/ajax_accounts_pre_pre_cooldown",
+    response_class=HTMLResponse | RedirectResponse,
+)
+async def ajax_accounts_pre_pre_cooldown(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    # tags_community: dict = Depends(get_community_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/pre-pre-cooldown",
+        httpx_client,
+    )
+    accounts = api_result.return_value if api_result.ok else []
+    # if accounts:
+    #     accounts = [CCD_AccountPending(**x) for x in accounts]
+    return templates.TemplateResponse(
+        "/tools/accounts-pre-pre-cooldown-content.html",
+        {
+            "env": environment,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "accounts": accounts,
+            "net": net,
+        },
+    )

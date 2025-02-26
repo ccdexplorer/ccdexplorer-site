@@ -1,0 +1,28 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+
+    <div class="row  mt-10">
+      <div class="border curved-border mb-2 mt-4">
+        <span class="mb-3 text-uppercase sm-text text-secondary-emphasis">Accounts in Cooldown</span>
+          <div class="col-lg-12 " hx-get="/{{net}}/ajax_accounts_cooldown" hx-trigger="load" ></div>
+        </div>
+    </div>
+
+    <div class="row  mt-10">
+      <div class="border curved-border mb-2 mt-4">
+        <span class="mb-3 text-uppercase sm-text text-secondary-emphasis">Accounts in Pre Cooldown</span>
+          <div class="col-lg-12 " hx-get="/{{net}}/ajax_accounts_pre_cooldown" hx-trigger="load" ></div>
+        </div>
+    </div>
+
+    <div class="row  mt-10">
+      <div class="border curved-border mb-2 mt-4">
+        <span class="mb-3 text-uppercase sm-text text-secondary-emphasis">Accounts in Pre Pre Cooldown</span>
+          <div class="col-lg-12 " hx-get="/{{net}}/ajax_accounts_pre_pre_cooldown" hx-trigger="load" ></div>
+        </div>
+    </div>
+        
+    
+{% endblock %}
