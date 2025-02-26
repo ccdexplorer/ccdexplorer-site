@@ -101,6 +101,7 @@ async def lifespan(app: FastAPI):
     app.users_last_requested = now - dt.timedelta(seconds=10)
     app.nodes_last_requested = now - dt.timedelta(seconds=10)
     app.credential_issuers_last_requested = now - dt.timedelta(seconds=10)
+    app.consensus_last_requested = now - dt.timedelta(seconds=10)
     app.tags = None
     app.nodes = None
     read_addresses_if_available(app)
@@ -112,6 +113,7 @@ async def lifespan(app: FastAPI):
     app.transactions_cache = {"mainnet": [], "testnet": []}
     app.accounts_cache = {"mainnet": [], "testnet": []}
     app.identity_providers_cache = {"mainnet": {}, "testnet": {}}
+    app.consensus_cache = {"mainnet": {}, "testnet": {}}
     await repeated_task_get_accounts_id_providers(app)
     scheduler.start()
     yield
@@ -211,6 +213,18 @@ async def repeated_task_get_blocks_and_transactions(app: FastAPI):
             f"{app.api_url}/v2/{net}/transactions/last/50", app.httpx_client
         )
         app.transactions_cache[net] = api_result.return_value if api_result.ok else None
+
+
+@scheduler.scheduled_job("interval", seconds=1, args=[app])
+async def repeated_task_get_consensus(app: FastAPI):
+    # for net in ["mainnet", "testnet"]:
+    for net in ["testnet"]:
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/misc/consensus-detailed-status", app.httpx_client
+        )
+        app.consensus_cache[net] = api_result.return_value if api_result.ok else None
+        if not api_result.ok:
+            print(f"ERROR: {api_result.return_value}")
 
 
 @scheduler.scheduled_job("interval", seconds=60, args=[app])

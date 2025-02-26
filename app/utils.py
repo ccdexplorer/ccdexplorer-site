@@ -1424,9 +1424,9 @@ async def get_url_from_api(url: str, httpx_client: httpx.AsyncClient):
     api_response.duration_in_sec = (end - now).total_seconds()
     if not api_response:
         api_response = APIResponseResult(status_code=-1, duration_in_sec=-1, ok=False)
-    print(
-        f"GET: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
-    )
+    # print(
+    #     f"GET: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
+    # )
     return api_response
 
 
@@ -1454,9 +1454,9 @@ async def post_url_from_api(
     end = dt.datetime.now().astimezone(dt.UTC)
 
     api_response.duration_in_sec = (end - now).total_seconds()
-    print(
-        f"POST: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
-    )
+    # print(
+    #     f"POST: {api_response.duration_in_sec:2,.4f}s | {api_response.status_code} | {url}"
+    # )
     return api_response
 
 

@@ -1,0 +1,12 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+    <div class="row  mt-8">
+        
+          <div class="col-lg-12 " hx-get="/{{net}}/ajax_consensus_own_page" hx-trigger="load, every 1s" ></div>
+          
+    </div>
+        
+    
+{% endblock %}
