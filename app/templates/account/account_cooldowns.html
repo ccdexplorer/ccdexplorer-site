@@ -14,7 +14,13 @@
       <tbody>
         {% for cooldown in account.cooldowns %}
         <tr>
-          <td class="sm-text text-secondary-emphasis"><span class="ccd">{{cooldown.end_time |datetime_delta_format_until}}</span></td>
+          <td class="sm-text text-secondary-emphasis"><span class="ccd">{{cooldown.end_time |datetime_delta_format_until}} 
+            <a href="#" data-bs-html="true" data-bs-toggle="popover" tabindex="0" id="cooldown-time" data-bs-trigger="focus" data-bs-title="Cooldown" data-bs-content="
+                        The timestamp (UTC) when the cooldown period ends:<br/> 
+                        {{cooldown.end_time|datetime_regular}}.
+                        ">(i)</a>
+
+          </span></td>
           <td class="sm-text text-end text-secondary-emphasis">{{cooldown.amount |micro_ccd_no_decimals|safe}}</td>
           <td class="sm-text text-end text-secondary-emphasis">{{cooldown.status.name|cooldown_string}}</td>
         </tr>
@@ -25,3 +31,9 @@
 </div>  
     {% endif %}
 
+
+    <script>
+      const cooldown = document.getElementById('cooldown-time')
+      const popover_cooldown = new bootstrap.Popover(cooldown, {trigger: 'focus'})
+    
+    </script>
