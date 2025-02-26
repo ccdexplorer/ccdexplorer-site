@@ -1,0 +1,22 @@
+{% if accounts|length == 0 %}
+        <p class="text-secondary-emphasis">No accounts found.</p>
+    </div>
+{% else %}
+<table class="table table-borderless">
+    <thead>
+    <tr  class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Account</span></th>
+      
+      
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
+  {% for account_index in accounts %}
+    <tr class="sm-text ">
+          <td class="text-start text-secondary-emphasis "><a href="/{{net}}/account/{{account_index}}"><span class="ccd" >{{account_index}}</a></td>
+          
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  {% endif %}

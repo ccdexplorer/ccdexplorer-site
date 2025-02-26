@@ -31,9 +31,30 @@
 {% endif %}
     {% if account_is_validator %}
     <tr class="sm-text">
-        <td class="text-start text-secondary-emphasis">Validator id</td>
-        <td  class="text-end text-secondary-emphasis ccd">{{account.stake.baker.baker_info.baker_id|round_x_decimal_with_comma(0)}}</td>
+        <td class="text-start text-secondary-emphasis">Validator id
+            
+        </td>
+        <td  class="text-end text-secondary-emphasis ccd">{{account.stake.baker.baker_info.baker_id|round_x_decimal_with_comma(0)}} 
+            {% if "is_suspended" in account.stake.baker.model_fields_set %}
+                {% if account.stake.baker.is_suspended %}
+                <i style="color:red;" class="bi bi-exclamation-square">(SUSPENDED)</i>
+                {% endif %}
+            {% endif %}
+
+        </td>
     </tr>
+
+    {% if "is_suspended" in account.stake.baker.model_fields_set %}
+      {% if pool.current_payday_info %}
+        <tr class="sm-text">
+            <td class="text-start text-secondary-emphasis">Missed Rounds</td>
+            <td  class="text-end text-secondary-emphasis ccd">       
+                    {{pool.current_payday_info.missed_rounds|round_x_decimal_with_comma(0)}}
+            </td>
+        </tr>
+        {% endif %}
+    {% endif %}
+
 
     {% set staked_amount = account.stake.baker.staked_amount | int %}
     

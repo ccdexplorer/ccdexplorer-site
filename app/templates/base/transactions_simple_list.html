@@ -5,13 +5,13 @@
     <tr  class="account-row sm-text">
       <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
       <th class="text-end text-secondary-emphasis">Age</th>
-      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Energy Cost</span><span class="tab-text-small"></span></th>
+      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">Energy Cost</th>
       <th class="text-start text-secondary-emphasis" >Type</th>
       <th class="text-start text-secondary-emphasis" ></th>
       <th class="text-start text-secondary-emphasis" ></th>
       
-      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Block</span><span class="tab-text-small"></span></th>
-      <th class="text-end text-secondary-emphasis">Sender</th>
+      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">Block</th>
+      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">Sender</th>
     </tr>
   </thead>
   <tbody class="table-group-divider">
@@ -31,7 +31,7 @@
       ">
           <td class=""><a class=" " href="/{{net}}/transaction/{{row.transaction.hash}}"><span class="ccd">{{row.transaction.hash|tx_hash_link(net)|safe}}</span></a></td>
           <td class="text-end text-secondary-emphasis ccd">{{row.transaction.block_info.slot_time|datetime_delta_format_since}}</td>
-          <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd">{{row.transaction.energy_cost|round_x_decimal_with_comma(0) }} NRG</span></span><span class="tab-text-small"></span></td>
+          <td class="text-end text-secondary-emphasis d-none d-md-table-cell"><span class="ccd">{{row.transaction.energy_cost|round_x_decimal_with_comma(0) }} NRG</span></td>
           <td class="text-start ">{{row.transaction.type.contents|tx_type_translator("icon")|safe}} <span class="text-secondary-emphasis" >{{row.transaction.type.contents|tx_type_translator("display")|safe}}</span></td>
           <td class="text-end text-secondary-emphasis ccd" >
             {% if row.additional_info.type == 'amount' %}
@@ -47,13 +47,16 @@
             {% endif %}
             
             <td>
-          <td class="text-end"><span class="tab-text-large"><a class=" " href="/{{net}}/block/{{row.transaction.block_info.height}}"><span class="ccd">{{row.transaction.block_info.height|round_x_decimal_with_comma(0)}}</span></a></span><span class="tab-text-small"></span></td>
-          <td class="text-end text-secondary-emphasis ccd">
+          <td class="text-end d-none d-md-table-cell"><a class=" " href="/{{net}}/block/{{row.transaction.block_info.height}}"><span class="ccd">{{row.transaction.block_info.height|round_x_decimal_with_comma(0)}}</span></a></td>
+          <td class="text-end text-secondary-emphasis ccd d-none d-md-table-cell">
+          
             {% if row.transaction.account_transaction %}
             {{row.transaction.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
             {% else %}
               Chain  
-            {%endif%}</td>
+            {%endif%}
+          
+          </td>
       
     </tr>
   {% endfor %}
