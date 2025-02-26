@@ -34,19 +34,21 @@
                     </a>
                     <ul class="dropdown-menu">
                         
-                        <li><a class="dropdown-item" href="#">Contracts (Coming soon!)</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Contracts (Coming soon!)</a></li> -->
                         <li><a class="dropdown-item" href="/{{net}}/transactions-by-type">Transactions by Type</a></li>
                         {% if net == 'mainnet' %}
                             <li><a class="dropdown-item" href="/{{net}}/staking">Staking</a></li>
                             <li><a class="dropdown-item" href="/{{net}}/today-in">Today in...</a></li>
                         
                         <li><a class="dropdown-item" href="/{{net}}/tools/labeled-accounts">Labeled Accounts</a></li>
-                        <li><a class="dropdown-item" href="#">Chain Info (Coming soon!)</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Chain Info (Coming soon!)</a></li> -->
                         {% endif %}
                         
                         <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/{{net}}/accounts-scheduled-release">Accounts - Scheduled Release</a></li>
+                        <li><a class="dropdown-item" href="/{{net}}/accounts-cooldown">Accounts - Cooldown</a></li>
                         
-                        <li><a class="dropdown-item" href="#">Statistics - Tricorn (Coming soon!)</a></li>
+                        <!-- <li><a class="dropdown-item" href="#">Statistics - Tricorn (Coming soon!)</a></li> -->
                     </ul>
                 </li>
                 {% if net == 'mainnet' %}

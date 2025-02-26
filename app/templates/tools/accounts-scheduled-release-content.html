@@ -1,0 +1,23 @@
+{% if accounts|length == 0 %}
+        <p class="text-secondary-emphasis">No accounts found.</p>
+    </div>
+{% else %}
+<table class="table ">
+    <thead>
+    <tr  class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Account</span></th>
+      <th class="text-end text-secondary-emphasis">First Timestamp</th>
+      
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
+  {% for row in accounts %}
+    <tr class="sm-text ">
+          <td class="text-start text-secondary-emphasis "><a href="/{{net}}/account/{{row.account_index}}"><span class="ccd" >{{row.account_index}}</a></td>
+          <td class="text-end text-secondary-emphasis d-none d-md-table-cell"><span class="ccd">{{row.first_timestamp|datetime_regular}}</span></td>
+          
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+  {% endif %}
