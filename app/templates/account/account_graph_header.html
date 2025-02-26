@@ -53,7 +53,7 @@
   
   <div class="row ps-3 pe-3">
     <div class="col ">
-      <button  hx-trigger="click, {% if account.sequence_number < 1000 %}load, {%endif%} switched-theme from:body" 
+      <button  hx-trigger="click, {% if account.sequence_number < 1000 %}intersect, {%endif%} switched-theme from:body" 
       hx-post='/ajax_sankey/{{net}}/{{account_id}}'
       hx-ext='json-enc'
       hx-target="#sankey"
