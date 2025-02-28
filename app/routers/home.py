@@ -810,6 +810,18 @@ async def ajax_consensus_own_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
+    # remove on protocol 8
+    if net in ["mainnet"]:
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": "Consensus detailed status is not available on mainnet before March 17, 2025.",
+                "env": environment,
+                "net": net,
+            },
+        )
+
     user: UserV2 = await get_user_detailsv2(request)
     try:
         latest_consensus = CCD_ConsensusDetailedStatus(
