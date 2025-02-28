@@ -393,15 +393,15 @@ if (ref) {
   </div>
   {% endif %}
   {% if net == 'mainnet' %}
-  <div class="tab-pane fade show " id="pills-analytics" role="tabpanel" aria-labelledby="pills-analytics-tab" tabindex="0">
+    <div class="tab-pane fade show " id="pills-analytics" role="tabpanel" aria-labelledby="pills-analytics-tab" tabindex="0">
     
           {% include "account/account_graph_header.html" %}
-  </div>
+    </div>
   {% endif %}
  
 </div>
 
-</div>
+
 <script>
 window.addEventListener('load', (event) => {
     getTransactions(0, 0);
