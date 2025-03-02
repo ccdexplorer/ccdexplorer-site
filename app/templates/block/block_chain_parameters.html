@@ -407,6 +407,214 @@
         </tr>
 
         {% endif %}
+
+        {% if cp.v3 %}
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Validator score parameters - Maximum missed rounds </td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.validator_score_parameters.maximum_missed_rounds}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Consensus Parameters - timeout parameters - base</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.consensus_parameters.timeout_parameters.timeout_base | safe}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Consensus Parameters - timeout parameters - increase</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.consensus_parameters.timeout_parameters.timeout_increase.numerator}} / {{cp.v3.consensus_parameters.timeout_parameters.timeout_increase.denominator}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Consensus Parameters - timeout parameters - decrease</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.consensus_parameters.timeout_parameters.timeout_decrease.numerator}} / {{cp.v3.consensus_parameters.timeout_parameters.timeout_decrease.denominator}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Consensus Parameters - min block time</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.consensus_parameters.min_block_time | safe}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Consensus Parameters - block energy limit</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.consensus_parameters.block_energy_limit}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Finalization Committee Parameters - minimum finalizers</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.finalization_committee_parameters.minimum_finalizers}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Finalization Committee Parameters - maximum finalizers</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.finalization_committee_parameters.maximum_finalizers}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Finalization Committee Parameters - relative stake threshold</td>
+          <td class="text-end text-secondary-emphasis">{{100*(cp.v3.finalization_committee_parameters.finalizer_relative_stake_threshold)}}%
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Gas Rewards - baker</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.gas_rewards.baker}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Gas Rewards - account creation</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.gas_rewards.account_creation}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Gas Rewards - chain update</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.gas_rewards.chain_update}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Minimum Threshold for Validation</td>
+          <td class="text-end text-secondary-emphasis">{{cp.v3.pool_parameters.minimum_equity_capital | micro_ccd_display|safe}}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Account Creation Limit</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.account_creation_limit}}</span></td>
+        </tr>
+
+
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Passive Validation Commission</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.passive_baking_commission*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Passive Transaction Commission</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.passive_transaction_commission*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Passive Finalization Commission</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.passive_finalization_commission*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Validation Commission Range</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.commission_bounds.baking.min*100)|round_x_decimal_with_comma(2)}}%
+              -
+              {{(cp.v3.pool_parameters.commission_bounds.baking.max_*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Transaction Commission Range</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.commission_bounds.transaction.min*100)|round_x_decimal_with_comma(2)}}%
+              -
+              {{(cp.v3.pool_parameters.commission_bounds.transaction.max_*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Finalization Commission Range</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.commission_bounds.finalization.min*100)|round_x_decimal_with_comma(2)}}%
+              -
+              {{(cp.v3.pool_parameters.commission_bounds.finalization.max_*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Foundation Address</td>
+          <td class="text-end text-secondary-emphasis">
+            
+            {{cp.v3.foundation_account|account_link(net,  user, tags,app=request.app)|safe }}
+          
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Leverage Bound (denominator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.pool_parameters.leverage_bound.value.denominator}}</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Leverage Bound (numerator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.pool_parameters.leverage_bound.value.numerator}}</span>
+          </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Capital Bound</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.pool_parameters.capital_bound.value*100)|round_x_decimal_with_comma(2)}}%</span>
+          </td>
+        </tr>
+
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Pool Owner Cooldown</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.cooldown_parameters.pool_owner_cooldown/86400)|round_x_decimal_with_comma(0)}}
+              days</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Delegator Cooldown</td>
+          <td class="text-end text-secondary-emphasis"><span
+              class="ccd">{{(cp.v3.cooldown_parameters.delegator_cooldown/86400)|round_x_decimal_with_comma(0)}}
+              days</span></td>
+        </tr>
+
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">EUR Per Energy (denominator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.euro_per_energy.denominator}}</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">EUR Per Energy (numerator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.euro_per_energy.numerator}}</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">micro CCD Per EUR (denominator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.micro_ccd_per_euro.denominator}}</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">micro CCD Per EUR (numerator)</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.micro_ccd_per_euro.numerator }}</span></td>
+        </tr>
+
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Validation Reward</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.mint_distribution.baking_reward *
+              100}}%</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Finalization Reward</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{cp.v3.mint_distribution.finalization_reward *
+              100}}%</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Platform Development Charge*</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{((1 - cp.v3.mint_distribution.baking_reward -
+              cp.v3.mint_distribution.finalization_reward) * 100) |
+              round_x_decimal_with_comma(1)}}%</span></td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">EUR Per CCD*</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{(cp.v3.micro_ccd_per_euro.denominator|int /
+              cp.v3.micro_ccd_per_euro.numerator|int
+              * 1_000_000) | round_x_decimal_with_comma(5)}}</span> EUR</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Transaction Cost Per Energy*</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{( cp.v3.micro_ccd_per_euro.numerator|int /
+              cp.v3.micro_ccd_per_euro.denominator|int / (cp.v3.euro_per_energy.denominator|int /
+              cp.v3.euro_per_energy.numerator|int)) | round_x_decimal_with_comma(2)}}</span> mCCD</td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+          <td class="text-start text-secondary-emphasis">Transaction Cost For Regular Transfer*</td>
+          <td class="text-end text-secondary-emphasis">{{(501.0 / 1_000_000 * cp.v3.micro_ccd_per_euro.numerator|int /
+              cp.v3.micro_ccd_per_euro.denominator|int / (cp.v3.euro_per_energy.denominator|int /
+              cp.v3.euro_per_energy.numerator|int)*1000000) | micro_ccd_display|safe}}</td>
+        </tr>
+
+        {% endif %}
+
       </tbody>
     </table>
     <div class="small text-muted">* Derived from data, not stored on the blockchain.</div>
