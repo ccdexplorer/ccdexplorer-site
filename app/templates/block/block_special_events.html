@@ -2,7 +2,49 @@
 {% if se|length==0 %}
 <p class="small">No special events in block.</p>
 {% else %}
+
+{% if primed %}
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Validator(s) Primed for Suspension</th>
+        </tr>
+    </thead> 
+    <tbody>
+        {% for prime in primed %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Validator Primed for Suspension</td>
+                <td class="text-end text-secondary-emphasis ccd" >{{prime.validator_primed_for_suspension.account|account_link(net, user,
+                    tags, app=request.app)|safe}}</td>
+            </tr>
+        {% endfor %}
+        
+    </tbody>
+</table>
+{% endif %}
+
+{% if suspended %}
+<table class="table table-borderless">
+    <thead>
+        <tr class="table-title-line-height sm-text">
+            <th class="text-secondary-emphasis" colspan="2">Validator(s) Suspended</th>
+        </tr>
+    </thead> 
+    <tbody>
+        {% for sus in suspended %}
+            <tr class="table-row-line-height sm-text">
+                <td class="text-start text-secondary-emphasis">Validator Suspended</td>
+                <td class="text-end text-secondary-emphasis ccd" >{{sus.validator_suspended.account|account_link(net, user,
+                    tags, app=request.app)|safe}}</td>
+            </tr>
+        {% endfor %}
+        
+    </tbody>
+</table>
+{% endif %}
 {% for node in se|reverse %}
+<!-- PrimedForSuspsension -->
+
 <!--MINT-->
 {% if node.mint %}
 <table class="table table-borderless">
