@@ -189,6 +189,10 @@ async def get_ajax_special_events_html_v2(
             },
         )
 
+    primed = [
+        x for x in special_events if x["validator_primed_for_suspension"] is not None
+    ]
+    suspended = [x for x in special_events if x["validator_suspended"] is not None]
     html = templates.get_template("/block/block_special_events.html").render(
         {
             "se": special_events,
@@ -197,6 +201,8 @@ async def get_ajax_special_events_html_v2(
             "net": net,
             # "baker_nodes": recurring.baker_nodes_by_baker_id,
             "request": request,
+            "primed": primed,
+            "suspended": suspended,
         }
     )
 
