@@ -1,0 +1,47 @@
+<div class="mt-4">
+    <span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions</span>
+    <table class="table ">
+      <thead>
+      <tr  class="account-row sm-text">
+        <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
+        <th class="text-end text-secondary-emphasis">Age</th>
+        <!-- <th class="text-center text-secondary-emphasis"></th> -->
+        <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Energy Cost</span><span class="tab-text-small"></span></th>
+        <th class="text-start text-secondary-emphasis">Type</th>
+        <th class="text-start text-secondary-emphasis"><span class="tab-text-large">Block</span><span class="tab-text-small"></span></th>
+        <th class="text-end text-secondary-emphasis">Sender</th>
+      </tr>
+    </thead>
+    <tbody class="table-group-divider">
+    {% for row in txs %}
+      <tr class="
+    
+      {% if row.account_transaction %}
+              {% if row.account_transaction.outcome == 'success' %}
+                account-row 
+              {%else%}
+                account-row-failed
+              {%endif%}
+      {% else %}
+        account-row 
+      {%endif%}
+      sm-text 
+      ">
+        <td class=""><a class=" " href="/{{net}}/transaction/{{row.hash}}"><span class="ccd">{{row.hash|tx_hash_link(net)|safe}}</span></a></td>
+        
+        <td class="text-end text-secondary-emphasis">{{row.block_info.slot_time|datetime_delta_format_since}}</td>
+        <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd">{{row.energy_cost|round_x_decimal_with_comma(0) }} NRG</span></span><span class="tab-text-small"></span></td>
+        <td class="text-start ">{{row.type.contents|tx_type_translator("icon")|safe}} <span class="text-secondary-emphasis" >{{row.type.contents|tx_type_translator("display")|safe}}</span></td>
+        <td class=""><span class="tab-text-large"><a class=" " href="/{{net}}/block/{{row.block_info.height}}"><span class="ccd">{{row.block_info.height|round_x_decimal_with_comma(0)}}</span></a></span><span class="tab-text-small"></span></td>
+        <td class="text-end text-secondary-emphasis">
+          {% if row.account_transaction %}
+          {{row.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
+          {% else %}
+            Chain  
+          {%endif%}</td>
+    
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+    </div>

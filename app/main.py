@@ -215,7 +215,7 @@ async def repeated_task_get_blocks_and_transactions(app: FastAPI):
         app.transactions_cache[net] = api_result.return_value if api_result.ok else None
 
 
-@scheduler.scheduled_job("interval", seconds=1, args=[app])
+@scheduler.scheduled_job("interval", seconds=2, args=[app])
 async def repeated_task_get_consensus(app: FastAPI):
     # for net in ["mainnet", "testnet"]:
     for net in ["testnet"]:

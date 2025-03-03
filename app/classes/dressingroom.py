@@ -96,6 +96,8 @@ class MakeUp:
         self.baking_reward = None
         self.contents_tag = None
         self.summary = None
+        self.wallet_contract_address = None
+        self.public_key = None
         self.makeup_request = makeup_request
         self.user = makeup_request.user
         self.tags = makeup_request.tags

@@ -15,6 +15,9 @@
                         <li><a class="dropdown-item" href="/{{net}}/blocks">Blocks</a></li>
                         <li><a class="dropdown-item" href="/{{net}}/transactions">Transactions</a></li>
                         <li><a class="dropdown-item" href="/{{net}}/accounts">Accounts</a></li>
+                        {% if net == 'mainnet' %}
+                            <li><a class="dropdown-item" href="/{{net}}/smart-wallets">Smart Wallets</a></li>
+                        {% endif %}
                     </ul>
                 </li>
                 {% if net == 'mainnet' %}
