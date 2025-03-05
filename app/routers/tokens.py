@@ -1015,11 +1015,14 @@ async def get_token_current_holders(
 
     current_holders = []
     for holder in curren_holder_with_id:
-
+        if "-" in holder["account_address_canonical"]:
+            address_to_lookup = holder["account_address_canonical"]
+        else:
+            address_to_lookup = holder["account_address_canonical"]
         holder.update(
             {
                 "account_index": from_address_to_index(
-                    holder["account_address_canonical"], net, request.app
+                    address_to_lookup, net, request.app
                 )
             }
         )
