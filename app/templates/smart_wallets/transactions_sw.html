@@ -1,0 +1,63 @@
+
+{% include 'base/pagination.html' %}
+<table class="table ">
+    <thead>
+    <tr  class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
+      <th class="text-end text-secondary-emphasis">Age</th>
+      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">
+        Energy Cost
+      
+      </th>
+      <th class="text-start text-secondary-emphasis" >Public Key</th>
+     
+      
+      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">Block</th>
+      <th class="text-end text-secondary-emphasis ">
+        Smart Wallet 
+        </th>
+    </tr>
+  </thead>
+  <tbody class="table-group-divider">
+  {% for row in transactions %}
+    <tr class="
+    
+      {% if row.transaction.account_transaction %}
+              {% if row.transaction.account_transaction.outcome == 'success' %}
+                account-row 
+              {%else%}
+                account-row-failed
+              {%endif%}
+      {% else %}
+        account-row 
+      {%endif%}
+      sm-text 
+      ">
+          <td class=""><a class=" " href="/{{net}}/transaction/{{row.transaction.hash}}"><span class="ccd">{{row.transaction.hash|tx_hash_link(net)|safe}}</span></a></td>
+          <td class="text-end text-secondary-emphasis ccd">{{row.transaction.block_info.slot_time|datetime_delta_format_since}}</td>
+          <td class="text-end text-secondary-emphasis d-none d-md-table-cell">
+            <span class="ccd">{{row.transaction.energy_cost|round_x_decimal_with_comma(0) }} NRG</span>
+          </td>
+          <td class="text-start ">{{row.public_key|account_link(net,user,tags,request.app)|safe}} <span class="text-secondary-emphasis" ></span></td>
+          
+          <td class="text-end d-none d-md-table-cell"><a class=" " href="/{{net}}/block/{{row.transaction.block_info.height}}"><span class="ccd">{{row.transaction.block_info.height|round_x_decimal_with_comma(0)}}</span></a></td>
+          <td class="text-end text-secondary-emphasis ccd ">
+          
+            {% if row.transaction.account_transaction %}
+            {% if show_wallet_contract_address %}  
+                {{row.wallet_contract_address|instance_link_from_str(net, user, tags)|safe }}
+                {% else %}
+                {{row.transaction.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
+                {% endif %}
+                
+            
+            {% else %}
+              Chain  
+            {%endif%}
+          
+          </td>
+      
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>

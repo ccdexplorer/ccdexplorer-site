@@ -18,6 +18,7 @@ from app.utils import (
     add_account_info_to_cache,
     from_address_to_index,
     get_url_from_api,
+    tx_type_translation,
 )
 import httpx
 from pydantic import BaseModel
@@ -213,8 +214,36 @@ async def get_public_key_page(
     )
 
 
+# @router.get("/{net}/smart-wallets", response_class=HTMLResponse)
+# async def get_smart_wallets_overview(
+#     request: Request,
+#     net: str,
+#     tags: dict = Depends(get_labeled_accounts),
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+# ):
+#     request.state.api_calls = {}
+
+#     user: UserV2 = await get_user_detailsv2(request)
+#     api_result = await get_url_from_api(
+#         f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
+#         httpx_client,
+#     )
+#     smart_wallets = api_result.return_value if api_result.ok else None
+#     return templates.TemplateResponse(
+#         "smart_wallets/sw_overview.html",
+#         {
+#             "request": request,
+#             "net": net,
+#             "tags": tags,
+#             "user": user,
+#             "env": environment,
+#             "smart_wallets": smart_wallets,
+#         },
+#     )
+
+
 @router.get("/{net}/smart-wallets", response_class=HTMLResponse)
-async def get_smart_wallets_overview(
+async def get_smart_wallets_overview_with_txs(
     request: Request,
     net: str,
     tags: dict = Depends(get_labeled_accounts),
@@ -223,19 +252,109 @@ async def get_smart_wallets_overview(
     request.state.api_calls = {}
 
     user: UserV2 = await get_user_detailsv2(request)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
-        httpx_client,
-    )
-    smart_wallets = api_result.return_value if api_result.ok else None
+    # api_result = await get_url_from_api(
+    #     f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
+    #     httpx_client,
+    # )
+    # smart_wallets = api_result.return_value if api_result.ok else None
     return templates.TemplateResponse(
-        "smart_wallets/sw_overview.html",
+        "smart_wallets/sw_overview_with_txs.html",
         {
             "request": request,
             "net": net,
             "tags": tags,
             "user": user,
             "env": environment,
-            "smart_wallets": smart_wallets,
+            # "smart_wallets": smart_wallets,
         },
     )
+
+
+@router.get(
+    "/{net}/ajax_smart_wallets_txs/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def ajax_last_txs_for_smart_wallets(
+    request: Request,
+    net: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    limit = 20
+    requested_page = max(0, requested_page)
+    skip = calculate_skip(requested_page, total_rows, limit)
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallets/transactions/{skip}/{limit}",
+        httpx_client,
+    )
+    smart_wallet_txs = api_result.return_value if api_result.ok else None
+    if not smart_wallet_txs:
+        error = f"Request error getting the most recent transactions for smart wallets on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    made_up_txs = []
+    if len(smart_wallet_txs) > 0:
+        for transaction_plus in smart_wallet_txs.values():
+            transaction = CCD_BlockItemSummary(**transaction_plus["tx"])
+            makeup_request = MakeUpRequest(
+                **{
+                    "net": net,
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.other,
+                }
+            )
+
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            classified_tx.wallet_contract_address = transaction_plus[
+                "wallet_contract_address"
+            ]
+            classified_tx.public_key = transaction_plus["public_key"]
+            made_up_txs.append(classified_tx)
+
+    pagination_request = PaginationRequest(
+        total_txs=limit,
+        no_totals=True,
+        returned_rows=len(made_up_txs),
+        requested_page=requested_page,
+        word="tx",
+        action_string="tx",
+        limit=limit,
+    )
+    pagination = pagination_calculator(pagination_request)
+    html = templates.TemplateResponse(
+        "smart_wallets/transactions_sw.html",
+        {
+            "request": request,
+            "tx_type_translation": tx_type_translation,
+            "transactions": made_up_txs,
+            "pagination": pagination,
+            "totals_in_pagination": False,
+            "total_rows": 10,
+            "show_wallet_contract_address": True,
+            "net": net,
+            "tags": tags,
+            "user": user,
+        },
+    )
+
+    return html
