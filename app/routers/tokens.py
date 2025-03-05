@@ -1016,7 +1016,7 @@ async def get_token_current_holders(
     current_holders = []
     for holder in curren_holder_with_id:
         if "-" in holder["account_address_canonical"]:
-            address_to_lookup = holder["account_address_canonical"]
+            address_to_lookup = holder["account_address_canonical"].split("-")[1]
         else:
             address_to_lookup = holder["account_address_canonical"]
         holder.update(
