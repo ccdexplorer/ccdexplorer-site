@@ -378,6 +378,136 @@ async def statistics(
         )
 
 
+@router.get("/{net}/statistics/accounts", response_class=HTMLResponse)
+async def statistics_accounts(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-accounts.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
+@router.get("/{net}/statistics/chain", response_class=HTMLResponse)
+async def statistics_chain(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-chain.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
+@router.get("/{net}/statistics/exchanges", response_class=HTMLResponse)
+async def statistics_exchanges(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-exchanges.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
+@router.get("/{net}/statistics/staking", response_class=HTMLResponse)
+async def statistics_staking(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-staking.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
+@router.get("/{net}/statistics/validators", response_class=HTMLResponse)
+async def statistics_validators(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-validators.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
 @router.get("/{net}/statistics-standalone", response_class=HTMLResponse)
 async def statistics_standalone(
     request: Request,
@@ -1622,6 +1752,7 @@ async def statistics_ccd_on_exchanges_plotly(
             "coinex": "6.CoinEx",
             "lcx": "7.LCX",
             "gate.io": "8.Gate.IO",
+            "bitmart": "9.BitMart",
         }
     )
 
@@ -1635,6 +1766,7 @@ async def statistics_ccd_on_exchanges_plotly(
         "6.CoinEx",
         "7.LCX",
         "8.Gate.IO",
+        "9.BitMart",
     ]
 
     title = "CCD on Exchanges"

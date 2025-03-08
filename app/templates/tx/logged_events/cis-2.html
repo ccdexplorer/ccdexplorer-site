@@ -23,7 +23,7 @@
     {% if 'token_id' in result.model_fields_set %}
     <tr class="table-row-line-height sm-text">
         <td class='text-secondary-emphasis'>Token</td>
-        <td><span class='text-secondary-emphasis ccd'>    <a class="ccd" href="/{{net}}/token/{{ai.contract|split_contract_into_url_slug_and_token_id(result.token_id)}}">
+        <td><span class='text-secondary-emphasis ccd'>    <a class="ccd text-break" href="/{{net}}/token/{{ai.contract|split_contract_into_url_slug_and_token_id(result.token_id)}}">
            {% if ai.token_metadata %} 
                 {{ai.token_metadata.name}}
             {% else %}

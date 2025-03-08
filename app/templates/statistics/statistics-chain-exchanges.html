@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+{% include 'statistics/block_link.html' %}
+{% set title= "Exchanges" %}{% include 'base/box_title.html' %}
+<div class="row row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border">{% include "statistics/chain/ccd_on_exchanges.html" %}</div>
+  </div>
+  <div class="col-md-6  col-sm-12">
+      <div class=" content border curved-border">{% include "statistics/chain/exchange_wallets.html" %}</div>
+  </div>
+</div>
+<!-- <div class="col-md-6  col-sm-12">
+      <div class=" content border curved-border">{% include "statistics/chain/ccd_classified.html" %}</div>
+  </div> -->
+{% endblock %}
+

@@ -1,0 +1,32 @@
+{% extends "base/base.html" %}
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+{% include 'statistics/block_link.html' %}
+{% set title= "Staking" %}{% include 'base/box_title.html' %}
+<div class="row row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border">{% include "statistics/chain/pools_open_pools_count.html" %}</div>
+  </div>
+  <div class="col-md-6  col-sm-12">
+      <div class=" content border curved-border">{% include "statistics/chain/pools_delegator_count.html" %}</div>
+  </div>
+</div>
+
+<div class="row row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border">{% include "statistics/chain/pools_avg_count_per_pool.html" %}</div>
+  </div>
+  <div class="col-md-6  col-sm-12">
+      <div class=" content border curved-border">{% include "statistics/chain/pools_avg_stake.html" %}</div>
+  </div>
+</div>
+
+
+{% endblock %}
+
