@@ -95,6 +95,21 @@ tx_type_translation["transferred_with_schedule"] = TypeContents(
     category=TypeContentsCategories.transfer,
     color=TypeContentsCategoryColors.transfer.value[0],
 )
+tx_type_translation["transferred_to_encrypted"] = TypeContents(
+    display_str="transfer (encrypted)",
+    category=TypeContentsCategories.transfer,
+    color=TypeContentsCategoryColors.transfer.value[0],
+)
+tx_type_translation["encrypted_amount_transferred"] = TypeContents(
+    display_str="transfer (encrypted)",
+    category=TypeContentsCategories.transfer,
+    color=TypeContentsCategoryColors.transfer.value[0],
+)
+tx_type_translation["transferred_to_public"] = TypeContents(
+    display_str="transfer (encrypted)",
+    category=TypeContentsCategories.transfer,
+    color=TypeContentsCategoryColors.transfer.value[0],
+)
 
 # staking
 tx_type_translation["baker_added"] = TypeContents(
