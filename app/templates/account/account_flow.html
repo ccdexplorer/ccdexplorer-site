@@ -22,7 +22,8 @@
     
 </script>
 
-
+<div class="border curved-border mb-2 mt-4">
+  {% set title= "Flow Graph" %}{% include 'base/box_title.html' %}
 <div class="row ps-3 pe-3">
   <div class="col">
   <label class="sm-text text-end" for="token">Select token/coin</label>  
@@ -75,7 +76,7 @@
   <div id="sankey">{% if account.sequence_number >= 1000 %}<p class="text-center text-secondary-emphasis ">Click Update to show, might take a while..{%endif%}</p></div>
   
   <div id="table"></div>
-
+</div>
 <script>
     $(function() {
       $('#gte').maskMoney({allowZero:true, suffix: ' '+'{{token}}'});

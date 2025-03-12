@@ -423,3 +423,8 @@ button.nav-link.explorer {
   white-space : pre;
 }
 
+
+  .disabled {
+      pointer-events: none;
+      color: gray;
+  }
