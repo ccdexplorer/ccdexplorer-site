@@ -376,13 +376,11 @@ if (ref) {
   <div class="tab-pane fade show " id="pills-delegation" role="tabpanel" aria-labelledby="pills-delegation-tab" tabindex="0">
        {% include "account/account_delegation.html" %}
        {% include "account/account_cooldowns.html"%}
-    
   </div>
   {% endif %}
   {% if account_is_validator %}
   <div class="tab-pane fade show " id="pills-validator" role="tabpanel" aria-labelledby="pills-validator-tab" tabindex="0">
        {% include "account/account_validator.html" %}
-       {% include "account/account_cooldowns.html"%}
     
   </div>
   {% endif %}
@@ -394,8 +392,9 @@ if (ref) {
   {% endif %}
   {% if net == 'mainnet' %}
     <div class="tab-pane fade show " id="pills-analytics" role="tabpanel" aria-labelledby="pills-analytics-tab" tabindex="0">
-    
-          {% include "account/account_graph_header.html" %}
+      <div class="border content curved-border " >
+          {% include "account/account_analytics.html" %}
+        </div>  
     </div>
   {% endif %}
  

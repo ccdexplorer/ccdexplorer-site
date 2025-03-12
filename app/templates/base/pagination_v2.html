@@ -1,0 +1,69 @@
+
+{% if pagination %}
+
+{% if not pagination.no_totals %}
+
+    {% if pagination.total_txs > 0 %}
+    <nav aria-label="Pagination">
+        <div class="row">
+            <div class="col justify-content-start ">
+                {% if pagination.num_of_pages > 1 %}
+                
+                    <span class="sm-text text-secondary-emphasis">Showing {{pagination.from_}} to {{pagination.to_}} from {{pagination.total_txs|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
+                {% else %}
+                    <span class="sm-text text-secondary-emphasis">Showing {{pagination.total_txs|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
+                {% endif %}
+            </div>
+            <div class="col">
+
+                <ul class="pagination pagination-sm justify-content-end ">
+            
+                    {% if totals_in_pagination %}
+                 
+                        {% if pagination.start_ %}<li  onclick="prev_{{pagination.action_string_}}s(0,{{total_rows}})"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-start-btn"></i></li>{%endif%}
+                        {% if pagination.prev_ %}<li  onclick="prev_{{pagination.action_string_}}s({{pagination.prev_page_request}},{{total_rows}})"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-backward-btn"></i></li>{%endif%}
+                        {% if pagination.next_ %}<li  onclick="next_{{pagination.action_string_}}s({{pagination.next_page_request}},{{total_rows}})"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-forward-btn"></i></li>{%endif%}
+                        {% if pagination.end_ %}<li  onclick="next_{{pagination.action_string_}}s(-1,{{total_rows}})"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-end-btn"></i></li>{%endif%}
+                    {% else %}
+                    
+                        {% if pagination.start_ %}<li  onclick="prev_{{pagination.action_string_}}s(0)"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-start-btn"></i></li>{%endif%}
+                        {% if pagination.prev_ %}<li  onclick="prev_{{pagination.action_string_}}s('{{pagination.prev_page_request}}')"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-backward-btn"></i></li>{%endif%}
+                        {% if pagination.next_ %}<li  onclick="next_{{pagination.action_string_}}s('{{pagination.next_page_request}}')"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-forward-btn"></i></li>{%endif%}
+                        {% if pagination.end_ %}<li  onclick="next_{{pagination.action_string_}}s(-1)"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-end-btn"></i></li>{%endif%}
+                    {% endif %}
+                    
+                </ul>
+
+
+            </div>
+        </div>
+        
+        
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <nav aria-label="Pagination">
+      
+        <div class="row">
+            <div class="col justify-content-start ">
+                    <span class="sm-text text-secondary-emphasis">Showing {{pagination.returned_rows}} {{pagination.word_}}</span>
+            </div>
+            <div class="col">
+
+                <ul class="pagination pagination-sm justify-content-end ">
+            
+                        {% if pagination.start_ %}<li  onclick="prev_{{pagination.action_string_}}s(0, 0)"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-start-btn"></i></li>{%endif%}
+                        {% if pagination.prev_ %}<li  onclick="prev_{{pagination.action_string_}}s('{{pagination.prev_page_request}}',0)"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-backward-btn"></i></li>{%endif%}
+                        {% if pagination.next_ %}<li  onclick="next_{{pagination.action_string_}}s('{{pagination.next_page_request}}','{{pagination.returned_rows}}')"><i style="font-size: 1.8rem; color: cornflowerblue;" class="bi bi-skip-forward-btn"></i></li>{%endif%}
+                        
+                </ul>
+
+
+            </div>
+        </div>
+        
+        
+    </nav>
+    {% endif %}
+    {% endif %}

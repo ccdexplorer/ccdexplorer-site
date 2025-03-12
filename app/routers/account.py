@@ -2,7 +2,9 @@ import datetime as dt
 
 import httpx
 import plotly.express as px
+import pandas as pd
 from pydantic import BaseModel
+from plotly.subplots import make_subplots
 import polars as polars
 from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
@@ -302,6 +304,47 @@ async def account_rewards_bucketed(
         return ""
 
 
+async def get_account_rewards_download(
+    request: Request,
+    index_or_hash: int | str,
+    year_month: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/account/{index_or_hash}/staking-rewards/{year_month}",
+        httpx_client,
+    )
+    staking_rewards = api_result.return_value if api_result.ok else None
+    if staking_rewards:
+        filename = f"/tmp/staking_rewards - {index_or_hash} - {year_month}.csv"
+        df = pd.json_normalize(staking_rewards)
+        df["reward.transaction_fees"] = df["reward.transaction_fees"] / 1_000_000
+        df["reward.baker_reward"] = df["reward.baker_reward"] / 1_000_000
+        df["reward.finalization_reward"] = df["reward.finalization_reward"] / 1_000_000
+        df = df.drop(columns=["reward.account"])
+        df.to_csv(filename, index=False)
+        return filename
+    else:
+        return "NO_REWARDS"
+
+
+@router.get(
+    "/ajax_rewards_download/{index_or_hash}/{year_month}",
+    response_model=None,
+)
+async def get_account_rewards_download_route(
+    request: Request,
+    index_or_hash: int | str,
+    year_month: str,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    filename = await get_account_rewards_download(
+        request, index_or_hash, year_month, httpx_client
+    )
+    return filename
+
+
 @router.get(
     "/{net}/account/{index_or_hash}", response_class=HTMLResponse | RedirectResponse
 )
@@ -429,6 +472,13 @@ async def get_account(
         httpx_client,
     )
     rewards_for_account_available = api_result.return_value if api_result.ok else None
+
+    if pool_apy_object or account_apy_object or rewards_for_account_available:
+        rewards_filename = await get_account_rewards_download(
+            request, account_id, dt.datetime.now().strftime("%Y-%m"), httpx_client
+        )
+    else:
+        rewards_filename = None
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{account_id}/tokens-available",
@@ -610,6 +660,8 @@ async def get_account(
             # "tag_found": tag_found,
             # "tag_label": tag_label,
             "tokens_available": tokens_available,
+            "year_month": dt.datetime.now().strftime("%Y-%m"),
+            "rewards_filename": rewards_filename,
         },
     )
 
@@ -1037,3 +1089,86 @@ async def get_ajax_tokens_unverified(
     )
 
     return html
+
+
+class AccountGraphParams(BaseModel):
+    theme: str
+
+
+@router.post(
+    "/ajax_account_graph/{net}/{account_id}",
+    response_class=HTMLResponse,
+)
+async def request_account_graph(
+    request: Request,
+    net: str,
+    account_id: str,
+    post_params: AccountGraphParams,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    theme = post_params.theme
+    account_index = from_address_to_index(account_id, net, request.app)
+    if net == "testnet":
+        return "Not available on testnet."
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/graph/CCD",
+        httpx_client,
+    )
+    graph_data = api_result.return_value if api_result.ok else []
+    df = pd.DataFrame(graph_data)
+    title = "CCD Balance (and USD value) "
+
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        go.Scatter(
+            x=df["date"].to_list(),
+            y=df["ccd_balance"].to_list(),
+            name="Balance",
+            marker=dict(color="#AE7CF7"),
+            hovertemplate="%{y:,.0f} CCD",
+        ),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df["date"].to_list(),
+            y=df["ccd_balance_in_USD"].to_list(),
+            name="Value (in USD)",
+            marker=dict(color="#549FF2"),
+            fill="tozeroy",
+            hovertemplate="%{y:,.0f} USD",
+        ),
+        secondary_y=True,
+        # showgrid=False,
+    )
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text="CCD Balance",
+        showgrid=False,
+        title_font=dict(color="#AE7CF7"),
+    )
+    fig.update_yaxes(
+        autorangeoptions={"minallowed": 0},
+        secondary_y=True,
+        title_text="CCD Value (in USD)",
+        showgrid=False,
+        title_font=dict(color="#549FF2"),
+    )
+    fig.update_xaxes(type="date")
+    fig.update_layout(
+        hovermode="x unified",
+        showlegend=False,
+        title=f"<b>{title}</b><br><sup>{account_index}</sup>",
+        template=ccdexplorer_plotly_template(theme),
+        height=350,
+    )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )

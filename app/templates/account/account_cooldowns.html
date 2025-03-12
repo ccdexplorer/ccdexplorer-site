@@ -29,11 +29,12 @@
     </table>
     <!--class="card-body p-2"-->
 </div>  
+<script>
+  const cooldown = document.getElementById('cooldown-time')
+  const popover_cooldown = new bootstrap.Popover(cooldown, {trigger: 'focus'})
+
+</script>
     {% endif %}
 
 
-    <script>
-      const cooldown = document.getElementById('cooldown-time')
-      const popover_cooldown = new bootstrap.Popover(cooldown, {trigger: 'focus'})
     
-    </script>
