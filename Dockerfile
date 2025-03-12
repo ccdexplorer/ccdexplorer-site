@@ -1,53 +1,7 @@
-# FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 FROM python:3.12
-# 
-# # The installer requires curl (and certificates) to download the release archive
-# RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
-
-# # Download the latest installer
-# ADD https://astral.sh/uv/install.sh /uv-installer.sh
-
-# # Run the installer then remove it
-# RUN sh /uv-installer.sh && rm /uv-installer.sh
-
-# # Ensure the installed binary is on the `PATH`
-# ENV PATH="/root/.cargo/bin/:$PATH"
-
 WORKDIR /code
-
-# # 
-# COPY ./requirements.txt /code/requirements.txt
-
-# # --system is needed, otherwise error on missing venv
-# RUN uv pip install --system -r requirements.txt
-# # RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
-
-
-
-# # download concordium-client package
-# RUN wget https://distribution.concordium.software/tools/linux/concordium-client_7.0.1-0 -O /code/concordium-client && chmod +x /code/concordium-client
-
-# # download rustup install script
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > /code/rustup.sh && chmod +x /code/rustup.sh
-
-# # install rustup
-# RUN /code/rustup.sh -y
-# RUN rm /code/rustup.sh
-
-# # add rust to path
-# ENV PATH="/root/.cargo/bin:${PATH}"
-
-# # install cargo-concordium
-# RUN cargo install cargo-concordium
-
-
-WORKDIR /code
-
-# 
 COPY ./requirements.txt /code/requirements.txt
 
-# 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
@@ -61,7 +15,11 @@ COPY ./node_modules/plotly.js-dist/plotly.js /code/node_modules/plotly.js-dist/p
 COPY ./node_modules/plotly.js-strict-dist-min/plotly-strict.min.js /code/node_modules/plotly.js-strict-dist-min/plotly-strict.min.js
 COPY ./node_modules/htmx.org/dist/htmx.js /code/node_modules/htmx.org/dist/htmx.js
 COPY ./node_modules/flatpickr/dist/flatpickr.min.js /code/node_modules/flatpickr/dist/flatpickr.min.js
+COPY ./node_modules/flatpickr/dist/plugins/monthSelect/style.css /code/node_modules/flatpickr/dist/plugins/monthSelect/style.css
+COPY ./node_modules/flatpickr/dist/plugins/monthSelect/index.js /code/node_modules/flatpickr/dist/plugins/monthSelect/index.js
 COPY ./node_modules/flatpickr/dist/flatpickr.min.css /code/node_modules/flatpickr/dist/flatpickr.min.css
+
+
 COPY ./node_modules/jquery/dist/jquery.min.js /code/node_modules/jquery/dist/jquery.min.js
 COPY ./node_modules/htmx-ext-json-enc/json-enc.js /code/node_modules/htmx-ext-json-enc/json-enc.js
 COPY ./node_modules/htmx-ext-class-tools/class-tools.js /code/node_modules/htmx-ext-class-tools/class-tools.js

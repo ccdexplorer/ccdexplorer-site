@@ -61,6 +61,14 @@
 /node_modules/flatpickr/dist/*
 !/node_modules/flatpickr/dist/flatpickr.min.js
 !/node_modules/flatpickr/dist/flatpickr.min.css
+!/node_modules/flatpickr/dist/plugins
+/node_modules/flatpickr/dist/plugins/*
+!/node_modules/flatpickr/dist/plugins/monthSelect
+/node_modules/flatpickr/dist/plugins/monthSelect/*
+!/node_modules/flatpickr/dist/plugins/monthSelect/index.js
+!/node_modules/flatpickr/dist/plugins/monthSelect/style.css
+
+
 
 !/node_modules/jquery/
 /node_modules/jquery/*
