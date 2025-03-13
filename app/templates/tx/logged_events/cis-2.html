@@ -21,9 +21,9 @@
 
 <table class="table table-borderless">
     {% if 'token_id' in result.model_fields_set %}
-    <tr class="table-row-line-height sm-text">
+    <tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Token</td>
-        <td><span class='text-secondary-emphasis ccd'>    <a class="ccd text-break" href="/{{net}}/token/{{ai.contract|split_contract_into_url_slug_and_token_id(result.token_id)}}">
+        <td><span class='text-secondary-emphasis '>    <a class="ccd text-break" href="/{{net}}/token/{{ai.contract|split_contract_into_url_slug_and_token_id(result.token_id)}}">
            {% if ai.token_metadata %} 
                 {{ai.token_metadata.name}}
             {% else %}
@@ -32,32 +32,32 @@
         </a></span></td>
     {% endif %}
     
-    {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
+    {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Amount</td>
         <td><span class='text-secondary-emphasis ccd'>{{display_name|safe}}{{result.token_amount|token_amount_using_decimals(token_decimals)|safe}} {{token_string|safe}}</span></td>
     </tr>{% endif %}
-    {% if result.from_address %}<tr class="table-row-line-height sm-text">
+    {% if result.from_address %}<tr class="table-row-line-height">
         <td class='text-secondary-emphasis'>From</td>
         <td><span class='text-secondary-emphasis'>{{result.from_address|account_link(net, user, tags, app=request.app)|safe}}</span></td>
     </tr>{% endif %}
-    {% if result.to_address %}<tr class="table-row-line-height sm-text">
+    {% if result.to_address %}<tr class="table-row-line-height">
         <td class='text-secondary-emphasis'>To</td>
         <td><span class='text-secondary-emphasis'>{{result.to_address|account_link(net, user, tags, app=request.app)|safe}}</span></td>
     </tr>{% endif %}
 
-    {% if result.operator_update %}<tr class="table-row-line-height sm-text">
+    {% if result.operator_update %}<tr class="table-row-line-height">
         <td class='text-secondary-emphasis'>Action</td>
         <td><span class='text-secondary-emphasis'>{{result.operator_update}}</span></td>
     </tr>{% endif %}
-    {% if result.operator %}<tr class="table-row-line-height sm-text">
+    {% if result.operator %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Operator</td>
         <td><span class='text-secondary-emphasis'>{{result.operator|account_link(net, user, tags, app=request.app)|safe}}</span></td>
     </tr>{% endif %}
-    {% if result.owner %}<tr class="table-row-line-height sm-text">
+    {% if result.owner %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Owner</td>
         <td><span class='text-secondary-emphasis'>{{result.owner|account_link(net, user, tags, app=request.app)|safe}}</span></td>
     </tr>{% endif %}
-    {% if result.metadata %}<tr class="table-row-line-height sm-text">
+    {% if result.metadata %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Metadata Url</td>
         <td><span class='text-secondary-emphasis'><a href='{{result.metadata.url}}'>{{result.metadata.url[8:15]}}...{{result.metadata.url[-6:]}}</a></span></td>
     </tr>{% endif %}

@@ -1545,14 +1545,20 @@ async def get_schema_from_source_utils(app, net: str, contract_address_str: str)
 
 
 def split_into_url_slug(token_address: str):
-    contract = CCD_ContractAddress.from_str(token_address.split("-")[0])
-    token_id = token_address.split("-")[1]
-    return f"{contract.index}/{contract.subindex}/{token_id}"
+    try:
+        contract = CCD_ContractAddress.from_str(token_address.split("-")[0])
+        token_id = token_address.split("-")[1]
+        return f"{contract.index}/{contract.subindex}/{token_id}"
+    except:  # noqa: E722
+        return None
 
 
 def split_contract_into_url_slug_and_token_id(contract_str: str, token_id: str):
-    contract = CCD_ContractAddress.from_str(contract_str)
-    return f"{contract.index}/{contract.subindex}/{token_id}"
+    try:
+        contract = CCD_ContractAddress.from_str(contract_str)
+        return f"{contract.index}/{contract.subindex}/{token_id}"
+    except:  # noqa: E722
+        return None
 
 
 def add_account_info_to_cache(account_info: CCD_AccountInfo, app: FastAPI, net: str):

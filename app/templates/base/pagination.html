@@ -8,8 +8,12 @@
         <div class="row">
             <div class="col justify-content-start ">
                 {% if pagination.num_of_pages > 1 %}
-                
-                    <span class="sm-text text-secondary-emphasis">Showing {{pagination.from_}} to {{pagination.to_}} from {{pagination.total_txs|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
+                    {% if pagination.total_txs == 1001 %}
+                        <span class="sm-text text-secondary-emphasis">Showing {{pagination.from_}} to {{pagination.to_}} from more than {{(pagination.total_txs-1)|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
+                    {% else %}
+                        <span class="sm-text text-secondary-emphasis">Showing {{pagination.from_}} to {{pagination.to_}} from {{pagination.total_txs|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
+                    {% endif %}
+                    
                 {% else %}
                     <span class="sm-text text-secondary-emphasis">Showing {{pagination.total_txs|round_x_decimal_with_comma(0)}} {{pagination.word_}}</span>
                 {% endif %}

@@ -1,6 +1,6 @@
 <table class="table table-borderless">
     {% for k, v in result.model_dump().items() %}
-    <tr class="table-row-line-height sm-text ">
+    <tr class="table-row-line-height  ">
         <td class='text-secondary-emphasis'>{{k.replace("_"," ")}}</td>
         <td><span class='text-secondary-emphasis ccd text-break'>
             {% if k == 'timestamp' %}

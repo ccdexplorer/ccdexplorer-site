@@ -442,9 +442,10 @@ async def smart_contracts_tokens_overview(
         request.app.httpx_client,
     )
     fungible_tokens_verified = api_result.return_value if api_result.ok else None
-    fungible_tokens_verified = sorted(
-        fungible_tokens_verified, key=lambda x: x["token_value_USD"], reverse=True
-    )
+    if fungible_tokens_verified:
+        fungible_tokens_verified = sorted(
+            fungible_tokens_verified, key=lambda x: x["token_value_USD"], reverse=True
+        )
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/tokens/non-fungible-tokens/verified",

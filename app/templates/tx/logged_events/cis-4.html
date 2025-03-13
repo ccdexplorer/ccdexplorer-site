@@ -1,17 +1,17 @@
 <table class="table table-borderless">
-    {% if "action" in result.model_fields_set %}<tr class=" sm-text">
+    {% if "action" in result.model_fields_set %}<tr class=" ">
         <td class='text-secondary-emphasis'>Action</td>
         <td><span class='text-secondary-emphasis'>{{result.action}}</span></td></tr>{% endif %}
-    {% if "credential_id" in result.model_fields_set %}<tr class=" sm-text">
+    {% if "credential_id" in result.model_fields_set %}<tr class=" ">
         <td class='text-secondary-emphasis'>Credential ID</td>
         <td><span class='text-secondary-emphasis text-break ccd'>{{result.credential_id}}</span></td></tr>{% endif %}
-    {% if "schema_ref" in result.model_fields_set %}<tr class=" sm-text">
+    {% if "schema_ref" in result.model_fields_set %}<tr class=" ">
         <td class='text-secondary-emphasis'>Schema Ref</td>
         <td><span class='text-break text-secondary-emphasis'><a href='{{result.schema_ref.url}}'>{{result.schema_ref.url|shorten_address( address=True)}}</span></td></tr>{% endif %}
-    {% if "metadata" in result.model_fields_set %}<tr class=" sm-text">
+    {% if "metadata" in result.model_fields_set %}<tr class=" ">
         <td class='text-secondary-emphasis'>Metadata Url</td>
         <td><span class='text-break text-secondary-emphasis'><a href='{{result.metadata.url}}'>{{result.metadata.url|shorten_address( address=True)}}</span></td></tr>{% endif %}
-    {% if "revoker" in result.model_fields_set %}<tr class=" sm-text">
+    {% if "revoker" in result.model_fields_set %}<tr class=" ">
         <td class='text-secondary-emphasis'>Revoker</td>
         <td><span class='text-secondary-emphasis'>{{result.revoker|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
 </table>

@@ -20,36 +20,36 @@
 
 
 <table class="table table-borderless">
-    {% if result.nonce %}<tr class="table-row-line-height sm-text">
+    {% if result.nonce %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Nonce</td>
         <td><span class='text-secondary-emphasis ccd'>{{result.nonce}}</span></td></tr>{% endif %}
-    {% if result.sponsoree %}<tr class="table-row-line-height sm-text">
+    {% if result.sponsoree %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Sponsoree</td>
     <td><span class='text-secondary-emphasis'>{{result.sponsoree|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
-    {% if result.cis2_token_contract_address %}<tr class="table-row-line-height sm-text">
+    {% if result.cis2_token_contract_address %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Token</td>
         <td><span class='text-secondary-emphasis'><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
             <a href="/{{net}}/tokens/{{vi._id}}">{{token_string}}</span></td></tr>{% endif %}
-    {% if 'ccd_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
+    {% if 'ccd_amount' in result.model_fields_set %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>CCD Amount</td>
         <td><span class='text-secondary-emphasis'>{{result.ccd_amount|micro_ccd_display | safe}}</span></td></tr>{% endif %}
-    {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height sm-text">
+    {% if 'token_amount' in result.model_fields_set %}<tr class="table-row-line-height ">
             <td class='text-secondary-emphasis'>Amount</td>
             <td><span class='text-secondary-emphasis ccd'>{{result.token_amount|token_amount_using_decimals(token_decimals)|safe}}  {{token_string|safe}}</span></td></tr>{% endif %}
     
-    {% if result.from_public_key_ed25519 %}<tr class="table-row-line-height sm-text">
+    {% if result.from_public_key_ed25519 %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>From</td>
         <td><span class='text-secondary-emphasis'>{{result.from_public_key_ed25519|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
-    {% if result.from_address %}<tr class="table-row-line-height sm-text">
+    {% if result.from_address %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>From</td>
         <td><span class='text-secondary-emphasis'>{{result.from_address|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
-    {% if result.to_public_key_ed25519 %}<tr class="table-row-line-height sm-text">
+    {% if result.to_public_key_ed25519 %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>To</td>
         <td><span class='text-secondary-emphasis'>{{result.to_public_key_ed25519|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
-    {% if result.to_address %}<tr class="table-row-line-height sm-text">
+    {% if result.to_address %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>To</td>
         <td><span class='text-secondary-emphasis'>{{result.to_address|account_link(net, user, tags, app=request.app)|safe}}</span></td></tr>{% endif %}
-    {% if result.token_id %}<tr class="table-row-line-height sm-text">
+    {% if result.token_id %}<tr class="table-row-line-height ">
         <td class='text-secondary-emphasis'>Token address</td>
         <td><span class='text-secondary-emphasis'>{{tagified_token_address|safe}}</span></td></tr>{% endif %}
 </table>
