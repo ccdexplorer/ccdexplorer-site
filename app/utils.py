@@ -38,6 +38,7 @@ from pydantic import BaseModel
 import base64
 import json
 from ccdexplorer_schema_parser.Schema import Schema
+import cbor2
 
 
 class TypeContentsCategories(Enum):
@@ -911,14 +912,7 @@ def shorten_address(value, address=None):
 
 def decode_memo(hex):
     try:
-        bs = io.BytesIO(bytes.fromhex(hex))
-        value = bs.read(256)
-        try:
-            memo = bytes.decode(value, "UTF-8")
-            return memo
-        except UnicodeDecodeError:
-            memo = bytes.decode(value[1:], "UTF-8")
-            return memo
+        return cbor2.loads(bytes.fromhex(hex))
     except:  # noqa: E722
         return "Decoding failure..."
 
