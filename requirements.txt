@@ -54,3 +54,4 @@ APScheduler
 sentry-sdk[fastapi]
 mkdocs
 mkdocstrings[python]
+cbor2
