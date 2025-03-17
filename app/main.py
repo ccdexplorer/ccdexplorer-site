@@ -218,7 +218,7 @@ async def repeated_task_get_blocks_and_transactions(app: FastAPI):
 @scheduler.scheduled_job("interval", seconds=2, args=[app])
 async def repeated_task_get_consensus(app: FastAPI):
     # for net in ["mainnet", "testnet"]:
-    for net in ["testnet"]:
+    for net in ["mainnet", "testnet"]:
         api_result = await get_url_from_api(
             f"{app.api_url}/v2/{net}/misc/consensus-detailed-status", app.httpx_client
         )

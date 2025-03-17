@@ -14,7 +14,7 @@
   {% for row in accounts %}
     <tr class="sm-text ">
           <td class="text-start text-secondary-emphasis "><a href="/{{net}}/account/{{row.account_index}}"><span class="ccd" >{{row.account_index}}</a></td>
-          <td class="text-end text-secondary-emphasis d-none d-md-table-cell"><span class="ccd">{{row.first_timestamp|datetime_regular}}</span></td>
+          <td class="text-end text-secondary-emphasis "><span class="ccd">{{row.first_timestamp|datetime_regular}}</span></td>
           
     </tr>
   {% endfor %}
