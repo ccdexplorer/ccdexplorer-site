@@ -6,7 +6,7 @@ from ..utils import (
     from_address_to_index,
 )  # , convert_contract_str_to_type
 from ccdexplorer_fundamentals.mongodb import MongoImpactedAddress
-from ccdexplorer_fundamentals.cis import MongoTypeLoggedEvent
+from ccdexplorer_fundamentals.cis import MongoTypeLoggedEventV2
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
 import math
 
@@ -356,7 +356,7 @@ class SanKey:
 
     def add_txs_for_account_for_token(
         self,
-        txs_for_account: list[MongoTypeLoggedEvent],
+        txs_for_account: list[MongoTypeLoggedEventV2],
         decimals: int,
         display_name: str,
     ):
@@ -366,45 +366,49 @@ class SanKey:
         self.as_sender_dict = {}
         self.display_name = display_name
         for event in txs_for_account:
-            if not isinstance(event, MongoTypeLoggedEvent):
-                event = MongoTypeLoggedEvent(**event)
-            if event.event_type == "mint_event":
+            if not isinstance(event, MongoTypeLoggedEventV2):
+                event = MongoTypeLoggedEventV2(**event)
+            if event.event_info.event_type == "CIS-2.mint_event":
                 self.count_txs_as_receiver += 1
-                self.as_receiver_dict[event.contract] = {
-                    "amount": self.as_receiver_dict.get(event.contract, {"amount": 0})[
-                        "amount"
-                    ]
-                    + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
-                    "account_id": event.contract,
+                self.as_receiver_dict[event.event_info.contract] = {
+                    "amount": self.as_receiver_dict.get(
+                        event.event_info.contract, {"amount": 0}
+                    )["amount"]
+                    + int(event.recognized_event.token_amount)
+                    * (math.pow(10, -decimals)),
+                    "account_id": event.event_info.contract,
                 }
-            elif event.event_type == "burn_event":
+            elif event.event_info.event_type == "CIS-2.burn_event":
                 self.count_txs_as_sender += 1
-                self.as_sender_dict[event.contract] = {
-                    "amount": self.as_sender_dict.get(event.contract, {"amount": 0})[
-                        "amount"
-                    ]
-                    + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
-                    "account_id": event.contract,
+                self.as_sender_dict[event.event_info.contract] = {
+                    "amount": self.as_sender_dict.get(
+                        event.event_info.contract, {"amount": 0}
+                    )["amount"]
+                    + int(event.recognized_event.token_amount)
+                    * (math.pow(10, -decimals)),
+                    "account_id": event.event_info.contract,
                 }
 
-            elif event.event_type == "transfer_event":
-                if event.result["to_address"][:29] == self.account_id[:29]:
+            elif event.event_info.event_type == "CIS-2.transfer_event":
+                if event.recognized_event.to_address[:29] == self.account_id[:29]:
                     self.count_txs_as_receiver += 1
-                    self.as_receiver_dict[event.result["from_address"][:29]] = {
+                    self.as_receiver_dict[event.recognized_event.from_address[:29]] = {
                         "amount": self.as_receiver_dict.get(
-                            event.result["from_address"][:29], {"amount": 0}
+                            event.recognized_event.from_address[:29], {"amount": 0}
                         )["amount"]
-                        + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
-                        "account_id": event.result["from_address"],
+                        + int(event.recognized_event.token_amount)
+                        * (math.pow(10, -decimals)),
+                        "account_id": event.recognized_event.from_address,
                     }
-                elif event.result["from_address"][:29] == self.account_id[:29]:
+                elif event.recognized_event.from_address[:29] == self.account_id[:29]:
                     self.count_txs_as_sender += 1
-                    self.as_sender_dict[event.result["to_address"][:29]] = {
+                    self.as_sender_dict[event.recognized_event.to_address[:29]] = {
                         "amount": self.as_sender_dict.get(
-                            event.result["to_address"][:29], {"amount": 0}
+                            event.recognized_event.to_address[:29], {"amount": 0}
                         )["amount"]
-                        + int(event.result["token_amount"]) * (math.pow(10, -decimals)),
-                        "account_id": event.result["to_address"],
+                        + int(event.recognized_event.token_amount)
+                        * (math.pow(10, -decimals)),
+                        "account_id": event.recognized_event.to_address,
                     }
 
         self.amount_received = sum(

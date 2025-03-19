@@ -188,6 +188,16 @@ async def get_public_key_page(
         or (len(balances_non_fungible) > 0)
         or (len(balances_unverified) > 0)
     )
+    if not tx_deployed:
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": f"{public_key} is not a public key from a recognized CIS-5 wallet on {net}.",
+                "env": environment,
+                "net": net,
+            },
+        )
     return templates.TemplateResponse(
         "smart_wallets/sw_public_key_page.html",
         {
