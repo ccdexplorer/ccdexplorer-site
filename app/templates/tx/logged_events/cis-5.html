@@ -1,6 +1,10 @@
 {% set ai = token_address_as_class %}
 {% set vi = token_address_as_class.verified_information %}
-{% set ti = token_address_as_class.token_metadata %}
+{% if "token_metadata" in ai %}
+    {% set ti = token_address_as_class.token_metadata %}
+    {%else %}
+    {% set ti = {"name":vi._id} %}
+{% endif %}
 {% set token_decimals = 0 %}
 {% set token_string = "" %}
 {% if vi %}
