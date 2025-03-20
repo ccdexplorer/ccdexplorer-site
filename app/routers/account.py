@@ -474,9 +474,7 @@ async def get_account(
     rewards_for_account_available = api_result.return_value if api_result.ok else None
 
     if pool_apy_object or account_apy_object or rewards_for_account_available:
-        rewards_filename = await get_account_rewards_download(
-            request, account_id, dt.datetime.now().strftime("%Y-%m"), httpx_client
-        )
+        rewards_filename = f"/tmp/staking_rewards - {account_id} - {dt.datetime.now().strftime("%Y-%m")}.csv"
     else:
         rewards_filename = None
 
