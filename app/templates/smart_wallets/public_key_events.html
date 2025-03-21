@@ -44,7 +44,7 @@
             {%if "ccd" in event.event_info.event_type%}
                 CCD
             {%else%}
-                <img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
+                {% if vi %}<img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">{% endif %}
                 <a href="/{{net}}/token/{{token_address|split_into_url_slug}}">{{token_name}}
             {%endif%}
         </td>

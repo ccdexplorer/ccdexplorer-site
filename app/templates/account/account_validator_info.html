@@ -63,12 +63,12 @@
                     <td  class="text-start text-secondary-emphasis" colspan="3"><b>Pending Change</b>
                 </tr>
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis"><i>Change Type:</i></td>
+                    <td class="text-start text-secondary-emphasis"><i>Change Type</i></td>
                     <td  class="text-end text-secondary-emphasis"colspan="2" ><span class="ccd"><i>Remove Validator</i></span>
                     </td>
                 </tr>
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis"><i>Effective Time:</i></td>
+                    <td class="text-start text-secondary-emphasis"><i>Effective Time</i></td>
                     <td  class="text-end text-secondary-emphasis"colspan="2"><span
                             class="ccd"><i>{{account.stake.baker.pending_change.remove|regular_datetime_format}}</i></span>
                     </td>
@@ -76,11 +76,11 @@
                 {% endif %}
                 {% if account.stake.baker.pending_change.reduce %}
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis"><i>New Staked Amount:</i></td>
+                    <td class="text-start text-secondary-emphasis"><i>New Staked Amount</i></td>
                     <td  class="text-end text-secondary-emphasis"colspan="2" ><i>{{account.pending_change.reduce.new_stake|micro_ccd_no_decimals|safe}}</i></td>
                 </tr>
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis"><i>Effective Time:</i></td>
+                    <td class="text-start text-secondary-emphasis"><i>Effective Time</i></td>
                     <td  class="text-start text-secondary-emphasis"colspan="2" ><span
                             class="ccd"><i>{{account.pending_change.reduce.effective_time|regular_datetime_format}}</i></span>
                     </td>
@@ -96,17 +96,17 @@
                         Staked Amount
                         {% endif %}
 
-                        :</td>
+                        </td>
                     <td  class="text-end text-secondary-emphasis"colspan="2">{{pool.current_payday_info.baker_equity_capital | micro_ccd_no_decimals|safe}}</td>
                 </tr>
 
                 {% if open_pool %}
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis">Delegated:</td>
+                    <td class="text-start text-secondary-emphasis">Delegated</td>
                     <td  class="text-end text-secondary-emphasis"colspan="2" >{{pool.current_payday_info.delegated_capital |micro_ccd_no_decimals|safe}}</td>
                 </tr>
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis">Total Stake:</td>
+                    <td class="text-start text-secondary-emphasis">Total Stake</td>
                     <td class="text-end text-secondary-emphasis" colspan="2" >{{pool.current_payday_info.effective_stake
                             |micro_ccd_no_decimals|safe}}</td>
                 </tr>
@@ -115,20 +115,20 @@
 
 
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis">Restake Earnings:</td>
+                    <td class="text-start text-secondary-emphasis">Restake Earnings</td>
                     <td  class="text-end text-secondary-emphasis"colspan="2" ><span class="ccd">{{account.stake.baker.restake_earnings}}</span>
                     </td>
                 </tr>
 
                 {% if pool.current_payday_info %}
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis">Lottery Power:</td>
+                    <td class="text-start text-secondary-emphasis">Lottery Power</td>
                     <td  class="text-end text-secondary-emphasis ccd"colspan="2" >
                         {{pool.current_payday_info.lottery_power | lottery_power}}%</td>
                 </tr>
 
                 <tr class="sm-text">
-                    <td class="text-start text-secondary-emphasis">Current Payday:
+                    <td class="text-start text-secondary-emphasis">Current Payday
 
                     <a href="#" data-bs-toggle="popover" tabindex="0" id="payday" data-bs-trigger="focus" data-bs-title="Current payday explanation" data-bs-content="
             
@@ -138,7 +138,7 @@
                 
                 ">(i)</a>
                 
-                <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/>
+                <img  hx-ext="class-tools" class="breathing" classes="toggle faded1s" width="10px" src="/static/misc/green_dot.png"/>
                     </td>
                     
                     <td  class="text-end text-secondary-emphasis ccd"colspan="2" id="current-payday-stats" hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/current-payday-stats" hx-trigger="intersect once" ></td>
@@ -146,7 +146,7 @@
                 </tr>
                 {% endif %}
                 {% if earliest_win_time %}
-                    <tr class="sm-text"><td class="text-start text-secondary-emphasis">Earliest Win Time: 
+                    <tr class="sm-text"><td class="text-start text-secondary-emphasis">Earliest Win Time 
                         <a href="#" data-bs-toggle="popover" tabindex="0" id="earliest" data-bs-trigger="focus" data-bs-title="Earliest win time explanation" data-bs-content="
                         Get the projected earliest time at which a particular validator will be required to validate a block. For node operators, this is helpful to schedule maintenance on the node. 
                         ">(i)</a>

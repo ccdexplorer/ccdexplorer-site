@@ -1,29 +1,30 @@
 {% set ai = token_address_as_class %}
 {% set vi = token_address_as_class.verified_information %}
-{% if "token_metadata" in ai %}
-    {% set ti = token_address_as_class.token_metadata %}
-    {%else %}
-    {% set ti = {"name":vi._id} %}
-{% endif %}
-{% set token_decimals = 0 %}
-{% set token_string = "" %}
-{% if vi %}
-    {% if vi.token_type == "fungible" %}
-        {% set token_string = vi._id %}
+{% if ai %}
+    {% if "token_metadata" in ai %}
+        {% set ti = token_address_as_class.token_metadata %}
+        {%else %}
+        {% set ti = {"name":vi._id} %}
+    {% endif %}
+    {% set token_decimals = 0 %}
+    {% set token_string = "" %}
+    {% if vi %}
+        {% if vi.token_type == "fungible" %}
+            {% set token_string = vi._id %}
+        {% else %}
+            {% set token_string = ti.name %}
+            {% endif %}
+        {% if vi.decimals %}
+            {% set token_decimals = vi.decimals %}
+        {% endif %}
     {% else %}
-        {% set token_string = ti.name %}
-        {% endif %}
-    {% if vi.decimals %}
-        {% set token_decimals = vi.decimals %}
-    {% endif %}
-{% else %}
-    {% if ai %}
-        {% if ai.decimals %}
-            {% set token_decimals = ai.decimals %}
+        {% if ai %}
+            {% if ai.decimals %}
+                {% set token_decimals = ai.decimals %}
+            {% endif %}
         {% endif %}
     {% endif %}
 {% endif %}
-
 
 
 <table class="table table-borderless">
