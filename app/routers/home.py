@@ -202,7 +202,9 @@ async def ajax_market_cap_table(
             "total_validators": total_validators,
             "ccd_price": f"{cmc['quote']['USD']['price']:,.5f}",
             "ccd_change": cmc["quote"]["USD"]["percent_change_24h"],
-            "market_cap": millify(float(cmc["quote"]["USD"]["market_cap"])),
+            "market_cap": millify(
+                float(cmc["quote"]["USD"]["fully_diluted_market_cap"])
+            ),
             "total_accounts": f"{total_accounts:,.0f}",
             "total_tokens": f"{(total_tokens/1_000_000):,.1f} M",
         },
