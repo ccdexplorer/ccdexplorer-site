@@ -37,6 +37,29 @@ from plotly.subplots import make_subplots
 router = APIRouter()
 
 
+@router.post("/{net}/account/inactive/{validator_id}", response_class=Response)
+async def account_validator_inactive(
+    request: Request,
+    net: str,
+    validator_id: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{validator_id}/validator-inactive",
+        httpx_client,
+    )
+    result = api_result.return_value if api_result.ok else None
+    if not result:
+        return None
+
+    html = templates.get_template(
+        "account/account_validator_inactive_messages.html"
+    ).render({"result": result})
+
+    return html
+
+
 @router.post(
     "/{net}/account/baker-performance/{validator_id}/{days}", response_class=Response
 )

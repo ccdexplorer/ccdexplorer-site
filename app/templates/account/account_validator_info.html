@@ -30,6 +30,7 @@
         </td></tr>
 {% endif %}
     {% if account_is_validator %}
+    
     <tr class="sm-text">
         <td class="text-start text-secondary-emphasis">Validator id
             
@@ -43,6 +44,7 @@
 
         </td>
     </tr>
+    
 
     {% if "is_suspended" in account.stake.baker.model_fields_set %}
       {% if pool.current_payday_info %}
@@ -54,7 +56,16 @@
         </tr>
         {% endif %}
     {% endif %}
-
+    <tr class="sm-text"
+    hx-ext='json-enc'
+    hx-encoding="json"
+    hx-trigger="load delay:1s" 
+    hx-swap="innerHTML"
+    hx-post="/{{net}}/account/inactive/{{account.stake.baker.baker_info.baker_id}}"
+    hx-vals='js:{
+        theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+        }'
+></tr>
 
     {% set staked_amount = account.stake.baker.staked_amount | int %}
     
