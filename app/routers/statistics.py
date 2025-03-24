@@ -1251,21 +1251,46 @@ async def statistics_network_summary_validator_count_plotly(
     )
     d_date = yesterday
     df = pd.DataFrame(all_data)
+    df.fillna(0, inplace=True)
+    df["active_validator_count"] = df["validator_count"] - df["suspended_count"]
+
     rng = ["#70B785"]
-    title = "Registered Validators"
-    fig = px.line(
-        df,
-        x="date",
-        y="validator_count",
-        color_discrete_sequence=rng,
-        template=ccdexplorer_plotly_template(theme),
+    title = "Registered Active and Suspended Validators"
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Scatter(
+            x=df["date"].to_list(),
+            y=df["active_validator_count"].to_list(),
+            name="Active Validators",
+            marker=dict(color="#70B785"),
+        ),
+        secondary_y=False,
     )
-    fig.update_yaxes(title_text="Count of Validators")
+    # fig = px.line(
+    #     df,
+    #     x="date",
+    #     y="active_validator_count",
+    #     color_discrete_sequence=rng,
+    #     template=ccdexplorer_plotly_template(theme),
+    # )
+    fig.add_trace(
+        go.Bar(
+            x=df["date"].to_list(),
+            y=df["suspended_count"].to_list(),
+            name="Suspended Validators",
+            marker=dict(color="#AE7CF7"),
+        ),
+        secondary_y=False,
+    )
+
+    fig.update_yaxes(title_text="Validators")
     fig.update_xaxes(title=None)
     fig.update_layout(
+        template=ccdexplorer_plotly_template(theme),
         legend_title_text=None,
+        legend_y=-0.25,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
-        height=350,
+        height=500,
     )
     return fig.to_html(
         config={"responsive": True, "displayModeBar": False},
