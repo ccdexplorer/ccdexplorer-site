@@ -133,7 +133,6 @@ app.mount("/addresses", StaticFiles(directory="addresses"), name="addresses")
 
 @app.exception_handler(404)
 async def exception_handler_404(request: Request, exc: Exception):
-
     return app.templates.TemplateResponse(
         "base/error.html",
         {
@@ -146,7 +145,6 @@ async def exception_handler_404(request: Request, exc: Exception):
 
 @app.exception_handler(500)
 async def exception_handler_500(request: Request, exc: Exception):
-
     return app.templates.TemplateResponse(
         "base/error.html",
         {
@@ -203,7 +201,6 @@ app.include_router(sc_active_addresses.router)
 @scheduler.scheduled_job("interval", seconds=5, args=[app])
 async def repeated_task_get_blocks_and_transactions(app: FastAPI):
     for net in ["mainnet", "testnet"]:
-
         api_result = await get_url_from_api(
             f"{app.api_url}/v2/{net}/blocks/last/50", app.httpx_client
         )
@@ -215,7 +212,7 @@ async def repeated_task_get_blocks_and_transactions(app: FastAPI):
         app.transactions_cache[net] = api_result.return_value if api_result.ok else None
 
 
-@scheduler.scheduled_job("interval", seconds=2, args=[app])
+@scheduler.scheduled_job("interval", seconds=20, args=[app])
 async def repeated_task_get_consensus(app: FastAPI):
     # for net in ["mainnet", "testnet"]:
     for net in ["mainnet", "testnet"]:
