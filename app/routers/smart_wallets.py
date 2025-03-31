@@ -72,7 +72,6 @@ async def get_public_key_events(
     total_rows: int,
     api_key: str,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
-    # recurring: Recurring = Depends(get_recurring),
     tags: dict = Depends(get_labeled_accounts),
 ):
     """ """
@@ -80,23 +79,12 @@ async def get_public_key_events(
     user: UserV2 = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
-        httpx_client,
-    )
-    balances = api_result.return_value if api_result.ok else None
 
-    balances_all = (
-        balances["ccd"]
-        | balances["fungible"]
-        | balances["non_fungible"]
-        | balances["unverified"]
-    )
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/logged-events/{skip}/{limit}",
         httpx_client,
     )
-    logged_events = api_result.return_value if api_result.ok else None
+    logged_events = api_result.return_value if api_result.ok else []
     if not logged_events:
         error = (
             f"Request error getting logged events for account at {public_key} on {net}."
@@ -111,6 +99,32 @@ async def get_public_key_events(
             },
         )
 
+    balances_all = {}
+    for event in logged_events["logged_events_selected"]:
+        if "ccd_amount" in event["recognized_event"]:
+            continue
+
+        cis2_token_contract_address = CCD_ContractAddress.from_str(
+            event["recognized_event"]["cis2_token_contract_address"]
+        )
+        token_id = event["recognized_event"]["token_id"]
+        token_id_for_lookup = (
+            event["recognized_event"]["token_id"]
+            if event["recognized_event"]["token_id"] != ""
+            else "_"
+        )
+
+        token_address = (
+            f"{event["recognized_event"]["cis2_token_contract_address"]}-{token_id}"
+        )
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/token/{cis2_token_contract_address.index}/{cis2_token_contract_address.subindex}/{token_id_for_lookup}/info-for-public-keys",
+            httpx_client,
+        )
+        token_info = api_result.return_value if api_result.ok else None
+        if token_info:
+            balances_all[token_address] = token_info
+
     total_rows = logged_events["all_logged_events_count"]
     pagination_request = PaginationRequest(
         total_txs=total_rows,
@@ -118,6 +132,7 @@ async def get_public_key_events(
         word="event",
         action_string="cis5_event",
         limit=limit,
+        returned_rows=len(logged_events["logged_events_selected"]),
     )
     pagination = pagination_calculator(pagination_request)
     html = templates.get_template("smart_wallets/public_key_events.html").render(
@@ -131,7 +146,86 @@ async def get_public_key_events(
             "total_rows": total_rows,
             "cis5_event_translations": cis5_event_translations,
             "balances_all": balances_all,
-            "balances": balances,
+        }
+    )
+
+    return html
+
+
+@router.get(
+    "/smart_wallet_tokens/{net}/{index}/{subindex}/{public_key}/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def get_public_key_tokens(
+    request: Request,
+    net: str,
+    index: int,
+    subindex: int,
+    public_key: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """ """
+    limit = 10
+    user: UserV2 = await get_user_detailsv2(request)
+
+    skip = calculate_skip(requested_page, total_rows, limit)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/token-balances/{skip}/{limit}",
+        httpx_client,
+    )
+    tokens_list = api_result.return_value if api_result.ok else []
+    if not tokens_list:
+        error = (
+            f"Request error getting logged events for account at {public_key} on {net}."
+        )
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    balances_fungible = tokens_list["fungible"]
+    balances_non_fungible = tokens_list["non_fungible"]
+    balances_unverified = tokens_list["unverified"]
+    balances_all = (
+        tokens_list["fungible"]
+        | tokens_list["non_fungible"]
+        | tokens_list["unverified"]
+    )
+
+    total_rows = len(balances_all)
+    pagination_request = PaginationRequest(
+        total_txs=total_rows,
+        requested_page=requested_page,
+        word="token",
+        action_string="cis5_token",
+        limit=limit,
+        returned_rows=len(balances_all),
+    )
+
+    pagination = pagination_calculator(pagination_request)
+    html = templates.get_template("smart_wallets/public_key_cis2.html").render(
+        {
+            "tags": tags,
+            "net": net,
+            "request": request,
+            "pagination": pagination,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+            "cis5_event_translations": cis5_event_translations,
+            "balances_all": balances_all,
+            "balances_fungible": balances_fungible,
+            "balances_non_fungible": balances_non_fungible,
+            "balances_unverified": balances_unverified,
         }
     )
 
@@ -155,15 +249,19 @@ async def get_public_key_page(
     wallet_contract_address = CCD_ContractAddress.from_index(index, subindex).to_str()
 
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/balances",
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/ccd-balance",
         httpx_client,
     )
     balances = api_result.return_value if api_result.ok else None
 
-    balance_ccd = balances["ccd"]
-    balances_fungible = balances["fungible"]
-    balances_non_fungible = balances["non_fungible"]
-    balances_unverified = balances["unverified"]
+    balance_ccd = balances.get("ccd", 0)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/tokens-available",
+        httpx_client,
+    )
+    cis2_tokens_available = api_result.return_value if api_result.ok else False
+
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallet/{index}/{subindex}/public-key/{public_key}/deployed",
         httpx_client,
@@ -183,11 +281,7 @@ async def get_public_key_page(
         httpx_client,
     )
     smart_wallets = api_result.return_value if api_result.ok else None
-    cis2_tokens_available = (
-        (len(balances_fungible) > 0)
-        or (len(balances_non_fungible) > 0)
-        or (len(balances_unverified) > 0)
-    )
+
     if not tx_deployed:
         return templates.TemplateResponse(
             "base/error.html",
@@ -211,9 +305,6 @@ async def get_public_key_page(
             "public_key": public_key,
             "balances": balances,
             "balance_ccd": balance_ccd,
-            "balances_fungible": balances_fungible,
-            "balances_non_fungible": balances_non_fungible,
-            "balances_unverified": balances_unverified,
             # "logged_events": logged_events,
             "tx_deployed": tx_deployed,
             "tx_count_dict": tx_count_dict,

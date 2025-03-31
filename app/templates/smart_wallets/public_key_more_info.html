@@ -1,0 +1,26 @@
+<table class="table table-borderless">
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis" >Belongs to</td>
+        <td class="text-end text-secondary-emphasis"><a href="/{{net}}/contract/{{index}}/{{subindex}}"  title="{{wallet_contract_address}}">
+            {{smart_wallets.get(wallet_contract_address,{"name": ""}).name}}
+        </a>
+    </td> 
+    </tr>
+    
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">CCD Balance</td>
+        <td class="text-end text-secondary-emphasis">
+            {{ balance_ccd["ccd"].balance| micro_ccd_display | safe}} 
+            
+            </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis" >CIS-2 Tokens</td>
+        <td class="text-end text-secondary-emphasis">{% if cis2_tokens_available %}Yes{% else %}No{% endif %}</td>
+            
+        
+    </td> 
+    </tr>
+
+</tbody>
+</table>

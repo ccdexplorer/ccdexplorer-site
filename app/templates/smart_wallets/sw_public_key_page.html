@@ -26,6 +26,30 @@
     getCIS5LoggedEvents(requested_page, total_rows)
   };
 
+  async function getCIS5Tokens(requested_page, total_rows) {
+    tokens = document.getElementById('tokens');
+    url = '/smart_wallet_tokens/{{net}}/{{index}}/{{subindex}}/{{public_key}}/'+requested_page + '/'+total_rows + '/' + api_key;
+    console.log(url);
+    tokens.innerHTML = '{% include "base/spinner.html" %}'
+    await fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        tokens.innerHTML = data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  function prev_cis5_tokens(requested_page, total_rows) {
+    getCIS5Tokens(requested_page, total_rows)
+  };
+  function next_cis5_tokens(requested_page, total_rows) {
+    getCIS5Tokens(requested_page, total_rows)
+  };
+
   
 </script>
 {% if error %}
@@ -37,41 +61,65 @@
 
 {% else %}
   {% include 'base/search_bar_non_home_inclusion.html' %}
-  <div class="row  mt-4">
-      <div class="col">{% include 'smart_wallets/public_key_header.html' %}</div>  
+  <div class="row row-flex">
+    <div class=" col-md-6  col-sm-12">
+      <div class="border content curved-border ">
+        {% set title= "Public Key Info" %}{% include 'base/box_title.html' %}
+        {% include 'smart_wallets/public_key_info.html' %}
+      
+      </div>  
+    </div>  
+    <div class=" col-md-6  col-sm-12">
+      <div class="border content curved-border mb-2">
+        {% set title= "Public Key More Info" %}{% include 'base/box_title.html' %}
+        {% include "smart_wallets/public_key_more_info.html" %}</div>
+      
+    </div> 
+    
   </div>
-  <!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
-  <div class="row mt-4 row-flex">
-      <div class=" col-md-6  col-sm-12">
-          
-          <div class="border content curved-border " >
-            {% include 'smart_wallets/public_key_info.html' %}
+  
+  <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
+        <span class="tab-text-large">Events from Transactions</span><span class="tab-text-small">Txs</span>
+    </button>
+    </li>
+    {% if cis2_tokens_available %}
+    <li class="nav-item" role="presentation">
+      <button class="nav-link  explorer bg-secondary-subtle" id="pills-tokens-tab" data-bs-toggle="pill" data-bs-target="#pills-tokens" type="button" role="tab" aria-controls="pills-tokens" aria-selected="true">
+        <span class="tab-text-large">Tokens</span><span class="tab-text-small">Tokens</span>
+    </button>
+    </li>
+    {% endif %}
+  </ul>
+  <div class="tab-content" id="pills-tabContent">
+  
+    <div class="tab-pane fade show active" id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
+      <div class="row mt-4">
+        <div class=" col-md-12  col-sm-12">
+          <div class="border curved-border" id="events"></div>
+        </div>  
+        
       </div>
     </div>
     {% if cis2_tokens_available %}
-      <div class=" col-md-6  col-sm-12">
-          
-        <div class="border content curved-border " >
-          {% include 'smart_wallets/public_key_cis2.html' %}
-    </div>
-  </div>
-  {%endif %}
-    
-  </div>
-    <div class="row mt-4 row-flex">
-      <div class=" col-md-12  col-sm-12">
-          
-          <div class="border content curved-border " >
-            <div id="events"></div>
-            
+    <div class="tab-pane fade show " id="pills-tokens" role="tabpanel" aria-labelledby="pills-tokens-tab" tabindex="1">
+      <div class="row mt-4">
+        <div class=" col-md-12  col-sm-12">
+          <div class="border curved-border" id="tokens"></div>
+        </div>  
+        
       </div>
-    
-      
     </div>
+    {% endif %}
+  </div>
+
   {%endif %}
   <script>
     window.addEventListener('load', (event) => {
       getCIS5LoggedEvents(0, 0);
+      getCIS5Tokens(0, 0);
         
       });
         

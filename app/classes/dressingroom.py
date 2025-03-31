@@ -8,6 +8,7 @@ from enum import Enum
 
 import httpx
 from ccdexplorer_fundamentals.cis import *
+from ccdexplorer_fundamentals.cis import MongoTypeLoggedEventV2
 from ccdexplorer_fundamentals.cns import CNSActions, CNSDomain, CNSEvent
 from ccdexplorer_fundamentals.enums import NET
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
@@ -1358,7 +1359,20 @@ class MakeUp:
 
         if result:
             success = True
-            logged_events.append(result)
+            logged_event_from_collection = MongoTypeLoggedEventV2(
+                **logged_event_from_collection
+            )
+            if logged_event_from_collection.recognized_event:
+                if (
+                    "token_amount"
+                    not in logged_event_from_collection.recognized_event.model_fields_set
+                ):
+                    logged_events.append(result)
+                else:
+                    if logged_event_from_collection.recognized_event.token_amount > 0:
+                        logged_events.append(result)
+            else:
+                logged_events.append(result)
         return logged_events, success
 
     def try_schema_parsing_for_event(

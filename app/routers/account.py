@@ -817,7 +817,7 @@ async def get_account_transactions(
     """
     Add {net}.
     """
-    limit = 20
+    limit = 10
     user: UserV2 = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)

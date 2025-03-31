@@ -1,8 +1,5 @@
+{% include 'base/pagination.html' %}
 <table class="table table-borderless">
-    {% if balances|length > 1 %}
-    {% set title= "CIS-2 Tokens" %}{% include 'base/box_title.html' %}
-    <!-- <tr><td class="text-start text-secondary-emphasis" >CIS-2 Tokens</td></tr> -->
-    {% endif %}
     <!-- FUNGIBLE -->
     {% for token, token_info in balances_fungible.items() %}
         {% set ai = token_info.address_information %}
@@ -16,7 +13,7 @@
             {% endif %}
           {% endif %}
           {% if vi %}
-            <tr class="sm-text border-bottom">
+            <tr class="sm-text ">
               <td><img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">
                 <a href="/{{net}}/tokens/{{vi._id}}"><span class="ccd text-secondary-emphasis">{{vi._id}}</span></a>
                 <br/>
@@ -53,7 +50,7 @@
 
 
         <!-- NON-FUNGIBLE -->
-        <tr class="sm-text border-bottom">
+        <tr class="sm-text ">
           <td>
           {% if ai.token_metadata %}
           {% if vi%}<img src="{{vi.logo_url}}"  style=" max-width: 16px;max-height: 16px;"  alt="">{%endif%}

@@ -11844,5 +11844,25 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
+@media (max-width: 575.98px) {
+  span.sm-text {
+    font-size: smaller;
+  }
+  tr.sm-text {
+    font-size: smaller;
+  }
+  th.sm-text {
+    font-size: smaller;
+  }
+  td.sm-text {
+    font-size: smaller;
+  }
+  p.sm-text {
+    font-size: smaller;
+  }
+  a.sm-text {
+    font-size: smaller;
+  }
+}
 
 /*# sourceMappingURL=custom_bootstrap.css.map */

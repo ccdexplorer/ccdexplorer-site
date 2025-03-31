@@ -802,6 +802,7 @@ def account_link(
     user=None,
     tags=None,
     app=None,
+    wallet_contract_address: CCD_ContractAddress = None,
 ):
 
     tag_found = False
@@ -832,7 +833,11 @@ def account_link(
         else:
             tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{value}</span>'
 
-    return f'<a class="" href="/{net}/account/{value}">{tag_label}</a>'
+    return (
+        f'<a class="" href="/{net}/account/{value}">{tag_label}</a>'
+        if not wallet_contract_address
+        else f'<a class="" href="/{net}/smart-wallet/{wallet_contract_address.index}/{wallet_contract_address.subindex}/{value}">{tag_label}</a>'
+    )
 
 
 def round_x_decimal_with_comma(value, dec: int):
@@ -1309,6 +1314,17 @@ def pagination_calculator(req: PaginationRequest) -> PaginationResponse:
 
         from_ = req.requested_page * int(req.limit) + 1
         to_ = (req.requested_page + 1) * int(req.limit)
+        next_ = False if (req.returned_rows < req.limit) else True
+        start_ = (
+            False
+            if (req.returned_rows < req.limit) and (req.requested_page == 0)
+            else True
+        )
+        prev_ = (
+            False
+            if (req.returned_rows < req.limit) and (req.requested_page == 0)
+            else True
+        )
 
         response = PaginationResponse(
             total_txs=req.total_txs,
@@ -1353,6 +1369,7 @@ def pagination_calculator(req: PaginationRequest) -> PaginationResponse:
 
         start_ = False if req.requested_page == 0 else True
         end_ = False if (req.requested_page == num_of_pages - 1) else True
+
         action_string = req.action_string
         word_ = (
             req.word.replace("-", " ")
