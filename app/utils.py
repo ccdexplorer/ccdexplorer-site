@@ -1325,6 +1325,9 @@ def pagination_calculator(req: PaginationRequest) -> PaginationResponse:
             if (req.returned_rows < req.limit) and (req.requested_page == 0)
             else True
         )
+        if req.requested_page == 0:
+            prev_ = False
+            start_ = False
 
         response = PaginationResponse(
             total_txs=req.total_txs,
