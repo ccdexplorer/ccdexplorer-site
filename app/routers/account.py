@@ -869,6 +869,7 @@ async def get_account_transactions(
         word="tx",
         action_string="tx",
         limit=limit,
+        returned_rows=len(made_up_txs),
     )
     pagination = pagination_calculator(pagination_request)
 
