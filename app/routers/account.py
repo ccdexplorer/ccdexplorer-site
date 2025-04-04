@@ -409,11 +409,11 @@ async def get_account(
         validator_id = None
 
     identity = Identity(account_info)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/misc/identity-providers",
-        httpx_client,
-    )
-    identity_providers = api_result.return_value if api_result.ok else None
+    # api_result = await get_url_from_api(
+    #     f"{request.app.api_url}/v2/{net}/misc/identity-providers",
+    #     httpx_client,
+    # )
+    # identity_providers = api_result.return_value if api_result.ok else None
 
     account_link_found = account_link(account_id, net, user, tags, request.app)
 
@@ -647,7 +647,7 @@ async def get_account(
             "account_is_validator": account_is_validator,
             "cns_domains_list": cns_domains_list,
             "identity": identity,
-            "identity_providers": identity_providers,
+            "identity_providers": request.app.identity_providers_cache[net],
             # "recurring": recurring,
             "delegation": delegation,
             "delegation_target_address": delegation_target_address,

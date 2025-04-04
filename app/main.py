@@ -7,7 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.jinja2_helpers import templates
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_AccountInfo
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_AccountInfo,
+    CCD_IpInfo,
+    CCD_ArInfo,
+)
 from fastapi.middleware.gzip import GZipMiddleware
 
 # from fastapi_restful.tasks import repeat_every
@@ -232,12 +236,20 @@ async def repeated_task_get_accounts_id_providers(app: FastAPI):
         )
         app.accounts_cache[net] = api_result.return_value if api_result.ok else None
 
+        identity_providers = {}
         api_result = await get_url_from_api(
             f"{app.api_url}/v2/{net}/misc/identity-providers",
             app.httpx_client,
         )
+        for id in api_result.return_value:
+            id = CCD_IpInfo(**id)
+            identity_providers[str(id.identity)] = {
+                "ip_identity": id.identity,
+                "ip_description": id.description.name,
+            }
+
         app.identity_providers_cache[net] = (
-            api_result.return_value if api_result.ok else None
+            identity_providers if api_result.ok else None
         )
         if app.accounts_cache[net]:
             for account_ in app.accounts_cache[net]:
