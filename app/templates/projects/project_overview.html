@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% block content %}
 {% include 'base/search_bar_non_home_inclusion.html' %}
-<h3>Project: {{project.display_name}}</h3>
+<h4>Project: {{project.display_name}}</h4>
 <p>Go to <a href="{{project.url}}">{{project.url}}</a> to learn more.</p>
 <br/><br/>
 <h5>Account Addresses</h5>
@@ -10,10 +10,13 @@
     <table class="table  table-borderless ">
         <tr class="sm-text">
         <th class="text-secondary-emphasis">Address</th>
-        <!-- <th class="text-secondary-emphasis">Index</th> -->
+        <th class="text-secondary-emphasis">Display Name</th>
     </tr>
     {% for address in mainnet_accounts%}
-    <tr class="sm-text"><td class="ccd"><a href="/mainnet/account/{{address.account_index}}" class="ccd">{{address.account_index}}</a></td></tr>
+    <tr class="sm-text">
+        <td class="ccd"><a href="/mainnet/account/{{address.account_index}}" class="ccd">{{address.account_index}}</a></td>
+        <td class="text-secondary-emphasis">{% if address.display_name %}{{address.display_name}}{% else %}{{project.display_name}}{% endif%}</td>
+    </tr>
 
     {%endfor%}
     </table>
@@ -26,10 +29,15 @@
     <table class="table  table-borderless ">
         <tr class="sm-text">
         <th class="text-secondary-emphasis">Contract</th>
+        <th class="text-secondary-emphasis">Display Name</th>
         <th class="text-secondary-emphasis">Index</th>
     </tr>
     {% for address in mainnet_contracts%}
-    <tr class="sm-text"><td class="ccd"><a href="/mainnet/contract/{{address.contract_index}}/0" class="ccd"><{{address.contract_index}},0></a></td><td class="text-secondary-emphasis">{{address.contract_index}}</td></tr>
+    <tr class="sm-text">
+        <td class="ccd"><a href="/mainnet/contract/{{address.contract_index}}/0" class="ccd"><{{address.contract_index}},0></a></td>
+        <td class="text-secondary-emphasis">{% if address.display_name %}{{address.display_name}}{% else %}{{project.display_name}}{% endif%}</td>
+        <td class="text-secondary-emphasis">{{address.contract_index}}</td>
+    </tr>
 
     {%endfor%}
     </table>

@@ -98,6 +98,31 @@ async def get_account_transactions(
     return html
 
 
+@router.get("/{net}/projects", response_class=HTMLResponse)
+async def get_projects_overview(
+    request: Request,
+    net: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/misc/projects/all-ids",
+        httpx_client,
+    )
+    projects = api_result.return_value if api_result.ok else []
+
+    return templates.TemplateResponse(
+        "projects/projects.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "projects": projects,
+            "net": "mainnet",
+        },
+    )
+
+
 @router.get("/{net}/chain-information", response_class=HTMLResponse)
 async def chain_information(
     request: Request,
