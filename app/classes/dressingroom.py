@@ -1084,7 +1084,8 @@ class MakeUp:
                 if new_event and (len(self.events_list) == 0):
                     self.events_list.append(new_event)
                 else:
-                    self.events_list.append(EventType("No Events", None, None))
+                    if len(self.events_list) == 0:
+                        self.events_list.append(EventType("No Events", None, None))
 
             day = f"{self.timestamp:%Y-%m-%d}"
             if self.makeup_request.ccd_historical:

@@ -29,6 +29,107 @@ from pydantic import BaseModel
 router = APIRouter()
 
 
+@router.get(
+    "/{net}/protocol-update-txs",
+    response_class=HTMLResponse,
+)
+async def get_account_transactions(
+    request: Request,
+    net: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """ """
+    user: UserV2 = await get_user_detailsv2(request)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/misc/protocol-updates",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not tx_result:
+        error = f"Request error getting protocol update transactions on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    tx_result_transactions = tx_result  # ["transactions"]
+    total_rows = 0
+
+    made_up_txs = []
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
+            transaction = CCD_BlockItemSummary(**transaction)
+            makeup_request = MakeUpRequest(
+                **{
+                    "net": net,
+                    "httpx_client": httpx_client,
+                    "tags": tags,
+                    "user": user,
+                    "app": request.app,
+                    "requesting_route": RequestingRoute.account,
+                }
+            )
+
+            classified_tx = await MakeUp(
+                makeup_request=makeup_request
+            ).prepare_for_display(transaction, "", False)
+            made_up_txs.append(classified_tx)
+
+    html = templates.get_template("base/transactions_simple_list.html").render(
+        {
+            "transactions": made_up_txs,
+            "tags": tags,
+            "user": user,
+            "net": net,
+            "show_amounts": True,
+            "request": request,
+            "totals_in_pagination": True,
+            "total_rows": total_rows,
+        }
+    )
+
+    return html
+
+
+@router.get("/{net}/chain-information", response_class=HTMLResponse)
+async def chain_information(
+    request: Request,
+    net: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/misc/identity-providers",
+        httpx_client,
+    )
+    ip = api_result.return_value if api_result.ok else []
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/misc/anonymity-revokers",
+        httpx_client,
+    )
+    ar = api_result.return_value if api_result.ok else []
+
+    return templates.TemplateResponse(
+        "tools/chain-information.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "ar": ar,
+            "ip": ip,
+            "net": "mainnet",
+        },
+    )
+
+
 async def get_data_for_chain_transactions_for_dates(
     app, start_date: str, end_date: str
 ) -> list[str]:
