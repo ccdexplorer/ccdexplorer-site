@@ -7,6 +7,7 @@ from datetime import timedelta
 import asyncio
 from enum import Enum
 from typing import Any, Optional
+import dateutil.parser
 from fastapi import Request, FastAPI
 import dateutil
 import httpx
@@ -1028,6 +1029,11 @@ def print_schema_dict(schema_dict, net, user, tags, app):
 
 def datetime_format_day_only_from_ms_timestamp(value):
     ddt = dt.datetime.fromtimestamp(value / 1000)
+    return f"{ddt:%Y-%m-%d}"
+
+
+def datetime_format_day_only(value):
+    ddt = dateutil.parser.parse(value)
     return f"{ddt:%Y-%m-%d}"
 
 

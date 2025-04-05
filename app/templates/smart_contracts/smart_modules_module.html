@@ -5,15 +5,15 @@
     
         <tr class="m-0">
             
-            <td class="">
+            <td class="text-secondary-emphasis">
                 <b>{{ module.module_name }}</b><br/>
-                Instances: <span class="ccd">{% if all_instances[module.id] %}{{all_instances[module.id]|length}}{% else %} 0 {% endif %}</span>
+                Instances: <span class="ccd">{{module.instances|length}}</span>
             </td>
             
             <td class="">
                 <a href="/{{net}}/module/{{ module.id }}"><span class="ccd">{{ module.id[:10] }}</span></a><br/>
-                Methods: <span class="ccd">{% if module.methods %}{{module.methods|length}}{% else %} 0 {% endif %}</span>
+                <span class="text-secondary-emphasis">Methods: </span><span class="ccd text-secondary-emphasis">{% if module.methods %}{{module.methods|length}}{% else %} 0 {% endif %}</span>
             </td>
-            <td class=""><br/>Init: {% if module.init_date %}{{module.init_date|datetime_format_day_only}}{% endif %}</td>
+            <td class=""><br/><span class="text-secondary-emphasis">Init: {% if module.init_date %}{{module.init_date|datetime_format_day_only}}{% endif %}</span></td>
         </tr>
     

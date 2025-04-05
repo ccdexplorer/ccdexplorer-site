@@ -280,40 +280,31 @@ async def ajax_modules_for_smart_contracts(
 
 
 @router.get("/{net}/smart-contracts")  # type:ignore
-async def smart_contracts(
+async def smart_contracts_overview(
     request: Request,
     net: str,
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     user: UserV2 = await get_user_detailsv2(request)
-    error = "Not implemented yet."
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/modules/overview",
+        httpx_client,
+    )
+    the_dict = api_result.return_value if api_result.ok else None
+    if the_dict:
+        the_dict = {k: v["modules"] for k, v in the_dict.items()}
     return templates.TemplateResponse(
-        "base/error.html",
+        "smart_contracts/smart_contracts.html",
         {
+            "env": request.app.env,
             "request": request,
-            "error": error,
-            "env": environment,
             "net": net,
+            "dates_to_modules": the_dict,
+            "user": user,
+            "tags": tags,
         },
     )
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/modules/{module_ref}/instances/{skip}/{limit}",
-    #     httpx_client,
-    # )
-    # instances_result = api_result.return_value if api_result.ok else None
-    # return templates.TemplateResponse(
-    #     "smart_contracts/smart_contracts.html",
-    #     {
-    #         "env": request.app.env,
-    #         "request": request,
-    #         "net": net,
-    #         "modules": the_dict,
-    #         "all_instances": all_instances,
-    #         "user": user,
-    #         "tags": tags,
-    #     },
-    # )
 
 
 @router.get("/{net}/smart-contracts/usage/{module}")  # type:ignore
