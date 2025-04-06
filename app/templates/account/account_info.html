@@ -94,12 +94,7 @@
             <td class="text-start text-secondary-emphasis">Index</td>
             <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{account.index|round_x_decimal_with_comma(0) }}</td>
         </tr>
-        {% if aliases_in_use|length > 0 %}
-        <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">Aliases in use</td>
-            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{aliases_in_use|length|round_x_decimal_with_comma(0) }}</td>
-        </tr>
-        {% endif %}
+        
     <!-- </tbody>
 </table>
 <table class="table table-striped ms-1 me-1 small"><tbody> -->

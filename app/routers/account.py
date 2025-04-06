@@ -509,11 +509,11 @@ async def get_account(
     )
     token_ids = api_result.return_value if api_result.ok else []
 
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/aliases-in-use",
-        httpx_client,
-    )
-    aliases_in_use = api_result.return_value if api_result.ok else []
+    # api_result = await get_url_from_api(
+    #     f"{request.app.api_url}/v2/{net}/account/{account_id}/aliases-in-use",
+    #     httpx_client,
+    # )
+    # aliases_in_use = api_result.return_value if api_result.ok else []
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{account_id}/deployed",
@@ -643,7 +643,7 @@ async def get_account(
             "pool": pool,
             "earliest_win_time": earliest_win_time,
             "node": node,
-            "aliases_in_use": aliases_in_use,
+            # "aliases_in_use": aliases_in_use,
             "account_is_validator": account_is_validator,
             "cns_domains_list": cns_domains_list,
             "identity": identity,

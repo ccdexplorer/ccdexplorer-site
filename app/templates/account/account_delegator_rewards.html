@@ -1,0 +1,15 @@
+<tr class="sm-text">
+    <td class="text-secondary-emphasis text-start">Delegator<br/>rewards</td>
+    <td class="text-secondary-emphasis text-end"><small>{{ (pool_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+      <i><small><span>{{ (pool_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+    </td>
+
+    <td class="text-secondary-emphasis text-end"><small>{{(pool_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+        <i><small><span>{{ (pool_apy_object.d90.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+    </td>
+
+    <td class="text-secondary-emphasis text-end"><small>{{ (pool_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+      <i><small><span>{{ (pool_apy_object.d180.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+    </td>
+
+  </tr>

@@ -46,13 +46,9 @@
             <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{identity.credentials|length|round_x_decimal_with_comma(0) }}
                 {%if identity.credentials|length > identity.threshold %}({{identity.threshold|round_x_decimal_with_comma(0)}} to sign){%endif%}</td>
         </tr>
-        {% if aliases_in_use|length > 0 %}
-        <tr class="table-row-line-height sm-text">
-            <td class="text-start text-secondary-emphasis">Aliases in use</td>
-            <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{aliases_in_use|length|round_x_decimal_with_comma(0) }}</td>
+        <tr id="aliases-row" hx-get="/{{net}}/account/{{account.address}}/aliases-in-use" hx-trigger="intersect once" hx-target="#aliases-row" hx-swap="outerHTML">
+            <td colspan="2" class="text-secondary-emphasis">Loading aliases...</td>
         </tr>
-        {% endif %}
-   
         
    
        

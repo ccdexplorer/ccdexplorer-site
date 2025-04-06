@@ -208,6 +208,63 @@ async def get_account_earliest(
         return "0 sec"
 
 
+@router.get(
+    "/{net}/account/{account_address}/aliases-in-use", response_class=HTMLResponse
+)
+async def get_account_aliases_in_use(
+    request: Request,
+    net: str,
+    account_address: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    request.state.api_calls = {}
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_address}/aliases-in-use",
+        httpx_client,
+    )
+    aliases_in_use = api_result.return_value if api_result.ok else []
+    if len(aliases_in_use) > 0:
+        html = templates.get_template("account/account_aliases_in_use.html").render(
+            {
+                "aliases_in_use": aliases_in_use,
+                "net": net,
+                "account_address": account_address,
+                "request": request,
+            }
+        )
+
+        return html
+    else:
+        return ""
+
+
+@router.get(
+    "/{net}/account/{validator_id}/staking-rewards-object", response_class=HTMLResponse
+)
+async def get_validator_pool_apy_rewards(
+    request: Request,
+    net: str,
+    validator_id: int,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    request.state.api_calls = {}
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{validator_id}/staking-rewards-object",
+        httpx_client,
+    )
+    pool_apy_object = api_result.return_value if api_result.ok else None
+    if pool_apy_object:
+        html = templates.get_template("account/account_delegator_rewards.html").render(
+            {
+                "pool_apy_object": pool_apy_object,
+            }
+        )
+
+        return html
+    else:
+        return ""
+
+
 @router.get("/{net}/account/{index}/current-payday-stats", response_class=HTMLResponse)
 async def get_account_payday_stats(
     request: Request,
