@@ -26,7 +26,7 @@ from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifie
 from app.env import *
 from app.jinja2_helpers import *
 from app.Recurring.recurring import Recurring
-from app.state.state import *
+from app.state.state import get_mongo_db, get_mongo_motor, get_user_detailsv2
 from app.utils import user_string
 
 router = APIRouter()
@@ -183,39 +183,12 @@ async def ajax_transaction_types_reporting(
     return html
 
 
-@router.get("/{net}/transactions-count", response_class=HTMLResponse)
-async def request_block_node(
-    request: Request,
-    net: str,
-    mongodb: MongoDB = Depends(get_mongo_db),
-    grpcclient: GRPCClient = Depends(get_grpcclient),
-    tooter: Tooter = Depends(get_tooter),
-):
-    user: UserV2 = get_user_detailsv2(request)
-    all_transaction_effects = list(
-        set(CCD_AccountTransactionEffects.__dict__["model_fields"].keys())
-        - set(["none"])
-    )
-    all_projects = get_all_projects(mongodb)
-    return templates.TemplateResponse(
-        "transactions_search/transaction_count.html",
-        {
-            "request": request,
-            "env": request.app.env,
-            "user": user,
-            "net": net,
-            "all_projects": all_projects,
-            "all_transaction_effects": all_transaction_effects,
-        },
-    )
-
-
 @router.get("/{net}/transactions-search", response_class=HTMLResponse)
 async def transactions_search(
     request: Request,
     net: str,
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     return templates.TemplateResponse(
         "transactions_search/start.html",
         {"request": request, "env": request.app.env, "user": user, "net": net},
@@ -257,7 +230,7 @@ async def request_transactions_mongodb(
     """
     Endpoint to search for transactions given parameters.
     Parameter `all` refers to regular transfers.
-    Attributes:
+    Attributes:l
 
     Returns:
 

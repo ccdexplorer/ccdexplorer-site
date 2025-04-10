@@ -1,0 +1,200 @@
+
+<script>
+
+    function disableMemoInput(){
+      document.getElementById("memo_contains").disabled = true;
+    }
+
+    function enableMemoInput(){
+      document.getElementById("memo_contains").disabled = false;
+    }
+
+  $(document).ready(function(){
+          $('[data-bs-toggle="tooltip"]').tooltip();   
+      });  
+
+  function prev_txs(go_to_page) {
+          Search(go_to_page); 
+          };
+        function next_txs(go_to_page) {
+          Search(go_to_page);
+          };
+
+          function prev_v2_txs(requested_page, total_rows) {
+          Search(requested_page)
+        };
+        function next_v2_txs(requested_page, total_rows) {
+          Search(requested_page)
+        };
+    function Search(go_to_page) {
+        search_result = document.getElementById('search_result');
+        search_result.innerHTML = '';
+          var gte = document.getElementById('gte').value;
+          gte = gte.split(' ')[0];
+          console.log('gte=', gte)
+          if (typeof gte === 'string' && gte.length === 0) {
+            gte = 0;
+          }
+          
+          
+          // if  (document.getElementById('gte').length == 0) {gte = 0};
+          var lte = document.getElementById('lte').value;
+          lte = lte.split(' ')[0];
+          if (typeof lte === 'string' && lte.length === 0) {
+            lte = 0;
+          }
+          var start_date = document.getElementById("start_date").value;
+          var end_date = document.getElementById("end_date").value;
+          sort_on = document.getElementById('sort_on').value;
+          sort_direction = document.getElementById('sort_direction').value;
+          all = document.getElementById('all').checked;
+          memo_only = document.getElementById('memo_only').checked;
+          scheduled = document.getElementById('scheduled').checked;
+
+          var memo_contains = document.getElementById('memo_contains').value;
+          if (memo_contains.length === 0) {memo_contains = "<empty string>"};
+          
+          search_result.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
+          // console.log("start_date=", start_date);
+        //   var account_id = document.querySelector('.account_id').title;
+          url = '/ajax_transactions_search/{{net}}/transfer/'+gte+'/'+lte+'/'+start_date+'/'+end_date+'/'+go_to_page+'/'+sort_on+'/'+sort_direction+'/'+all+'/'+memo_only+'/'+scheduled+'/'+memo_contains;
+          console.log("FETCH: ", url);
+          fetch(url)
+            .then((response) => {
+              return response.text();
+            })
+            .then((data) => {
+                search_result.innerHTML = data;
+            })
+            .catch(function(error) {
+              console.log(error);
+            });
+        }
+
+
+
+</script>
+
+<h2>Search Transactions{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h2>
+<!-- <style>
+  input[type="text"] {
+    font-size:9px;
+} -->
+<!-- </style> -->
+{% if user %}
+            
+
+<div class="row ps-3 pe-3">
+  <div class="col">
+    <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " data-precision="0" name="gte" id="gte" placeholder="0 CCD"><br>
+  </div>
+  <div class="col small text-center m-0"><span class="ccd">≤ Amount ≤</span></div>
+  <div class="col">
+    <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="lte" id="lte" placeholder="100,000 CCD"><br>
+  </div>
+</div>
+<div class="row ps-3 pe-3">
+  <div class="col">
+    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="start_date" id="start_date" placeholder="Start Date"><br>
+  </div>
+  <div class="col small text-center"><span class="ccd">≤ Date ≤</span></div>
+  <div class="col">
+    <input type="text" class=" dates form-control form-control-sm small input-sm mb-1 text-end" data-precision="0" name="end_date" id="end_date" placeholder="End Date"><br>
+  </div>
+</div>
+<div class="row ps-3 pe-3">
+  <div class="col text-end"><small>Sort on: </small></div>
+  <div class="col">
+      <select id="sort_on" class="form-select form-select-sm mb-3" aria-label=".form-select-sm ">
+        <option value="amount" {selected}>Amount</option>
+        <option value="date" {selected}>Date</option>
+      </select>
+  </div>
+<div class="col">
+<select id="sort_direction" class="form-select form-select-sm mb-3" aria-label=".form-select-sm ">
+  <option value="-1" {selected}>Descending</option>
+  <option value="1" {selected}>Ascending</option>
+</select>
+</div>
+</div>
+<!-- 
+<div class="row ps-3 pe-3">
+  
+  <div class="col text-end"><small>Memo contains:</small></div>
+  <div class="col">
+    <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " data-precision="0" name="memo_contains" id="memo_contains" placeholder=""><br>
+  </div>
+  <div class="col text-end"><small></small></div>
+</div> -->
+
+
+
+<div class="row ps-3 pe-3">
+  <small>Limit search to:</small>
+  <!-- <div class="col"></div>   -->
+  <div class="col text-start">
+<div class="form-check">
+  <input class="form-check-input" type="radio" value="" onchange="disableMemoInput();" name="transfer_type" value="all" id="all" checked>
+  <label class="form-check-label" for="memo_only">
+    <small>Regular transfers</small>
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" value="" onchange="disableMemoInput();" name="transfer_type" value="scheduled"  id="scheduled">
+  <label class="form-check-label" for="memo_only">
+    <small>Scheduled transfers</small>
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" value="" onchange="enableMemoInput();" name="transfer_type" value="memo_only"  id="memo_only">
+  <label class="form-check-label" for="memo_only">
+    <small>Transfers with memo</small>
+  </label>
+  <input type="text" class=" number-separator form-control form-control-sm small input-sm mb-1 text-end " data-precision="0" disabled name="memo_contains" id="memo_contains" placeholder=""><br>
+</div>
+<!-- <div class="col text-end"><small>Memo contains:</small></div> -->
+  <div class="col">
+    
+  </div>
+  <div class="col text-start"></div>
+
+</div>
+</div>
+<br/>
+  <button onclick='Search(0)' type="button" id="account-add-button" class="ms-3 btn btn-sm btn-primary">Search Transactions</button>
+      <!-- </form> -->
+    
+  
+
+<div id="search_result" class="ps-3 pt-3">...</div>
+
+<script>
+  function addHoursToDate(objDate, intHours) {
+
+var numberOfMlSeconds = objDate;
+
+var addMlSeconds = (intHours * 60) * 60 * 1000;
+
+var newDateObj = new Date(numberOfMlSeconds + addMlSeconds);
+
+return newDateObj;
+
+}
+
+$(function() {
+  $('#gte').maskMoney({allowZero:true, suffix: ' CCD'});
+  $('#lte').maskMoney({suffix:' CCD'});
+})
+// flatpickr(".dates", {defaultDate:"2021-6-29"});
+let now = new Date().toISOString()//.split('T')[0]
+let last_month = addHoursToDate(Date.now(), -24*30)
+console.log('now=', now)
+flatpickr("#start_date", {defaultDate:last_month});
+flatpickr("#end_date", {defaultDate: now});
+</script>
+
+
+{% else %} 
+<p class="small">Users get access to transactions search. Go <a href="/settings/user/overview">here</a> to learn more.</p>
+
+{% endif %}

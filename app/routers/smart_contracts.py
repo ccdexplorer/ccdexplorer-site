@@ -279,7 +279,7 @@ async def ajax_modules_for_smart_contracts(
     modules_to_show = api_result.return_value if api_result.ok else None
 
 
-@router.get("/{net}/smart-contracts")  # type:ignore
+@router.get("/{net}/tools/smart-contracts")  # type:ignore
 async def smart_contracts_overview(
     request: Request,
     net: str,

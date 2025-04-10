@@ -572,6 +572,8 @@ def cooldown_string(value: str):
 
 def datetime_delta_format_since(value: dt.datetime):
     if value:
+        if isinstance(value, str):
+            value = dateutil.parser.parse(value).astimezone(dt.timezone.utc)
         delta = dt.datetime.now(dt.timezone.utc) - value.astimezone(dt.timezone.utc)
         return verbose_timedelta(delta)
     else:
@@ -1466,7 +1468,7 @@ async def get_url_from_api(url: str, httpx_client: httpx.AsyncClient):
 
 
 async def post_url_from_api(
-    url: str, httpx_client: httpx.AsyncClient, json_post_content: list
+    url: str, httpx_client: httpx.AsyncClient, json_post_content: Any
 ):
     api_response = APIResponseResult(status_code=-1, duration_in_sec=-1, ok=False)
     response = None

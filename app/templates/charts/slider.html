@@ -126,7 +126,7 @@
           max: timestamp(date),
         },
         step:MONTH_MS,
-        start: [timestamp('{{chain_start|safe}}'), timestamp(date)],
+        start: [timestamp('{% if date_start%}{{date_start|safe}}{%else%}{{chain_start|safe}}{%endif%}'), timestamp(date)],
       })
   
       var dateValuesPretty = [

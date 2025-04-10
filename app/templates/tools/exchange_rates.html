@@ -1,0 +1,23 @@
+{% extends "base/base.html" %}
+{% block content %}
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<div class="border curved-border">
+{% set title= "Exchange Rates" %}{% include 'base/box_title.html' %}
+<p>The table below shows the exchange rates used to convert crypto pricing to USD.</p>
+
+<table class="table table-borderless ">
+{% for fx_name, fx in exchange_rates.items() %}
+<tr class="sm-text">
+  <td class="text-secondary-emphasis">{{fx_name}}<br/>
+    <span class="text-secondary-emphasis">Source: {{fx.source}}</span></td>
+  <td class="text-end text-secondary-emphasis"><span class="ccd">{{fx.rate}} USD</span><br/>
+    <span class="text-secondary-emphasis">Timestamp: {{fx.timestamp|datetime_delta_format_since}} ago</span></td>
+</tr>
+{%endfor%}
+</table>
+</div>
+{% endif %}
+{% endblock content %}

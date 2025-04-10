@@ -106,6 +106,7 @@ async def lifespan(app: FastAPI):
     app.nodes_last_requested = now - dt.timedelta(seconds=10)
     app.credential_issuers_last_requested = now - dt.timedelta(seconds=10)
     app.consensus_last_requested = now - dt.timedelta(seconds=10)
+    app.exchange_rates_last_requested = now - dt.timedelta(seconds=10)
     app.tags = None
     app.nodes = None
     read_addresses_if_available(app)

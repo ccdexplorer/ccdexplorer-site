@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+    
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
+            <span class="tab-text-large">Transfers</span><span class="tab-text-small">Transfers</span>
+        </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-creds-tab" data-bs-toggle="pill" data-bs-target="#pills-creds" type="button" role="tab" aria-controls="pills-creds" aria-selected="true">
+            <span class="tab-text-large">Data</span><span class="tab-text-small">Data</span>
+        </button>
+        </li>
+        
+</ul>
+
+<div class="tab-content" id="pills-tabContent">
+  
+  <div class="tab-pane fade show active" id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        <div class="border curved-border" >
+          {% include 'tools/transactions_search_transfers.html' %}
+        </div>
+      </div>  
+      
+    </div>
+  </div>
+  <div class="tab-pane fade show " id="pills-creds" role="tabpanel" aria-labelledby="pills-creds-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        
+          <div class="border curved-border">
+            {% include 'tools/transactions_search_data.html' %}
+          </div>
+        
+      </div>  
+      
+    </div>
+  </div>
+  
+</div>
+
+
+{% endblock content %}

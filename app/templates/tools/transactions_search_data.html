@@ -1,0 +1,34 @@
+<div class="row">
+    {% set title= "Search for data registered" %}{% include 'base/box_title.html' %}
+
+<h3>
+    
+  </h3>
+  <div class="row">
+    <div class="col-md-3 mt-2">
+      <p>Search for data registered</p>
+    </div>
+    <div class="col-md-5 ">
+      <div class="align-center input-group input-group-sm" id="memo">
+  <input class="form-control" type="search"
+         name="search" placeholder=""
+         hx-post="/{{net}}/ajax_tools/transactions-search/data/{{requested_page}}"
+         hx-ext='json-enc'
+    hx-encoding="json"
+    hx-vals='js:{
+        theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+        requested_page: 0
+        }'
+
+        hx-trigger="input changed delay:500ms, keyup[key=='Enter']"
+         hx-target="#search-results-data"
+         hx-indicator=".htmx-indicator">
+        </div>
+    </div>
+  <div id="search-results-data">
+    <span class="htmx-indicator">
+        <img src="/static/misc/bars.svg"/> Searching...
+       </span>
+      </div>    
+    </div>
+    

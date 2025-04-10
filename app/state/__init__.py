@@ -123,7 +123,7 @@ async def get_nightly_accounts(app):
     return app.nightly_accounts_by_account_id
 
 
-def get_exchange_rates(
+async def get_exchange_rates(
     req: Request,
 ):
     if (
@@ -136,9 +136,13 @@ def get_exchange_rates(
         pass
         # print("exchange_rates from cache.")
     else:
-        coll = req.app.mongodb.utilities[CollectionsUtilities.exchange_rates]
+        response = await req.app.httpx_client.get(
+            f"{req.app.api_url}/v2/mainnet/misc/exchange-rates"
+        )
+        response.raise_for_status()
+        coll = response.json()
 
-        req.app.exchange_rates = {x["token"]: x for x in coll.find({})}
+        req.app.exchange_rates = coll
 
         req.app.exchange_rates_last_requested = dt.datetime.now().astimezone(
             dt.timezone.utc

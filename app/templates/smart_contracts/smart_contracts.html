@@ -1,8 +1,8 @@
 {% extends "base/base.html" %}
 {% block content %}
 {% include 'base/search_bar_non_home_inclusion.html' %}
-<div style="padding-left:10px;">
-<h4  class="ms-1">Smart Contracts{% if net == 'mainnet'%}{%else%} (Testnet){%endif%}</h4>
+<div class="border curved-border">
+  {% set title= "Smart Contracts" %}{% include 'base/box_title.html' %}
 
 
 <p>A smart contract is a user-supplied piece of code submitted to the Concordium blockchain, used to define behavior that is not directly part of the core protocol. Smart contracts are executed by nodes in the Concordium network according to predefined rules. <br><br>Each <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-module.html">module</a> can have zero or more <a href="https://developer.concordium.software/en/mainnet/smart-contracts/general/contract-instances.html">instances</a>.</p>
