@@ -37,6 +37,8 @@ text-align: center;
     const gte = document.getElementById("event-start-ccd-pretty").innerText;
     const lte = document.getElementById("event-end-ccd-pretty").innerText;
     const memo = document.getElementById("memo_search").value;
+    const sort_key = document.querySelector("input[name=\"sort_key\"]:checked").id;
+    const sort_direction = document.querySelector("input[name=\"sort_direction\"]:checked").id;
 
     // Construct the URL
     const url = `/{{net}}/ajax_tools/transactions-search/transfer/${requested_page}`;
@@ -46,28 +48,30 @@ text-align: center;
 
     // Perform the fetch request
     await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            theme: theme,
-            start_date: start_date,
-            end_date: end_date,
-            gte: gte,
-            lte: lte,
-            memo: memo,
-        }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        theme: theme,
+        start_date: start_date,
+        end_date: end_date,
+        gte: gte,
+        lte: lte,
+        memo: memo,
+        sort_key: sort_key,
+        sort_direction: sort_direction,
+      }),
     })
-        .then((response) => response.text())
-        .then((data) => {
-            // Update the transactions element with the response
-            transactions.innerHTML = data;
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-}
+      .then((response) => response.text())
+      .then((data) => {
+        // Update the transactions element with the response
+        transactions.innerHTML = data;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   function prev_txs(requested_page, total_rows) {
     getTransactions(requested_page, total_rows)
@@ -116,7 +120,9 @@ text-align: center;
         end_date: document.getElementById("event-end-pretty").innerText,
         gte: document.getElementById("event-start-ccd-pretty").innerText,
         lte: document.getElementById("event-end-ccd-pretty").innerText,
-        memo:document.getElementById("memo_search").value
+        memo:document.getElementById("memo_search").value,
+        sort_key: document.querySelector("input[name=\"sort_key\"]:checked").id,
+        sort_direction: document.querySelector("input[name=\"sort_direction\"]:checked").id,
         }'
        hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
        hx-target="#search-results"
@@ -125,6 +131,27 @@ text-align: center;
     </div>
   </div>
 </div>
+<div class="row">
+  <div class="btn-group-sm" role="group"  id="btnradio_sort_key">
+    Sort By:<input type="radio" class="btn-check" name="sort_key" id="amount" autocomplete="off" checked>
+    <label class="btn btn-outline-secondary " for="amount">Amount</label>
+  
+    <input type="radio" class="btn-check" name="sort_key" id="date" autocomplete="off">
+    <label class="btn btn-outline-secondary " for="date">Date</label>
+  </div>
+</div>
+
+<div class="row mt-3">
+  <div class="btn-group-sm" role="group"  id="btnradio_grouping_direction">
+    Direction:<input type="radio" class="btn-check" name="sort_direction" id="ascending" autocomplete="off" >
+    <label class="btn btn-outline-secondary " for="ascending">Ascending</label>
+  
+    <input type="radio" class="btn-check" name="sort_direction" id="descending" autocomplete="off" checked>
+    <label class="btn btn-outline-secondary " for="descending">Descending</label>
+  </div>
+</div>
+
+
 
 
 
@@ -155,6 +182,22 @@ id="search-results"
         end_date: document.getElementById("event-end-pretty").innerText,
         gte: document.getElementById("event-start-ccd-pretty").innerText,
         lte: document.getElementById("event-end-ccd-pretty").innerText,
-        memo:document.getElementById("memo_search").value
+        memo:document.getElementById("memo_search").value,
+        sort_key: document.querySelector("input[name=\"sort_key\"]:checked").id,
+        sort_direction: document.querySelector("input[name=\"sort_direction\"]:checked").id,
         }'
 ></div>
+<script>
+  document.querySelectorAll('input[name="sort_key"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        var event = new CustomEvent('update_event');
+        document.getElementById('update').dispatchEvent(event);
+    });
+});
+document.querySelectorAll('input[name="sort_direction"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        var event = new CustomEvent('update_event');
+        document.getElementById('update').dispatchEvent(event);
+    });
+});
+</script>

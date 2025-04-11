@@ -284,12 +284,9 @@ class PostDataTransfer(BaseModel):
     lte: str
     start_date: str
     end_date: str
+    sort_key: str
+    sort_direction: str
     current_page: Optional[str] = None
-    sort_on: Optional[str] = None
-    sort_direction: Optional[int] = None
-    all: Optional[str] = None
-    memo_only: Optional[str] = None
-    scheduled: Optional[str] = None
     memo: Optional[str] = None
 
 
