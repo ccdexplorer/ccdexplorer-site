@@ -329,8 +329,8 @@ async def ajax_tx_search_transfers(
     )
     last_day = next_month - relativedelta(days=1)
     post_data.end_date = last_day.strftime("%Y-%m-%d")
-    post_data.gte = int(post_data.gte.split(" ")[0].replace(".", ""))
-    post_data.lte = int(post_data.lte.split(" ")[0].replace(".", ""))
+    post_data.gte = int(post_data.gte.split(" ")[0].replace(".", "").replace(",", ""))
+    post_data.lte = int(post_data.lte.split(" ")[0].replace(".", "").replace(",", ""))
 
     # skip = (post_data.requested_page - 1) * limit
     if net not in ["mainnet", "testnet"]:
