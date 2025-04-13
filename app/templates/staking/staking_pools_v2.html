@@ -10,14 +10,16 @@
     <thead>
         <tr class="sm-text">
             <td class="text-secondary-emphasis" scope="col"></td>
+            <td class="text-secondary-emphasis" scope="col"></td>
             <td class="text-secondary-emphasis text-end" scope="col">Delegator</td>
-            <td class="text-secondary-emphasis text-center" scope="col" colspan="2">Commission Rates</td>
+            <td class="text-secondary-emphasis text-center hide-if-small" scope="col" colspan="2">Commission Rates</td>
             
             
 
         </tr>
         <tr class="sm-text">
             <th class="text-secondary-emphasis" scope="col">Validator ID</th>
+            <th class="text-secondary-emphasis hide-if-small" scope="col">Node Name</th>
             
             <th class="text-secondary-emphasis text-end" scope="col">180d APY</th>
             <th class="text-secondary-emphasis text-end" scope="col">Block</th>
@@ -36,14 +38,15 @@
                 <a href="{{ row.url }}">(i)</a>
                 {% endif %}
             </td>
-            <td class="text-secondary-emphasis text-end" data-sort="{{row.d180.apy}}">{{
+            <td class="text-secondary-emphasis text-start hide-if-small" data-sort="{{row.node_name}}">{% if row.node_name%}{{row.node_name}}{%endif%}</td>
+            <td class="text-secondary-emphasis text-end ccd" data-sort="{{row.d180.apy}}">{{
                 row.d180.apy|apy_perc}}</td>
 
                 
-                <td class="text-secondary-emphasis text-end" data-sort="{{row.block_commission_rate}}">{{row.block_commission_rate|apy_perc}}</td>
-                <td class="text-secondary-emphasis text-end hide-if-small" data-sort="{{row.tx_commission_rate}}">{{row.tx_commission_rate|apy_perc}}</td>
-                <td class="text-secondary-emphasis text-end hide-if-small" data-sort="{{row.effective_stake}}">{{row.effective_stake | micro_ccd_no_decimals|safe}}</td>
-                <td class="text-secondary-emphasis text-end" data-sort="{{row.delegated_percentage}}">{% if row.delegated_capital_cap > 0 %}     
+                <td class="text-secondary-emphasis text-end ccd" data-sort="{{row.block_commission_rate}}">{{row.block_commission_rate|apy_perc}}</td>
+                <td class="text-secondary-emphasis text-end hide-if-small ccd" data-sort="{{row.tx_commission_rate}}">{{row.tx_commission_rate|apy_perc}}</td>
+                <td class="text-secondary-emphasis text-end hide-if-small ccd" data-sort="{{row.effective_stake}}">{{row.effective_stake | micro_ccd_no_decimals|safe}}</td>
+                <td class="text-secondary-emphasis text-end ccd " data-sort="{{row.delegated_percentage}}">{% if row.delegated_capital_cap > 0 %}     
                                     {{'%0.2f'|format(row.delegated_percentage|float)}}
                                         %{% else %}
                     -

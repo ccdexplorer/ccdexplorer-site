@@ -33,4 +33,7 @@
         hx-trigger="intersect, switched-theme from:body" 
         hx-post="/{{net}}/account/apy-graph/{{account_index}}"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
-      ></div>
+      ><span class="htmx-indicator-rewards">
+        <img src="/static/misc/bars.svg"/> Loading data...
+       </span>
+    </div>

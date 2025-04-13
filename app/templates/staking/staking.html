@@ -69,7 +69,7 @@
     pools = document.getElementById('staking_pools');
     url =  '/ajax_pools/' + status + '/'+ api_key;
     // console.log(url);
-    pools.innerHTML = '{% include "base/spinner.html" %}'
+    // pools.innerHTML = '{% include "base/spinner.html" %}'
     fetch(url)
       .then((response) => {
         return response.text();
@@ -152,17 +152,27 @@
   <div class="col-md-6  col-sm-12 ">
       <div class="border content curved-border " >
           {% set title= "Paydays" %}{% include 'base/box_title.html' %}
-          <div id="paydays"></div>  
+          <div id="paydays">
+              <span class="htmx-indicator-a">
+                <img src="/static/misc/bars.svg"/> Loading data...
+              </span>
+          </div>  
       </div>
   </div>
   
   <div class="col-md-6  col-sm-12 ">
     <div class="border content curved-border " >
       {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
-      <div id="passive_info"></div>  
+      <div id="passive_info">
+        <span class="htmx-indicator-b">
+          <img src="/static/misc/bars.svg"/> Loading data...
+        </span>
+      </div>  
       <hr>
       {% set title= "Passive Delegators" %}{% include 'base/box_title.html' %}
-          <div id="passive_delegators"></div>  
+          <div id="passive_delegators"><span class="htmx-indicator-c">
+            <img src="/static/misc/bars.svg"/> Loading data...
+          </span></div>  
     </div>
     
   </div>
@@ -172,7 +182,11 @@
   <div class="col-md-12  col-sm-12 ">
     <div class="border content curved-border " >
       {% set title= "Staking Pools" %}{% include 'base/box_title.html' %}
-        <div id="staking_pools"></div>
+        <div id="staking_pools">
+          <span class="htmx-indicator-d">
+          <img src="/static/misc/bars.svg"/> Loading data...
+        </span>
+      </div>
         
       </div>
 
