@@ -193,11 +193,7 @@ async def get_ajax_pools(
 
     user: UserV2 = await get_user_detailsv2(request)
 
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/mainnet/accounts/paydays/pools/{status}",
-        httpx_client,
-    )
-    enhanced_pools = api_result.return_value if api_result.ok else []
+    enhanced_pools = request.app.staking_pools_cache.get(status, {})
 
     html = templates.get_template("staking/staking_pools_v2.html").render(
         {

@@ -106,6 +106,7 @@ async def lifespan(app: FastAPI):
     app.nodes_last_requested = now - dt.timedelta(seconds=10)
     app.credential_issuers_last_requested = now - dt.timedelta(seconds=10)
     app.consensus_last_requested = now - dt.timedelta(seconds=10)
+    app.staking_pools_last_requested = now - dt.timedelta(seconds=10)
     app.exchange_rates_last_requested = now - dt.timedelta(seconds=10)
     app.tags = None
     app.nodes = None
@@ -119,6 +120,12 @@ async def lifespan(app: FastAPI):
     app.accounts_cache = {"mainnet": [], "testnet": []}
     app.identity_providers_cache = {"mainnet": {}, "testnet": {}}
     app.consensus_cache = {"mainnet": {}, "testnet": {}}
+    app.staking_pools_cache = {
+        "open_for_all": {},
+        "closed_for_new": {},
+        "closed_for_all": {},
+    }
+    await repeated_task_get_staking_pools(app)
     await repeated_task_get_accounts_id_providers(app)
     scheduler.start()
     yield
@@ -260,3 +267,16 @@ async def repeated_task_get_accounts_id_providers(app: FastAPI):
                 if account_info.address[:29] not in app.addresses_to_indexes[net]:
                     print(f"Adding {account_info.index} to cache... FROM SCHEDULE")
                     add_account_info_to_cache(account_info, app, net)
+
+
+@scheduler.scheduled_job("interval", seconds=5 * 60, args=[app])
+async def repeated_task_get_staking_pools(app: FastAPI):
+    for status in ["open_for_all", "closed_for_new", "closed_for_all"]:
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/mainnet/accounts/paydays/pools/{status}",
+            app.httpx_client,
+        )
+        app.staking_pools_cache[status] = (
+            api_result.return_value if api_result.ok else {}
+        )
+    print("Staking pools cache updated.")

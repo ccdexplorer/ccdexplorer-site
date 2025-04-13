@@ -31,7 +31,11 @@
         </tr>
     </thead>
     <tbody>
-
+        {% if pools|length == 0 %}
+        <tr class="sm-text">
+            <td colspan="7" class="text-secondary-emphasis text-center">No pools found</td>
+        </tr>
+        {% else %}
         {% for validator_id, row in pools.items() %}
         <tr class="sm-text">
             <td class="text-secondary-emphasis" data-sort="{{row.baker_id}}"><a href="/mainnet/account/{{row.baker_id}}">{{row.baker_id}}</a> {% if row.url %}
@@ -53,5 +57,6 @@
                                             {% endif %}</td>
         </tr>
         {% endfor %}
+        {% endif %}
     </tbody>
 </table>
