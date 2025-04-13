@@ -22,24 +22,32 @@
 <div class="row row-flex">
   <div class="col-md-6  col-sm-12 ">
     <div class="border content curved-border " >
+      
       {% set title= "Validator APY" %}{% include 'base/box_title.html' %}
         <div
         hx-trigger="intersect, switched-theme from:body" 
+        hx-indicator=".htmx-indicator-apy"
         hx-post="/{{net}}/account/apy-graph/{{account_id}}"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
-      >
+      ><span class="htmx-indicator-apy">
+        <img src="/static/misc/bars.svg"/> Loading data...
+       </span>
     </div>
 
     </div>
   </div>
   <div class="col-md-6  col-sm-12">
     <div class="border content curved-border " >
+      
       {% set title= "Validator Performance" %}{% include 'base/box_title.html' %}
       <div
       hx-trigger="intersect, switched-theme from:body" 
+      hx-indicator=".htmx-indicator-performance"
       hx-post="/{{net}}/account/baker-performance/{{account_index}}/3000"
       hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
-    >
+    ><span class="htmx-indicator-performance">
+      <img src="/static/misc/bars.svg"/> Loading data...
+     </span>
   </div>
 
   </div>

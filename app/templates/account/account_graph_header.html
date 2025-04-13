@@ -56,6 +56,7 @@
       hx-post='/ajax_sankey/{{net}}/{{account_id}}'
       hx-ext='json-enc'
       hx-target="#sankey"
+      hx-indicator=".htmx-indicator"
       hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
       gte: get_gte(),
       start_date: document.getElementById("start_date").value,
@@ -72,7 +73,10 @@
     </div>
   </div>
   <h5>{{token}}</h5>
-  <div id="sankey">{% if account.sequence_number >= 1000 %}<p class="text-center text-secondary-emphasis ">Click Update to show, might take a while..{%endif%}</p></div>
+  <div id="sankey"><span class="htmx-indicator">
+    <img src="/static/misc/bars.svg"/> Loading data...
+   </span>
+   {% if account.sequence_number >= 1000 %}<p class="text-center text-secondary-emphasis ">Click Update to show, might take a while..{%endif%}</p></div>
   
   <div id="table"></div>
 

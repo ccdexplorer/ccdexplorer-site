@@ -31,10 +31,13 @@
 </table>
 <div
         class=" mb-1"
+        hx-indicator=".htmx-indicator-rewards"
         hx-trigger="intersect, switched-theme from:body" 
         hx-post="/{{net}}/account/rewards-bucketed/{{account_id}}/{{account_index}}"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
         
-    >
+    ><span class="htmx-indicator-rewards">
+      <img src="/static/misc/bars.svg"/> Loading data...
+     </span>
     
     </div>
