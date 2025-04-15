@@ -14,6 +14,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOMContentLoaded");
     const downloadLink = document.getElementById('download-link');
     const monthInput = document.getElementById('month');
     let now = new Date().toISOString();
@@ -23,6 +24,28 @@
         let formattedDate = selectedDates[0].getFullYear() + '-' + ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
         let accountId = '{{account_id}}';
         monthInput.dataset.formattedDate = formattedDate;
+        downloadLink.classList.add('disabled');
+        htmx.ajax('GET', `/ajax_rewards_download/${accountId}/${formattedDate}`, {target:'#filename'}).then(function() {
+          let filename = document.getElementById('filename').innerText.trim();
+          console.log(filename);
+          filename = filename.replace(/^"|"$/g, '');
+          if (filename !== "NO_REWARDS") {
+            downloadLink.href = filename;
+            downloadLink.classList.remove('disabled');
+            console.log("REWARDS:", filename);
+          } else {
+            downloadLink.href = '#';
+            downloadLink.classList.add('disabled');
+            console.log("NO_REWARDS:", filename);
+          }
+        });    
+        
+      },
+      onReady: function(selectedDates, dateStr, instance) {
+        let formattedDate = selectedDates[0].getFullYear() + '-' + ('0' + (selectedDates[0].getMonth() + 1)).slice(-2);
+        let accountId = '{{account_id}}';
+        monthInput.dataset.formattedDate = formattedDate;
+        downloadLink.classList.add('disabled');
         htmx.ajax('GET', `/ajax_rewards_download/${accountId}/${formattedDate}`, {target:'#filename'}).then(function() {
           let filename = document.getElementById('filename').innerText.trim();
           console.log(filename);
