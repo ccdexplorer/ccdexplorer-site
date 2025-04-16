@@ -1,10 +1,10 @@
-<span class="htmx-indicator">
-      <img src="/static/misc/bars.svg"/> Loading data...
-     </span>
+
 <div  hx-trigger="click, {% if account.sequence_number < 1000 %}intersect, {%endif%} switched-theme from:body" 
       hx-post='/ajax_account_graph/{{net}}/{{account_id}}'
       hx-ext='json-enc'
       hx-indicator=".htmx-indicator"
       hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
       
-      }' type="button" id="account-graph-add-button" ></div>
+      }' type="button" id="account-graph-add-button" ><span class="htmx-indicator">
+            <img src="/static/misc/bars.svg"/> Loading data...
+           </span></div>
