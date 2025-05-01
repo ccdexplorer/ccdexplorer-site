@@ -4,23 +4,23 @@
 {% include 'base/search_bar_non_home_inclusion.html' %}
 <script>
 
-function getNodes(category, key, direction) {
+  function getNodes(category, key, direction) {
     nodes = document.getElementById('nodes');
-    url = '/ajax_nodes_to_html/{{net}}/'+category+'/'+key+'/'+direction+'/'+api_key;
-  
+    url = '/ajax_nodes_to_html/{{net}}/' + category + '/' + key + '/' + direction + '/' + api_key;
+
     fetch(url)
       .then((response) => {
         return response.text();
       })
       .then((data) => {
         nodes.innerHTML = data;
-      
+
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.log(error);
       });
-  
-    
+
+
   }
 
   function val() {
@@ -32,13 +32,145 @@ function getNodes(category, key, direction) {
 
     // Returns the selected value
     getNodes(category.value, key.value, direction.value);
-    }
+  }
 
   window.addEventListener('load', (event) => {
     getNodes('reporting_validators', 'total_stake', 'descending');
-    
-  });
-</script> 
 
+  });
+</script>
 <div id="nodes"></div>
+
+<div id="pagination-top"></div>
+<div id="example-table"></div>
+<div>
+  <a href="#" class="tabulator-download-button" id="download-csv">Download data as CSV</a>
+
+</div>
+
+<script>
+  const isMobile = window.innerWidth <= 768;
+  var table = new Tabulator("#example-table", {
+    ajaxURL: "/mainnet/ajax_nodes_tabulator",
+    layout: "fitColumns",
+    responsiveLayout: "hide",
+    pagination: "local",
+    rowHeight:20,
+    paginationSize: 10,
+    renderComplete: () => {
+    if (window.innerWidth <= 768) {
+      // Delay to wait for Safari's full render
+      setTimeout(() => {
+        document
+          .querySelectorAll('.tabulator-paginator button[data-page="first"], .tabulator-paginator button[data-page="last"]')
+          .forEach(btn => btn.remove());
+          table.redraw(true);
+      }, 50); 
+    }
+  },
+    
+    tableBuilt: function () {
+      addBorderlessClass(this);
+    },
+
+    renderComplete: function () {
+      addBorderlessClass(this);
+    },
+    paginationCounter: "rows",
+    rowFormatter: function (row) {
+      row.getElement().classList.add("ccd");
+      row.getElement().classList.add("sm-text");
+    },
+    columns: [
+      {
+        title: "Node Name",
+        field: "name",
+        responsive: 0,
+        minWidth: 190,
+        formatter: function (cell) {
+          const rowData = cell.getData();
+          const visibleText = cell.getValue();
+
+          if (visibleText === "Not reporting") {
+            return visibleText;
+          }
+
+          const link = document.createElement("a");
+          link.href = "/{{net}}/node/" + rowData.node;
+          link.textContent = visibleText;
+          return link;
+        }
+      }
+      ,
+      {
+        title: "Validator", field: "baker_id", 
+        minWidth: 100,
+        responsive: 0,
+        hozAlign: "left", headerHozAlign: "left",
+        formatter: function (cell) {
+          const rowData = cell.getData();
+          const visibleText = cell.getValue();
+
+          if (visibleText === null) {
+            return "Not a validator";
+          }
+
+          const link = document.createElement("a");
+          link.href = "/{{net}}/account/" + rowData.id;
+          link.textContent = visibleText;
+          return link;
+        }
+      },
+      {
+        title: "Stake", field: "stake", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 0,
+        maxWidth: 70, 
+        sorter: "number",
+        formatter: function (cell) {
+          let value = cell.getValue();
+          if (value === null || value === undefined) {
+            return "-";
+          }
+          return (value * 100).toFixed(3) + "%";  // Multiply by 100 and format
+        }
+      },
+      {
+        title: "Ping (ms)", field: "ping", 
+        responsive: 10,
+        hozAlign: "right", minWidth: 100, maxWidth: 100,
+        headerHozAlign: "right", responsive: 5, formatter: function (cell) {
+          let value = cell.getValue();
+          if (value === null || value === undefined) {
+            return "-";
+          }
+          return (value).toFixed(1);  
+        }
+      },
+      { title: "Version", field: "version", 
+      responsive: 10,
+      maxWidth: 90,
+      hozAlign: "right", headerHozAlign: "right" },
+      { title: "# Peers", field: "peers", 
+      responsive: 10,
+      hozAlign: "right", headerHozAlign: "right", minWidth: 90, maxWidth: 90,  },
+    ],
+    initialSort: [
+    { column: "stake", dir: "desc" }  // Sort by "score" in descending order
+  ],
+  });
+</script>
+
+
+<script>document.getElementById("download-csv").addEventListener("click", function () {
+    table.download("csv", "{{filename}}", { bom: true });
+  });
+
+  function addBorderlessClass(tabulatorInstance) {
+    const internalTable = tabulatorInstance.element.querySelector(".tabulator-table");
+    if (internalTable && !internalTable.classList.contains("table-borderless")) {
+      internalTable.classList.add("table-borderless");
+    }
+  }
+  
+</script>
 {% endblock %}

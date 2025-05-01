@@ -50,6 +50,19 @@
 !/node_modules/nouislider/dist/nouislider.js
 !/node_modules/nouislider/dist/nouislider.css
 
+!/node_modules/tabulator-tables/
+/node_modules/tabulator-tables/*
+!/node_modules/tabulator-tables/dist/
+/node_modules/tabulator-tables/dist/*
+!/node_modules/tabulator-tables/dist/js
+/node_modules/tabulator-tables/dist/js/*
+!/node_modules/tabulator-tables/dist/css
+/node_modules/tabulator-tables/dist/css/*
+
+!/node_modules/tabulator-tables/dist/js/tabulator.min.js
+!/node_modules/tabulator-tables/dist/css/tabulator.min.css
+!/node_modules/tabulator-tables/dist/css/tabulator_bootstrap5.min.css
+
 
 !/node_modules/microlight/
 /node_modules/microlight/*

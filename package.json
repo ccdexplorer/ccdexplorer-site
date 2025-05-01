@@ -16,6 +16,7 @@
     "plotly.js-strict-dist-min": "^2.35.2",
     "prismjs": "^1.29.0",
     "sass": "^1.77.8",
-    "sortable-tablesort": "^3.2.3"
+    "sortable-tablesort": "^3.2.3",
+    "tabulator-tables": "^6.3.1"
   }
 }

@@ -330,9 +330,10 @@ button.nav-link.explorer {
   .content {
     height: 100%;
   }
-    [class*="col-"] {
-        margin-bottom: 1.3rem;
-      }
+  .row-flex > .col-md-6,
+.row-flex > .col-sm-12 {
+  margin-bottom: 1.3rem;
+}
 /* https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns */
 
   /* sortable css adapted*/
@@ -428,3 +429,4 @@ button.nav-link.explorer {
       pointer-events: none;
       color: gray;
   }
+

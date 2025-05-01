@@ -8,8 +8,8 @@
                 <tr class="sm-text ">
                     <td class=" text-secondary-emphasis">Node</td>
                     <td class="text-end  text-secondary-emphasis">{{len_reporting_validators}}</td>
-                    <td class="text-end  text-secondary-emphasis">{{(len_nodes-len_reporting_validators)}}</td>
-                    <td class="text-end  text-secondary-emphasis">{{len_nodes}}</td>
+                    <td class="text-end  text-secondary-emphasis">{{len_non_validator_nodes}}</td>
+                    <td class="text-end  text-secondary-emphasis">{{len_reporting_validators+len_non_validator_nodes}}</td>
                 </tr>
                 <tr class="sm-text">
                     <td class=" text-secondary-emphasis">Not Reporting</td>
@@ -20,8 +20,8 @@
                 <tr class="sm-text">
                     <td class=" text-secondary-emphasis">Total</td>
                     <td class="text-end text-secondary-emphasis">{{len_validators}}</td>
-                    <td class="text-end text-secondary-emphasis">{{(len_nodes-len_reporting_validators)}}</td>
-                    <td class="text-end text-secondary-emphasis">{{(len_validators+len_nodes-len_reporting_validators)}}</td>
+                    <td class="text-end text-secondary-emphasis">{{len_non_validator_nodes}}</td>
+                    <td class="text-end text-secondary-emphasis">{{(len_validators+len_non_validator_nodes)}}</td>
                 </tr>
             </tbody>
         </table>
