@@ -1,0 +1,17 @@
+<div id="{{ccd_tabulator_table}}"></div>
+<div>
+  <a href="#" class="tabulator-download-button" target="_blank" id="download-csv">Download data as CSV</a>
+</div>
+
+<script>
+  const isMobile = window.innerWidth <= 768;
+    window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+      layout: "fitColumns",
+      responsiveLayout: "hide",
+      pagination: "local",
+      // rowHeight:20,
+      paginationSize: 10,
+      paginationSizeSelector: [10, 25, 50, 100],
+      paginationCounter: "rows",
+    });
+</script>

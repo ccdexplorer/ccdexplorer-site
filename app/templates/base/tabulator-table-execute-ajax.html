@@ -1,0 +1,41 @@
+<script>
+    window["{{ccd_tabulator_table}}_table"].on("tableBuilt", function () {
+      const table = window["{{ccd_tabulator_table}}_table"];
+    
+      table.setColumns(window["{{ccd_tabulator_table}}_columns"]);
+      table.setSort(window["{{ccd_tabulator_table}}_sort"]);
+      table.setData('{{tabulator_ajax_url}}');
+    
+      function updatePaginatorVisibility() {
+        const paginator = document.querySelector(`#{{ccd_tabulator_table}} .tabulator-paginator`);
+        if (!paginator) return;
+    
+        const label = paginator.querySelector("label");
+        const select = paginator.querySelector("select.tabulator-page-size");
+        const firstBtn = paginator.querySelector(`button[data-page="first"]`);
+        const lastBtn = paginator.querySelector(`button[data-page="last"]`);
+    
+        const shouldHide = window.innerWidth <= 768;
+    
+        if (label) label.style.display = shouldHide ? "none" : "";
+        if (select) select.style.display = shouldHide ? "none" : "";
+        if (firstBtn) firstBtn.style.display = shouldHide ? "none" : "";
+        if (lastBtn) lastBtn.style.display = shouldHide ? "none" : "";
+      }
+    
+      // Handle on render
+      table.on("renderComplete", function () {
+        setTimeout(updatePaginatorVisibility, 50);
+      });
+    
+      // Handle on resize
+      window.addEventListener("resize", function () {
+        setTimeout(updatePaginatorVisibility, 50);
+      });
+    
+      table.rowFormatter = function (row) {
+        row.getElement().classList.add("ccd", "sm-text");
+      };
+    });
+    </script>
+    

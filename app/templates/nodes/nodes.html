@@ -40,48 +40,12 @@
   });
 </script>
 <div id="nodes"></div>
-
-<div id="pagination-top"></div>
-<div id="example-table"></div>
-<div>
-  <a href="#" class="tabulator-download-button" id="download-csv">Download data as CSV</a>
-
-</div>
+{% set ccd_tabulator_table ='nodes_table'%}
+{% set tabulator_ajax_url = '/mainnet/ajax_nodes_tabulator' %}
+{% include 'base/tabulator-table-full-width.html' %}
 
 <script>
-  const isMobile = window.innerWidth <= 768;
-  var table = new Tabulator("#example-table", {
-    ajaxURL: "/mainnet/ajax_nodes_tabulator",
-    layout: "fitColumns",
-    responsiveLayout: "hide",
-    pagination: "local",
-    rowHeight:20,
-    paginationSize: 10,
-    renderComplete: () => {
-    if (window.innerWidth <= 768) {
-      // Delay to wait for Safari's full render
-      setTimeout(() => {
-        document
-          .querySelectorAll('.tabulator-paginator button[data-page="first"], .tabulator-paginator button[data-page="last"]')
-          .forEach(btn => btn.remove());
-          table.redraw(true);
-      }, 50); 
-    }
-  },
-    
-    tableBuilt: function () {
-      addBorderlessClass(this);
-    },
-
-    renderComplete: function () {
-      addBorderlessClass(this);
-    },
-    paginationCounter: "rows",
-    rowFormatter: function (row) {
-      row.getElement().classList.add("ccd");
-      row.getElement().classList.add("sm-text");
-    },
-    columns: [
+  window["{{ccd_tabulator_table}}_columns"]= [
       {
         title: "Node Name",
         field: "name",
@@ -100,8 +64,7 @@
           link.textContent = visibleText;
           return link;
         }
-      }
-      ,
+      },
       {
         title: "Validator", field: "baker_id", 
         minWidth: 100,
@@ -153,24 +116,12 @@
       { title: "# Peers", field: "peers", 
       responsive: 10,
       hozAlign: "right", headerHozAlign: "right", minWidth: 90, maxWidth: 90,  },
-    ],
-    initialSort: [
-    { column: "stake", dir: "desc" }  // Sort by "score" in descending order
-  ],
-  });
+    ];
+    window["{{ccd_tabulator_table}}_sort"]= [
+    { column: "stake", dir: "desc" } 
+    ];
 </script>
+{% include 'base/tabulator-table-execute-ajax.html' %}
+{% include 'base/tabulator-table-download-link.html' %}
 
-
-<script>document.getElementById("download-csv").addEventListener("click", function () {
-    table.download("csv", "{{filename}}", { bom: true });
-  });
-
-  function addBorderlessClass(tabulatorInstance) {
-    const internalTable = tabulatorInstance.element.querySelector(".tabulator-table");
-    if (internalTable && !internalTable.classList.contains("table-borderless")) {
-      internalTable.classList.add("table-borderless");
-    }
-  }
-  
-</script>
 {% endblock %}
