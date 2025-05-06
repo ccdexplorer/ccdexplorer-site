@@ -1,0 +1,23 @@
+<div id="{{ccd_tabulator_table}}"></div>
+<div>
+  <a href="#" class="tabulator-download-button" target="_blank" id="download-csv">Download data as CSV</a>
+</div>
+
+<script>
+  const isMobile = window.innerWidth <= 768;
+    window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+      layout: "fitColumns",
+      responsiveLayout: "hide",
+      pagination:true, //enable pagination
+    paginationMode:"remote", //enable remote pagination
+      paginationSize: 10,
+      // paginationCounter: "rows",
+      ajaxResponse: function(url, params, response) {
+        if (!response.data || response.data.length === 0) {
+          // Stop at previous page, since this page was empty
+          this.setMaxPage(params.page - 1);
+        }
+        return response.data;
+      },
+    });
+</script>

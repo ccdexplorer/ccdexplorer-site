@@ -119,6 +119,97 @@ async def get_ajax_payday_passive(
     return html
 
 
+#### tabulator ####
+@router.get("/{net}/ajax_paydays")
+async def get_ajax_paydays(
+    request: Request,
+    net: str,
+    page: int = 1,  # from Tabulator
+    size: int = 15,  # page size
+    api_key: str = "",
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 = await get_user_detailsv2(request)
+    skip = (page - 1) * size
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/paydays/{skip}/{size}",
+        httpx_client,
+    )
+    paydays = (
+        [MongoTypePayday(**x) for x in api_result.return_value] if api_result.ok else []
+    )
+    return {
+        "data": paydays,  # must be a list
+        # "last_page": math.ceil(api_result["total"] / size),
+        # "total_count": api_result["total"],  # optional
+    }
+
+
+@router.get(
+    "/{net}/ajax_paydays/{requested_page}/{total_rows}/{api_key}",
+    response_class=HTMLResponse,
+)
+async def get_ajax_paydays_tabulator(
+    request: Request,
+    net: str,
+    requested_page: int,
+    total_rows: int,
+    api_key: str,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    limit = 15
+    user: UserV2 = await get_user_detailsv2(request)
+    if net == "mainnet":
+        skip = calculate_skip(requested_page, total_rows, limit)
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/mainnet/accounts/paydays/{skip}/{limit}",
+            httpx_client,
+        )
+        paydays = (
+            [MongoTypePayday(**x) for x in api_result.return_value]
+            if api_result.ok
+            else []
+        )
+        if not paydays:
+            error = "Request error getting paydays on mainnet."
+            return templates.TemplateResponse(
+                "base/error-request.html",
+                {
+                    "request": request,
+                    "error": error,
+                    "env": environment,
+                    "net": "mainnet",
+                },
+            )
+
+        pagination_request = PaginationRequest(
+            total_txs=total_rows,
+            requested_page=requested_page,
+            word="payday",
+            action_string="payday",
+            limit=limit,
+            returned_rows=len(paydays),
+        )
+        pagination = pagination_calculator(pagination_request)
+        html = templates.get_template("staking/staking_paydays_v2.html").render(
+            {
+                "paydays": paydays,
+                "user": user,
+                "tags": tags,
+                "net": "mainnet",
+                "request": request,
+                "pagination": pagination,
+            }
+        )
+        return html
+
+
+#### tabulator ####
+
+
 @router.get(
     "/{net}/ajax_paydays/{requested_page}/{total_rows}/{api_key}",
     response_class=HTMLResponse,

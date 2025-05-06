@@ -861,7 +861,7 @@ def lottery_power(value):
     return f"{100*value:,.3f}"
 
 
-def verbose_timedelta(delta, days_only=False):
+def verbose_timedelta(delta: timedelta, days_only=False):
     hours, remainder = divmod(delta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     dstr = "%s day%s" % (delta.days, "s"[delta.days == 1 :])

@@ -41,11 +41,33 @@
 </script>
 <div id="nodes"></div>
 {% set ccd_tabulator_table ='nodes_table'%}
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
 {% set tabulator_ajax_url = '/mainnet/ajax_nodes_tabulator' %}
-{% include 'base/tabulator-table-full-width.html' %}
+{% include 'base/tabulator/tabulator-table-full-width-with-totals.html' %}
 
 <script>
   window["{{ccd_tabulator_table}}_columns"]= [
+      
+      {
+        title: "Validator", field: "baker_id", 
+        minWidth: 100,
+        // maxWidth: 180,
+        responsive: 0,
+        hozAlign: "left", headerHozAlign: "left",
+        formatter: function (cell) {
+          const rowData = cell.getData();
+          const visibleText = cell.getValue();
+
+          if (visibleText === null) {
+            return "Not a validator";
+          }
+
+          const link = document.createElement("a");
+          link.href = "/{{net}}/account/" + rowData.id;
+          link.textContent = visibleText;
+          return link;
+        }
+      },
       {
         title: "Node Name",
         field: "name",
@@ -61,25 +83,6 @@
 
           const link = document.createElement("a");
           link.href = "/{{net}}/node/" + rowData.node;
-          link.textContent = visibleText;
-          return link;
-        }
-      },
-      {
-        title: "Validator", field: "baker_id", 
-        minWidth: 100,
-        responsive: 0,
-        hozAlign: "left", headerHozAlign: "left",
-        formatter: function (cell) {
-          const rowData = cell.getData();
-          const visibleText = cell.getValue();
-
-          if (visibleText === null) {
-            return "Not a validator";
-          }
-
-          const link = document.createElement("a");
-          link.href = "/{{net}}/account/" + rowData.id;
           link.textContent = visibleText;
           return link;
         }
@@ -109,6 +112,12 @@
           return (value).toFixed(1);  
         }
       },
+      {
+        title: "Uptime", field: "uptime", 
+        responsive: 15,
+        hozAlign: "right", minWidth: 100, maxWidth: 100,
+        headerHozAlign: "right", formatter: isoDateTimeHumanDiff,
+      },
       { title: "Version", field: "version", 
       responsive: 10,
       maxWidth: 90,
@@ -121,7 +130,7 @@
     { column: "stake", dir: "desc" } 
     ];
 </script>
-{% include 'base/tabulator-table-execute-ajax.html' %}
-{% include 'base/tabulator-table-download-link.html' %}
+{% include 'base/tabulator/tabulator-table-execute-ajax.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}
 
 {% endblock %}

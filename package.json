@@ -9,6 +9,7 @@
     "htmx-ext-json-enc": "^2.0.1",
     "htmx.org": "^2.0.1",
     "jquery": "^3.7.1",
+    "luxon": "^3.6.1",
     "microlight": "^0.0.7",
     "nouislider": "^15.8.1",
     "plotly.js-basic-dist-min": "^2.35.2",

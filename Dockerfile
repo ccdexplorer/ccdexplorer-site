@@ -38,6 +38,7 @@ COPY ./node_modules/highlight.js/languages/json.min.js /code/node_modules/highli
 COPY ./node_modules/tabulator-tables/dist/js/tabulator.min.js /code/node_modules/tabulator-tables/dist/js/tabulator.min.js
 COPY ./node_modules/tabulator-tables/dist/css/tabulator.min.css /code/node_modules/tabulator-tables/dist/css/tabulator.min.css
 COPY ./node_modules/tabulator-tables/dist/css/tabulator_bootstrap5.min.css /code/node_modules/tabulator-tables/dist/css/tabulator_bootstrap5.min.css
+COPY ./node_modules/luxon/build/global/luxon.min.js /code/node_modules/luxon/build/global/luxon.min.js
 
 
 COPY ./addresses/mainnet_addresses_to_indexes.pickle /code/addresses/mainnet_addresses_to_indexes.pickle

@@ -1,0 +1,64 @@
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+{% set ccd_tabulator_table ='pool_rewards_table'%}
+{% set tabulator_ajax_url = '/ajax_payday_pool_rewards_tabulator/'+block_info.height|string +'/'+payday_info.count_of_pool_rewards|string%}
+{% set filename='pool_rewards-'+block_info.height|string +'.csv' %}
+
+
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "ID", field: "pool_owner", 
+        minWidth: 70,
+        maxWidth: 70,
+        responsive: 0,
+        sorter: "number",
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Node Name", field: "pool_name", 
+        minWidth: 100,
+        responsive: 0,
+        formatter: "html",
+        headerSort:false,
+        download:false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Tx Fees", field: "reward.transaction_fees", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 0,
+        maxWidth: 130, 
+        sorter: "number",
+        headerSort: true,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Validator", field: "reward.baker_reward", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 0,
+        minWidth: 120,
+        maxWidth: 130, 
+        sorter: "number",
+        headerSort: true,
+        formatter: microCCDFormatter,
+      }
+    ];
+
+  if (!no_more_finalization_fees) {
+    columns.push({
+      title: "Finalization",
+      field: "reward.finalization_reward",
+      hozAlign: "right",
+      headerHozAlign: "right",
+      responsive: 10,
+      maxWidth: 130,
+      sorter: "number",
+      formatter: microCCDFormatter,
+    });}
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'pool_owner';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'asc';
+</script>
+{% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}

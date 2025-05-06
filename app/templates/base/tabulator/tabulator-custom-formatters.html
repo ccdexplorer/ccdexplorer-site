@@ -1,0 +1,48 @@
+<script>
+function microCCDFormatter(cell) {
+    let value = cell.getValue();
+    let amount = 0;
+  
+    try {
+      amount = parseInt(value) / 1_000_000;
+    } catch (e) {
+      amount = 0;
+    }
+  
+    // Format to 6 decimal places with commas
+    const formatted = amount.toLocaleString("en-US", {
+      minimumFractionDigits: 6,
+      maximumFractionDigits: 6,
+    });
+  
+    const [intPart, decPart] = formatted.split(".");
+  
+    return `<span class="ccd">Ͼ${intPart}</span>.<span class="ccd_decimals">${decPart}</span>`;
+  }
+
+  function isoDateTimeHumanDiff(cell) {
+    const { DateTime } = luxon;
+    const isoString = cell.getValue();
+
+    if (!isoString) return "-";
+
+    try {
+      const then = DateTime.fromISO(isoString, { zone: 'utc' });
+      const now = DateTime.utc();
+
+      const diff = now.diff(then, ['days', 'hours', 'minutes', 'seconds']).toObject();
+      if (diff.days >= 1) {
+        return `${Math.floor(diff.days)} day${diff.days >= 2 ? 's' : ''}`;
+      } else if (diff.hours >= 1) {
+        return `${Math.floor(diff.hours)} hour${diff.hours >= 2 ? 's' : ''}`;
+      } else if (diff.minutes >= 1) {
+        return `${Math.floor(diff.minutes)} min`;
+      } else {
+        return `just now`;
+      }
+    } catch (err) {
+      return "-";
+    }
+}
+
+</script>  

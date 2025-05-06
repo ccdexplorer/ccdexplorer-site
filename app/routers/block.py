@@ -3,8 +3,8 @@
 import httpx
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_BlockInfo
 from ccdexplorer_fundamentals.mongodb import *
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Request, Query
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.classes.dressingroom import (
     MakeUp,
@@ -265,58 +265,141 @@ async def get_ajax_payday_account_rewards_html_v2(
 
 
 @router.get(
-    "/ajax_payday_pool_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
+    "/ajax_payday_account_rewards_tabulator/{block_height}/{total_rows}",
+    response_class=JSONResponse,
 )
-async def get_ajax_payday_pool_rewards_html_v2(
+async def get_ajax_payday_account_rewards_tabulator(
     request: Request,
     block_height: int,
-    requested_page: int,
     total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: Optional[str] = Query("account_id"),
+    direction: Optional[str] = Query("asc"),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 30
+    # limit = 30
     user: UserV2 = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
-        skip = calculate_skip(requested_page, total_rows, limit)
+        # skip = calculate_skip(requested_page, total_rows, limit)
+        skip = (page - 1) * size
+        last_page = math.ceil(total_rows / size)
+
         api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
+            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/account-rewards/{skip}/{size}/{sort_key}/{direction}",
+            httpx_client,
+        )
+        account_rewards = api_result.return_value if api_result.ok else None
+        for reward in account_rewards:
+            reward["account_name"] = account_link(
+                reward["account_id"], "mainnet", user, tags, request.app
+            )
+            reward["account_id"] = reward["account_id"][:4]
+
+        return JSONResponse(
+            {"data": account_rewards, "last_page": last_page, "last_row": total_rows}
+        )
+    else:
+        return JSONResponse([])
+
+
+@router.get(
+    "/ajax_payday_pool_rewards_tabulator/{block_height}/{total_rows}",
+    response_class=JSONResponse,
+)
+async def get_ajax_payday_pool_rewards_tabulator(
+    request: Request,
+    block_height: int,
+    total_rows: int,
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: Optional[str] = Query("pool_owner"),
+    direction: Optional[str] = Query("asc"),
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    # limit = 30
+    user: UserV2 = await get_user_detailsv2(request)
+    if request.app.env["NET"] == "mainnet":
+        # skip = calculate_skip(requested_page, total_rows, limit)
+        skip = (page - 1) * size
+        last_page = math.ceil(total_rows / size)
+
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{size}/{sort_key}/{direction}",
             httpx_client,
         )
         pool_rewards = api_result.return_value if api_result.ok else None
-        if not pool_rewards:
-            error = f"Request error getting pool rewards for block at {block_height} on mainnet."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": "mainnet",
-                },
-            )
+        for reward in pool_rewards:
+            if reward["pool_owner"] != "passive_delegation":
+                reward["pool_name"] = account_link(
+                    reward["pool_owner"], "mainnet", user, tags, request.app
+                )
 
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="pool-reward",
-            action_string="pool_reward",
-            limit=limit,
+            else:
+                reward["pool_name"] = "Passive Delegation"
+
+        return JSONResponse(
+            {"data": pool_rewards, "last_page": last_page, "last_row": total_rows}
         )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("block/block_payday_pool_rewards.html").render(
-            {
-                "rewards": pool_rewards,
-                "user": user,
-                "tags": tags,
-                "net": "mainnet",
-                "request": request,
-                "pagination": pagination,
-            }
-        )
-        return html
+    else:
+        return JSONResponse([])
+
+
+# @router.get(
+#     "/ajax_payday_pool_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
+#     response_class=HTMLResponse,
+# )
+# async def get_ajax_payday_pool_rewards_html_v2(
+#     request: Request,
+#     block_height: int,
+#     requested_page: int,
+#     total_rows: int,
+#     api_key: str,
+#     tags: dict = Depends(get_labeled_accounts),
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+# ):
+#     limit = 30
+#     user: UserV2 = await get_user_detailsv2(request)
+#     if request.app.env["NET"] == "mainnet":
+#         skip = calculate_skip(requested_page, total_rows, limit)
+#         api_result = await get_url_from_api(
+#             f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
+#             httpx_client,
+#         )
+#         pool_rewards = api_result.return_value if api_result.ok else None
+#         if not pool_rewards:
+#             error = f"Request error getting pool rewards for block at {block_height} on mainnet."
+#             return templates.TemplateResponse(
+#                 "base/error-request.html",
+#                 {
+#                     "request": request,
+#                     "error": error,
+#                     "env": environment,
+#                     "net": "mainnet",
+#                 },
+#             )
+
+#         pagination_request = PaginationRequest(
+#             total_txs=total_rows,
+#             requested_page=requested_page,
+#             word="pool-reward",
+#             action_string="pool_reward",
+#             limit=limit,
+#         )
+#         pagination = pagination_calculator(pagination_request)
+#         html = templates.get_template("block/block_payday_pool_rewards.html").render(
+#             {
+#                 "rewards": pool_rewards,
+#                 "user": user,
+#                 "tags": tags,
+#                 "net": "mainnet",
+#                 "request": request,
+#                 "pagination": pagination,
+#             }
+#         )
+#         return html
 
 
 @router.get(

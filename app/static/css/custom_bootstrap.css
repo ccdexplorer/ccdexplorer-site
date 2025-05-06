@@ -11868,7 +11868,7 @@ textarea.form-control-lg {
 /*# sourceMappingURL=custom_bootstrap.css.map */
 
 [data-bs-theme="dark"] .tabulator {
-  border: 1px solid #282828;
+  /* border: 1px solid #282828; */
   background-color: #111111;
   color: var(--bs-secondary-text-emphasis);
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
@@ -11878,6 +11878,8 @@ textarea.form-control-lg {
 
 [data-bs-theme="dark"] .tabulator .tabulator-header {
   background-color: #080808;
+  border-top: 0px;
+  border-bottom: 1px;
 }
 
 [data-bs-theme="dark"] .tabulator .tabulator-header .tabulator-col {
@@ -11895,7 +11897,7 @@ textarea.form-control-lg {
   background-color: #1f1f1f;
   color: var(--bs-secondary-text-emphasis);
   border: 1px solid #4b4b4b;
-  border-radius: 2px;
+  /* border-radius: 2px; */
 }
 
 [data-bs-theme="dark"] .tabulator .tabulator-header .tabulator-col input:focus,
@@ -11942,6 +11944,9 @@ textarea.form-control-lg {
   border-top: 1px solid #393838;
 }
 
+[data-bs-theme="dark"] .tabulator .tabulator-footer .tabulator-page{
+  padding: 4px 6px;
+}
 [data-bs-theme="dark"] .tabulator .tabulator-footer .tabulator-calcs-holder .tabulator-row {
   background-color: #292929 !important;
 }
@@ -12028,7 +12033,9 @@ textarea.form-control-lg {
   border-top: 6px solid var(--bs-secondary-text-emphasis); /* Default arrow color */
 }
 
-
+.tabulator-row{
+  min-height: 25px !important;
+}
 
 .tabulator-row.tabulator-selectable.tabulator-row-odd{
   background-color: rgb(10,10,10);
@@ -12046,4 +12053,10 @@ textarea.form-control-lg {
     padding: 0 !important;
     margin: 0 !important;
   }
+  
+}
+
+/* hide the “Page Size” label */
+.tabulator-paginator > label {
+  display: none !important;
 }

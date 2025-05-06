@@ -1,8 +1,15 @@
+<script>const no_more_finalization_fees = '{{block_info.height}}' > 10_103_320;</script>
 <div class="row">
     <div class="col-xl-6 mb-6">
-        <div class="border curved-border" id="pool_rewards"></div>
+        <div class="border curved-border" id="pool_rewards">
+            {% set title= "Pool Rewards" %}{% include 'base/box_title.html' %}
+            {% include 'block/block_payday_pool_rewards_tabulator.html' %}
+        </div>
     </div>
     <div class="col-xl-6">
-        <div class="border curved-border" id="account_rewards"></div>
+        <div class="border curved-border" id="account_rewards">
+            {% set title= "Account Rewards" %}{% include 'base/box_title.html' %}
+            {% include 'block/block_payday_account_rewards_tabulator.html' %}
+        </div>
     </div>
 </div>

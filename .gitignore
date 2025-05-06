@@ -63,6 +63,13 @@
 !/node_modules/tabulator-tables/dist/css/tabulator.min.css
 !/node_modules/tabulator-tables/dist/css/tabulator_bootstrap5.min.css
 
+!/node_modules/luxon/
+/node_modules/luxon/*
+!/node_modules/luxon/build/
+/node_modules/luxon/build/*
+!node_modules/luxon/build/global
+/node_modules/luxon/build/global/*
+!/node_modules/luxon/build/global/luxon.min.js
 
 !/node_modules/microlight/
 /node_modules/microlight/*

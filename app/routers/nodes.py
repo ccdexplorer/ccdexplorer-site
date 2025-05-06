@@ -10,7 +10,7 @@ from app.state import (
     get_labeled_accounts,
     get_user_detailsv2,
 )
-from app.utils import get_url_from_api
+from app.utils import get_url_from_api, verbose_timedelta
 import httpx
 
 router = APIRouter()
@@ -145,6 +145,14 @@ async def get_ajax_nodes_tabulator(
                 "ping": node.get("averagePing") if node else None,
                 "version": node.get("client") if node else None,
                 "peers": node.get("peersCount") if node else None,
+                "uptime": (
+                    (
+                        dt.datetime.now().astimezone(dt.UTC)
+                        - dt.timedelta(milliseconds=node.get("uptime"))
+                    ).isoformat()
+                    if node and isinstance(node.get("uptime"), int)
+                    else None
+                ),
             }
         )
 
