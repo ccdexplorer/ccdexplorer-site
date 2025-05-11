@@ -245,10 +245,20 @@ tx_type_translation["initial"] = TypeContents(
 def create_dict_for_tabulator_display(
     net, classified_tx, type_additional_info: dict, sender: str | None = None
 ):
+    # classified_tx.transaction.block_info.slot_time = (
+    #     classified_tx.transaction.block_info.slot_time.isoformat()
+    # )
     return {
-        "transaction": classified_tx.transaction.model_dump(
-            exclude_none=True, warnings=False
+        "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
+        "transaction_account_transaction_cost": (
+            classified_tx.transaction.account_transaction.cost
+            if classified_tx.transaction.account_transaction
+            else 0
         ),
+        "transaction_type_contents": classified_tx.transaction.type.contents,
+        # "transaction": classified_tx.transaction.model_dump(
+        #     exclude_none=True, warnings=False
+        # ),
         "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
         "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
         "type_additional_info": type_additional_info,

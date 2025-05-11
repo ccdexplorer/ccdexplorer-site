@@ -69,6 +69,7 @@ let amount = isNaN(parsed) ? 0 : parsed / 1_000_000;
 function isoDateTimeHumanDiff(cell) {
   const { DateTime } = luxon;
   const isoString = cell.getValue();
+  
   var classlist = cell.getElement().classList;
   classlist.add("ccd");
   cell.getElement().classlist = classlist;

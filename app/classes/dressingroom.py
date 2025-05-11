@@ -167,9 +167,6 @@ class MakeUp:
         return self
 
     async def transform_for_tabulator(self):
-        self.transaction.block_info.slot_time = (
-            self.transaction.block_info.slot_time.isoformat()
-        )
 
         # additional info value display str
         type_additional_info = ""
