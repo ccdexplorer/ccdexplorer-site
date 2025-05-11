@@ -1,13 +1,59 @@
+{% if tx_type_translation_from_python is defined %}
+  <script>
+    let tx_type_translation = {};
+    tx_type_translation = {{ tx_type_translation_from_python | tojson }};
+  </script>
+{% endif %}
+
 <script>
+
+function txTypeFormatter(cell){
+  const key = cell.getValue();
+  const map = tx_type_translation[key];
+  if(!map) return ""; 
+
+  let icon;
+  switch(map.category){
+    case "smart_contract":
+      icon = `<i style="color:${map.color}" class="bi bi-card-checklist"></i>`;
+      break;
+    case "transfer":
+      icon = `<i style="color:${map.color}" class="bi bi-arrow-left-right"></i>`;
+      break;
+    case "data_registered":
+      icon = `<i style="color:${map.color}" class="bi bi-clipboard-pulse"></i>`;
+      break;
+    case "identity":
+      icon = `<i style="color:${map.color}" class="bi bi-bag-plus"></i>`;
+      break;
+    case "staking":
+      icon = `<i style="color:${map.color}" class="bi bi-bar-chart-line-fill"></i>`;
+      break;
+    case "rejected":
+      icon = `<i style="color:${map.color}" class="bi bi-ban"></i>`;
+      break;
+    case "chain":
+      icon = `<img class="tiny-logo"
+                     src="/static/logos/small-logo-grey.png"
+                     height="16" width="16">`;
+      break;
+  }
+
+  return `${icon} <span class="text-secondary-emphasis">${map.display_str}</span>`;
+}
+
 function microCCDFormatter(cell) {
-    let value = cell.getValue();
-    let amount = 0;
-  
-    try {
-      amount = parseInt(value) / 1_000_000;
-    } catch (e) {
-      amount = 0;
-    }
+  const raw = cell.getValue();
+
+// If there’s no value, render zero
+if (raw === undefined || raw === null) {
+  return ``;
+}
+
+// Try to parse; fall back to zero on NaN
+const parsed = parseInt(raw, 10);
+let amount = isNaN(parsed) ? 0 : parsed / 1_000_000;
+
   
     // Format to 6 decimal places with commas
     const formatted = amount.toLocaleString("en-US", {
@@ -20,29 +66,32 @@ function microCCDFormatter(cell) {
     return `<span class="ccd">Ͼ${intPart}</span>.<span class="ccd_decimals">${decPart}</span>`;
   }
 
-  function isoDateTimeHumanDiff(cell) {
-    const { DateTime } = luxon;
-    const isoString = cell.getValue();
+function isoDateTimeHumanDiff(cell) {
+  const { DateTime } = luxon;
+  const isoString = cell.getValue();
+  var classlist = cell.getElement().classList;
+  classlist.add("ccd");
+  cell.getElement().classlist = classlist;
 
-    if (!isoString) return "-";
+  if (!isoString) return "-";
 
-    try {
-      const then = DateTime.fromISO(isoString, { zone: 'utc' });
-      const now = DateTime.utc();
+  try {
+    const then = DateTime.fromISO(isoString, { zone: 'utc' });
+    const now = DateTime.utc();
 
-      const diff = now.diff(then, ['days', 'hours', 'minutes', 'seconds']).toObject();
-      if (diff.days >= 1) {
-        return `${Math.floor(diff.days)} day${diff.days >= 2 ? 's' : ''}`;
-      } else if (diff.hours >= 1) {
-        return `${Math.floor(diff.hours)} hour${diff.hours >= 2 ? 's' : ''}`;
-      } else if (diff.minutes >= 1) {
-        return `${Math.floor(diff.minutes)} min`;
-      } else {
-        return `just now`;
-      }
-    } catch (err) {
-      return "-";
+    const diff = now.diff(then, ['days', 'hours', 'minutes', 'seconds']).toObject();
+    if (diff.days >= 1) {
+      return `${Math.floor(diff.days)} day${diff.days >= 2 ? 's' : ''}`;
+    } else if (diff.hours >= 1) {
+      return `${Math.floor(diff.hours)} hour${diff.hours >= 2 ? 's' : ''}`;
+    } else if (diff.minutes >= 1) {
+      return `${Math.floor(diff.minutes)} min`;
+    } else {
+      return `just now`;
     }
+  } catch (err) {
+    return "-";
+  }
 }
 
 </script>  

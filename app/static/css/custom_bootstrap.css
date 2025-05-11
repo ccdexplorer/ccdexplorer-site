@@ -11863,6 +11863,7 @@ textarea.form-control-lg {
   a.sm-text {
     font-size: smaller;
   }
+  
 }
 
 /*# sourceMappingURL=custom_bootstrap.css.map */
@@ -11872,8 +11873,8 @@ textarea.form-control-lg {
   background-color: #111111;
   color: var(--bs-secondary-text-emphasis);
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 14px;
+  /* font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px; */
 }
 
 [data-bs-theme="dark"] .tabulator .tabulator-header {
@@ -12010,9 +12011,9 @@ textarea.form-control-lg {
 
 /* Ensure the header content uses flex for layout */
 .tabulator .tabulator-header .tabulator-col-content {
-  display: flex;
-  align-items: center;                  /* Vertically center text and sorter */
-  justify-content: space-between;       /* Push sorter (arrow) to the right */
+  /* display: flex; */
+  /* align-items: center;                  Vertically center text and sorter */
+  /* justify-content: space-between;       Push sorter (arrow) to the right */
   padding: 4px 8px !important;          /* Keep Tabulator’s default spacing */
   line-height: 1.2 !important;          /* Prevent extra space from line height */
 }
@@ -12059,4 +12060,11 @@ textarea.form-control-lg {
 /* hide the “Page Size” label */
 .tabulator-paginator > label {
   display: none !important;
+}
+
+@media (max-width: 575.98px) {
+  /* every cell shrinks down */
+  div.tabulator-cell {
+    font-size: smaller !important;
+  }
 }

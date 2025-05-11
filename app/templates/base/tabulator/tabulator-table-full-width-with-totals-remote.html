@@ -1,7 +1,7 @@
 <div id="{{ccd_tabulator_table}}"></div>
-<div>
+<!-- <div>
   <a href="#" class="tabulator-download-button" id="download-csv">Download visible rows as CSV</a>
-</div>
+</div> -->
 
 <script>
   
@@ -17,12 +17,16 @@
       paginationCounter: "rows",
       sortMode:"remote",
       ajaxURL: "{{tabulator_ajax_url}}",
-      
-      // ajaxRequesting: function (url, config) {
-      // console.log("REQUEST URL:", url);
-      // return true;
-      // },
-
+      initialSort:[
+        {
+          column: window["{{ccd_tabulator_table}}_default_sort_field"], 
+          dir: window["{{ccd_tabulator_table}}_default_sort_field_direction"]
+        }
+        
+    ],
+    rowFormatter: function(row){
+  row.getElement().classList.add("sm-text");
+},
       ajaxURLGenerator: function (url, config, params) {
         const page = params.page || 1;
         const size = params.size || 10;
@@ -31,7 +35,7 @@
         const sorter = params.sort?.[0] || {};
         const sort_key = sorter.field || window["{{ccd_tabulator_table}}_default_sort_field"];
         const direction = sorter.dir || window["{{ccd_tabulator_table}}_default_sort_field_direction"];
-
+        console.log("sort_key", sort_key);
         const query = new URLSearchParams({
           page,
           size,
@@ -42,20 +46,6 @@
         return `{{tabulator_ajax_url}}?${query.toString()}`;
       },
 
-    // // Response handler to inspect data
-    // ajaxResponse: function (url, params, response) {
-    //   console.log("Response Data:", response);
-    //   return response;  // Ensure the data is in the right format
-    // },
-
-  //   rowFormatter: function (row) {
-  //     row.getElement().classList.add("table-row-line-height");
-  //     row.getCells().forEach(function(cell){
-  //   cell.getElement().classList.add("ccd","sm-text");
-  // });
-  //   },
-
-  
   });
 
 

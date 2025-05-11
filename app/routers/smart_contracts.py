@@ -19,8 +19,8 @@ from ccdexplorer_fundamentals.mongodb import (
     MongoTypeModule,
 )
 from ccdexplorer_schema_parser.Schema import Schema
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Request, Query
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from pydantic import BaseModel
 from app.classes.dressingroom import (
     MakeUp,
@@ -600,27 +600,37 @@ async def module_module_address(
 
 
 @router.get(
-    "/ajax_instance_txs_html_v2/{net}/{instance_index}/{instance_subindex}/{requested_page}/{total_rows}/{api_key}",
+    "/contract_transactions/{net}/{instance_index}/{instance_subindex}/{total_rows}",
     response_class=HTMLResponse,
-)  # type:ignore
-async def ajax_instance_txs_html_v2(
+)
+async def get_contract_transactions_for_tabulator(
     request: Request,
     net: str,
     instance_index: int,
     instance_subindex: int,
-    requested_page: int,
     total_rows: int,
-    api_key: str,
-    tags: dict = Depends(get_labeled_accounts),
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: Optional[str] = Query("block_height"),
+    direction: Optional[str] = Query("desc"),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
 ):
-    limit = 10
-    instance_address = f"<{instance_index},{instance_subindex}>"
+    """
+    Transactions for contract.
+    """
+
     user: UserV2 = await get_user_detailsv2(request)
-    skip = calculate_skip(requested_page, total_rows, limit)
-    # note we are using the account api here, as it's also valid for instances.
+    instance_address = f"<{instance_index},{instance_subindex}>"
+    skip = (page - 1) * size
+    last_page = math.ceil(total_rows / size)
+    sort_key = (
+        "block_height" if sort_key == "transaction.block_info.height" else sort_key
+    )
+    sort_key = "effect_type" if sort_key == "transaction.type.contents" else sort_key
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{size}/{sort_key}/{direction}",
         httpx_client,
     )
     tx_result = api_result.return_value if api_result.ok else None
@@ -635,50 +645,126 @@ async def ajax_instance_txs_html_v2(
                 "net": net,
             },
         )
+    else:
+        tb_made_up_txs = []
+        tx_result_transactions = tx_result["transactions"]
 
-    tx_result_transactions = tx_result["transactions"]
-    total_rows = tx_result["total_tx_count"]
-    made_up_txs = []
-    if len(tx_result_transactions) > 0:
-        for transaction in tx_result_transactions:
-            transaction = CCD_BlockItemSummary(**transaction)
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "httpx_client": httpx_client,
-                    "tags": tags,
-                    "user": user,
-                    "app": request.app,
-                    "requesting_route": RequestingRoute.account,
-                }
-            )
+        if len(tx_result_transactions) > 0:
+            for transaction in tx_result_transactions:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.smart_contract,
+                    }
+                )
 
-            classified_tx = await MakeUp(
-                makeup_request=makeup_request
-            ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="tx",
-        action_string="tx",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("base/transactions_simple_list.html").render(
-        {
-            "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
-            "tags": tags,
-            "net": net,
-            "show_amounts": False,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
-        }
-    )
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
 
-    return html
+                type_additional_info, sender = (
+                    await classified_tx.transform_for_tabulator()
+                )
+
+                tb_made_up_txs.append(
+                    create_dict_for_tabulator_display(
+                        net, classified_tx, type_additional_info, sender
+                    )
+                )
+        return JSONResponse(
+            {
+                "data": tb_made_up_txs,
+                "last_page": last_page,
+                "last_row": total_rows,
+            }
+        )
+
+
+# @router.get(
+#     "/ajax_instance_txs_html_v2/{net}/{instance_index}/{instance_subindex}/{requested_page}/{total_rows}/{api_key}",
+#     response_class=HTMLResponse,
+# )  # type:ignore
+# async def ajax_instance_txs_html_v2(
+#     request: Request,
+#     net: str,
+#     instance_index: int,
+#     instance_subindex: int,
+#     requested_page: int,
+#     total_rows: int,
+#     api_key: str,
+#     tags: dict = Depends(get_labeled_accounts),
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+# ):
+#     limit = 10
+#     instance_address = f"<{instance_index},{instance_subindex}>"
+#     user: UserV2 = await get_user_detailsv2(request)
+#     skip = calculate_skip(requested_page, total_rows, limit)
+#     # note we are using the account api here, as it's also valid for instances.
+#     api_result = await get_url_from_api(
+#         f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
+#         httpx_client,
+#     )
+#     tx_result = api_result.return_value if api_result.ok else None
+#     if not tx_result:
+#         error = f"Request error getting transactions for contract at {instance_address} on {net}."
+#         return templates.TemplateResponse(
+#             "base/error-request.html",
+#             {
+#                 "request": request,
+#                 "error": error,
+#                 "env": environment,
+#                 "net": net,
+#             },
+#         )
+
+#     tx_result_transactions = tx_result["transactions"]
+#     total_rows = tx_result["total_tx_count"]
+#     made_up_txs = []
+#     if len(tx_result_transactions) > 0:
+#         for transaction in tx_result_transactions:
+#             transaction = CCD_BlockItemSummary(**transaction)
+#             makeup_request = MakeUpRequest(
+#                 **{
+#                     "net": net,
+#                     "httpx_client": httpx_client,
+#                     "tags": tags,
+#                     "user": user,
+#                     "app": request.app,
+#                     "requesting_route": RequestingRoute.account,
+#                 }
+#             )
+
+#             classified_tx = await MakeUp(
+#                 makeup_request=makeup_request
+#             ).prepare_for_display(transaction, "", False)
+#             made_up_txs.append(classified_tx)
+#     pagination_request = PaginationRequest(
+#         total_txs=total_rows,
+#         requested_page=requested_page,
+#         word="tx",
+#         action_string="tx",
+#         limit=limit,
+#     )
+#     pagination = pagination_calculator(pagination_request)
+#     html = templates.get_template("base/transactions_simple_list.html").render(
+#         {
+#             "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
+#             "tags": tags,
+#             "net": net,
+#             "show_amounts": False,
+#             "request": request,
+#             "pagination": pagination,
+#             "totals_in_pagination": True,
+#             "total_rows": total_rows,
+#         }
+#     )
+
+#     return html
 
 
 @router.get(
@@ -782,6 +868,12 @@ async def smart_contract_page(
         )
         supports_cis_standards = api_result.return_value if api_result.ok else []
 
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions-count-if-below-display-limit",
+            httpx_client,
+        )
+        tx_count_info = api_result.return_value if api_result.ok else {}
+
         request.state.api_calls["Instance Info"] = (
             f"{request.app.api_url}/docs#/Contract/get_instance_information_v2__net__contract__contract_index___contract_subindex__info_get"
         )
@@ -829,6 +921,8 @@ async def smart_contract_page(
                     "item_ids": item_ids,
                     "filename": filename,
                     "supports_cis_standards": supports_cis_standards,
+                    "total_rows": tx_count_info.get("tx_count", 0),
+                    "tx_type_translation_from_python": tx_type_translation_for_js(),
                 },
             )
     # api_result NOT ok

@@ -104,6 +104,8 @@ async def request_block(
             "block_info": block_info,
             "user": user,
             "tags": tags,
+            "total_rows": block_info.transaction_count,
+            "tx_type_translation_from_python": tx_type_translation_for_js(),
         },
     )
 
@@ -210,61 +212,6 @@ async def get_ajax_special_events_html_v2(
 
 
 @router.get(
-    "/ajax_payday_account_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_ajax_payday_account_rewards_html_v2(
-    request: Request,
-    block_height: int,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    tags: dict = Depends(get_labeled_accounts),
-    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
-):
-    limit = 30
-    user: UserV2 = await get_user_detailsv2(request)
-    if request.app.env["NET"] == "mainnet":
-        skip = calculate_skip(requested_page, total_rows, limit)
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/account-rewards/{skip}/{limit}",
-            httpx_client,
-        )
-        account_rewards = api_result.return_value if api_result.ok else None
-        if not account_rewards:
-            error = f"Request error getting account rewards for block at {block_height} on mainnet."
-            return templates.TemplateResponse(
-                "base/error-request.html",
-                {
-                    "request": request,
-                    "error": error,
-                    "env": environment,
-                    "net": "mainnet",
-                },
-            )
-
-        pagination_request = PaginationRequest(
-            total_txs=total_rows,
-            requested_page=requested_page,
-            word="account-reward",
-            action_string="account_reward",
-            limit=limit,
-        )
-        pagination = pagination_calculator(pagination_request)
-        html = templates.get_template("block/block_payday_account_rewards.html").render(
-            {
-                "rewards": account_rewards,
-                "user": user,
-                "tags": tags,
-                "net": "mainnet",
-                "request": request,
-                "pagination": pagination,
-            }
-        )
-        return html
-
-
-@router.get(
     "/ajax_payday_account_rewards_tabulator/{block_height}/{total_rows}",
     response_class=JSONResponse,
 )
@@ -347,59 +294,88 @@ async def get_ajax_payday_pool_rewards_tabulator(
         return JSONResponse([])
 
 
-# @router.get(
-#     "/ajax_payday_pool_rewards_html_v2/{block_height}/{requested_page}/{total_rows}/{api_key}",
-#     response_class=HTMLResponse,
-# )
-# async def get_ajax_payday_pool_rewards_html_v2(
-#     request: Request,
-#     block_height: int,
-#     requested_page: int,
-#     total_rows: int,
-#     api_key: str,
-#     tags: dict = Depends(get_labeled_accounts),
-#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
-# ):
-#     limit = 30
-#     user: UserV2 = await get_user_detailsv2(request)
-#     if request.app.env["NET"] == "mainnet":
-#         skip = calculate_skip(requested_page, total_rows, limit)
-#         api_result = await get_url_from_api(
-#             f"{request.app.api_url}/v2/mainnet/block/{block_height}/payday/pool-rewards/{skip}/{limit}",
-#             httpx_client,
-#         )
-#         pool_rewards = api_result.return_value if api_result.ok else None
-#         if not pool_rewards:
-#             error = f"Request error getting pool rewards for block at {block_height} on mainnet."
-#             return templates.TemplateResponse(
-#                 "base/error-request.html",
-#                 {
-#                     "request": request,
-#                     "error": error,
-#                     "env": environment,
-#                     "net": "mainnet",
-#                 },
-#             )
+@router.get(
+    "/block_transactions/{net}/{height}/{total_rows}",
+    response_class=HTMLResponse,
+)
+async def get_block_transactions_for_tabulator(
+    request: Request,
+    net: str,
+    height: int,
+    total_rows: int,
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: Optional[str] = Query("block_height"),
+    direction: Optional[str] = Query("desc"),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """
+    Transactions for block.
+    """
 
-#         pagination_request = PaginationRequest(
-#             total_txs=total_rows,
-#             requested_page=requested_page,
-#             word="pool-reward",
-#             action_string="pool_reward",
-#             limit=limit,
-#         )
-#         pagination = pagination_calculator(pagination_request)
-#         html = templates.get_template("block/block_payday_pool_rewards.html").render(
-#             {
-#                 "rewards": pool_rewards,
-#                 "user": user,
-#                 "tags": tags,
-#                 "net": "mainnet",
-#                 "request": request,
-#                 "pagination": pagination,
-#             }
-#         )
-#         return html
+    user: UserV2 = await get_user_detailsv2(request)
+    skip = (page - 1) * size
+    last_page = math.ceil(total_rows / size)
+    sort_key = (
+        "block_height" if sort_key == "transaction.block_info.height" else sort_key
+    )
+    # sort_key = "index" if sort_key == "transaction.type.contents" else sort_key
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/block/{height}/transactions/{skip}/{size}/{sort_key}/{direction}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not tx_result:
+        error = f"Request error getting transactions for block at {height} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    else:
+        tb_made_up_txs = []
+        tx_result_transactions = tx_result["transactions"]
+
+        if len(tx_result_transactions) > 0:
+            for transaction in tx_result_transactions:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.block,
+                    }
+                )
+
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
+
+                type_additional_info, sender = (
+                    await classified_tx.transform_for_tabulator()
+                )
+
+                tb_made_up_txs.append(
+                    create_dict_for_tabulator_display(
+                        net, classified_tx, type_additional_info, sender
+                    )
+                )
+        return JSONResponse(
+            {
+                "data": tb_made_up_txs,
+                "last_page": last_page,
+                "last_row": total_rows,
+            }
+        )
 
 
 @router.get(

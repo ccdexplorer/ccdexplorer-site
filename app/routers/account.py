@@ -1,44 +1,48 @@
 import datetime as dt
+from typing import Optional
 
 import httpx
-import plotly.express as px
 import pandas as pd
-from pydantic import BaseModel
-from plotly.subplots import make_subplots
+import plotly.express as px
+import json
+import plotly.graph_objects as go
 import polars as polars
-from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.cis import MongoTypeTokensTag
+from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
-    CCD_BlockInfo,
     CCD_AccountInfo,
-    CCD_ContractAddress,
+    CCD_BlockInfo,
     CCD_BlockItemSummary,
+    CCD_ContractAddress,
 )
-from app.classes.sankey import SanKey
 from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, Response, RedirectResponse
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
+from plotly.subplots import make_subplots
+from pydantic import BaseModel
 
 from app.classes.dressingroom import (
     MakeUp,
     MakeUpRequest,
     RequestingRoute,
 )
+from app.classes.sankey import SanKey
 from app.env import environment
-
 from app.jinja2_helpers import templates
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 from app.utils import (
     PaginationRequest,
     account_link,
-    calculate_skip,
-    pagination_calculator,
-    ccdexplorer_plotly_template,
     add_account_info_to_cache,
+    calculate_skip,
+    ccdexplorer_plotly_template,
     from_address_to_index,
     get_url_from_api,
+    pagination_calculator,
+    tx_type_translation_for_js,
+    create_dict_for_tabulator_display,
 )
-import plotly.graph_objects as go
+import math
 
 router = APIRouter()
 
@@ -409,11 +413,12 @@ async def get_account(
         validator_id = None
 
     identity = Identity(account_info)
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/misc/identity-providers",
-    #     httpx_client,
-    # )
-    # identity_providers = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions-count-if-below-display-limit",
+        httpx_client,
+    )
+    tx_count_info = api_result.return_value if api_result.ok else {}
 
     account_link_found = account_link(account_id, net, user, tags, request.app)
 
@@ -643,23 +648,21 @@ async def get_account(
             "pool": pool,
             "earliest_win_time": earliest_win_time,
             "node": node,
-            # "aliases_in_use": aliases_in_use,
             "account_is_validator": account_is_validator,
             "cns_domains_list": cns_domains_list,
             "identity": identity,
             "identity_providers": request.app.identity_providers_cache[net],
-            # "recurring": recurring,
             "delegation": delegation,
             "delegation_target_address": delegation_target_address,
             "net": net,
             "user": user,
             "tags": tags,
             "account_link_found": account_link_found,
-            # "tag_found": tag_found,
-            # "tag_label": tag_label,
             "tokens_available": tokens_available,
             "year_month": dt.datetime.now().strftime("%Y-%m"),
             "rewards_filename": rewards_filename,
+            "total_rows": tx_count_info.get("tx_count", 0),
+            "tx_type_translation_from_python": tx_type_translation_for_js(),
         },
     )
 
@@ -800,29 +803,36 @@ async def request_sankey(
 
 
 @router.get(
-    "/account_transactions/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
+    "/account_transactions/{net}/{account_id}/{total_rows}",
     response_class=HTMLResponse,
 )
-async def get_account_transactions(
+async def get_account_transactions_for_tabulator(
     request: Request,
     net: str,
     account_id: str,
-    requested_page: int,
     total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: Optional[str] = Query("block_height"),
+    direction: Optional[str] = Query("desc"),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     # recurring: Recurring = Depends(get_recurring),
     tags: dict = Depends(get_labeled_accounts),
 ):
     """
-    Add {net}.
+    Transactions for account.
     """
-    limit = 10
+
     user: UserV2 = await get_user_detailsv2(request)
 
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
+    last_page = math.ceil(total_rows / size)
+    sort_key = (
+        "block_height" if sort_key == "transaction.block_info.height" else sort_key
+    )
+    sort_key = "effect_type" if sort_key == "transaction.type.contents" else sort_key
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions/{skip}/{size}/{sort_key}/{direction}",
         httpx_client,
     )
     tx_result = api_result.return_value if api_result.ok else None
@@ -839,55 +849,135 @@ async def get_account_transactions(
                 "net": net,
             },
         )
+    else:
+        tb_made_up_txs = []
+        tx_result_transactions = tx_result["transactions"]
 
-    tx_result_transactions = tx_result["transactions"]
-    total_rows = tx_result["total_tx_count"]
+        if len(tx_result_transactions) > 0:
+            for transaction in tx_result_transactions:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.account,
+                    }
+                )
 
-    made_up_txs = []
-    if len(tx_result_transactions) > 0:
-        for transaction in tx_result_transactions:
-            transaction = CCD_BlockItemSummary(**transaction)
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "httpx_client": httpx_client,
-                    "tags": tags,
-                    "user": user,
-                    "app": request.app,
-                    "requesting_route": RequestingRoute.account,
-                }
-            )
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
 
-            classified_tx = await MakeUp(
-                makeup_request=makeup_request
-            ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
+                type_additional_info, sender = (
+                    await classified_tx.transform_for_tabulator()
+                )
 
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="tx",
-        action_string="tx",
-        limit=limit,
-        returned_rows=len(made_up_txs),
-    )
-    pagination = pagination_calculator(pagination_request)
+                tb_made_up_txs.append(
+                    create_dict_for_tabulator_display(
+                        net, classified_tx, type_additional_info, sender
+                    )
+                )
+        return JSONResponse(
+            {
+                "data": tb_made_up_txs,
+                "last_page": last_page,
+                "last_row": total_rows,
+            }
+        )
 
-    html = templates.get_template("base/transactions_simple_list.html").render(
-        {
-            "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
-            "tags": tags,
-            "user": user,
-            "net": net,
-            "show_amounts": True,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
-        }
-    )
 
-    return html
+# @router.get(
+#     "/account_transactions/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
+#     response_class=HTMLResponse,
+# )
+# async def get_account_transactions(
+#     request: Request,
+#     net: str,
+#     account_id: str,
+#     requested_page: int,
+#     total_rows: int,
+#     api_key: str,
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+#     # recurring: Recurring = Depends(get_recurring),
+#     tags: dict = Depends(get_labeled_accounts),
+# ):
+#     """
+#     Add {net}.
+#     """
+#     limit = 10
+#     user: UserV2 = await get_user_detailsv2(request)
+
+#     skip = calculate_skip(requested_page, total_rows, limit)
+#     api_result = await get_url_from_api(
+#         f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions/{skip}/{limit}",
+#         httpx_client,
+#     )
+#     tx_result = api_result.return_value if api_result.ok else None
+#     if not tx_result:
+#         error = (
+#             f"Request error getting transactions for account at {account_id} on {net}."
+#         )
+#         return templates.TemplateResponse(
+#             "base/error-request.html",
+#             {
+#                 "request": request,
+#                 "error": error,
+#                 "env": environment,
+#                 "net": net,
+#             },
+#         )
+
+#     tx_result_transactions = tx_result["transactions"]
+#     total_rows = tx_result["total_tx_count"]
+
+#     made_up_txs = []
+#     if len(tx_result_transactions) > 0:
+#         for transaction in tx_result_transactions:
+#             transaction = CCD_BlockItemSummary(**transaction)
+#             makeup_request = MakeUpRequest(
+#                 **{
+#                     "net": net,
+#                     "httpx_client": httpx_client,
+#                     "tags": tags,
+#                     "user": user,
+#                     "app": request.app,
+#                     "requesting_route": RequestingRoute.account,
+#                 }
+#             )
+
+#             classified_tx = await MakeUp(
+#                 makeup_request=makeup_request
+#             ).prepare_for_display(transaction, "", False)
+#             made_up_txs.append(classified_tx)
+
+#     pagination_request = PaginationRequest(
+#         total_txs=total_rows,
+#         requested_page=requested_page,
+#         word="tx",
+#         action_string="tx",
+#         limit=limit,
+#         returned_rows=len(made_up_txs),
+#     )
+#     pagination = pagination_calculator(pagination_request)
+
+#     html = templates.get_template("base/transactions_simple_list.html").render(
+#         {
+#             "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
+#             "tags": tags,
+#             "user": user,
+#             "net": net,
+#             "show_amounts": True,
+#             "request": request,
+#             "pagination": pagination,
+#             "totals_in_pagination": True,
+#             "total_rows": total_rows,
+#         }
+#     )
+
+#     return html
 
 
 def collapse_tokens_from_aliases_fungible(tokens: list):

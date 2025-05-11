@@ -335,7 +335,12 @@ if (ref) {
   <div class="tab-pane fade show active" id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
-        <div class="border curved-border" id="txs"></div>
+        <div class="border curved-border" id="txs">
+          {% set ccd_tabulator_table ='txs_table'%}
+          {% set tabulator_ajax_url = '/account_transactions/'+net+'/'+account_id +'/'+total_rows|string%}
+          {% set filename='transactions-'+account_id|string +'.csv' %}
+          {% include "base/tabulator/tabulator-txs.html" %}
+        </div>
       </div>  
       
     </div>
@@ -403,7 +408,7 @@ if (ref) {
 
 <script>
 window.addEventListener('load', (event) => {
-    getTransactions(0, 0);
+    // getTransactions(0, 0);
     '{% if account_is_validator %}'
         getValidatorTransactions(0, 0);
         getValidatorTally(0, 0);

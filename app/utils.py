@@ -1,45 +1,47 @@
+import asyncio
+import base64
 import datetime as dt
-from functools import lru_cache
 import io
+import json
 import math
 import typing
 from datetime import timedelta
-import asyncio
 from enum import Enum
+from functools import lru_cache
 from typing import Any, Optional
-import dateutil.parser
-from fastapi import Request, FastAPI
+
+import cbor2
 import dateutil
+import dateutil.parser
 import httpx
-from rich import print
 
 # from app.jinja2_helpers import templates
 import plotly.graph_objects as go
 from ccdexplorer_fundamentals.cis import (
     CIS,
-    depositCIS2TokensEvent,
-    withdrawCIS2TokensEvent,
-    transferCIS2TokensEvent,
-    MongoTypeLoggedEventV2,
     LoggedEvents,
+    MongoTypeLoggedEventV2,
     MongoTypeTokenAddress,
     MongoTypeTokensTag,
     TokenMetaData,
+    depositCIS2TokensEvent,
+    transferCIS2TokensEvent,
+    withdrawCIS2TokensEvent,
 )
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
-    CCD_ContractAddress,
     CCD_AccountInfo,
+    CCD_ContractAddress,
     CCD_RejectReason,
     CCD_UpdatePayload,
 )
 from ccdexplorer_fundamentals.mongodb import Collections, MongoMotor
 from ccdexplorer_fundamentals.user_v2 import UserV2
-from pydantic import BaseModel
-
-import base64
-import json
 from ccdexplorer_schema_parser.Schema import Schema
-import cbor2
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
+from rich import print
+
+# from app.classes.dressingroom import MakeUp
 
 
 class TypeContentsCategories(Enum):
@@ -238,6 +240,33 @@ tx_type_translation["initial"] = TypeContents(
     category=TypeContentsCategories.identity,
     color=TypeContentsCategoryColors.identity.value[0],
 )
+
+
+def create_dict_for_tabulator_display(
+    net, classified_tx, type_additional_info: dict, sender: str | None = None
+):
+    return {
+        "transaction": classified_tx.transaction.model_dump(
+            exclude_none=True, warnings=False
+        ),
+        "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
+        "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
+        "type_additional_info": type_additional_info,
+        "sender": sender,
+    }
+
+
+def tx_type_translation_for_js():
+    js_map = {
+        k: {
+            "display_str": v.display_str,
+            "category": v.category.name,
+            "color": v.color,
+        }
+        for k, v in tx_type_translation.items()
+    }
+
+    return js_map
 
 
 def tx_type_translator(tx_type_contents: str, request_type: str) -> str:

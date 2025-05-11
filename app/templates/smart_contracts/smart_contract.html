@@ -220,7 +220,12 @@
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
         <div class="border curved-border" >
-            <div id="instance-transactions"></div>
+            <div id="instance-transactions">
+                {% set ccd_tabulator_table ='txs_table_contract'%}
+                {% set tabulator_ajax_url = '/contract_transactions/'+net+'/'+index|string+'/'+subindex|string +'/'+total_rows|string%}
+                {% set filename='contract-transactions-'+account_id|string +'.csv' %}
+                {% include "base/tabulator/tabulator-txs.html" %}
+            </div>
         </div>
       </div>  
       
@@ -307,7 +312,7 @@
 {% endif %}  
 <script>
   window.addEventListener('load', (event) => {
-    getTransactions(0, 0);
+    // getTransactions(0, 0);
     getFungibleVerifiedTokens(0, 0);
     getNonFungibleVerifiedTokens(0,0);
     getUnVerifiedTokens(0,0);
