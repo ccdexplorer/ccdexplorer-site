@@ -87,7 +87,7 @@ async def redirect_to_mainnet(
 ) -> HTMLResponse:
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     if "last_requests" not in request.state._state:
         request.state.last_requests = {}
@@ -224,7 +224,7 @@ async def search_all(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     # order: account, block, transaction, module, instance, token
     api_result = await get_url_from_api(
@@ -474,7 +474,7 @@ async def ajax_last_blocks(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     latest_blocks = request.app.blocks_cache.get(net)
     if not latest_blocks:
         error = f"Request error getting the most recent blocks on {net}."
@@ -515,7 +515,7 @@ async def ajax_last_txs(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/transactions/last/10", httpx_client
     # )
@@ -562,7 +562,7 @@ async def ajax_last_txs_own_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/transactions/last/50", httpx_client
     # )
@@ -631,7 +631,7 @@ async def ajax_last_blocks_own_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     latest_blocks = request.app.blocks_cache.get(net)
     if not latest_blocks:
         error = f"Request error getting the most recent blocks on {net}."
@@ -672,7 +672,7 @@ async def ajax_last_accounts_own_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     # print(list(request.app.addresses_to_indexes.get(net).values())[:10])
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/accounts/last/50", httpx_client
@@ -731,7 +731,7 @@ async def transactions_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Txs"] = (
         f"{request.app.api_url}/docs#/Transactions/get_last_transactions_v2__net__transactions_last__count__get"
@@ -758,7 +758,7 @@ async def blocks_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Blocks"] = (
         f"{request.app.api_url}/docs#/Blocks/get_last_blocks_v2__net__blocks_last__count__get"
@@ -785,7 +785,7 @@ async def accounts_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Latest Accounts"] = (
         f"{request.app.api_url}/docs#/Accounts/get_last_accounts_v2__net__accounts_last__count__get"
@@ -812,7 +812,7 @@ async def ajax_consensus_own_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     try:
         latest_consensus = CCD_ConsensusDetailedStatus(
             **request.app.consensus_cache.get(net)
@@ -859,7 +859,7 @@ async def consensus_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Consensus Detailed Status"] = (
         f"{request.app.api_url}/docs#/Misc/get_consensus_detailed_status_v2__net__misc_consensus_detailed_status_get"

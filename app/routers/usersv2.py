@@ -80,7 +80,7 @@ async def logout(request: Request, response: Response):
 async def user_settings_all(
     request: Request,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if user:
         if not isinstance(user, UserV2):
             user = UserV2(**user)
@@ -105,7 +105,7 @@ async def user_settings_all(
 async def cancel_edit_email_address_response(
     request: Request,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     return templates.TemplateResponse(
@@ -123,7 +123,7 @@ async def cancel_edit_email_address_response(
 async def cancel_edit_other_notification_preferences_response(
     request: Request,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     return templates.TemplateResponse(
@@ -142,7 +142,7 @@ async def cancel_edit_contract_response(
     request: Request,
     contract_index: int,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -168,7 +168,7 @@ async def cancel_edit_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -194,7 +194,7 @@ async def save_email_address_response(
     request: Request,
     response_form: dict,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -219,7 +219,7 @@ async def save_new_account_response(
     request: Request,
     response_form: dict,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -273,7 +273,7 @@ async def search_instance_response(
     request: Request,
     response_form: dict,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     response_as_dict = jsonable_encoder(response_form)
@@ -297,8 +297,9 @@ async def search_instance_response(
         # html += "</tbody></table>"
 
         api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/mainnet/contract/{response_as_dict["search"]}/0/info", request.app.httpx_client
-    )
+            f"{request.app.api_url}/v2/mainnet/contract/{response_as_dict["search"]}/0/info",
+            request.app.httpx_client,
+        )
         result = api_result.return_value if api_result.ok else {}
         if result:
             r = MongoTypeInstance(**result)
@@ -324,7 +325,7 @@ async def save_new_contract_response(
     request: Request,
     response_form: dict,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -337,8 +338,9 @@ async def save_new_contract_response(
         try:
             _id = f"<{contract_index},0>"
             api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
-        )
+                f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info",
+                request.app.httpx_client,
+            )
             result = api_result.return_value if api_result.ok else {}
             if result:
                 retrieved_instance = MongoTypeInstance(**result)
@@ -392,7 +394,7 @@ async def save_other_notification_preferences_response(
     request: Request,
     response_form: dict,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -477,7 +479,7 @@ async def delete_user_account_response(
     account_index: CCD_AccountIndex,
     response: Response,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -499,7 +501,7 @@ async def delete_contract_response(
     contract_index: int,
     response: Response,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     user.last_modified = dt.datetime.now().astimezone(tz=dt.timezone.utc)
@@ -522,7 +524,7 @@ async def save_contract_response(
     response_form: dict,
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.contracts[str(contract_index)], AccountForUser):
@@ -534,7 +536,8 @@ async def save_contract_response(
 
     _id = f"<{contract_index},0>"
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
+        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info",
+        request.app.httpx_client,
     )
     result = api_result.return_value if api_result.ok else {}
     methods = []
@@ -603,7 +606,7 @@ async def save_user_account_response(
     response_form: dict,
 ):
     response_as_dict = jsonable_encoder(response_form)
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -721,7 +724,7 @@ async def save_user_account_response(
     user.accounts[str(account_index)] = user_account
     # save back to collection
     await save_user_to_collection(user, request.app)
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
     if not isinstance(user.accounts[str(account_index)], AccountForUser):
@@ -739,7 +742,7 @@ async def save_user_account_response(
 async def edit_email_address(
     request: Request,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if not isinstance(user, UserV2):
         user = UserV2(**user)
 
@@ -752,7 +755,7 @@ async def edit_email_address(
 async def edit_other_notification_preferences_response(
     request: Request,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
@@ -767,7 +770,7 @@ async def edit_user_account_response(
     request: Request,
     account_index: CCD_AccountIndex,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
@@ -786,7 +789,7 @@ async def edit_contract_response(
     request: Request,
     contract_index: int,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if isinstance(user, dict):
         user = UserV2(**user)
     if not isinstance(user, UserV2):
@@ -794,7 +797,8 @@ async def edit_contract_response(
     contract = ContractForUser(**user.contracts[str(contract_index)])
     _id = f"<{contract_index},0>"
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info", request.app.httpx_client
+        f"{request.app.api_url}/v2/mainnet/contract/{contract_index}/0/info",
+        request.app.httpx_client,
     )
     result = api_result.return_value if api_result.ok else {}
     methods = []
@@ -815,7 +819,7 @@ async def generate_edit_html_for_contract(
     user: UserV2,
     contract: ContractForUser,
     methods: list[str],
-    app
+    app,
 ):
     api_result = await get_url_from_api(
         f"{app.api_url}/v2/site_user/explanations", app.httpx_client

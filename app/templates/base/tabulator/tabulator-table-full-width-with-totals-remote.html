@@ -9,12 +9,38 @@
       columns: window["{{ccd_tabulator_table}}_columns"],
       layout: "fitColumns",
       responsiveLayout: "hide",
-      pagination: true, 
+      // pagination: true, 
       paginationMode: "remote", 
       paginationSize: 10,
       paginationSizeSelector: [10, 25, 50, 100],
       paginationButtonCount:3,
-      paginationCounter: "rows",
+      pagination:true,
+      paginationCounter: function(pageSize, currentRow, currentPage, totalRows, totalPages) {
+          // Humanize totals with Intl.NumberFormat compact notation
+          function humanize(num) {
+              if (num < 1000) {
+                  return num.toLocaleString();
+              }
+              return new Intl.NumberFormat('en', {
+                  notation: 'compact',
+                  compactDisplay: 'short',
+                  maximumFractionDigits: 1,
+              }).format(num);
+          }
+
+          // Compute the 1-based range of items on this page
+          const startIdx = (currentPage - 1) * pageSize + 1;
+          const endIdx = Math.min(currentPage * pageSize, totalRows);
+          const range = `${startIdx.toLocaleString()} – ${endIdx.toLocaleString()}`;
+
+          // Choose raw vs. humanized total
+          const totalFmt = totalRows < 5000
+              ? totalRows.toLocaleString()
+              : humanize(totalRows);
+
+          // Final display string
+          return `Showing ${range} of ${totalFmt} txs`;
+      },
       sortMode:"remote",
       ajaxURL: "{{tabulator_ajax_url}}",
       initialSort:[

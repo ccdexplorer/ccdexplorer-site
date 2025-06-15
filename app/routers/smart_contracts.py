@@ -271,7 +271,7 @@ async def ajax_modules_for_smart_contracts(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/modules/{year}/{month}",
         httpx_client,
@@ -286,7 +286,7 @@ async def smart_contracts_overview(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/modules/overview",
         httpx_client,
@@ -382,7 +382,7 @@ async def smart_contracts_usage(
     net: str,
     tags: dict = Depends(get_labeled_accounts),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     error = "Not implemented yet."
     return templates.TemplateResponse(
         "base/error.html",
@@ -424,7 +424,7 @@ async def get_module_instances(
     tags: dict = Depends(get_labeled_accounts),
 ):
     limit = 10
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
@@ -478,7 +478,7 @@ async def module_module_address(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     request.state.api_calls = {}
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/module/{module_ref}",
         httpx_client,
@@ -621,7 +621,7 @@ async def get_contract_transactions_for_tabulator(
     Transactions for contract.
     """
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{instance_subindex}>"
     skip = (page - 1) * size
     last_page = math.ceil(total_rows / size)
@@ -702,7 +702,7 @@ async def get_contract_transactions_for_tabulator(
 # ):
 #     limit = 10
 #     instance_address = f"<{instance_index},{instance_subindex}>"
-#     user: UserV2 = await get_user_detailsv2(request)
+#     user: UserV2 | None = await get_user_detailsv2(request)
 #     skip = calculate_skip(requested_page, total_rows, limit)
 #     # note we are using the account api here, as it's also valid for instances.
 #     api_result = await get_url_from_api(
@@ -807,7 +807,7 @@ async def smart_contract_page(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     request.state.api_calls = {}
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{subindex}>"
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/contract/{instance_index}/{subindex}/supports-cis-standard/CIS-6",

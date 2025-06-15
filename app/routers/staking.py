@@ -38,7 +38,7 @@ async def staking(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Paydays"] = (
         f"{request.app.api_url}/docs#/Accounts/get_paydays_v2__net__accounts_paydays__skip___limit__get"
@@ -86,7 +86,7 @@ async def get_ajax_payday_passive(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if net != "mainnet":
         return None
     api_result = await get_url_from_api(
@@ -130,7 +130,7 @@ async def get_ajax_paydays(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     skip = (page - 1) * size
 
     api_result = await get_url_from_api(
@@ -161,7 +161,7 @@ async def get_ajax_paydays_tabulator(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 15
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if net == "mainnet":
         skip = calculate_skip(requested_page, total_rows, limit)
         api_result = await get_url_from_api(
@@ -224,7 +224,7 @@ async def get_ajax_paydays(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 15
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if net == "mainnet":
         skip = calculate_skip(requested_page, total_rows, limit)
         api_result = await get_url_from_api(
@@ -282,7 +282,7 @@ async def get_ajax_pools(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     enhanced_pools = request.app.staking_pools_cache.get(status, {})
 
@@ -313,7 +313,7 @@ async def get_ajax_passive_delegators(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 10
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/mainnet/accounts/paydays/passive-delegators/{skip}/{limit}",

@@ -19,7 +19,7 @@ async def get_charts_home(
 ):
     request.state.api_calls = {}
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     return templates.TemplateResponse(
         "charts/charts_home.html",
         {

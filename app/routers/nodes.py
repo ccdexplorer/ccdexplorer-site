@@ -23,7 +23,7 @@ async def nodes(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     request.state.api_calls = {}
     request.state.api_calls["Nodes and Validators"] = (
         f"{request.app.api_url}/docs#/Accounts/get_nodes_and_validators_v2__net__accounts_nodes_validators_get"
@@ -58,7 +58,7 @@ async def get_ajax_nodes_v2(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/nodes-validators",
         httpx_client,
@@ -100,7 +100,7 @@ async def get_ajax_nodes_tabulator(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/mainnet/accounts/nodes-validators",
         httpx_client,

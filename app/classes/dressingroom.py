@@ -184,7 +184,13 @@ class MakeUp:
                     tags=self.tags,
                 )
             elif self.additional_info["type"] == "module":
-                type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
+                type_additional_info = module_link(
+                    self.additional_info["value"],
+                    self.net,
+                    user=self.user,
+                    tags=self.tags,
+                )
+                # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
 
         sender = "Chain"
         if self.transaction.account_transaction:
@@ -444,6 +450,7 @@ class MakeUp:
         self.events_list = []
 
         if t.type.type == TransactionClass.AccountTransaction.value:
+            assert t.account_transaction is not None
             dct = {
                 "start_1": "",
                 "end_1": (

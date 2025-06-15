@@ -362,12 +362,13 @@ async def get_account(
     request.state.api_calls = {}
     if "hx-request" in request.headers:
         print("hx-request", request.headers["hx-request"])
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
+
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{index_or_hash}/info",
         httpx_client,
     )
-    account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None
+    account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None  # type: ignore
     if not account_info:
         api_result = await get_url_from_api(
             f"{request.app.api_url}/v2/{net}/smart-wallet/public-key/{index_or_hash}",
@@ -687,7 +688,7 @@ async def request_sankey(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     theme = post_params.theme
     gte = post_params.gte
     start_date = post_params.start_date
@@ -823,7 +824,7 @@ async def get_account_transactions_for_tabulator(
     Transactions for account.
     """
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = (page - 1) * size
     last_page = math.ceil(total_rows / size)
@@ -908,7 +909,7 @@ async def get_account_transactions_for_tabulator(
 #     Add {net}.
 #     """
 #     limit = 10
-#     user: UserV2 = await get_user_detailsv2(request)
+#     user: UserV2 | None = await get_user_detailsv2(request)
 
 #     skip = calculate_skip(requested_page, total_rows, limit)
 #     api_result = await get_url_from_api(
@@ -1196,7 +1197,7 @@ async def request_account_graph(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     theme = post_params.theme
     account_index = from_address_to_index(account_id, net, request.app)
     if net == "testnet":

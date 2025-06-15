@@ -528,8 +528,8 @@ def contract_tag(
     return tag_found, tag_label
 
 
-def module_link(value):
-    return f'<small><a href="/module/{value}">{value}</a></small>'
+def module_link(value, net: str = "mainnet", user=None, tags=None):
+    return f'<a href="/{net}/module/{value}">{value[:4]}</a>'
 
 
 def instance_link_v2(

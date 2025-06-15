@@ -109,7 +109,7 @@ async def smart_contracts_tokens_overview(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/tokens/fungible-tokens/verified",
         request.app.httpx_client,
@@ -354,7 +354,7 @@ async def ajax_nft_tokens_for_tag(
 ):
     limit = 10
     skip = calculate_skip(requested_page, total_rows, limit)
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/token/tag/{tag}/{skip}/{limit}",
         httpx_client,
@@ -439,7 +439,7 @@ async def get_token_token_address(
     token_id: Optional[str] = "_",
     tags: dict = Depends(get_labeled_accounts),
 ):
-    # user: UserV2 = await get_user_detailsv2(request)
+    # user: UserV2 | None = await get_user_detailsv2(request)
     token_id = token_id.lower()
     contract = CCD_ContractAddress.from_index(contract_index, contract_subindex)
 
@@ -472,7 +472,7 @@ async def show_token_address(
     og_title: str,
 ):
     """Only for fungible tags and indivitual token addresses, not non-fungible tags"""
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     if not stored_token_address:
         error = f"Can't find the token at {contract_index}/{contract_subindex}/{token_id} on {net}."
@@ -535,7 +535,7 @@ async def show_token_address(
 
 async def show_nft_tag(request: Request, net: str, tag_result: dict):
     """Only for non-fungible tags"""
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     template_dict = {
         "env": request.app.env,
@@ -660,7 +660,7 @@ async def get_token_current_holders(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     tags: dict = Depends(get_labeled_accounts),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     limit = 10
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(

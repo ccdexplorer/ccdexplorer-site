@@ -49,7 +49,7 @@ async def get_account_transactions(
     tags: dict = Depends(get_labeled_accounts),
 ):
     """ """
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/misc/protocol-updates",
@@ -113,7 +113,7 @@ async def get_projects_overview(
     net: str,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/mainnet/misc/projects/all-ids",
         httpx_client,
@@ -138,7 +138,7 @@ async def chain_information(
     net: str,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/misc/identity-providers",
         httpx_client,
@@ -185,7 +185,7 @@ async def labeled_accounts(
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/misc/projects/all-ids",
         httpx_client,
@@ -226,7 +226,7 @@ async def ajax_today_in(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/misc/today-in/{post_data.date}",
         httpx_client,
@@ -255,7 +255,7 @@ async def today_in(
     tags: dict = Depends(get_labeled_accounts),
     # tags_community: dict = Depends(get_community_labeled_accounts),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
         "%Y-%m-%d"
     )
@@ -333,7 +333,7 @@ async def ajax_tx_search_transfers(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await post_url_from_api(
         f"{request.app.api_url}/v2/{net}/transactions/search/transfers/{skip}/{limit}",
         httpx_client,
@@ -411,7 +411,7 @@ async def ajax_tx_search_data(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await post_url_from_api(
         f"{request.app.api_url}/v2/{net}/transactions/search/data/{skip}/{limit}",
         httpx_client,
@@ -476,7 +476,7 @@ async def transactions_search(
     tags: dict = Depends(get_labeled_accounts),
     # tags_community: dict = Depends(get_community_labeled_accounts),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     chain_start = dt.date(2021, 6, 9).strftime("%Y-%m-%d")
     date_start = dt.date(2022, 1, 1).strftime("%Y-%m-%d")
     return templates.TemplateResponse(
@@ -521,7 +521,7 @@ async def transactions_by_type_page(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     request.state.api_calls = {}
     request.state.api_calls["Latest Txs"] = (
@@ -560,7 +560,7 @@ async def ajax_last_txs_by_type(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/transactions/last/{limit}/{skip}/{post_data.filter}",
         httpx_client,
@@ -627,7 +627,7 @@ async def accounts_scheduled_release(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     request.state.api_calls = {}
     request.state.api_calls["Accounts Scheduled Release"] = (
@@ -658,7 +658,7 @@ async def ajax_accounts_scheduled_release(
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/scheduled-release",
         httpx_client,
@@ -688,7 +688,7 @@ async def accounts_cooldown(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     request.state.api_calls = {}
     request.state.api_calls["Accounts Cooldown"] = (
@@ -724,7 +724,7 @@ async def ajax_accounts_cooldown(
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/cooldown",
         httpx_client,
@@ -756,7 +756,7 @@ async def ajax_accounts_pre_cooldown(
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/pre-cooldown",
         httpx_client,
@@ -788,7 +788,7 @@ async def ajax_accounts_pre_pre_cooldown(
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/pre-pre-cooldown",
         httpx_client,

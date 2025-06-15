@@ -313,7 +313,7 @@ async def get_account_validator_transactions(
     Add {net}.
     """
     limit = 10
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
@@ -394,7 +394,7 @@ async def get_validator_tally(
     # recurring: Recurring = Depends(get_recurring),
 ):
     limit = 7
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(

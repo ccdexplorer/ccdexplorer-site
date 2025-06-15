@@ -30,7 +30,7 @@ async def get_node(
     Returns:
         template (HTMLResponse): node/node.html
     """
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/misc/node/{node_id}", httpx_client
     )
@@ -64,7 +64,7 @@ async def get_ajax_node(
     Returns:
         template (HTMLResponse): node/node.html
     """
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     node = None
 
     if net == "testnet":

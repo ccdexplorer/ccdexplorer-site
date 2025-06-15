@@ -76,7 +76,7 @@ async def get_public_key_events(
 ):
     """ """
     limit = 10
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
 
@@ -170,7 +170,7 @@ async def get_public_key_tokens(
 ):
     """ """
     limit = 10
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
 
@@ -245,7 +245,7 @@ async def get_public_key_page(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     request.state.api_calls = {}
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     wallet_contract_address = CCD_ContractAddress.from_index(index, subindex).to_str()
 
     api_result = await get_url_from_api(
@@ -324,7 +324,7 @@ async def get_public_key_page(
 # ):
 #     request.state.api_calls = {}
 
-#     user: UserV2 = await get_user_detailsv2(request)
+#     user: UserV2 | None = await get_user_detailsv2(request)
 #     api_result = await get_url_from_api(
 #         f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
 #         httpx_client,
@@ -352,7 +352,7 @@ async def get_smart_wallets_overview_with_txs(
 ):
     request.state.api_calls = {}
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     # api_result = await get_url_from_api(
     #     f"{request.app.api_url}/v2/{net}/smart-wallets/overview/all",
     #     httpx_client,
@@ -390,7 +390,7 @@ async def ajax_last_txs_for_smart_wallets(
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/smart-wallets/transactions/{skip}/{limit}",
         httpx_client,

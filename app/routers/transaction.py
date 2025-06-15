@@ -22,7 +22,7 @@ async def get_transaction(
 ):
     request.state.api_calls = {}
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/transaction/{tx_hash}", httpx_client
     )

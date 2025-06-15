@@ -31,7 +31,7 @@ async def get_sc_transactions_count(
     request: Request,
     net: str,
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     chain_start = dt.date(2021, 6, 9).strftime("%Y-%m-%d")
     yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
         "%Y-%m-%d"

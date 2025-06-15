@@ -27,7 +27,7 @@ async def request_block(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     request.state.api_calls = {}
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     try:
         height_or_hash = int(height_or_hash)
@@ -125,7 +125,7 @@ async def get_ajax_chain_parameters_html_v2(
     """
     Add {net}.
     """
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/block/{height}/chain-parameters",
@@ -172,7 +172,7 @@ async def get_ajax_special_events_html_v2(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/block/{height}/special-events",
         httpx_client,
@@ -227,7 +227,7 @@ async def get_ajax_payday_account_rewards_tabulator(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     # limit = 30
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
         # skip = calculate_skip(requested_page, total_rows, limit)
         skip = (page - 1) * size
@@ -267,7 +267,7 @@ async def get_ajax_payday_pool_rewards_tabulator(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     # limit = 30
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     if request.app.env["NET"] == "mainnet":
         # skip = calculate_skip(requested_page, total_rows, limit)
         skip = (page - 1) * size
@@ -315,7 +315,7 @@ async def get_block_transactions_for_tabulator(
     Transactions for block.
     """
 
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
     skip = (page - 1) * size
     last_page = math.ceil(total_rows / size)
     sort_key = (
@@ -393,7 +393,7 @@ async def ajax_block_transactions_html(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     limit = 20
-    user: UserV2 = await get_user_detailsv2(request)
+    user: UserV2 | None = await get_user_detailsv2(request)
 
     skip = calculate_skip(requested_page, total_rows, limit)
     api_result = await get_url_from_api(
