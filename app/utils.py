@@ -595,6 +595,14 @@ def datetime_delta_format_schedule_node(value):
         return ""
 
 
+def datetime_delta_format_uptime(value: int):
+    if value:
+        delta = timedelta(milliseconds=value)
+        return verbose_timedelta(delta)
+    else:
+        return ""
+
+
 def datetime_regular(value: dt.datetime):
     return f"{value:%Y-%m-%d %H:%M:%S}"
 

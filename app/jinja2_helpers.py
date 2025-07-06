@@ -69,3 +69,9 @@ templates.env.filters["none"] = none  # noqa: F405
 templates.env.filters["account_label_on_index_for_label"] = (
     account_label_on_index_for_label  # noqa: F405
 )
+templates.env.filters["datetime_delta_format_schedule_node"] = (
+    datetime_delta_format_schedule_node  # noqa: F405
+)
+templates.env.filters["datetime_delta_format_uptime"] = (
+    datetime_delta_format_uptime  # noqa: F405
+)
