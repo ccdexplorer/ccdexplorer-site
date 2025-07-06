@@ -147,6 +147,9 @@ async def get_ajax_nodes_tabulator(
                 "version": node.get("client") if node else None,
                 "peers": node.get("peersCount") if node else None,
                 "uptime": human_readable_uptime(node),
+                "finalizedBlockHeight": (
+                    node.get("finalizedBlockHeight") if node else None
+                ),
             }
         )
 

@@ -127,10 +127,42 @@
         hozAlign: "right", minWidth: 100, maxWidth: 100,
         headerHozAlign: "right", formatter: isoDateTimeHumanDiff,
       },
+      {
+        title: "Fin. Length", field: "finalizedBlockHeight", 
+        responsive: 15,
+        hozAlign: "right", minWidth: 140, maxWidth: 140,
+        headerHozAlign: "right", formatter: function (cell) {
+          let value = cell.getValue();
+          if (value === null || value === undefined) {
+            return "-";
+          }
+          const span = document.createElement("span");
+          span.classList.add("small");
+          span.style.fontFamily = "monospace";
+          span.textContent = (value).toFixed(0);
+          span.textContent = value.toLocaleString();
+          return span;
+          
+        }
+      },
       { title: "Version", field: "version", 
       responsive: 10,
       maxWidth: 110,
-      hozAlign: "right", headerHozAlign: "right" },
+      hozAlign: "right", headerHozAlign: "right" ,formatter: function (cell) {
+          let value = cell.getValue();
+          if (value === null || value === undefined) {
+            return "-";
+          }
+          const span = document.createElement("span");
+          span.classList.add("small");
+          span.style.fontFamily = "monospace";
+          span.textContent = (value);
+          
+          return span;
+          
+        }
+        
+        },
       // { title: "# Peers", field: "peers", 
       // responsive: 10,
       // hozAlign: "right", headerHozAlign: "right", minWidth: 90, maxWidth: 90,  },
