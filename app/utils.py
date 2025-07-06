@@ -1631,3 +1631,26 @@ def apy_perc(value):
         return f"{value*100:.2f}%"
     else:
         return "--"
+
+
+def human_readable_uptime(node: dict) -> str | None:
+    if node is None:
+        return None
+    up = node.get("uptime")
+    if node and isinstance(up, int):
+        # total milliseconds
+        ms = up
+
+        # how many whole days?
+        days, rem_ms = divmod(ms, 86_400_000)  # 1000 ms × 60 s × 60 m × 24 h
+        # how many whole seconds in the remainder?
+        secs, rem_ms2 = divmod(rem_ms, 1000)
+        # leftover milliseconds → microseconds
+        micros = rem_ms2 * 1000
+
+        delta = dt.timedelta(days=days, seconds=secs, microseconds=micros)
+
+        now = dt.datetime.now(dt.UTC)
+        return (now - delta).isoformat()
+    else:
+        return None

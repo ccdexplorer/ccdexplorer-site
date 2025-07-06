@@ -1082,7 +1082,7 @@ def get_all_data_for_bridges_and_dexes_for_month(
 
 
 async def get_all_data_for_analysis_limited(
-    analysis: str, app, start_date: str, end_date: str
+    analysis: str, app, start_date: str | dt.date, end_date: str
 ) -> list[str]:
     api_result = await get_url_from_api(
         f"{app.api_url}/v2/mainnet/misc/statistics/{analysis}/{start_date}/{end_date}",
