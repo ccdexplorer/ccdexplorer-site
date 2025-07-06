@@ -12,31 +12,33 @@
             
         </tr>
         {% endif %}
-            <tr class="table-row-line-height sm-text">
+            <!-- <tr class="table-row-line-height sm-text">
                 <td class="text-start text-secondary-emphasis">Deployed in block</td>
                 {% if not deployed_in_genesis_block %}
                     <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.height|round_x_decimal_with_comma(0)}}</td>
                 {% else %}
                     <td class="text-end text-secondary-emphasis ccd">0</td>
                 {% endif %}
-            </tr>
-            {% if not deployed_in_genesis_block %}
+            </tr> -->
+            <!-- {% if not deployed_in_genesis_block %}
                 <tr class="table-row-line-height sm-text">
                     <td class="text-start text-secondary-emphasis">Deployed in tx</td>
                     <td class="text-end text-secondary-emphasis"><span style="font-family: monospace, monospace;">{{tx_deployed.hash|tx_hash_link(net)|safe}}</span>
                         
                         </td>
                 </tr>
-            {% endif %}
+            {% endif %} -->
             <tr class="table-row-line-height sm-text">
                 <td class="text-start text-secondary-emphasis">Age</td>
                 {% if not deployed_in_genesis_block %}
-                    <td class="text-end text-secondary-emphasis ccd">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}}</td>
+                    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/transaction/{{tx_deployed.hash}}"><span style="font-family: monospace, monospace;">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
                 {% else %}
-                    <td class="text-end text-secondary-emphasis ccd">{{genesis_block_slot_time|datetime_delta_format_since}}</td>
+                    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/block/0"><span style="font-family: monospace, monospace;">{{genesis_block_slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
                 {% endif %}
             </tr>
-          
+          <tr id="sent-row" hx-get="/{{net}}/account/{{account.address}}/sent_latest_first" hx-trigger="intersect once" hx-target="#sent-row" hx-swap="outerHTML">
+            <td colspan="2" class="text-secondary-emphasis">Loading latest and first txs...</td>
+        </tr>
         <tr class="table-row-line-height sm-text">
             <td class="text-start text-secondary-emphasis">Nonce</td>
             <td class=" text-end text-secondary-emphasis ccd">{{account.sequence_number|round_x_decimal_with_comma(0) }}</td>
@@ -46,6 +48,7 @@
             <td title="{{account.index}}" id="account_index" class=" text-end text-secondary-emphasis ccd">{{identity.credentials|length|round_x_decimal_with_comma(0) }}
                 {%if identity.credentials|length > identity.threshold %}({{identity.threshold|round_x_decimal_with_comma(0)}} to sign){%endif%}</td>
         </tr>
+        
         <tr id="aliases-row" hx-get="/{{net}}/account/{{account.address}}/aliases-in-use" hx-trigger="intersect once" hx-target="#aliases-row" hx-swap="outerHTML">
             <td colspan="2" class="text-secondary-emphasis">Loading aliases...</td>
         </tr>

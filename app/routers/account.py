@@ -1262,3 +1262,38 @@ async def request_account_graph(
         full_html=False,
         include_plotlyjs=False,
     )
+
+
+@router.get(
+    "/{net}/account/{account_address}/sent_latest_first", response_class=HTMLResponse
+)
+async def get_account_tx_sent_latest_first(
+    request: Request,
+    net: str,
+    account_address: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    request.state.api_calls = {}
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_address}/transactions/sent/latest_first",
+        httpx_client,
+    )
+    latest_first: list | None = api_result.return_value if api_result.ok else []
+    if latest_first:
+        if len(latest_first) > 0:
+            html = templates.get_template(
+                "account/account_latest_first_sent.html"
+            ).render(
+                {
+                    "latest_first": latest_first,
+                    "net": net,
+                    "account_address": account_address,
+                    "request": request,
+                }
+            )
+
+            return html
+        else:
+            return ""
+    else:
+        return ""
