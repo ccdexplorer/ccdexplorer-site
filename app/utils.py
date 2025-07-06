@@ -708,7 +708,7 @@ def account_label_on_index_for_label(
 
 def account_label_on_index(
     account_index: int,
-    user: UserV2 = None,
+    user: UserV2 | None = None,
     community_labels=None,
     net=None,
     app=None,
@@ -734,7 +734,7 @@ def account_label_on_index(
 
             if user_label:
                 account_label = (
-                    f'<i style="color:#7939BA;" class="bi bi-person-bounding-box pe-1"></i>{user_label}'
+                    f'<i style="color:#7939BA;" class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{user_label}</span'
                     if not header
                     else f'<span style="margin-top: 12px;" class="badge rounded-pill bg-warning  ms-5 mt-1"><small>{user_label}</small></span>'
                 )
@@ -748,7 +748,7 @@ def account_label_on_index(
             # get_address_identifiers(str(account_index), net)
             if account_labeled:
 
-                account_label = f'<i class="bi bi-person-bounding-box pe-1"></i>{community_labels["labels_melt"][str(account_index)]["label"]}'
+                account_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{community_labels["labels_melt"][str(account_index)]["label"]}</span>'
                 account_labeled = True
         else:
             account_labeled = False
@@ -1623,7 +1623,7 @@ def split_contract_into_url_slug_and_token_id(contract_str: str, token_id: str):
 
 
 def add_account_info_to_cache(account_info: CCD_AccountInfo, app: FastAPI, net: str):
-    app.addresses_to_indexes[net][account_info.address[:29]] = account_info.index
+    app.addresses_to_indexes[net][account_info.address[:29]] = account_info.index  # type: ignore
 
 
 def apy_perc(value):

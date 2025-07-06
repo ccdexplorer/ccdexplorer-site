@@ -64,7 +64,7 @@
 
           const link = document.createElement("a");
           link.href = "/{{net}}/account/" + rowData.id;
-          link.textContent = visibleText;
+          link.innerHTML = '<span style="font-family: monospace, monospace;" class="small">'+visibleText+'</span>';
           return link;
         }
       },
@@ -83,33 +83,42 @@
 
           const link = document.createElement("a");
           link.href = "/{{net}}/node/" + rowData.node;
-          link.textContent = visibleText;
+          link.innerHTML = '<span style="font-family: monospace, monospace;"  class="small">'+visibleText+'</span>';
           return link;
         }
       },
       {
         title: "Stake", field: "stake", hozAlign: "right", headerHozAlign: "right", 
         responsive: 0,
-        maxWidth: 70, 
+        maxWidth: 100, 
         sorter: "number",
         formatter: function (cell) {
           let value = cell.getValue();
           if (value === null || value === undefined) {
             return "-";
           }
-          return (value * 100).toFixed(3) + "%";  // Multiply by 100 and format
+          const span = document.createElement("span");
+          span.classList.add("small");
+          span.style.fontFamily = "monospace";
+          span.textContent = (value * 100).toFixed(3) + "%";
+          return span;
         }
       },
       {
         title: "Ping (ms)", field: "ping", 
         responsive: 10,
-        hozAlign: "right", minWidth: 100, maxWidth: 100,
+        hozAlign: "right", minWidth: 120, maxWidth: 120,
         headerHozAlign: "right", responsive: 5, formatter: function (cell) {
           let value = cell.getValue();
           if (value === null || value === undefined) {
             return "-";
           }
-          return (value).toFixed(1);  
+          const span = document.createElement("span");
+          span.classList.add("small");
+          span.style.fontFamily = "monospace";
+          span.textContent = (value).toFixed(1);
+          return span;
+          
         }
       },
       {
@@ -120,11 +129,11 @@
       },
       { title: "Version", field: "version", 
       responsive: 10,
-      maxWidth: 90,
+      maxWidth: 110,
       hozAlign: "right", headerHozAlign: "right" },
-      { title: "# Peers", field: "peers", 
-      responsive: 10,
-      hozAlign: "right", headerHozAlign: "right", minWidth: 90, maxWidth: 90,  },
+      // { title: "# Peers", field: "peers", 
+      // responsive: 10,
+      // hozAlign: "right", headerHozAlign: "right", minWidth: 90, maxWidth: 90,  },
     ];
     window["{{ccd_tabulator_table}}_sort"]= [
     { column: "stake", dir: "desc" } 
