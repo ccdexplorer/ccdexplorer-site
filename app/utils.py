@@ -734,7 +734,7 @@ def account_label_on_index(
 
             if user_label:
                 account_label = (
-                    f'<i style="color:#7939BA;" class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{user_label}</span'
+                    f'<i style="color:#7939BA;" class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{user_label}</span'
                     if not header
                     else f'<span style="margin-top: 12px;" class="badge rounded-pill bg-warning  ms-5 mt-1"><small>{user_label}</small></span>'
                 )
@@ -748,7 +748,7 @@ def account_label_on_index(
             # get_address_identifiers(str(account_index), net)
             if account_labeled:
 
-                account_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{community_labels["labels_melt"][str(account_index)]["label"]}</span>'
+                account_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{community_labels["labels_melt"][str(account_index)]["label"]}</span>'
                 account_labeled = True
         else:
             account_labeled = False
@@ -844,9 +844,9 @@ def account_link(
     user=None,
     tags=None,
     app=None,
-    wallet_contract_address: CCD_ContractAddress = None,
+    wallet_contract_address: CCD_ContractAddress | None = None,
 ):
-
+    tag_label = ""
     tag_found = False
     if isinstance(user, dict):
         user = UserV2(**user)
@@ -869,11 +869,11 @@ def account_link(
     if not tag_found:
         if isinstance(value, str):
             if len(value) == 64:
-                tag_label = f'<i style="color:#F6DB9A;" class="bi bi-filetype-key pe-1"></i><span style="font-family: monospace, monospace;">{value[:6]}</span>'
+                tag_label = f'<i style="color:#F6DB9A;" class="bi bi-filetype-key pe-1"></i><span style="font-family: monospace, monospace;" class="small">{value[:6]}</span>'
             else:
-                tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{value[:4]}</span>'
+                tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{value[:4]}</span>'
         else:
-            tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;">{value}</span>'
+            tag_label = f'<i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{value}</span>'
 
     return (
         f'<a class="" href="/{net}/account/{value}">{tag_label}</a>'

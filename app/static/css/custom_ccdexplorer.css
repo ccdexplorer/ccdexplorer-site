@@ -220,27 +220,33 @@ input:focus {
     
 }
 
+
+.tx_type {
+      font-size: 90%;
+  }
+
+
 .ccd {
     font-family: SFMono-Regular, Menlo, Monaco,
-      Consolas, "Liberation Mono",
-      "Courier New", monospace;
+      monospace, Consolas, "Liberation Mono",
+      "Courier New";
       /* font-size: 7
       100%; */
-      font-size: 90%;
+      font-size: 82%;
   }
 
 
 .ccd_small {
     font-family: SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono",
-    "Courier New", monospace;
+    monospace, Consolas, "Liberation Mono",
+    "Courier New";
     font-size: 60%;
 }
 
 .ccd_decimals {
 font-family: SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono",
-    "Courier New", monospace;
+    monospace, Consolas, "Liberation Mono",
+    "Courier New";
     /* color: gray; */
     font-size: 75%;
     }

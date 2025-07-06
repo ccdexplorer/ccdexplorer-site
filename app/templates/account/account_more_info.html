@@ -31,9 +31,9 @@
             <tr class="table-row-line-height sm-text">
                 <td class="text-start text-secondary-emphasis">Age</td>
                 {% if not deployed_in_genesis_block %}
-                    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/transaction/{{tx_deployed.hash}}"><span style="font-family: monospace, monospace;">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
+                    <td class="text-end text-secondary-emphasis ccd"><a href="/{{net}}/transaction/{{tx_deployed.hash}}"><span style="font-family: monospace, monospace;">{{tx_deployed.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
                 {% else %}
-                    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/block/0"><span style="font-family: monospace, monospace;">{{genesis_block_slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
+                    <td class="text-end text-secondary-emphasis ccd"><a href="/{{net}}/block/0"><span style="font-family: monospace, monospace;">{{genesis_block_slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
                 {% endif %}
             </tr>
           <tr id="sent-row" hx-get="/{{net}}/account/{{account.address}}/sent_latest_first" hx-trigger="intersect once" hx-target="#sent-row" hx-swap="outerHTML">

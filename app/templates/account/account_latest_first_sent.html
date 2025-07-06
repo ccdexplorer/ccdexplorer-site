@@ -1,10 +1,10 @@
 
 <tr class="table-row-line-height sm-text">
     <td class="text-start text-secondary-emphasis">First tx sent</td>
-    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/transaction/{{latest_first.first_tx.hash}}"><span style="font-family: monospace, monospace;">{{latest_first.first_tx.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
+    <td class="text-end text-secondary-emphasis ccd"><a href="/{{net}}/transaction/{{latest_first.first_tx.hash}}"><span style="font-family: monospace, monospace;">{{latest_first.first_tx.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
     
 </tr>
 <tr class="table-row-line-height sm-text">
     <td class="text-start text-secondary-emphasis">Latest tx sent</td>
-    <td class="text-end text-secondary-emphasis ccd"><a class="ccd sm-text" href="/{{net}}/transaction/{{latest_first.last_tx.hash}}"><span style="font-family: monospace, monospace;">{{latest_first.last_tx.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
+    <td class="text-end text-secondary-emphasis ccd"><a href="/{{net}}/transaction/{{latest_first.last_tx.hash}}"><span style="font-family: monospace, monospace;">{{latest_first.last_tx.block_info.slot_time|datetime_delta_format_since}} <i class="bi bi-arrow-up-right"></i></span></a></td>
 </tr>
