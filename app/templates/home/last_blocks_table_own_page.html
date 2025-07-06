@@ -12,7 +12,7 @@
       <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Epoch</span><span class="tab-text-small"></span></th>
       <th class="text-end text-secondary-emphasis">Validator</th>
       <th class="text-end text-secondary-emphasis">Txs</th>
-      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Energy Cost</span><span class="tab-text-small"></span></th>
+      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Parent Block</span><span class="tab-text-small"></span></th>
       <!-- <th>Amount</th> -->
     </tr>
   </thead>
@@ -25,7 +25,7 @@
           <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd" >{{row.epoch|round_x_decimal_with_comma(0)}}</span></span><span class="tab-text-small"></span></td>
           <td class="text-end text-secondary-emphasis"><a class="ccd" href="/{{net}}/account/{{row.baker}}">{{row.baker|round_x_decimal_with_comma(0)}}</a></td>
           <td class="text-end text-secondary-emphasis"><span class="ccd">{{row.transaction_count|round_x_decimal_with_comma(0) }}</span></td>
-          <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd">{{row.transactions_energy_cost|round_x_decimal_with_comma(0) }} NRG</span></span><span class="tab-text-small"></span></td>
+          <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><a href="/{{net}}/block/{{row.parent_block}}"><span class="ccd" >{{row.parent_block|block_hash_link(net)|safe}}</a></span></span><span class="tab-text-small"></span></td>
         </tr>
       {% endfor %}
     </tbody>
