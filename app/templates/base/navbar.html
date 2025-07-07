@@ -16,7 +16,9 @@
                         <li><a class="dropdown-item" href="/{{net}}/transactions">Transactions</a></li>
                         <li><a class="dropdown-item" href="/{{net}}/accounts">Accounts</a></li>
                         {% if net == 'mainnet' %}
-                            <li><a class="dropdown-item" href="/{{net}}/smart-wallets">Smart Wallets</a></li>
+                                
+                        <li><a class="dropdown-item " href="/{{net}}/nodes" role="button" aria-expanded="false">Nodes</a></li>
+                        <li><a class="dropdown-item" href="/{{net}}/smart-wallets">Smart Wallets</a></li>
                         {% endif %}
                     </ul>
                 </li>
@@ -59,13 +61,7 @@
                         <!-- <li><a class="dropdown-item" href="#">Statistics - Tricorn (Coming soon!)</a></li> -->
                     </ul>
                 </li>
-                {% if net == 'mainnet' %}
-                <li class="nav-item">
-                    <a class="nav-link " href="/{{net}}/nodes" role="button" aria-expanded="false">
-                    Nodes
-                    </a>
-                </li>
-                {% endif %}
+                
                 <li class="nav-item">
                     <a class="nav-link " href="https://api.ccdexplorer.io" role="button" aria-expanded="false">
                         API
