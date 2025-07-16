@@ -24,6 +24,7 @@ from app.utils import (
     get_url_from_api,
     pagination_calculator,
     round_x_decimal_with_comma,
+    account_link,
 )
 
 router = APIRouter()
@@ -146,13 +147,12 @@ async def get_ajax_payday_passive(
 
 
 @router.get(
-    "/{net}/ajax_paydays/{total_rows}",
+    "/{net}/ajax_paydays",
     response_class=HTMLResponse,
 )
 async def get_ajax_paydays_tabulator(
     request: Request,
     net: str,
-    total_rows: int,
     page: int = Query(),
     size: int = Query(),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
@@ -236,45 +236,45 @@ async def get_ajax_pools(
 
 
 @router.get(
-    "/ajax_passive_delegators/{requested_page}/{total_rows}/{api_key}",
+    "/ajax_passive_delegators/{t}",
     response_class=HTMLResponse,
 )
 async def get_ajax_passive_delegators(
     request: Request,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
+    t: int,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 10
     user: UserV2 | None = await get_user_detailsv2(request)
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/mainnet/accounts/paydays/passive-delegators/{skip}/{limit}",
+        f"{request.app.api_url}/v2/mainnet/accounts/paydays/passive-delegators/{skip}/{size}",
         httpx_client,
     )
-    passive_delegators_response = api_result.return_value if api_result.ok else []
-    delegators = passive_delegators_response["delegators"]
+    passive_delegators_response = api_result.return_value if api_result.ok else {}
+    delegators = passive_delegators_response["delegators"]  # type: ignore
+    made_up_delegators = []
+    for d in delegators:
+        made_up_delegator = {}
+        made_up_delegator["account"] = account_link(
+            d["account"],
+            "mainnet",
+            user=user,
+            tags=tags,
+            app=request.app,
+        )
 
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="delegator",
-        action_string="delegator",
-        limit=limit,
-        returned_rows=len(delegators),
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("staking/staking_passive_delegators.html").render(
+        made_up_delegator["staked_amount"] = d["stake"]
+        made_up_delegators.append(made_up_delegator)
+
+    total_rows = passive_delegators_response["total_rows"]  # type: ignore
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "delegators": delegators,
-            "user": user,
-            "tags": tags,
-            "net": "mainnet",
-            "request": request,
-            "pagination": pagination,
-            "passive_delegators_response": passive_delegators_response,
+            "data": made_up_delegators,
+            "last_page": last_page,
+            "last_row": total_rows,
         }
     )
-    return html

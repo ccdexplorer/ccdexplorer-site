@@ -42,6 +42,28 @@ function txTypeFormatter(cell){
   return `${icon} <span class="tx_type text-secondary-emphasis">${map.display_str}</span>`;
 }
 
+function microCCDFormatterRounded(cell) {
+  const raw = cell.getValue();
+
+  // If there’s no value, render empty
+  if (raw === undefined || raw === null) {
+    return ``;
+  }
+
+  // Try to parse; fall back to zero on NaN
+  const parsed = parseInt(raw, 10);
+  let amount = isNaN(parsed) ? 0 : parsed / 1_000_000;
+
+  // Round to nearest integer
+  const rounded = Math.round(amount);
+
+  // Format with commas
+  const formatted = rounded.toLocaleString("en-US");
+
+  return `<span class="ccd">Ͼ${formatted}</span>`;
+}
+
+
 function microCCDFormatter(cell) {
   const raw = cell.getValue();
 

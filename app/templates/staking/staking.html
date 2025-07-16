@@ -115,7 +115,7 @@
 
 </script>
 <!-- Get Delegators -->
-<script>
+<!-- <script>
   function getDelegators(requested_page, total_rows) {
     delegators = document.getElementById('passive_delegators');
     url =  '/ajax_passive_delegators/' + requested_page + '/' + total_rows + '/' + api_key;
@@ -143,7 +143,7 @@
     getDelegators(0, 0);
     
   });
-</script>
+</script> -->
 
 <h4>Staking</h4>
 
@@ -154,19 +154,32 @@
           {% set title= "Paydays" %}{% include 'base/box_title.html' %}
           <div id="paydays">
             {% set ccd_tabulator_table ='paydays_table'%}
-            {% set tabulator_ajax_url = '/'+net+'/ajax_paydays/0'%}
-            
+            {% set tabulator_ajax_url = '/'+net+'/ajax_paydays'%}
             {% include "base/tabulator/tabulator-paydays.html" %}
-              <!-- <span class="htmx-indicator-a">
-                <img src="/static/misc/bars.svg"/> Loading data...
-              </span> -->
+              
           </div>  
       </div>
   </div>
   
   <div class="col-md-6  col-sm-12 ">
     <div class="border content curved-border " >
-      {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
+      
+      {% set title= "Passive Delegators" %}{% include 'base/box_title.html' %}
+          <div id="passive_delegators"><span class="htmx-indicator-c">
+            {% set ccd_tabulator_table ='passive_delegators_table'%}
+            {% set tabulator_ajax_url = '/ajax_passive_delegators/0'%}
+            {% include "base/tabulator/tabulator-passive-delegators.html" %}
+          </span></div>  
+    </div>
+    
+  </div>
+
+</div> 
+<div class="row mt-4 row-flex">
+  <div class="col-md-12  col-sm-12 ">
+      <div class="border content curved-border " >
+
+{% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
       <div id="passive_info">
         
         <span class="htmx-indicator-b">
@@ -174,15 +187,12 @@
         </span>
       </div>  
       <hr>
-      {% set title= "Passive Delegators" %}{% include 'base/box_title.html' %}
-          <div id="passive_delegators"><span class="htmx-indicator-c">
-            <img src="/static/misc/bars.svg"/> Loading data...
-          </span></div>  
-    </div>
-    
+
+          </div>  
+      </div>
   </div>
 
-</div>  
+
 <div class="row row-flex">
   <div class="col-md-12  col-sm-12 ">
     <div class="border content curved-border " >
