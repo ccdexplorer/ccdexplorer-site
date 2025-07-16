@@ -6,7 +6,7 @@
 <p>An error occured: <b>{{error.errorMessage}}</b></p>
 {% else %}
 <!-- Get Paydays -->
-<script>
+<!-- <script>
   function getPayDays(requested_page, total_rows) {
     paydays = document.getElementById('paydays');
     url =  '/{{net}}/ajax_paydays/' + requested_page + '/' + total_rows + '/' + api_key;
@@ -34,7 +34,7 @@
     getPayDays(0, 0);
     
   });
-</script>
+</script> -->
 
 
 <script>
@@ -153,9 +153,13 @@
       <div class="border content curved-border " >
           {% set title= "Paydays" %}{% include 'base/box_title.html' %}
           <div id="paydays">
-              <span class="htmx-indicator-a">
+            {% set ccd_tabulator_table ='paydays_table'%}
+            {% set tabulator_ajax_url = '/'+net+'/ajax_paydays/0'%}
+            
+            {% include "base/tabulator/tabulator-paydays.html" %}
+              <!-- <span class="htmx-indicator-a">
                 <img src="/static/misc/bars.svg"/> Loading data...
-              </span>
+              </span> -->
           </div>  
       </div>
   </div>
@@ -164,6 +168,7 @@
     <div class="border content curved-border " >
       {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
       <div id="passive_info">
+        
         <span class="htmx-indicator-b">
           <img src="/static/misc/bars.svg"/> Loading data...
         </span>

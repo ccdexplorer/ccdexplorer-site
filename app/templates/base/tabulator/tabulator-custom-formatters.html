@@ -95,4 +95,24 @@ function isoDateTimeHumanDiff(cell) {
   }
 }
 
+function isoDateTimeFormatter(cell) {
+  const { DateTime } = luxon;
+  const isoString = cell.getValue();
+  var classlist = cell.getElement().classList;
+  classlist.add("ccd");
+  cell.getElement().classlist = classlist;
+  if (!isoString) return "-";
+  try {
+    const dt = DateTime.fromISO(isoString, { zone: 'utc' });
+    return dt.toFormat("yyyy-MM-dd HH:mm:ss");
+  } catch (err) {
+    return "-";
+  }
+}
+function ccdClassFormatter(cell) {
+  const value = cell.getValue();
+  // Parse as number and format with thousands separators
+  const formatted = Number(value).toLocaleString("en-US");
+  return `<span class="ccd">${formatted}</span>`;
+}
 </script>  

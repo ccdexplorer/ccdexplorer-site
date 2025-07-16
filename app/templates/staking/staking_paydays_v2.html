@@ -1,4 +1,4 @@
-{% include 'base/pagination.html' %}
+<!-- {% include 'base/pagination.html' %} -->
     <table class="table table-borderless">
       <thead>
         <tr class="sm-text">
@@ -14,7 +14,7 @@
         <tr class="sm-text">
           <td><span class="ccd"><a class="" href="/mainnet/block/{{row.id}}">{{(row.height_for_last_block+1)|round_x_decimal_with_comma(0)}}</a></span></td>
           <td class="text-start text-secondary-emphasis"><span
-                class="ccd">{{row.payday_block_slot_time|datetime_regular}}</span></td>
+                class="ccd">{{row.payday_block_slot_time|datetime_regular_parse}}</span></td>
           <td class="ccd text-end text-secondary-emphasis">{{(row.height_for_last_block-row.height_for_first_block+1)|round_x_decimal_with_comma(0)}}
           </td>
         </tr>

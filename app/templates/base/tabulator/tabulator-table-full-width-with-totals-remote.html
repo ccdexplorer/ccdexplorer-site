@@ -6,13 +6,15 @@
 <script>
   
   window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+    
       columns: window["{{ccd_tabulator_table}}_columns"],
       layout: "fitColumns",
       responsiveLayout: "hide",
       // pagination: true, 
       paginationMode: "remote", 
-      paginationSize: 10,
-      paginationSizeSelector: [10, 25, 50, 100],
+      
+      paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100],
+      paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100])[0],
       paginationButtonCount:3,
       pagination:true,
       paginationCounter: function(pageSize, currentRow, currentPage, totalRows, totalPages) {
@@ -39,7 +41,7 @@
               : humanize(totalRows);
 
           // Final display string
-          return `${range} of ${totalFmt} txs`;
+          return `${range} of ${totalFmt}`;
       },
       sortMode:"remote",
       ajaxURL: "{{tabulator_ajax_url}}",
@@ -61,18 +63,18 @@
         const sorter = params.sort?.[0] || {};
         const sort_key = sorter.field || window["{{ccd_tabulator_table}}_default_sort_field"];
         const direction = sorter.dir || window["{{ccd_tabulator_table}}_default_sort_field_direction"];
-        console.log("sort_key", sort_key);
-        const query = new URLSearchParams({
+        const queryParams = {
           page,
           size,
-          sort_key,
-          direction,
-        });
-
+        };
+        if (window["{{ccd_tabulator_table}}_default_sort_field"] !== undefined) {
+          queryParams.sort_key = sort_key;
+          queryParams.direction = direction;
+        }
+        const query = new URLSearchParams(queryParams);
+        
         return `{{tabulator_ajax_url}}?${query.toString()}`;
       },
 
   });
-
-
 </script>
