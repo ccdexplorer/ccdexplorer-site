@@ -1566,6 +1566,75 @@ async def staking_graphs_plotly(
 
 
 @router.post(
+    "/{net}/ajax_statistics_plotly_py/statistics_restaked_rewards",
+    response_class=Response,
+)
+async def statistics_restaked_rewards(
+    request: Request,
+    net: str,
+):
+    theme = await get_theme_from_request(request)
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    plot_color = "#AE7CF7"
+    data_field = "restaked_rewards_perc"
+    analysis = "statistics_daily_payday"
+    title = "Percentage of Daily Rewards Restaked"
+    staking_start = dt.date(2022, 6, 24)
+    yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
+    all_data = await get_all_data_for_analysis_limited(
+        analysis, request.app, staking_start, yesterday
+    )
+    d_date = yesterday
+    df = pd.DataFrame(all_data)
+    df = df[["date", "restaked_rewards_perc"]]
+    rng = [plot_color]
+    fig = px.line(
+        df,
+        x="date",
+        y=[data_field],
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(theme),
+    )
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text=None,
+        showgrid=False,
+        tickformat=".0%",
+        range=[0, 1],
+    )
+    fig.update_xaxes(title_text=None)
+
+    fig.update_layout(
+        showlegend=False,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=275,
+    )
+
+    # fig.update_traces(
+    #     fillgradient=dict(
+    #         type="vertical",
+    #         colorscale=[(0.0, "white"), (1.0, plot_color)],
+    #     ),
+    # )
+
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
+
+
+@router.post(
     "/{net}/ajax_statistics_plotly_py/statistics_microccd",
     response_class=Response,
 )

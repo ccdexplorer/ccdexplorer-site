@@ -433,7 +433,7 @@ async def get_account(
         )
         account_apy_object = api_result.return_value if api_result.ok else None
 
-    if validator_id:
+    if validator_id is not None:
         account_is_validator = True
 
         api_result = await get_url_from_api(
