@@ -47,11 +47,14 @@ import math
 router = APIRouter()
 
 
-@router.post("/{net}/account/apy-graph/{index_or_hash}", response_class=Response)
+@router.post(
+    "/{net}/account/apy-graph/{index_or_hash}/{request_type}", response_class=Response
+)
 async def account_apy_graph(
     request: Request,
     net: str,
     index_or_hash: int | str,
+    request_type: str,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     tags: dict = Depends(get_labeled_accounts),
 ):
@@ -61,135 +64,135 @@ async def account_apy_graph(
         theme = body.decode("utf-8").split("=")[1]
 
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{index_or_hash}/apy-data",
+        f"{request.app.api_url}/v2/{net}/account/{index_or_hash}/apy-data/{request_type}",
         httpx_client,
     )
     result = api_result.return_value if api_result.ok else None
     if not result:
         return None
 
-    if result:
-        if "d30_apy_dict" in result:
-            d30_apy_dict = (
-                {k: v["apy"] for k, v in result["d30_apy_dict"].items()}
-                if result["d30_apy_dict"] is not None
-                else None
-            )
-        else:
-            d30_apy_dict = None
-        if "d90_apy_dict" in result:
-            d90_apy_dict = (
-                {k: v["apy"] for k, v in result["d90_apy_dict"].items()}
-                if result["d90_apy_dict"] is not None
-                else None
-            )
-        else:
-            d90_apy_dict = None
-        if "d180_apy_dict" in result:
-            d180_apy_dict = (
-                {k: v["apy"] for k, v in result["d180_apy_dict"].items()}
-                if result["d180_apy_dict"] is not None
-                else None
-            )
-        else:
-            d180_apy_dict = None
+    df = pd.DataFrame(result)
+    melt = df.melt(
+        id_vars=["date"],
+        value_vars=["30d", "90d", "180d"],
+        var_name="APY period",
+        value_name="value",
+    )
+    # if result:
+    # if "d30_apy_dict" in result:
+    #     d30_apy_dict = (
+    #         {k: v["apy"] for k, v in result["d30_apy_dict"].items()}
+    #         if result["d30_apy_dict"] is not None
+    #         else None
+    #     )
+    # else:
+    #     d30_apy_dict = None
+    # if "d90_apy_dict" in result:
+    #     d90_apy_dict = (
+    #         {k: v["apy"] for k, v in result["d90_apy_dict"].items()}
+    #         if result["d90_apy_dict"] is not None
+    #         else None
+    #     )
+    # else:
+    #     d90_apy_dict = None
+    # if "d180_apy_dict" in result:
+    #     d180_apy_dict = (
+    #         {k: v["apy"] for k, v in result["d180_apy_dict"].items()}
+    #         if result["d180_apy_dict"] is not None
+    #         else None
+    #     )
+    # else:
+    #     d180_apy_dict = None
 
-        if d30_apy_dict:
-            df_30d = polars.from_dict(d30_apy_dict).melt()
-            df_30d.columns = ["date", "30d"]
-        if d90_apy_dict:
-            df_90d = polars.from_dict(d90_apy_dict).melt()
-            df_90d.columns = ["date", "90d"]
-        if d180_apy_dict:
-            df_180d = polars.from_dict(d180_apy_dict).melt()
-            df_180d.columns = ["date", "180d"]
+    # if d30_apy_dict:
+    #     df_30d = polars.from_dict(d30_apy_dict).melt()
+    #     df_30d.columns = ["date", "30d"]
+    # if d90_apy_dict:
+    #     df_90d = polars.from_dict(d90_apy_dict).melt()
+    #     df_90d.columns = ["date", "90d"]
+    # if d180_apy_dict:
+    #     df_180d = polars.from_dict(d180_apy_dict).melt()
+    #     df_180d.columns = ["date", "180d"]
 
-        if d180_apy_dict:
+    # if d180_apy_dict:
 
-            df = df_180d.join(
-                df_30d.join(df_90d, on="date", how="outer_coalesce"),
-                on="date",
-                how="outer_coalesce",
-            ).melt(id_vars="date")
+    #     df = df_180d.join(
+    #         df_30d.join(df_90d, on="date", how="outer_coalesce"),
+    #         on="date",
+    #         how="outer_coalesce",
+    #     ).melt(id_vars="date")
 
-        elif d90_apy_dict:
-            df = df_30d.join(df_90d, on="date", how="outer_coalesce").melt(
-                id_vars="date"
-            )
+    # elif d90_apy_dict:
+    #     df = df_30d.join(df_90d, on="date", how="outer_coalesce").melt(
+    #         id_vars="date"
+    #     )
 
-        elif d30_apy_dict:
-            df = df_30d.melt(id_vars="date")
+    # elif d30_apy_dict:
+    #     df = df_30d.melt(id_vars="date")
 
-        else:
-            df = None
+    # else:
+    #     df = None
 
-        days_alive = (
-            dt.datetime.now() - dt.datetime(2022, 6, 24, 9, 0, 0)
-        ).total_seconds() / (60 * 60 * 24)
+    days_alive = (
+        dt.datetime.now() - dt.datetime(2022, 6, 24, 9, 0, 0)
+    ).total_seconds() / (60 * 60 * 24)
 
-        domain_pd = polars.Series(
-            [
-                dt.datetime(2022, 6, 24) + dt.timedelta(days=x)
-                for x in range(0, int(days_alive) + 1)
-            ]
-        ).to_list()
-
-        if df is None:
-            return None
-
-        df = df.rename({"variable": "APY period"})
-
-        rng = [
-            "#AE7CF7",
-            "#70B785",
-            "#6E97F7",
+    domain_pd = polars.Series(
+        [
+            dt.datetime(2022, 6, 24) + dt.timedelta(days=x)
+            for x in range(0, int(days_alive) + 1)
         ]
-        fig = px.scatter(
-            df,
-            x="date",
-            y="value",
-            color="APY period",
-            color_discrete_sequence=rng,
-            template=ccdexplorer_plotly_template(theme),
-        )
-        fig.update_yaxes(
-            title_text=None,
-            showgrid=False,
-            linewidth=0,
-            zerolinecolor="rgba(0,0,0,0)",
-        )
-        fig.update_traces(mode="lines")
-        fig.update_xaxes(
-            title=None,
-            type="date",
-            showgrid=False,
-            range=[domain_pd[0], domain_pd[-1]],
-            linewidth=0,
-            zerolinecolor="rgba(0,0,0,0)",
-        )
-        fig.update_layout(
-            height=250,
-            # width=320,
-            legend=dict(orientation="h"),
-            title=(
-                "Moving Averages for Delegator APY"
-                if str(index_or_hash).isnumeric()
-                else "Moving Averages for Account APY</sup>"
-            ),
-            legend_y=-0.2,
-            # legend_x=0.7,
-            margin=dict(l=0, r=0, t=0, b=0),
-        )
-        html = fig.to_html(
-            config={"responsive": True, "displayModeBar": False},
-            full_html=False,
-            include_plotlyjs=False,
-        )
+    ).to_list()
 
-        return html
+    # if df is None:
+    #     return None
 
-    else:
-        return None
+    # df = df.rename({"variable": "APY period"})
+
+    rng = [
+        "#AE7CF7",
+        "#70B785",
+        "#6E97F7",
+    ]
+    fig = px.scatter(
+        melt,
+        x="date",
+        y="value",
+        color="APY period",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(theme),
+    )
+    fig.update_yaxes(
+        title_text=None,
+        showgrid=False,
+        linewidth=0,
+        zerolinecolor="rgba(0,0,0,0)",
+    )
+    fig.update_traces(mode="lines")
+    fig.update_xaxes(
+        title=None,
+        type="date",
+        showgrid=False,
+        range=[domain_pd[0], domain_pd[-1]],
+        linewidth=0,
+        zerolinecolor="rgba(0,0,0,0)",
+    )
+    fig.update_layout(
+        height=250,
+        # width=320,
+        legend=dict(orientation="h"),
+        title=(f"Moving Averages for {request_type.capitalize()} APY"),
+        legend_y=-0.2,
+        # legend_x=0.7,
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+    html = fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
+
+    return html
 
 
 @router.post(
@@ -428,7 +431,7 @@ async def get_account(
     if delegation:
         delegation_target_address = delegation.target
         api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object",
+            f"{request.app.api_url}/v2/{net}/account/{delegation_target_address.baker}/staking-rewards-object/delegator",
             httpx_client,
         )
         account_apy_object = api_result.return_value if api_result.ok else None
@@ -454,13 +457,13 @@ async def get_account(
         earliest_win_time = api_result.return_value if api_result.ok else None
 
         api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{validator_id}/staking-rewards-object",
+            f"{request.app.api_url}/v2/{net}/account/{validator_id}/staking-rewards-object/delegator",
             httpx_client,
         )
         pool_apy_object = api_result.return_value if api_result.ok else None
 
         api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object",
+            f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object/account",
             httpx_client,
         )
         account_apy_object = api_result.return_value if api_result.ok else None

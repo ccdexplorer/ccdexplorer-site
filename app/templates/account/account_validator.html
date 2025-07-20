@@ -27,7 +27,7 @@
         <div
         hx-trigger="intersect, switched-theme from:body" 
         hx-indicator=".htmx-indicator-apy"
-        hx-post="/{{net}}/account/apy-graph/{{account_id}}"
+        hx-post="/{{net}}/account/apy-graph/{{account_index}}/validator"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
       ><span class="htmx-indicator-apy">
         <img src="/static/misc/bars.svg"/> Loading data...

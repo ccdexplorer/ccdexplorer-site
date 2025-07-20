@@ -31,7 +31,7 @@
 </table>
 <div
         hx-trigger="intersect, switched-theme from:body" 
-        hx-post="/{{net}}/account/apy-graph/{{account_index}}"
+        hx-post="/{{net}}/account/apy-graph/{{account_index}}/delegator"
         hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
       ><span class="htmx-indicator-rewards">
         <img src="/static/misc/bars.svg"/> Loading data...

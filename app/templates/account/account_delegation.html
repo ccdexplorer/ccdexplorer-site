@@ -3,6 +3,11 @@
     <div class="border content curved-border " >
       {% set title= "Account Delegation" %}{% include 'base/box_title.html' %}
       {% include "account/account_delegation_info.html" %}
+       <div
+          hx-trigger="intersect, switched-theme from:body" 
+          hx-post="/{{net}}/account/apy-graph/{{account_id}}/account"
+          hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+        ></div>
     </div>
   </div>
   <div class="col-md-6  col-sm-12 ">
@@ -15,7 +20,7 @@
   
 </div>
     
-  
+<!--   
 
   <div class="row mt-4 row-flex">
     <div class="col-md-6  col-sm-12 ">
@@ -23,11 +28,11 @@
           
           <div
           hx-trigger="intersect, switched-theme from:body" 
-          hx-post="/{{net}}/account/apy-graph/{{account_id}}"
+          hx-post="/{{net}}/account/apy-graph/{{account_id}}/account"
           hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
         ></div>
 
         </div>
     </div>
     
-  </div>
+  </div> -->

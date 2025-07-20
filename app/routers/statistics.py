@@ -1566,6 +1566,96 @@ async def staking_graphs_plotly(
 
 
 @router.post(
+    "/{net}/ajax_statistics_plotly_py/statistics_rewards_explained",
+    response_class=Response,
+)
+async def statistics_rewards_explained(
+    request: Request,
+    net: str,
+):
+    theme = await get_theme_from_request(request)
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    plot_color = "#AE7CF7"
+    data_field = "restaked_rewards_perc"
+    analysis = "statistics_daily_payday"
+    title = "Distribution of Daily Rewards"
+    staking_start = dt.date(2021, 6, 9)
+    yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
+    all_data = await get_all_data_for_analysis_limited(
+        analysis, request.app, staking_start, yesterday
+    )
+    d_date = yesterday
+    df = pd.DataFrame(all_data)
+    df = df[
+        [
+            "date",
+            "total_rewards_validators",
+            "total_rewards_pool_delegators",
+            "total_rewards_passive_delegators",
+        ]
+    ]
+    melt = df.melt("date", var_name="var", value_name="value")
+    melt["var"] = melt["var"].replace(
+        {
+            "total_rewards_validators": "Validators",
+            "total_rewards_pool_delegators": "Pool Delegators",
+            "total_rewards_passive_delegators": "Passive Delegators",
+        }
+    )
+    rng = ["#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
+    columns = ["Validators", "Pool Delegators", "Passive Delegators"]
+    fig = px.area(
+        melt,
+        x="date",
+        y="value",
+        color="var",
+        color_discrete_sequence=rng,
+        category_orders={"var": columns},
+        template=ccdexplorer_plotly_template(theme),
+    )
+    for trace in fig.data:
+        trace.update(opacity=0.6)  # type: ignore
+    fig.update_yaxes(
+        secondary_y=False,
+        title_text=None,
+        showgrid=False,
+        autorange=True,
+    )
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+        ),
+        # yaxis_range=[0, round(max(melt["CCD"]), 0)],
+        xaxis_title=None,
+        legend_title_text=None,
+        legend_y=-0.25,  # -0.45,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=370,
+    )
+    # fig.update_traces(
+    #     fillgradient=dict(
+    #         type="vertical",
+    #         colorscale=[(0.0, "white"), (1.0, plot_color)],
+    #     ),
+    # )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
+
+
+@router.post(
     "/{net}/ajax_statistics_plotly_py/statistics_restaked_rewards",
     response_class=Response,
 )
@@ -1617,7 +1707,7 @@ async def statistics_restaked_rewards(
     fig.update_layout(
         showlegend=False,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
-        height=275,
+        height=350,
     )
 
     # fig.update_traces(
