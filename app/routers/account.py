@@ -182,8 +182,9 @@ async def account_apy_graph(
         # width=320,
         legend=dict(orientation="h"),
         title=(f"Moving Averages for {request_type.capitalize()} APY"),
-        legend_y=-0.2,
+        legend_y=-0.7,
         # legend_x=0.7,
+        title_y=0.35,
         margin=dict(l=0, r=0, t=0, b=0),
     )
     html = fig.to_html(
