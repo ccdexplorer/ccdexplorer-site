@@ -430,10 +430,17 @@ async def get_account(
     account_apy_object = None
     if delegation:
         delegation_target_address = delegation.target
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{delegation_target_address.baker}/staking-rewards-object/delegator",
-            httpx_client,
-        )
+        if delegation_target_address.baker:
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/account/{delegation_target_address.baker}/staking-rewards-object/delegator",
+                httpx_client,
+            )
+        else:
+            # passive_delegation
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/account/passive_delegation/staking-rewards-object/passive_delegation",
+                httpx_client,
+            )
         account_apy_object = api_result.return_value if api_result.ok else None
 
     if validator_id is not None:

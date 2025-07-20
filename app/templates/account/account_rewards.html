@@ -29,6 +29,7 @@
 
   </tbody>
 </table>
+{% if not passive_delegation %}
 <div
         class=" mb-1"
         hx-indicator=".htmx-indicator-rewards"
@@ -41,3 +42,4 @@
      </span>
     
     </div>
+{%endif%}

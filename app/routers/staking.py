@@ -38,6 +38,12 @@ async def staking(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     user: UserV2 | None = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/passive_delegation/staking-rewards-object/passive_delegation",
+        httpx_client,
+    )
+    account_apy_object = api_result.return_value if api_result.ok else None
+
     request.state.api_calls = {}
     request.state.api_calls["Paydays"] = (
         f"{request.app.api_url}/docs#/Accounts/get_paydays_v2__net__accounts_paydays__skip___limit__get"
@@ -58,6 +64,9 @@ async def staking(
                 "env": request.app.env,
                 "net": net,
                 "request": request,
+                "delegation": True,
+                "passive_delegation": True,
+                "account_apy_object": account_apy_object,
                 # "passive_object": passive_object,
                 # "passive_info_v2": passive_info_v2,
                 "user": user,

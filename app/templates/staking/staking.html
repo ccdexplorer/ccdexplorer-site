@@ -1,4 +1,7 @@
 {% extends "base/base.html" %}
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
 {% block content %}
 
 {% include 'base/search_bar_non_home_inclusion.html' %}
@@ -176,20 +179,35 @@
 
 </div> 
 <div class="row mt-4 row-flex">
-  <div class="col-md-12  col-sm-12 ">
+  <div class="col-md-6  col-sm-12 ">
       <div class="border content curved-border " >
 
-{% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
+        {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
       <div id="passive_info">
         
-        <span class="htmx-indicator-b">
-          <img src="/static/misc/bars.svg"/> Loading data...
-        </span>
+        
       </div>  
-      <hr>
+      
+    </div>
+  </div>
+
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+
+      
+      
+      {% include "account/account_rewards.html" %}
+      
+      <div
+          hx-trigger="intersect, switched-theme from:body" 
+          hx-post="/{{net}}/account/apy-graph/passive_delegation/passive_delegation"
+          hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+        ></div>
 
           </div>  
       </div>
+
+
   </div>
 
 
