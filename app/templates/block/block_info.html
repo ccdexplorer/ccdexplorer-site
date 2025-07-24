@@ -21,25 +21,30 @@
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Timestamp</td>
-        <td class="text-end text-secondary-emphasis">{{block_info.slot_time|datetime_regular}}</td>
+        <td class="text-end text-secondary-emphasis ccd">{{block_info.slot_time|datetime_regular}}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Age</td>
-        <td class="text-end text-secondary-emphasis">{{block_info.slot_time|datetime_delta_format_since}} ago</td>
+        <td class="text-end text-secondary-emphasis  ccd">{{block_info.slot_time|datetime_delta_format_since}} ago</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Validator</td>
-        <td class="text-end text-secondary-emphasis" title="{{block_info.baker_id}}"><a
+        <td class="text-end text-secondary-emphasis  ccd" title="{{block_info.baker_id}}"><a
                 href="/{{net}}/account/{{block_info.baker}}">{{block_info.baker}}</a></td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis"># Transactions</td>
-        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis" id="block_tx_count">{{block_info.transaction_count}}
+        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis ccd" id="block_tx_count">{{block_info.transaction_count}}
         </td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Protocol</td>
-        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis" id="block_tx_count">Protocol {{block_info.protocol_version.split("_")[-1]}}
+        <td title="{{block_info.transaction_count}}" class="text-end text-secondary-emphasis ccd" id="block_tx_count">Protocol {{block_info.protocol_version.split("_")[-1]}}
+        </td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Epoch</td>
+        <td title="{{block_info.epoch}}" class="text-end text-secondary-emphasis ccd" id="block_epoch">{{block_info.epoch|round_x_decimal_with_comma(0)}}
         </td>
     </tr>
 

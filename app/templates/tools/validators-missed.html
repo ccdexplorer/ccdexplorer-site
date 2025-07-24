@@ -1,0 +1,71 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<!-- <div class="row  mt-10">
+    <div class="border curved-border mb-2 mt-4"> -->
+      {% set title= "Validator Failed Winning Rounds in current Payday" %}{% include 'base/box_title.html' %}
+<table class="table table-borderless">
+  <thead>
+    <tr>
+      <th class="text-secondary-emphasis"></th>
+      <th class="text-secondary-emphasis"></th>
+      <th class="text-secondary-emphasis"></th>
+      <th class="text-secondary-emphasis text-center" colspan="2">Missed Rounds</th>
+    </tr>
+    <tr>
+      <th class="text-secondary-emphasis">Hour in Payday</th>
+      <th class="text-secondary-emphasis">Epoch</th>
+      <th class="text-secondary-emphasis text-start">Validator</th>
+      <th class="text-secondary-emphasis text-end">In Payday</th>
+      <th class="text-secondary-emphasis text-end">In Epoch</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for v in validators_missed|reverse %}
+    {% set missed_items = v.missed.items() | list %}
+    {% set row_count = missed_items | selectattr("1.missed_epoch", "gt", 0) | list | length %}
+
+    {% if row_count == 0 %}
+      <tr class="sm-text">
+        <td class="text-secondary-emphasis ccd">{{ v.hour_index }}</td>
+        <td class="text-secondary-emphasis ccd">{{ v.epoch }}</td>
+        <td class="text-secondary-emphasis text-muted"></td>
+        <td class="text-secondary-emphasis text-muted"></td>
+      </tr>
+    {% else %}
+      {% set shown = false %}
+      {% for validator_id, count in missed_items %}
+        {% if count.missed_epoch > 0 %}
+        <tr class="sm-text">
+          {% if not shown %}
+            <td class="text-secondary-emphasis ccd">{{ v.hour_index }}</td>
+            <td class="text-secondary-emphasis ccd">{{ v.epoch }}</td>
+            {% set shown = true %}
+          {% else %}
+            <td></td>
+            <td></td>
+          {% endif %}
+          <td class=" text-secondary-emphasis text-start">
+            <a class="ccd" href="/{{ net }}/account/{{ validator_id }}">
+              {{ validator_id|int|round_x_decimal_with_comma(0) }}
+            </a>
+          </td>
+          <td class="text-secondary-emphasis text-end ccd">
+            {{ count.missed_payday }}
+          </td>
+          <td class="text-secondary-emphasis text-end ccd">
+            {{ count.missed_epoch }}
+          </td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+  </tbody>
+</table>
+<!-- </div>
+    </div> -->
+    
+    
+{% endblock %}

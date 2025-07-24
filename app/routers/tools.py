@@ -132,6 +132,33 @@ async def get_projects_overview(
     )
 
 
+@router.get("/{net}/tools/validators-failed-rounds", response_class=HTMLResponse)
+async def get_validators_failed_rounds(
+    request: Request,
+    net: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    user: UserV2 | None = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/mainnet/misc/validators-failed-rounds",
+        httpx_client,
+    )
+    validators_missed = api_result.return_value if api_result.ok else []
+
+    return templates.TemplateResponse(
+        "tools/validators-missed.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "user": user,
+            "tags": tags,
+            "validators_missed": validators_missed,
+            "net": "mainnet",
+        },
+    )
+
+
 @router.get("/{net}/tools/chain-information", response_class=HTMLResponse)
 async def chain_information(
     request: Request,
