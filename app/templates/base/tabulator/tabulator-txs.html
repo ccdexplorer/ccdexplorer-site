@@ -21,7 +21,8 @@
         responsive: 50,
         formatter: isoDateTimeHumanDiff,
         headerSort:false,
-        download:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
         hozAlign: "right", headerHozAlign: "right",
         
       },

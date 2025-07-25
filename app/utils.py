@@ -274,6 +274,7 @@ def create_dict_for_tabulator_display(
             if classified_tx.transaction.account_transaction
             else "Chain"
         ),
+        "transaction_block_info_slot_time_download": f"{dateutil.parser.parse(classified_tx.transaction.block_info.slot_time.isoformat()):%Y-%m-%d %H:%M:%S}",
     }
 
 
