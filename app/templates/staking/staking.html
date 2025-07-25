@@ -51,6 +51,8 @@
       })
       .then((data) => {
         passive_info.innerHTML = data;
+        const tx_fees = document.getElementById('tx_fees');
+        new bootstrap.Popover(tx_fees, { trigger: 'focus' });
       })
       .catch(function (error) {
         console.log(error);
@@ -59,6 +61,8 @@
 
   window.addEventListener('load', (event) => {
     getPassiveInfo();
+    
+    
     
   });
 </script>
@@ -195,7 +199,7 @@
       <div class="border content curved-border " >
 
       
-      
+      {% set title= "Passive Delegation Rewards" %}{% include 'base/box_title.html' %}
       {% include "account/account_rewards.html" %}
       
       <div
@@ -226,4 +230,12 @@
   </div>
 </div>
 {% endif %}
+
+<script>
+    const tx_fees = document.getElementById('tx_fees');
+    if (tx_fees) {
+      new bootstrap.Popover(tx_fees, { trigger: 'focus' });
+    }
+  
+</script>
 {% endblock content %}
