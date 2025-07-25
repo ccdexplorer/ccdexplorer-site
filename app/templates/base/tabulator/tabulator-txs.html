@@ -9,6 +9,7 @@
         responsive: 0,
         sorter: "number",
         formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
         headerSort: false,
         hozAlign: "left", headerHozAlign: "left",
         
@@ -31,6 +32,7 @@
         maxWidth: 100, 
         sorter: "number",
         headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
         formatter: microCCDFormatter,
       },
       {
@@ -48,6 +50,7 @@
         minWidth: 200,
         maxWidth: 200, 
         formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
         headerSort: false,
         
       },
@@ -57,6 +60,7 @@
         minWidth: 120,
         maxWidth: 130, 
         formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
         headerSort: true,
         
       },
@@ -67,6 +71,7 @@
         minWidth: 120,
         // maxWidth: 180, 
         formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
         headerSort: false,
         
       }

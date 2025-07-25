@@ -263,6 +263,17 @@ def create_dict_for_tabulator_display(
         "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
         "type_additional_info": type_additional_info,
         "sender": sender,
+        # for downloads
+        "hash_download": classified_tx.transaction.hash,
+        "type_additional_info_download": (
+            classified_tx.amount / 1000000 if classified_tx.amount else ""
+        ),
+        "block_height_download": classified_tx.transaction.block_info.height,
+        "sender_download": (
+            classified_tx.transaction.account_transaction.sender
+            if classified_tx.transaction.account_transaction
+            else "Chain"
+        ),
     }
 
 

@@ -1,5 +1,5 @@
-<!-- <script>document.getElementById("download-csv").addEventListener("click", function () {
-    window["{{ccd_tabulator_table}}_table"].download("csv", "{{filename}}", { bom: true });
+<script>document.getElementById("download-csv").addEventListener("click", function () {
+    window["{{ccd_tabulator_table}}_table"].download("csv", "{{filename}}", { bom: true , downloadDataFormatter: data => data});
   });
 
-</script> -->
+</script>

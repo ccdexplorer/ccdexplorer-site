@@ -338,7 +338,7 @@ if (ref) {
         <div class="border curved-border" id="txs">
           {% set ccd_tabulator_table ='txs_table'%}
           {% set tabulator_ajax_url = '/account_transactions/'+net+'/'+account_id +'/'+total_rows|string%}
-          {% set filename='transactions-'+account_id|string +'.csv' %}
+          {% set filename='transactions-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
           {% include "base/tabulator/tabulator-txs.html" %}
         </div>
       </div>  
