@@ -1,17 +1,16 @@
-import datetime as dt
+import math
 
-import dateutil
 import httpx
-import plotly.express as px
+import plotly.graph_objects as go
 import polars as polars
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
-    CCD_PoolInfo,
-    CCD_DelegatorRewardPeriodInfo,
     CCD_DelegatorInfo,
+    CCD_DelegatorRewardPeriodInfo,
 )
 from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response
+from plotly.subplots import make_subplots
 
 from app.env import environment
 from app.jinja2_helpers import templates
@@ -20,17 +19,11 @@ from app.utils import (
     PaginationRequest,
     account_link,
     calculate_skip,
-    pagination_calculator,
     ccdexplorer_plotly_template,
-    verbose_timedelta,
-    get_address_identifiers,
     from_address_to_index,
-    post_url_from_api,
     get_url_from_api,
-    APIResponseResult,
+    pagination_calculator,
 )
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 router = APIRouter()
 
@@ -177,17 +170,89 @@ async def get_account_payday_stats(
     return stats
 
 
+def prepare_delegators_data(
+    new_delegators, delegators, delegators_in_block_dict, request
+):
+    """
+    Prepare delegator entries for Tabulator with only account_index, stake, and message.
+
+
+    """
+    rows = []
+
+    # New delegators
+    for account_id, value in new_delegators.items():
+        rows.append(
+            {
+                "account_index": from_address_to_index(
+                    account_id[:29], "mainnet", request.app
+                ),
+                "stake": value.get("stake"),
+                "message": "(to be included <br/>in next payday)",
+            }
+        )
+
+        # pending = value.get("pending_change", {}) or {}
+        # # Construct message
+        # messages = []
+        # if pending.get("remove"):
+        #     messages.append(f"Delegation to be removed at: {pending['remove']}")
+        # if pending.get("reduce"):
+        #     reduce_info = pending["reduce"]
+        #     messages.append(
+        #         f"Delegation stake reduced to: {reduce_info.get('new_stake')} at: {reduce_info.get('effective_time')}"
+        #     )
+        # message = "; ".join(messages)
+
+        # rows.append(
+        #     {
+        #         "account_index": from_address_to_index(
+        #             account_id[:29], "mainnet", request.app
+        #         ),
+        #         "stake": value.get("stake"),
+        #         "message": message,
+        #     }
+        # )
+
+    # Current delegators
+    for row in delegators:
+        pending_block = (
+            delegators_in_block_dict.get(row.get("account"), {}).get(
+                "pending_change", {}
+            )
+            or {}
+        )
+        messages = []
+        if pending_block.get("remove"):
+            messages.append(f"Delegation to be removed at: {pending_block['remove']}")
+        if pending_block.get("reduce"):
+            reduce_info = pending_block["reduce"]
+            messages.append(
+                f"Delegation stake reduced to: {reduce_info.get('new_stake')} at: {reduce_info.get('effective_time')}"
+            )
+        message = "; ".join(messages)
+
+        rows.append(
+            {
+                "account_index": row.get("account"),
+                "stake": row.get("stake"),
+                "message": message,
+            }
+        )
+
+    return rows
+
+
 @router.get(
-    "/account_pool_delegators/{net}/{account_index}/{requested_page}/{total_rows}/{api_key}",
+    "/account_pool_delegators/{net}/{account_index}",
     response_class=HTMLResponse,
 )
 async def get_account_pool_delegators(
     request: Request,
     net: str,
     account_index: int,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     # recurring: Recurring = Depends(get_recurring),
     tags: dict = Depends(get_labeled_accounts),
@@ -195,11 +260,10 @@ async def get_account_pool_delegators(
     """
     Add {net}.
     """
-    limit = 10
     user: UserV2 | None = await get_user_detailsv2(request)
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_index}/pool/delegators/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/account/{account_index}/pool/delegators/{skip}/{size}",
         httpx_client,
     )
     delegator_dict = api_result.return_value if api_result.ok else None
@@ -233,15 +297,6 @@ async def get_account_pool_delegators(
         CCD_DelegatorInfo(**x).account: x for x in delegators_in_block
     }
 
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="delegator",
-        action_string="delegator",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-
     delegators_with_ids = delegators
 
     delegators = []
@@ -256,24 +311,56 @@ async def get_account_pool_delegators(
     #     x.update({"account": account_ids_to_lookup.get(x["account"], x["account"])})
     #     for x in delegators_with_ids
     # ]
+    # combined_delegators = []
+    # for account_id, value in new_delegators_dict.items():
 
-    html = templates.get_template("account/account_pool_delegators.html").render(
+    combined_delegators = prepare_delegators_data(
+        new_delegators_dict, delegators, delegators_in_block_dict, request
+    )
+    total_rows = total_rows + len(new_delegators_dict)
+    made_up_delegators = []
+    for d in combined_delegators:
+        made_up_delegator = {}
+        made_up_delegator["account"] = account_link(
+            d["account_index"],
+            "mainnet",
+            user=user,
+            tags=tags,
+            app=request.app,
+        )
+
+        made_up_delegator["staked_amount"] = d["stake"]
+        made_up_delegator["message"] = d["message"]
+        # download
+        made_up_delegator["account_download"] = d["account_index"]
+        made_up_delegators.append(made_up_delegator)
+
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "delegators": delegators,
-            "tags": tags,
-            "user": user,
-            "net": net,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
-            "new_delegators": new_delegators_dict,
-            "delegators_current_payday_dict": delegators_current_payday_dict,
-            "delegators_in_block_dict": delegators_in_block_dict,
+            "data": made_up_delegators,
+            "last_page": last_page,
+            "last_row": total_rows,
         }
     )
 
-    return html
+    # html = templates.get_template("account/account_pool_delegators.html").render(
+    #     {
+    #         "delegators": delegators,
+    #         "tags": tags,
+    #         "user": user,
+    #         "net": net,
+    #         "request": request,
+    #         "pagination": pagination,
+    #         "totals_in_pagination": True,
+    #         "total_rows": total_rows,
+    # "new_delegators": new_delegators_dict,
+    # "delegators_current_payday_dict": delegators_current_payday_dict,
+    # "delegators_in_block_dict": delegators_in_block_dict,
+    #     }
+    # )
+
+    # return html
 
 
 @router.get(
