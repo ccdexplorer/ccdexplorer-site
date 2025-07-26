@@ -3,34 +3,45 @@
 <script>
   const {{ccd_tabulator_table}}_columns = [
   {
-        title: "Height", field: "block_height", 
-        minWidth: 120,
-        // maxWidth: 120,
+        title: "Date", field: "date", 
+        minWidth: 70,
+        // maxWidth: 70,
         responsive: 0,
-        accessorDownload: (value, data) => data.block_height_download,
-        formatter: "html",
+        
+        formatter: ccdClassFormatterForString,
         headerSort: false,
         hozAlign: "left", headerHozAlign: "left",
         
       },
       {
-        title: "Time", field: "payday_block_slot_time", 
-        minWidth: 170,
-        maxWidth: 170,
-        responsive: 50,
-        accessorDownload: (value, data) => data.payday_block_slot_time_download,
-        formatter: isoDateTimeFormatter,
+        title: "LP(%)", field: "lp", 
+        minWidth: 90,
+        maxWidth: 90,
+        responsive: 0,
+        formatter: LotteryPowerFormatter,
+        accessorDownload: (value, data) => data.lp*100,
         headerSort:false,
         hozAlign: "right", headerHozAlign: "right",
         
       },
       {
-        title: "Blocks", field: "count_of_blocks", 
+        title: "Expectation", field: "expectation", 
+        minWidth: 120,
+        maxWidth: 120,
+        responsive: 0,
+        formatter: intFormatterRounded,
+        headerSort:false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Actual", field: "actuals", 
         minWidth: 100,
         maxWidth: 100,
-        responsive: 50,
-        formatter: ccdClassFormatter,
+        responsive: 0,
+        formatter: intFormatterRounded,
         headerSort:false,
+        
         hozAlign: "right", headerHozAlign: "right",
         
       },

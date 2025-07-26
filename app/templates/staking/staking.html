@@ -162,6 +162,7 @@
           <div id="paydays">
             {% set ccd_tabulator_table ='paydays_table'%}
             {% set tabulator_ajax_url = '/'+net+'/ajax_paydays'%}
+            {% set filename='paydays-'+range(1000,10000)|random|string+'.csv' %}
             {% include "base/tabulator/tabulator-paydays.html" %}
               
           </div>  
@@ -175,6 +176,7 @@
           <div id="passive_delegators"><span class="htmx-indicator-c">
             {% set ccd_tabulator_table ='passive_delegators_table'%}
             {% set tabulator_ajax_url = '/ajax_passive_delegators/0'%}
+            {% set filename='passive-delegators-'+range(1000,10000)|random|string+'.csv' %}
             {% include "base/tabulator/tabulator-passive-delegators.html" %}
           </span></div>  
     </div>

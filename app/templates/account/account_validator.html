@@ -57,13 +57,24 @@
   <div class="col-md-6  col-sm-12 ">
     <div class="border content curved-border " >
       {% set title= "Validator Tally" %}{% include 'base/box_title.html' %}
-      <div id="validator_tally"></div>
+          <div id="validator-tally">
+            {% set ccd_tabulator_table ='validator_tally_table'%}
+            {% set tabulator_ajax_url = '/account/validator-tally/'+net+'/'+ account_index|string%}
+            {% set filename='validator-tally-'+ account_index|string+'-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-validator-tally.html" %}
+          </div>
     </div>
   </div>
   {% endif %}
   <div class="col-md-6  col-sm-12 ">
-    <div class="border content curved-border " id="validator_txs">
-      
+    <div class="border content curved-border " >
+      {% set title= "Validator Transactions" %}{% include 'base/box_title.html' %}
+          <div id="vvalidator_txs">
+            {% set ccd_tabulator_table ='validator_transactions_table'%}
+            {% set tabulator_ajax_url = '/account_validator_transactions/'+net+'/'+ account_id%}
+            {% set filename='validator-transactions-'+ account_index|string+'-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-validator-transactions.html" %}
+          </div>
       
     </div>
   </div>

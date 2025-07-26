@@ -1,7 +1,7 @@
 <div class="row row-flex">
       
   {% set title= "Day: "+date %}{% include 'base/box_title.html' %}
-    <div class=" col-sm-6"> 
+    <div class=" col-sm-6 mb-3"> 
       <div class="border content curved-border text-center" >
         Block range: 
           <span class="text-start text-secondary-emphasis sm-text ccd">
@@ -15,12 +15,12 @@
     </div>
   </div>
    
-      <div class=" col-sm-3">   
+      <div class=" col-sm-3 mb-3">   
         <div class="border content curved-border  text-center" >
       <span class="sm-text"># Txs: <span class="text-start text-secondary-emphasis ccd">{{today_in.tx_count|round_x_decimal_with_comma(0)}}</span></span>
       </div>
     </div>
-    <div class=" col-sm-3"> 
+    <div class=" col-sm-3 mb-3"> 
       <div class="border content curved-border text-center" >
         <span class="sm-text">Fees: <span class="text-center text-secondary-emphasis ccd">{{today_in.fee_for_day|micro_ccd_no_decimals|safe}}</span></span>
     </div>

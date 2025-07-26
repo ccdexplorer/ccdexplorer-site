@@ -1,6 +1,6 @@
 <div id="{{ccd_tabulator_table}}"></div>
 <div>
-  <a href="#" class="tabulator-download-button" id="download-csv">Download visible rows as CSV</a>
+  <a href="#" class="tabulator-download-button" id="{{ccd_tabulator_table}}-download-csv">Download visible rows as CSV</a>
 </div>
 
 <script>
@@ -13,8 +13,8 @@
       // pagination: true, 
       paginationMode: "remote", 
       
-      paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100],
-      paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100])[0],
+      paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100, 500],
+      paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100, 500])[0],
       paginationButtonCount:3,
       pagination:true,
       paginationCounter: function(pageSize, currentRow, currentPage, totalRows, totalPages) {

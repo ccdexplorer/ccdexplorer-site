@@ -7,31 +7,22 @@
         minWidth: 120,
         // maxWidth: 120,
         responsive: 0,
-        
+        accessorDownload: (value, data) => data.account_download,
         formatter: "html",
         headerSort: false,
         hozAlign: "left", headerHozAlign: "left",
         
       },
-      // {
-      //   title: "Time", field: "payday_block_slot_time", 
-      //   minWidth: 170,
-      //   maxWidth: 170,
-      //   responsive: 50,
-      //   formatter: isoDateTimeFormatter,
-      //   headerSort:false,
-      //   download:false,
-      //   hozAlign: "right", headerHozAlign: "right",
-        
-      // },
       {
         title: "Staked Amount", field: "staked_amount", 
         minWidth: 150,
         maxWidth: 150,
         responsive: 50,
         formatter: microCCDFormatterRounded,
+        titleDownload:"Staked Amount (CCD)",
+        accessorDownload: (value, data) => data.staked_amount/1000000,
         headerSort:false,
-        download:false,
+        
         hozAlign: "right", headerHozAlign: "right",
         
       },
@@ -41,6 +32,7 @@
   
   
   window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
-  
+   window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
 </script>
 {% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}

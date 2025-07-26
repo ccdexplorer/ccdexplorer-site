@@ -27,52 +27,13 @@
         
       },
       {
-        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
-        responsive: 100,
-        minWidth: 100,
-        maxWidth: 100, 
-        sorter: "number",
-        headerSort: false,
-        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
-        formatter: microCCDFormatter,
-      },
-      {
-        title: "Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
-        responsive: 0,
-        minWidth: 170,
-        // maxWidth: 170, 
-        formatter:txTypeFormatter,
-        headerSort: false,
         
-      },
-      {
-        title: "", field: "type_additional_info", hozAlign: "right", 
-        responsive: 70,
-        minWidth: 200,
-        maxWidth: 200, 
-        formatter: "html",
-        accessorDownload: (value, data) => data.type_additional_info_download,
-        headerSort: false,
-        
-      },
-      {
-        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
-        responsive: 90,
-        minWidth: 120,
-        maxWidth: 130, 
-        formatter: "html",
-        accessorDownload: (value, data) => data.block_height_download,
-        headerSort: true,
-        
-      },
-      {
-        
-        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        title: "Event", field: "first_event", headerHozAlign:"right", hozAlign: "right", 
         responsive: 30,
         minWidth: 120,
         // maxWidth: 180, 
         formatter: "html",
-        accessorDownload: (value, data) => data.sender_download,
+        accessorDownload: (value, data) => StripHTMLFormatterOnString(data.first_event),
         headerSort: false,
         
       }

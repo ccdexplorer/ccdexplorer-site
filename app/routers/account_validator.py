@@ -3,6 +3,7 @@ import datetime as dt
 import dateutil
 import httpx
 import plotly.express as px
+import plotly.graph_objects as go
 import polars as polars
 from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
@@ -10,9 +11,11 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockItemSummary,
     CCD_PoolInfo,
 )
+import math
 from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, Response
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response
+from plotly.subplots import make_subplots
 
 from app.classes.dressingroom import (
     MakeUp,
@@ -26,13 +29,12 @@ from app.utils import (
     PaginationRequest,
     account_link,
     calculate_skip,
-    pagination_calculator,
     ccdexplorer_plotly_template,
-    verbose_timedelta,
     get_url_from_api,
+    pagination_calculator,
+    verbose_timedelta,
+    create_dict_for_tabulator_display,
 )
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 router = APIRouter()
 
@@ -295,16 +297,15 @@ async def get_account_payday_stats(
 
 
 @router.get(
-    "/account_validator_transactions/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
+    "/account_validator_transactions/{net}/{account_id}",
     response_class=HTMLResponse,
 )
 async def get_account_validator_transactions(
     request: Request,
     net: str,
     account_id: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     # recurring: Recurring = Depends(get_recurring),
     tags: dict = Depends(get_labeled_accounts),
@@ -312,12 +313,11 @@ async def get_account_validator_transactions(
     """
     Add {net}.
     """
-    limit = 10
     user: UserV2 | None = await get_user_detailsv2(request)
 
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-transactions/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-transactions/{skip}/{size}",
         httpx_client,
     )
     tx_result = api_result.return_value if api_result.ok else None
@@ -336,7 +336,8 @@ async def get_account_validator_transactions(
 
     tx_result_transactions = tx_result["transactions"]
     total_rows = tx_result["total_tx_count"]
-    made_up_txs = []
+    last_page = math.ceil(total_rows / size)
+    tb_made_up_txs = []
     if len(tx_result_transactions) > 0:
         for transaction in tx_result_transactions:
             transaction = CCD_BlockItemSummary(**transaction)
@@ -347,58 +348,54 @@ async def get_account_validator_transactions(
                     "tags": tags,
                     "user": user,
                     "app": request.app,
-                    "requesting_route": RequestingRoute.block,
+                    "requesting_route": RequestingRoute.account,
                 }
             )
 
             classified_tx = await MakeUp(
                 makeup_request=makeup_request
             ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
 
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="tx",
-        action_string="validator_tx",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("account/account_validator_transactions.html").render(
+            type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+            dct = create_dict_for_tabulator_display(
+                net, classified_tx, type_additional_info, sender
+            )
+            # {% set event=tx.events_list[0] %}
+            # {{event.update|safe }}
+
+            dct["first_event"] = (
+                classified_tx.events_list[0].update
+                if classified_tx.events_list
+                else None
+            )
+            tb_made_up_txs.append(dct)
+    return JSONResponse(
         {
-            "transactions": made_up_txs,
-            "tags": tags,
-            "net": net,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
+            "data": tb_made_up_txs,
+            "last_page": last_page,
+            "last_row": total_rows,
         }
     )
 
-    return html
-
 
 @router.get(
-    "/account/validator-tally/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
+    "/account/validator-tally/{net}/{account_id}",
     response_class=HTMLResponse,
 )
 async def get_validator_tally(
     request: Request,
     net: str,
     account_id: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
     # recurring: Recurring = Depends(get_recurring),
 ):
-    limit = 7
-    user: UserV2 | None = await get_user_detailsv2(request)
 
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{size}",
         httpx_client,
     )
     tally = api_result.return_value if api_result.ok else None
@@ -415,24 +412,13 @@ async def get_validator_tally(
         )
 
     tally_data = tally["data"]
-    total_rows = tally["total_row_count"]
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="result",
-        action_string="result",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("account/account_validator_tally.html").render(
+    total_rows = tally["total_row_count"]  # type: ignore
+    last_page = math.ceil(total_rows / size)
+
+    return JSONResponse(
         {
             "data": tally_data,
-            "net": net,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
+            "last_page": last_page,
+            "last_row": total_rows,
         }
     )
-
-    return html

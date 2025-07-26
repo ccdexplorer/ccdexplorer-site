@@ -436,3 +436,8 @@ button.nav-link.explorer {
       color: gray;
   }
 
+.tabulator-footer button.tabulator-page {
+  font-size: 14px;
+  line-height: 1.4;
+  /* color: var(--bs-secondary-color) !important; */
+}

@@ -1,6 +1,6 @@
 {% if tx_type_translation_from_python is defined %}
   <script>
-    let tx_type_translation = {};
+    var tx_type_translation = {};
     tx_type_translation = {{ tx_type_translation_from_python | tojson }};
   </script>
 {% endif %}
@@ -40,6 +40,67 @@ function txTypeFormatter(cell){
   }
 
   return `${icon} <span class="tx_type text-secondary-emphasis">${map.display_str}</span>`;
+}
+
+function StripHTMLFormatterOnString(raw) {
+  
+  if (typeof raw !== "string") {
+    return raw ?? "";
+  }
+
+  // Create a temporary DOM element to parse HTML
+  const div = document.createElement("div");
+  div.innerHTML = raw;
+
+  // Extract visible text content and remove "Ͼ" if present
+  const cleanText = (div.textContent || div.innerText || "").replace("Ͼ", "").trim();
+
+  return cleanText;
+}
+
+function LotteryPowerFormatter(cell) {
+  const raw = cell.getValue();
+
+  if (raw === undefined || raw === null) {
+    return ``;
+  }
+
+  const parsed = parseFloat(raw*100);
+  const value = isNaN(parsed) ? 0 : parsed;
+
+  // Round to 4 decimal places
+  const rounded = Math.round(value * 10_000) / 10_000;
+
+  // Format with commas and 4 fixed decimals
+  const formatted = rounded.toLocaleString("en-US", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4
+  });
+
+  return `<span class="ccd">${formatted}%</span>`;
+}
+
+function intFormatterRounded(cell) {
+  const raw = cell.getValue();
+
+  // If there’s no value, render empty
+  if (raw === undefined || raw === null) {
+    return ``;
+  }
+
+  // Try to parse as float
+  const parsed = parseFloat(raw);
+  const value = isNaN(parsed) ? 0 : parsed;
+
+  // Round to 0 decimals if > 5, otherwise leave as-is
+  const rounded = value > 5
+    ? Math.round(value)
+    : value;
+
+  // Format with commas
+  const formatted = rounded.toLocaleString("en-US");
+
+  return `<span class="ccd">${formatted}</span>`;
 }
 
 function microCCDFormatterRounded(cell) {
@@ -136,5 +197,11 @@ function ccdClassFormatter(cell) {
   // Parse as number and format with thousands separators
   const formatted = Number(value).toLocaleString("en-US");
   return `<span class="ccd">${formatted}</span>`;
+
 }
+function ccdClassFormatterForString(cell) {
+  const value = cell.getValue();
+  return `<span class="ccd">${value}</span>`;
+}
+
 </script>  

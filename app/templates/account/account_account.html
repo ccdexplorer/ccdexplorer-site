@@ -71,33 +71,6 @@ if (ref) {
   
 </script>
 
-<script>
-  async function getValidatorTransactions(requested_page, total_rows) {
-    validator_txs = document.getElementById('validator_txs');
-    var account_id = document.querySelector('.account_id').title;
-    url = '/account_validator_transactions/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-    validator_txs.innerHTML = '{% include "base/spinner.html" %}'
-    await fetch(url)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        validator_txs.innerHTML = data;
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
-
-  function prev_validator_txs(requested_page, total_rows) {
-    getValidatorTransactions(requested_page, total_rows)
-  };
-  function next_validator_txs(requested_page, total_rows) {
-    getValidatorTransactions(requested_page, total_rows)
-  };
-
-  
-</script>
 
 <script>
   async function getFungibleVerifiedTokens(requested_page, total_rows) {
@@ -223,37 +196,7 @@ if (ref) {
 
   
 </script>
-<!--Get baker tally -->
-<script>
-  async function getValidatorTally(requested_page, total_rows) {
-    try {
-      tally = document.getElementById('validator_tally');
-      var account_id = document.querySelector('.account_id').title;
-      url = '/account/validator-tally/{{net}}/{{account_index}}/' + requested_page + '/' + total_rows + '/' + api_key;
 
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          tally.innerHTML = data;
-        })
-        .catch(function (error) {
-          // console.log(error);
-        });
-    } catch (error) {}
-  }
-
-
-  function prev_results(requested_page, total_rows) {
-    getValidatorTally(requested_page, total_rows)
-  };
-  function next_results(requested_page, total_rows) {
-    getValidatorTally(requested_page, total_rows)
-  };
-
-  
-</script>
 
 {% include 'base/search_bar_non_home_inclusion.html' %}
     <div class="row row-flex">
@@ -408,10 +351,8 @@ if (ref) {
 
 <script>
 window.addEventListener('load', (event) => {
-    // getTransactions(0, 0);
     '{% if account_is_validator %}'
-        getValidatorTransactions(0, 0);
-        getValidatorTally(0, 0);
+        
         getDelegators(0, 0);
     '{% endif %}'
     getFungibleVerifiedTokens(0, 0);

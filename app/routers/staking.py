@@ -201,6 +201,11 @@ async def get_ajax_paydays_tabulator(
             made_up_payday["count_of_blocks"] = (
                 p["height_for_last_block"] - p["height_for_first_block"] + 1
             )
+            # download
+            made_up_payday["block_height_download"] = p["height_for_last_block"] + 1
+            made_up_payday["payday_block_slot_time_download"] = (
+                f"{parser.parse(p["payday_block_slot_time"]):%Y-%m-%dT%H:%M:%S.%fZ}"
+            )
             made_up_paydays.append(made_up_payday)
 
         total_rows = return_dict["total_rows"]  # type: ignore
@@ -276,6 +281,8 @@ async def get_ajax_passive_delegators(
         )
 
         made_up_delegator["staked_amount"] = d["stake"]
+        # download
+        made_up_delegator["account_download"] = d["account"]
         made_up_delegators.append(made_up_delegator)
 
     total_rows = passive_delegators_response["total_rows"]  # type: ignore
