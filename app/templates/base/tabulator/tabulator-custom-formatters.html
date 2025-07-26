@@ -155,6 +155,7 @@ function isoDateTimeHumanDiff(cell) {
   
   var classlist = cell.getElement().classList;
   classlist.add("ccd");
+  classlist.add("sm-text");
   cell.getElement().classlist = classlist;
 
   if (!isoString) return "-";

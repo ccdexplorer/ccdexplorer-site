@@ -4,7 +4,7 @@
   const {{ccd_tabulator_table}}_columns = [
   {
         title: "Date", field: "date", 
-        minWidth: 70,
+        minWidth: 95,
         // maxWidth: 70,
         responsive: 0,
         
@@ -17,7 +17,7 @@
         title: "LP(%)", field: "lp", 
         minWidth: 90,
         maxWidth: 90,
-        responsive: 0,
+        responsive: 10,
         formatter: LotteryPowerFormatter,
         accessorDownload: (value, data) => data.lp*100,
         headerSort:false,
