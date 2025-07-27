@@ -1,0 +1,51 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<span id="requested_page" data-requested-page="{{requested_page}}" style="display:none;"></span>
+  
+    <div class="row  mt-10">
+        <span class="mb-3 text-uppercase sm-text text-secondary-emphasis">Transactions by Type</span>
+        
+        <div class="col ">
+            <div class="input-box mt-1 d-flex justify-content-start">
+                <select 
+                class="form-select form-select-sm search_selector_filter text-end" 
+                id="tx_type_contents_selector"
+                name="tx_type_contents_selector">
+                {% for tx_type in tx_types|sort(attribute='_id') %}
+                    <option value="{{tx_type._id}}" {% if tx_type._id == 'account_transfer' %}selected{% endif %}>{{tx_type._id|replace('_', ' ')|replace('baker', 'validator')| title}}</option>
+                {% endfor %}
+                </select>
+                    
+            </div>
+          
+        </div>
+          
+    </div>
+        
+    <div id="results">
+            {% set ccd_tabulator_table ='transactions_by_type_table'%}
+            {% set tabulator_ajax_url = '/'+net+'/ajax_last_transactions_by_type/'%}
+            {% include "base/tabulator/tabulator-txs-by-type.html" %}
+          </div>
+    <script>
+        window.addEventListener('load', (event) => {
+            
+                const table = window["{{ccd_tabulator_table}}_table"];
+                const select = document.getElementById("tx_type_contents_selector");
+                table.setFilter("type", "=", select.value);
+                // table.setData("{{tabulator_ajax_url}}");
+                
+        });
+        const doc = document.getElementById('tx_type_contents_selector');
+        doc.addEventListener('change', function() {
+            // Reset requested_page to 1
+            const table = window["{{ccd_tabulator_table}}_table"];
+            table.setFilter("type", "=", this.value);
+        
+        
+    });
+    </script>
+{% endblock %}

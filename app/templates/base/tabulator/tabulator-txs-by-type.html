@@ -62,7 +62,7 @@
         maxWidth: 130, 
         formatter: "html",
         accessorDownload: (value, data) => data.block_height_download,
-        headerSort: true,
+        headerSort: false,
         
       },
       {
@@ -82,9 +82,7 @@
   
   
   window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
-  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
   window["{{ccd_tabulator_table}}_default_sort_field"] = 'block_height';
   window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
 </script>
-{% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
-{% include 'base/tabulator/tabulator-table-download-link.html' %}
+{% include 'base/tabulator/tabulator-table-remote-filtering.html' %}

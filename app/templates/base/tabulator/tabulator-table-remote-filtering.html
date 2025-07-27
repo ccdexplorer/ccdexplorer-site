@@ -1,9 +1,5 @@
 <div id="{{ccd_tabulator_table}}"></div>
-<div>
-  <button type="button" class="tabulator-download-button link-style" id="{{ccd_tabulator_table}}-download-csv">
-  Download visible rows as CSV
-</button>
-</div>
+
 
 <script>
   
@@ -13,7 +9,7 @@
       layout: "fitColumns",
       responsiveLayout: "hide",
       paginationMode: "remote", 
-      filterMode:"remote",
+      filterMode:     "remote",
       paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100, 500],
       paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100, 500])[0],
       paginationButtonCount:3,
@@ -45,44 +41,21 @@
           return `<span class="ccd">${range} of ${totalFmt}</span>`;
       },
       sortMode:"remote",
+      ajaxConfig: "POST",            // or { method: "POST" }
+      ajaxContentType: "json",
       ajaxURL: "{{tabulator_ajax_url}}",
-      initialSort:[
-        {
-          column: window["{{ccd_tabulator_table}}_default_sort_field"], 
-          dir: window["{{ccd_tabulator_table}}_default_sort_field_direction"]
-        }
-        
-    ],
-    rowFormatter: function(row){
-  row.getElement().classList.add("sm-text");
-},
-      ajaxURLGenerator: function (url, config, params) {
-        const page = params.page || 1;
-        const size = params.size || 10;
-        const skip = (page - 1) * size;
-
-        const sorter = params.sort?.[0] || {};
-        const sort_key = sorter.field || window["{{ccd_tabulator_table}}_default_sort_field"];
-        const direction = sorter.dir || window["{{ccd_tabulator_table}}_default_sort_field_direction"];
-        const queryParams = {
-          page,
-          size,
-        };
-        if (window["{{ccd_tabulator_table}}_default_sort_field"] !== undefined) {
-          queryParams.sort_key = sort_key;
-          queryParams.direction = direction;
-        }
-        const query = new URLSearchParams(queryParams);
-        
-        return `{{tabulator_ajax_url}}?${query.toString()}`;
+      
+      rowFormatter: function(row){
+        row.getElement().classList.add("sm-text");
       },
+      
 
   });
   // Right after you build the table:
+//   window["{{ccd_tabulator_table}}_table"].on("tableBuilt", () => {
+//     window["{{ccd_tabulator_table}}_table"].setFilter("type", "=", "account_transfer");
+// });
 
-  window["{{ccd_tabulator_table}}_table"].on("tableBuilt", () => {
-  window["{{ccd_tabulator_table}}_table"].setFilter("type", "=", "transfers");
-});
 
 window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
   document.querySelectorAll(".tabulator-col-title").forEach(el => {

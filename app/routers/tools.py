@@ -1,4 +1,5 @@
 import datetime as dt
+import math
 from typing import Optional
 
 import dateutil
@@ -10,7 +11,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from dateutil.relativedelta import relativedelta
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.classes.dressingroom import (
@@ -27,12 +28,14 @@ from app.state import (
     get_user_detailsv2,
 )
 from app.utils import (
-    get_url_from_api,
-    post_url_from_api,
-    calculate_skip,
     PaginationRequest,
+    calculate_skip,
+    create_dict_for_tabulator_display,
+    get_url_from_api,
     pagination_calculator,
+    post_url_from_api,
     tx_type_translation,
+    tx_type_translation_for_js,
 )
 
 router = APIRouter()
@@ -544,11 +547,17 @@ async def transactions_by_type_page(
     request: Request,
     net: str,
     tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ) -> HTMLResponse:
     if net not in ["mainnet", "testnet"]:
-        return RedirectResponse(url="/mainnet", status_code=302)
+        return RedirectResponse(url="/mainnet", status_code=302)  # type: ignore
 
     user: UserV2 | None = await get_user_detailsv2(request)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/transaction_types", httpx_client
+    )
+    tx_types = api_result.return_value if api_result.ok else None
 
     request.state.api_calls = {}
     request.state.api_calls["Latest Txs"] = (
@@ -556,44 +565,69 @@ async def transactions_by_type_page(
     )
 
     return templates.TemplateResponse(
-        "tools/transactions_by_type.html",
+        "tools/transactions_by_type2.html",
         {
             "env": request.app.env,
             "request": request,
             "user": user,
             "net": net,
             "requested_page": 1,
+            "tx_types": tx_types,
             "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
+            "tx_type_translation_from_python": tx_type_translation_for_js(),
         },
     )
 
 
-class PostData(BaseModel):
-    theme: str
-    filter: str
-    requested_page: int
+##########################
+class SortItem(BaseModel):
+    field: str
+    dir: str
 
 
-@router.post("/{net}/ajax_last_transactions_by_type", response_class=HTMLResponse)
-async def ajax_last_txs_by_type(
+class FilterItem(BaseModel):
+    field: str
+    type: str
+    value: str
+
+
+class TabulatorRequest(BaseModel):
+    page: int
+    size: int
+    filter: Optional[list[FilterItem]] = []
+
+
+@router.post(
+    "/{net}/ajax_last_transactions_by_type/",
+)
+async def get_account_transactions_for_tabulator(
     request: Request,
     net: str,
-    post_data: PostData,
-    tags: dict = Depends(get_labeled_accounts),
+    body: TabulatorRequest,
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
 ):
-    limit = 20
-    skip = (post_data.requested_page - 1) * limit
-    if net not in ["mainnet", "testnet"]:
-        return RedirectResponse(url="/mainnet", status_code=302)
 
     user: UserV2 | None = await get_user_detailsv2(request)
+    page = body.page
+    size = body.size
+    filters = body.filter
+    skip = (page - 1) * size
+
+    if len(filters) == 0:
+        filters.append(
+            FilterItem(
+                field="type",
+                type="like",
+                value="transfers",
+            )
+        )
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/transactions/last/{limit}/{skip}/{post_data.filter}",
+        f"{request.app.api_url}/v2/{net}/transactions/{size}/{skip}/{filters[0].value}",
         httpx_client,
     )
-    latest_txs = api_result.return_value if api_result.ok else None
-    if not latest_txs:
+    latest_txs_result = api_result.return_value if api_result.ok else None
+    if not latest_txs_result:
         error = f"Request error getting the most recent transactions on {net}."
         return templates.TemplateResponse(
             "base/error-request.html",
@@ -604,10 +638,11 @@ async def ajax_last_txs_by_type(
                 "net": net,
             },
         )
-
-    made_up_txs = []
-    if len(latest_txs) > 0:
-        for transaction in latest_txs:
+    tb_made_up_txs = []
+    tx_result_transactions = latest_txs_result["transactions"]
+    last_page = math.ceil(latest_txs_result["total_for_type"] / size)
+    if len(tx_result_transactions) > 0:
+        for transaction in tx_result_transactions:
             transaction = CCD_BlockItemSummary(**transaction)
             makeup_request = MakeUpRequest(
                 **{
@@ -616,33 +651,107 @@ async def ajax_last_txs_by_type(
                     "tags": tags,
                     "user": user,
                     "app": request.app,
-                    "requesting_route": RequestingRoute.other,
+                    "requesting_route": RequestingRoute.account,
                 }
             )
 
             classified_tx = await MakeUp(
                 makeup_request=makeup_request
             ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
 
-    html = templates.TemplateResponse(
-        "tools/last_txs_table_by_type.html",
+            type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+            tb_made_up_txs.append(
+                create_dict_for_tabulator_display(
+                    net, classified_tx, type_additional_info, sender
+                )
+            )
+    return JSONResponse(
         {
-            "request": request,
-            "tx_type_translation": tx_type_translation,
-            "transactions": made_up_txs,
-            "net": net,
-            "filter": post_data.filter,
-            "pagination": None,
-            "totals_in_pagination": False,
-            "total_rows": 0,
-            "requested_page": post_data.requested_page,
-            "tags": tags,
-            "user": user,
-        },
+            "data": tb_made_up_txs,
+            "last_page": last_page,
+            "last_row": latest_txs_result["total_for_type"],
+        }
     )
 
-    return html
+
+##########################
+
+# class PostData(BaseModel):
+#     theme: str
+#     filter: str
+#     requested_page: int
+
+
+# @router.post("/{net}/ajax_last_transactions_by_type", response_class=HTMLResponse)
+# async def ajax_last_txs_by_type(
+#     request: Request,
+#     net: str,
+#     post_data: PostData,
+#     tags: dict = Depends(get_labeled_accounts),
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+# ):
+#     limit = 20
+#     skip = (post_data.requested_page - 1) * limit
+#     if net not in ["mainnet", "testnet"]:
+#         return RedirectResponse(url="/mainnet", status_code=302)
+
+#     user: UserV2 | None = await get_user_detailsv2(request)
+#     api_result = await get_url_from_api(
+#         f"{request.app.api_url}/v2/{net}/transactions/last/{limit}/{skip}/{post_data.filter}",
+#         httpx_client,
+#     )
+#     latest_txs = api_result.return_value if api_result.ok else None
+#     if not latest_txs:
+#         error = f"Request error getting the most recent transactions on {net}."
+#         return templates.TemplateResponse(
+#             "base/error-request.html",
+#             {
+#                 "request": request,
+#                 "error": error,
+#                 "env": environment,
+#                 "net": net,
+#             },
+#         )
+
+#     made_up_txs = []
+#     if len(latest_txs) > 0:
+#         for transaction in latest_txs:
+#             transaction = CCD_BlockItemSummary(**transaction)
+#             makeup_request = MakeUpRequest(
+#                 **{
+#                     "net": net,
+#                     "httpx_client": httpx_client,
+#                     "tags": tags,
+#                     "user": user,
+#                     "app": request.app,
+#                     "requesting_route": RequestingRoute.other,
+#                 }
+#             )
+
+#             classified_tx = await MakeUp(
+#                 makeup_request=makeup_request
+#             ).prepare_for_display(transaction, "", False)
+#             made_up_txs.append(classified_tx)
+
+#     html = templates.TemplateResponse(
+#         "tools/last_txs_table_by_type.html",
+#         {
+#             "request": request,
+#             "tx_type_translation": tx_type_translation,
+#             "transactions": made_up_txs,
+#             "net": net,
+#             "filter": post_data.filter,
+#             "pagination": None,
+#             "totals_in_pagination": False,
+#             "total_rows": 0,
+#             "requested_page": post_data.requested_page,
+#             "tags": tags,
+#             "user": user,
+#         },
+#     )
+
+#     return html
 
 
 @router.get("/{net}/accounts-scheduled-release", response_class=HTMLResponse)
