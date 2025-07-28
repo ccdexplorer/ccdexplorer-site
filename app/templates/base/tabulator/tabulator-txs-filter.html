@@ -1,0 +1,116 @@
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "transaction_block_info_slot_time", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: isoDateTimeHumanDiff,
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Primary Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        // maxWidth: 170, 
+        formatter:txTypeFormatter,
+        headerSort: false,
+        
+      },
+      {
+        title: "", field: "type_additional_info", hozAlign: "right", 
+        responsive: 70,
+        minWidth: 200,
+        maxWidth: 200, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
+        headerSort: false,
+        
+      },
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
+        headerSort: false,
+        
+      }
+
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'block_height';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
+</script>
+{% include 'base/tabulator/tabulator-table-full-width-remote-filtering-txs.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}
+<script>
+  // 1) Pure filter function for subsequent changes
+  function updateFilterOnly() {
+    const table  = window["{{ccd_tabulator_table}}_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Filter applied:", select.value);
+  }
+
+  // 2) Initial load function: filter + data reload
+  function initialLoad() {
+    const table  = window["txsfilter_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Initial filter:", select.value);
+    table.setData("{{tabulator_ajax_filtering_url}}");
+    console.log("Data reloaded once at:", "{{tabulator_ajax__filtering_url}}");
+  }
+
+  
+
+  // 4) Wire up change listener for everything after initial
+  document
+    .getElementById("tx_type_contents_selector")
+    .addEventListener("change", updateFilterOnly);
+</script>

@@ -218,10 +218,15 @@ if (ref) {
     <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
         
         <li class="nav-item" role="presentation">
-          <button class="nav-link active explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
+          <button class="nav-link active explorer bg-secondary-subtle" id="pills-txsfilter-tab" data-bs-toggle="pill" data-bs-target="#pills-txsfilter" type="button" role="tab" aria-controls="pills-txsfilter" aria-selected="true">
             <span class="tab-text-large">Transactions</span><span class="tab-text-small">Txs</span>
         </button>
         </li>
+        <!-- <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
+            <span class="tab-text-large">Transactions</span><span class="tab-text-small">Txs</span>
+        </button>
+        </li> -->
         <li class="nav-item" role="presentation">
           <button class="nav-link  explorer bg-secondary-subtle" id="pills-creds-tab" data-bs-toggle="pill" data-bs-target="#pills-creds" type="button" role="tab" aria-controls="pills-creds" aria-selected="true">
             <span class="tab-text-large">Credentials</span><span class="tab-text-small">ID</span>
@@ -275,7 +280,35 @@ if (ref) {
 
 <div class="tab-content" id="pills-tabContent">
   
-  <div class="tab-pane fade show active" id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
+  <div class="tab-pane fade show active" id="pills-txsfilter" role="tabpanel" aria-labelledby="pills-txsfilter-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        <div class="border curved-border" >
+          <div class="input-box mt-1 d-flex justify-content-start">
+                <select 
+                  class="form-select form-select-sm search_selector_filter text-end" 
+                  id="tx_type_contents_selector"
+                  name="tx_type_contents_selector">
+                  <option value="all" selected>All</option>
+                  <option value="transfer">Transfers</option>
+                  <option value="smart_contract">Smart Contracts</option>
+                  <option value="identity">Identity</option>
+                  <option value="staking">Staking / Delegation</option>
+                  <option value="rejected">Rejected TXs</option>
+                  <option value="data_registered">Data</option>
+                </select>
+                    
+            </div>
+            
+            <div id="txsfilter">
+              {% include "base/tabulator/tabulator-account-filtered-txs.html" %}
+          </div>
+        </div>
+      </div>  
+      
+    </div>
+  </div>
+  <!-- <div class="tab-pane fade show " id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
         <div class="border curved-border" id="txs">
@@ -287,7 +320,7 @@ if (ref) {
       </div>  
       
     </div>
-  </div>
+  </div> -->
   <div class="tab-pane fade show " id="pills-creds" role="tabpanel" aria-labelledby="pills-creds-tab" tabindex="0">
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
@@ -347,6 +380,28 @@ if (ref) {
   {% endif %}
  
 </div>
+
+<!-- <script>
+  function applyTxTypeFilter() {
+    const table  = window["txsfilter_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Setting filter to: " + select.value);
+    console.log("Setting data to: " + "{{tabulator_ajax_url}}");
+    table.setData("{{tabulator_ajax__filtering_url}}");
+  }
+
+  window.addEventListener("load", () => {
+    console.log("Applying transaction type filter on load");
+    applyTxTypeFilter();
+    
+  });
+
+  document
+    .getElementById("tx_type_contents_selector")
+    .addEventListener("change", applyTxTypeFilter);
+</script> -->
+
 
 
 <script>

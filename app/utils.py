@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import datetime as dt
-import io
 import json
 import math
 import typing
@@ -18,10 +17,7 @@ import httpx
 # from app.jinja2_helpers import templates
 import plotly.graph_objects as go
 from ccdexplorer_fundamentals.cis import (
-    CIS,
-    LoggedEvents,
     MongoTypeLoggedEventV2,
-    MongoTypeTokenAddress,
     MongoTypeTokensTag,
     TokenMetaData,
     depositCIS2TokensEvent,

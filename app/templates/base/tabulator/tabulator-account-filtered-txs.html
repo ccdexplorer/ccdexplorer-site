@@ -1,0 +1,191 @@
+{% set ccd_tabulator_table ='txsfilter'%}
+
+<div id="{{ccd_tabulator_table}}"></div>
+<div>
+  <button type="button" class="tabulator-download-button link-style" id="{{ccd_tabulator_table}}-download-csv">
+  Download visible rows as CSV
+</button>
+</div>
+
+
+{% set tabulator_ajax_filtering_url = '/account_transactions_with_filter/'+net+'/'+account_id +'/'+total_rows|string%}
+{% set filename='transactions-filtered-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
+<!--  "base/tabulator/tabulator-txs-filter.html" -->
+ {% include 'base/tabulator/tabulator-custom-formatters.html' %}
+<script>
+    const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "transaction_block_info_slot_time", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: isoDateTimeHumanDiff,
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Primary Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        // maxWidth: 170, 
+        formatter:txTypeFormatter,
+        headerSort: false,
+        
+      },
+      {
+        title: "", field: "type_additional_info", hozAlign: "right", 
+        responsive: 70,
+        minWidth: 200,
+        maxWidth: 200, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
+        headerSort: false,
+        
+      },
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
+        headerSort: false,
+        
+      }
+
+    ];
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'block_height';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
+
+  // 1) Define your two helper functions first:
+  function updateFilterOnly() {
+    const table  = window["{{ccd_tabulator_table}}_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Filter applied:", select.value);
+  }
+
+  function initialLoad() {
+    const table  = window["{{ccd_tabulator_table}}_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Initial filter:", select.value);
+    table.setData("{{tabulator_ajax_filtering_url}}");
+    console.log("Data reloaded once at:", "{{tabulator_ajax_filtering_url}}");
+  }
+
+  // 2) Wait for the DOM so your <div> and <select> exist, then build Tabulator:
+  document.addEventListener("DOMContentLoaded", () => {
+    const table = new Tabulator("#{{ccd_tabulator_table}}", {
+      ajaxURL: "{{tabulator_ajax_filtering_url}}",
+      columns:               window["{{ccd_tabulator_table}}_columns"],
+      layout:                "fitColumns",
+      responsiveLayout:      "hide",
+      paginationMode:        "remote",
+      filterMode:            "remote",
+      sortMode:              "remote",
+      ajaxConfig:            "POST",
+      ajaxContentType:       "json",
+      paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500],
+      paginationSize:         (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[0],
+      paginationButtonCount:  3,
+      pagination:             true,
+
+      // map your API’s JSON into Tabulator’s pagination fields
+      paginationDataReceived: {
+        data:       "data",
+        total_rows: "total",                // <-- match whatever your endpoint returns
+        last_page:  (raw, params) => Math.ceil(raw.total / params.size),
+      },
+      paginationCounter: function(ps, cr, cp, tr, tp) {
+        if (tr == null) return `<span class="ccd">${cr.toLocaleString()}</span>`;
+        const humanize = n =>
+          n < 1000
+            ? n.toLocaleString()
+            : new Intl.NumberFormat("en", {
+                notation: "compact",
+                compactDisplay: "short",
+                maximumFractionDigits: 1,
+              }).format(n);
+        const start = ((cp - 1)*ps + 1).toLocaleString();
+        const end   = Math.min(cp*ps, tr).toLocaleString();
+        const total = tr < 5000 ? tr.toLocaleString() : humanize(tr);
+        return `<span class="ccd">${start} – ${end} of ${total}</span>`;
+      },
+
+      initialSort: [
+        { column: window["{{ccd_tabulator_table}}_default_sort_field"],
+          dir:    window["{{ccd_tabulator_table}}_default_sort_field_direction"]
+        }
+      ],
+
+      rowFormatter(row){
+        row.getElement().classList.add("sm-text");
+      },
+
+      // 3) Only once the table is built do we fire our initialLoad:
+      tableBuilt(){
+        console.log("Tabulator table built, applying initial filter and data load.");
+        initialLoad();
+      },
+    });
+
+    // stash the instance for your own code to grab:
+    window["{{ccd_tabulator_table}}_table"] = table;
+
+    // 4) Re-apply just the filter on select-changes:
+    document
+      .getElementById("tx_type_contents_selector")
+      .addEventListener("change", updateFilterOnly);
+
+    // 5) Wire up your CSV-download button:
+    document
+      .getElementById("{{ccd_tabulator_table}}-download-csv")
+      .addEventListener("click", () => {
+        table.download(
+          "csv",
+          window["{{ccd_tabulator_table}}_filename"],
+          { bom: true, downloadDataFormatter: d => d }
+        );
+      });
+  });
+</script>
