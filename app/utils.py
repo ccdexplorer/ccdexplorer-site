@@ -160,7 +160,7 @@ tx_type_translation["validator_added"] = TypeContents(
     color=TypeContentsCategoryColors.staking.value[0],
 )
 
-tx_type_translation["validatorr_removed"] = TypeContents(
+tx_type_translation["validator_removed"] = TypeContents(
     display_str="validator removed",
     category=TypeContentsCategories.staking,
     color=TypeContentsCategoryColors.staking.value[0],

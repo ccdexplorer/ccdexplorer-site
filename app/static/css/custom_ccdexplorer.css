@@ -108,6 +108,9 @@ body {
 .search_selector_filter {
   max-width: 180px;
 }
+.search_selector_filter_types {
+  max-width: 280px;
+}
 .all-filters-search-button {
     width: 108px;
     height: 40px;

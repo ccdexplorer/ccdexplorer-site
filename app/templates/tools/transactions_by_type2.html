@@ -10,15 +10,46 @@
         
         <div class="col ">
             <div class="input-box mt-1 d-flex justify-content-start">
-                <select 
+                <!-- <select 
                 class="form-select form-select-sm search_selector_filter text-end" 
                 id="tx_type_contents_selector"
                 name="tx_type_contents_selector">
                 {% for tx_type in tx_types|sort(attribute='_id') %}
                     <option value="{{tx_type._id}}" {% if tx_type._id == 'account_transfer' %}selected{% endif %}>{{tx_type._id|replace('_', ' ')|replace('baker', 'validator')| title}}</option>
                 {% endfor %}
-                </select>
+                </select> -->
                     
+                <select 
+                        class="form-select form-select-sm search_selector_filter_types text-start" 
+                        id="tx_type_contents_selector"
+                        name="tx_type_contents_selector"
+                        >
+                        <option disabled>Success</option>
+                        {# First, all non-rejected types #}
+                        {% for tx_type in tx_type_translation %}
+                            {% if tx_type_translation[tx_type].category.name != 'rejected' %}
+                            <option
+                                value="{{ tx_type }}"
+                                {% if tx_type._id == 'account_transfer' %}selected{% endif %}
+                            >
+                                {{ tx_type|replace('_', ' ')|title }}
+                            </option>
+                            {% endif %}
+                        {% endfor %}
+
+                        {# horizontal separator #}
+                        <option disabled>──────────</option>
+                        <option disabled>Rejected</option>    
+                        {# Then, all rejected types #}
+                        {% for tx_type in tx_type_translation %}
+                            {% if tx_type_translation[tx_type].category.name == 'rejected' %}
+                            <option value="{{ tx_type}}">
+                                {{ tx_type|replace('_', ' ')|title }}
+                            </option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+
             </div>
           
         </div>
