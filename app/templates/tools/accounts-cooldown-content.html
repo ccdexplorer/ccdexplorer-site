@@ -6,6 +6,7 @@
     <thead>
     <tr  class="account-row sm-text">
       <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Account</span></th>
+      <th class="text-end text-secondary-emphasis">Amount</th>
       <th class="text-end text-secondary-emphasis">First Timestamp</th>
       
     </tr>
@@ -14,7 +15,8 @@
   {% for row in accounts %}
     <tr class="sm-text ">
           <td class="text-start text-secondary-emphasis "><a href="/{{net}}/account/{{row.account_index}}"><span class="ccd" >{{row.account_index}}</a></td>
-          <td class="text-end text-secondary-emphasis "><span class="ccd">{{row.first_timestamp|datetime_regular}}</span></td>
+          <td class="text-end text-secondary-emphasis "><span >{{row.account_cooldowns[0].amount|micro_ccd_no_decimals|safe}}</span></td>
+          <td class="text-end text-secondary-emphasis "><span class="ccd">{{row.account_cooldowns[0].end_time|datetime_regular_parse}}</span></td>
           
     </tr>
   {% endfor %}

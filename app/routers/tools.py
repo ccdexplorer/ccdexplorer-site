@@ -866,8 +866,8 @@ async def ajax_accounts_cooldown(
         httpx_client,
     )
     accounts = api_result.return_value if api_result.ok else []
-    if accounts:
-        accounts = [CCD_AccountPending(**x) for x in accounts]
+    # if accounts:
+    #     accounts = [CCD_AccountPending(**x) for x in accounts]
     return templates.TemplateResponse(
         "/tools/accounts-cooldown-content.html",
         {
