@@ -1,7 +1,7 @@
 import datetime as dt
 import math
 from typing import Optional
-
+from collections import defaultdict
 import dateutil
 import httpx
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
@@ -866,8 +866,24 @@ async def ajax_accounts_cooldown(
         httpx_client,
     )
     accounts = api_result.return_value if api_result.ok else []
-    # if accounts:
-    #     accounts = [CCD_AccountPending(**x) for x in accounts]
+    aggregates = defaultdict(lambda: {"total_amount": 0, "count": 0})
+
+    for row in accounts:
+        for cooldown in row.get("account_cooldowns", []):
+            end_time = cooldown["end_time"]
+            amount = cooldown["amount"]
+            aggregates[end_time]["total_amount"] += amount
+            aggregates[end_time]["count"] += 1
+
+    # Convert to list of dicts
+    summary = [
+        {"end_time": k, "total_amount": v["total_amount"], "count": v["count"]}
+        for k, v in aggregates.items()
+    ]
+    summary_totals = {
+        "total_amount": sum([x["total_amount"] for x in summary]),
+        "count": sum([x["count"] for x in summary]),
+    }
     return templates.TemplateResponse(
         "/tools/accounts-cooldown-content.html",
         {
@@ -876,6 +892,8 @@ async def ajax_accounts_cooldown(
             "user": user,
             "tags": tags,
             "accounts": accounts,
+            "summary": summary,
+            "summary_totals": summary_totals,
             "net": net,
         },
     )

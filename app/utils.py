@@ -705,7 +705,13 @@ def datetime_delta_format_since_parse(value: str):
         return ""
 
 
-def datetime_delta_format_until(value):
+def datetime_delta_format_until(source_value: dt.datetime | str):
+    value: dt.datetime = (
+        dateutil.parser.parse(source_value)
+        if isinstance(source_value, str)
+        else source_value
+    )
+
     if value:
         delta = value.astimezone(dt.timezone.utc) - dt.datetime.now(dt.timezone.utc)
         return verbose_timedelta(delta)
