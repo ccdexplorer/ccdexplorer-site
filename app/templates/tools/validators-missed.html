@@ -17,8 +17,8 @@
       <th class="text-secondary-emphasis">Hour in Payday</th>
       <th class="text-secondary-emphasis">Epoch</th>
       <th class="text-secondary-emphasis text-start">Validator</th>
-      <th class="text-secondary-emphasis text-end">In Payday</th>
       <th class="text-secondary-emphasis text-end">In Epoch</th>
+      <th class="text-secondary-emphasis text-end">In Payday</th>
     </tr>
   </thead>
   <tbody>
@@ -51,11 +51,12 @@
               {{ validator_id|int|round_x_decimal_with_comma(0) }}
             </a>
           </td>
-          <td class="text-secondary-emphasis text-end ccd">
-            {{ count.missed_payday }}
-          </td>
+          
           <td class="text-secondary-emphasis text-end ccd">
             {{ count.missed_epoch }}
+          </td>
+          <td class="text-secondary-emphasis text-end ccd">
+            {{ count.missed_payday }}
           </td>
         </tr>
         {% endif %}

@@ -1,7 +1,7 @@
 <div id="{{ccd_tabulator_table}}"></div>
-<div>
+<!-- <div>
   <a href="#" class="tabulator-download-button" target="_blank" id="download-csv">Download data as CSV</a>
-</div>
+</div> -->
 
 <script>
     window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
@@ -10,7 +10,7 @@
       pagination: "local",
       // rowHeight:20,
       paginationSize: 10,
-      paginationSizeSelector: [10, 25, 50, 100],
+      paginationSizeSelector: [10, 25, 50, 100, 500],
       paginationCounter: "rows",
     });
 </script>

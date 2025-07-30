@@ -1,9 +1,9 @@
 <div id="{{ccd_tabulator_table}}"></div>
-<div>
+<!-- <div>
   <button type="button" class="tabulator-download-button link-style" id="{{ccd_tabulator_table}}-download-csv">
   Download visible rows as CSV
 </button>
-</div>
+</div> -->
 
 <script>
   
@@ -78,16 +78,11 @@
       },
 
   });
-  // Right after you build the table:
-
-  window["{{ccd_tabulator_table}}_table"].on("tableBuilt", () => {
-  window["{{ccd_tabulator_table}}_table"].setFilter("type", "=", "transfers");
-});
-
-window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
-  document.querySelectorAll(".tabulator-col-title").forEach(el => {
-    el.classList.add("sm-text");
+ 
+  window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
   });
-});
 </script>
 

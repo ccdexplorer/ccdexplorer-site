@@ -2,14 +2,11 @@ import datetime as dt
 
 import dateutil
 import httpx
-import plotly.express as px
 import plotly.graph_objects as go
 import polars as polars
-from ccdexplorer_fundamentals.credential import Identity
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountInfo,
     CCD_BlockItemSummary,
-    CCD_PoolInfo,
 )
 import math
 from ccdexplorer_fundamentals.user_v2 import UserV2
@@ -26,17 +23,104 @@ from app.env import environment
 from app.jinja2_helpers import templates
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 from app.utils import (
-    PaginationRequest,
-    account_link,
-    calculate_skip,
     ccdexplorer_plotly_template,
     get_url_from_api,
-    pagination_calculator,
     verbose_timedelta,
     create_dict_for_tabulator_display,
 )
 
 router = APIRouter()
+
+
+@router.get(
+    "/account/validator-tab-content/{net}/{account_id}", response_class=HTMLResponse
+)
+async def validator_tab_content(
+    request: Request,
+    net: str,
+    account_id: str,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 | None = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/info",
+        httpx_client,
+    )
+    account_info = CCD_AccountInfo(**api_result.return_value) if api_result.ok else None  # type: ignore
+    if account_info is None:
+        error = (
+            f"Request error getting account info for account at {account_id} on {net}."
+        )
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    account_id = account_info.address
+    account_index = account_info.index
+    if account_info.stake:
+        validator_id = (
+            account_info.stake.baker.baker_info.baker_id
+            if account_info.stake.baker
+            else None
+        )
+    else:
+        validator_id = None
+    if not validator_id:
+        error = f"Account {account_id} is not a validator on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": request.app.env,
+                "net": net,
+            },
+        )
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{validator_id}/earliest-win-time",
+        httpx_client,
+    )
+    earliest_win_time = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_index}/node", httpx_client
+    )
+    node = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{validator_id}/pool-info",
+        httpx_client,
+    )
+
+    pool = api_result.return_value if api_result.ok else None
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object/account",
+        httpx_client,
+    )
+    account_apy_object = api_result.return_value if api_result.ok else None
+
+    return templates.get_template("account/account_validator.html").render(
+        {
+            "net": net,
+            "account_id": account_id,
+            "account_index": account_index,
+            "user": user,
+            "env": request.app.env,
+            "pool": pool,
+            "node": node,
+            "account_is_validator": True,
+            "earliest_win_time": earliest_win_time,
+            "account": account_info,
+            "account_apy_object": account_apy_object,
+        }
+    )
 
 
 @router.post("/{net}/account/inactive/{validator_id}", response_class=Response)

@@ -1,5 +1,10 @@
-<script>document.getElementById("{{ccd_tabulator_table}}-download-csv").addEventListener("click", function () {
+<div>
+  <button type="button" class="tabulator-download-button link-style" id="{{ccd_tabulator_table}}-download-csv">
+  Download visible rows as CSV
+</button>
+</div>
+<script>
+  document.getElementById("{{ccd_tabulator_table}}-download-csv").addEventListener("click", function () {
     window["{{ccd_tabulator_table}}_table"].download("csv", window["{{ccd_tabulator_table}}_filename"], { bom: true , downloadDataFormatter: data => data});
   });
-
-</script>
+  </script>

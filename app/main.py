@@ -24,7 +24,7 @@ from app.routers import home
 from app.routers import transaction
 from app.routers import block
 from app.routers import account
-from app.routers import account_validator
+from app.routers import account_tab_validator
 from app.routers import account_pool
 from app.routers import node
 from app.routers import smart_contracts
@@ -192,7 +192,7 @@ app.include_router(home.router)
 app.include_router(transaction.router)
 app.include_router(block.router)
 app.include_router(account.router)
-app.include_router(account_validator.router)
+app.include_router(account_tab_validator.router)
 app.include_router(account_pool.router)
 app.include_router(node.router)
 app.include_router(smart_contracts.router)

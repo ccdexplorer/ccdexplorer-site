@@ -43,9 +43,11 @@
 {% set ccd_tabulator_table ='nodes_table'%}
 {% include 'base/tabulator/tabulator-custom-formatters.html' %}
 {% set tabulator_ajax_url = '/mainnet/ajax_nodes_tabulator' %}
+{% set filename='nodes-validators-'+range(1000,10000)|random|string+'.csv' %}
 {% include 'base/tabulator/tabulator-table-full-width-with-totals.html' %}
 
 <script>
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
   window["{{ccd_tabulator_table}}_columns"]= [
       
       {
@@ -170,6 +172,7 @@
     window["{{ccd_tabulator_table}}_sort"]= [
     { column: "stake", dir: "desc" } 
     ];
+
 </script>
 {% include 'base/tabulator/tabulator-table-execute-ajax.html' %}
 {% include 'base/tabulator/tabulator-table-download-link.html' %}

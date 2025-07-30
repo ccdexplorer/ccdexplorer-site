@@ -453,16 +453,16 @@ async def get_account(
         )
         pool = api_result.return_value if api_result.ok else None
 
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_index}/node", httpx_client
-        )
-        node = api_result.return_value if api_result.ok else None
+        # api_result = await get_url_from_api(
+        #     f"{request.app.api_url}/v2/{net}/account/{account_index}/node", httpx_client
+        # )
+        # node = api_result.return_value if api_result.ok else None
 
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{validator_id}/earliest-win-time",
-            httpx_client,
-        )
-        earliest_win_time = api_result.return_value if api_result.ok else None
+        # api_result = await get_url_from_api(
+        #     f"{request.app.api_url}/v2/{net}/account/{validator_id}/earliest-win-time",
+        #     httpx_client,
+        # )
+        # earliest_win_time = api_result.return_value if api_result.ok else None
 
         api_result = await get_url_from_api(
             f"{request.app.api_url}/v2/{net}/account/{validator_id}/staking-rewards-object/delegator",
@@ -470,11 +470,11 @@ async def get_account(
         )
         pool_apy_object = api_result.return_value if api_result.ok else None
 
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object/account",
-            httpx_client,
-        )
-        account_apy_object = api_result.return_value if api_result.ok else None
+        # api_result = await get_url_from_api(
+        #     f"{request.app.api_url}/v2/{net}/account/{account_id}/staking-rewards-object/account",
+        #     httpx_client,
+        # )
+        # account_apy_object = api_result.return_value if api_result.ok else None
 
     else:
 
@@ -663,8 +663,8 @@ async def get_account(
             "account_apy_object": account_apy_object,
             "account": account_info,
             "pool": pool,
-            "earliest_win_time": earliest_win_time,
-            "node": node,
+            # "earliest_win_time": earliest_win_time,
+            # "node": node,
             "account_is_validator": account_is_validator,
             "cns_domains_list": cns_domains_list,
             "identity": identity,

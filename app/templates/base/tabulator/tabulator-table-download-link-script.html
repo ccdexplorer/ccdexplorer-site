@@ -1,0 +1,18 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    console.log("Tabulator download link script loaded for {{ccd_tabulator_table}}");
+    const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      document.getElementById("validator-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    window.validator_tally_table_table.download(
+      "csv",
+      window.validator_tally_table_filename,
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+  });
+</script>
+

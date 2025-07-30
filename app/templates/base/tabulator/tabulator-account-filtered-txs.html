@@ -1,16 +1,6 @@
 {% set ccd_tabulator_table ='txsfilter'%}
-
-<div id="{{ccd_tabulator_table}}"></div>
-<div>
-  <button type="button" class="tabulator-download-button link-style" id="{{ccd_tabulator_table}}-download-csv">
-  Download visible rows as CSV
-</button>
-</div>
-
-
 {% set tabulator_ajax_filtering_url = '/account_transactions_with_filter/'+net+'/'+account_id +'/'+total_rows|string%}
 {% set filename='transactions-filtered-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
-<!--  "base/tabulator/tabulator-txs-filter.html" -->
  {% include 'base/tabulator/tabulator-custom-formatters.html' %}
 <script>
     const {{ccd_tabulator_table}}_columns = [
@@ -178,14 +168,14 @@
       .addEventListener("change", updateFilterOnly);
 
     // 5) Wire up your CSV-download button:
-    document
-      .getElementById("{{ccd_tabulator_table}}-download-csv")
-      .addEventListener("click", () => {
-        table.download(
-          "csv",
-          window["{{ccd_tabulator_table}}_filename"],
-          { bom: true, downloadDataFormatter: d => d }
-        );
-      });
+    // document
+    //   .getElementById("{{ccd_tabulator_table}}-download-csv")
+    //   .addEventListener("click", () => {
+    //     table.download(
+    //       "csv",
+    //       window["{{ccd_tabulator_table}}_filename"],
+    //       { bom: true, downloadDataFormatter: d => d }
+    //     );
+    //   });
   });
 </script>

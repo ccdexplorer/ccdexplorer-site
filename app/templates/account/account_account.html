@@ -2,6 +2,41 @@
 
 {% block js %}
 <script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+
+<script>
+let validatorTabLoaded = false;
+
+document.addEventListener("DOMContentLoaded", function () {
+  const validatorTabButton = document.querySelector('#pills-validator-tab');
+
+  validatorTabButton.addEventListener('shown.bs.tab', function () {
+    if (!validatorTabLoaded) {
+      fetch("/account/validator-tab-content/{{ net }}/{{ account_id }}")
+        .then(response => response.text())
+        .then(html => {
+          const container = document.getElementById('validator-tab-content');
+          container.innerHTML = html;
+          if (window.htmx) {
+            htmx.process(container);
+          }
+          if (typeof init_validator_tally_table === "function") {
+            init_validator_tally_table();
+          }
+          if (typeof init_validator_transactions_table === "function") {
+            init_validator_transactions_table();
+          }
+          
+        })
+        .catch(err => {
+          document.getElementById('validator-tab-content').innerHTML = "<p class='text-danger'>Failed to load validator tab.</p>";
+          console.error(err);
+        });
+
+      validatorTabLoaded = true;
+    }
+  });
+});
+</script>
 {% endblock %}
 
 {% block ogp %}
@@ -222,11 +257,6 @@ if (ref) {
             <span class="tab-text-large">Transactions</span><span class="tab-text-small">Txs</span>
         </button>
         </li>
-        <!-- <li class="nav-item" role="presentation">
-          <button class="nav-link  explorer bg-secondary-subtle" id="pills-txs-tab" data-bs-toggle="pill" data-bs-target="#pills-txs" type="button" role="tab" aria-controls="pills-txs" aria-selected="true">
-            <span class="tab-text-large">Transactions</span><span class="tab-text-small">Txs</span>
-        </button>
-        </li> -->
         <li class="nav-item" role="presentation">
           <button class="nav-link  explorer bg-secondary-subtle" id="pills-creds-tab" data-bs-toggle="pill" data-bs-target="#pills-creds" type="button" role="tab" aria-controls="pills-creds" aria-selected="true">
             <span class="tab-text-large">Credentials</span><span class="tab-text-small">ID</span>
@@ -303,24 +333,14 @@ if (ref) {
             <div id="txsfilter">
               {% include "base/tabulator/tabulator-account-filtered-txs.html" %}
           </div>
+          {% set ccd_tabulator_table ='txsfilter'%}
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+          
         </div>
       </div>  
       
     </div>
   </div>
-  <!-- <div class="tab-pane fade show " id="pills-txs" role="tabpanel" aria-labelledby="pills-txs-tab" tabindex="0">
-    <div class="row mt-4">
-      <div class=" col-md-12  col-sm-12">
-        <div class="border curved-border" id="txs">
-          {% set ccd_tabulator_table ='txs_table'%}
-          {% set tabulator_ajax_url = '/account_transactions/'+net+'/'+account_id +'/'+total_rows|string%}
-          {% set filename='transactions-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
-          {% include "base/tabulator/tabulator-txs.html" %}
-        </div>
-      </div>  
-      
-    </div>
-  </div> -->
   <div class="tab-pane fade show " id="pills-creds" role="tabpanel" aria-labelledby="pills-creds-tab" tabindex="0">
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
@@ -361,7 +381,8 @@ if (ref) {
   {% endif %}
   {% if account_is_validator %}
   <div class="tab-pane fade show " id="pills-validator" role="tabpanel" aria-labelledby="pills-validator-tab" tabindex="0">
-       {% include "account/account_validator.html" %}
+    <div id="validator-tab-content">Loading...</div>   
+    
     
   </div>
   {% endif %}
@@ -417,4 +438,178 @@ window.addEventListener('load', (event) => {
     
 </script>
 {% endif %}
+
+<!-- Tabulator Tables -->
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<!-- validator tally -->
+{% set ccd_tabulator_table ='validator_tally_table'%}
+{% set tabulator_ajax_url = '/account/validator-tally/'+net+'/'+ account_index|string %}
+{% set filename='validator-tally-'+ account_index|string+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_validator_tally_table() {
+  const validator_tally_table_columns = [
+  {
+        title: "Date", field: "date", 
+        minWidth: 95,
+        // maxWidth: 70,
+        responsive: 0,
+        
+        formatter: ccdClassFormatterForString,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "LP(%)", field: "lp", 
+        minWidth: 90,
+        maxWidth: 90,
+        responsive: 10,
+        formatter: LotteryPowerFormatter,
+        accessorDownload: (value, data) => data.lp*100,
+        headerSort:false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Expectation", field: "expectation", 
+        minWidth: 120,
+        maxWidth: 120,
+        responsive: 0,
+        formatter: intFormatterRounded,
+        headerSort:false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Actual", field: "actuals", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 0,
+        formatter: intFormatterRounded,
+        headerSort:false,
+        
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      
+    ];
+  window["validator_tally_table_filename"] = '{{filename}}';
+
+  window["validator_tally_table_table"] = new Tabulator("#validator_tally_table", {
+    ...commonTabulatorOptionsGET,
+    columns: validator_tally_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["validator_tally_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      document.getElementById("validator-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    window.validator_tally_table_table.download(
+      "csv",
+      window.validator_tally_table_filename,
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+}
+</script>
+
+
+<!-- validator tally -->
+
+<!-- validator transactions -->
+ {% set ccd_tabulator_table ='validator_transactions_table'%}
+{% set tabulator_ajax_url = '/account_validator_transactions/'+net+'/'+ account_id%}
+{% set filename='validator-transactions-'+ account_index|string+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_validator_transactions_table() {
+  const validator_transactions_table_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "transaction_block_info_slot_time", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: isoDateTimeHumanDiff,
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        
+        title: "Event", field: "first_event", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 250,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => StripHTMLFormatterOnString(data.first_event),
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["validator_transactions_table_table"] = new Tabulator("#validator_transactions_table", {
+    ...commonTabulatorOptionsGET,
+    columns: validator_transactions_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["validator_transactions_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      document.getElementById("validator-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    window["validator_transactions_table_table"].download(
+      "csv",
+      window["{{ccd_tabulator_table}}_filename"],
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+}
+</script>
+
+
+<!-- validator transactions -->
+
 {% endblock content %}
