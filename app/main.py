@@ -41,6 +41,7 @@ from app.routers.charts import (
     sc_accounts_growth,
     sc_transactions_count,
     sc_active_addresses,
+    sc_holders,
 )
 from app.utils import get_url_from_api, add_account_info_to_cache
 import sentry_sdk
@@ -210,6 +211,7 @@ app.include_router(charts_home.router)
 app.include_router(sc_accounts_growth.router)
 app.include_router(sc_transactions_count.router)
 app.include_router(sc_active_addresses.router)
+app.include_router(sc_holders.router)
 
 
 @scheduler.scheduled_job("interval", seconds=5, args=[app])
