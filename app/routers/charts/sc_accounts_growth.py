@@ -117,7 +117,7 @@ async def statistics_network_summary_accounts_per_day_standalone(
             "account_count"
         ].shift(+1)
 
-        df_per_day = df_per_day.dropna()
+        df_per_day = df_per_day.dropna(subset=["d_count_accounts"])
 
         df_per_day.rename(
             columns={"d_count_accounts": "growth_native", "account_count": "level"},

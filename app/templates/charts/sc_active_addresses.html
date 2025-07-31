@@ -3,7 +3,7 @@
     {% set hx_post_url = '/' ~ net ~ '/ajax_statistics_standalone/statistics_active_addresses' %}
     {% set include_dropdown = False %}
     {% set include_trace_selection = True %}
-    {% set traces = {'address': 'Native', 'contract': 'Contract', 'public_key': "CIS-5"} %}
+    {% set traces = {'address': 'Native',  'public_key': "CIS-5"} %}
     {% include 'charts/standalone_chart.html' %}
     
     {% include 'charts/download_link.html' %}
