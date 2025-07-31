@@ -111,48 +111,50 @@ async def statistics_holders(
     #     .sum()
     #     .reset_index()
     # )
-    #     count_above_10000
+    #     count_>=10000
     # 2529
-    # count_above_20000
+    # count_>=20000
     # 2122
-    # count_above_50000
+    # count_>=50000
     # 1588
-    # count_above_100000
+    # count_>=100000
     # 1199
-    # count_above_500000
+    # count_>=500000
     # 592
-    # count_above_1000000
+    # count_>=1000000
     # 385
-    # count_above_2500000
+    # count_>=2500000
     # 201
-    # count_above_5000000
+    # count_>=5000000
     # 144
-    # count_above_10000000
+    # count_>=10000000
     # 106
-    # count_above_50000000
+    # count_>=50000000
     # 47
-    # count_above_100000000
+    # count_>=100000000
     # 30
-    if post_data.amount_chosen == "10K":
-        ss = "count_above_10000"
+    if post_data.amount_chosen == "0":
+        ss = "count_>=0"
+    elif post_data.amount_chosen == "10K":
+        ss = "count_>=10000"
     elif post_data.amount_chosen == "20K":
-        ss = "count_above_20000"
+        ss = "count_>=20000"
     elif post_data.amount_chosen == "50K":
-        ss = "count_above_50000"
+        ss = "count_>=50000"
     elif post_data.amount_chosen == "100K":
-        ss = "count_above_100000"
+        ss = "count_>=100000"
     elif post_data.amount_chosen == "500K":
-        ss = "count_above_500000"
+        ss = "count_>=500000"
     elif post_data.amount_chosen == "1M":
-        ss = "count_above_1000000"
+        ss = "count_>=1000000"
     elif post_data.amount_chosen == "2.5M":
-        ss = "count_above_2500000"
+        ss = "count_>=2500000"
     elif post_data.amount_chosen == "5M":
-        ss = "count_above_5000000"
+        ss = "count_>=5000000"
     elif post_data.amount_chosen == "10M":
-        ss = "count_above_10000000"
+        ss = "count_>=10000000"
     elif post_data.amount_chosen == "100M":
-        ss = "count_above_100000000"
+        ss = "count_>=100000000"
     fig = go.Figure()
     fig.add_trace(
         go.Bar(
@@ -163,7 +165,7 @@ async def statistics_holders(
         )
     )
     fig.update_xaxes(type="date")
-    title = f"Daily Holders with More than {post_data.amount_chosen} CCD"
+    title = f"Daily Holders with account balance >= {post_data.amount_chosen} CCD"
 
     fig.update_layout(
         barmode="stack",

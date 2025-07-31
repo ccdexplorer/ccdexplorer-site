@@ -1688,6 +1688,7 @@ def split_contract_into_url_slug_and_token_id(contract_str: str, token_id: str):
 
 def add_account_info_to_cache(account_info: CCD_AccountInfo, app: FastAPI, net: str):
     app.addresses_to_indexes[net][account_info.address[:29]] = account_info.index  # type: ignore
+    app.max_index_known[net] = max(app.addresses_to_indexes[net].values())  # type: ignore
 
 
 def apy_perc(value):

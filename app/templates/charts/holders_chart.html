@@ -39,7 +39,7 @@
           
         <div class="btn-group-sm" role="group"  id="btnradio_grouping">
           Chosen Amount:
-          {% for amount_str in ["10K", "20K","50K","100K","500K","1M","2.5M","5M","10M","100M"] %}
+          {% for amount_str in ["0", "10K", "20K","50K","100K","500K","1M","2.5M","5M","10M","100M"] %}
             <input type="radio" class="btn-check" name="amount_chosen" id="{{amount_str}}" autocomplete="off" {% if loop.index==6 %} checked {% endif %}>
             <label class="btn btn-outline-secondary " for="{{amount_str}}">{{amount_str}}</label>
           {% endfor %}

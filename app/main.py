@@ -75,6 +75,7 @@ async def log_response(response):
 def read_addresses_if_available(app):
     print("Start getting addresses to indexes.")
     app.addresses_to_indexes = {"mainnet": {}, "testnet": {}}
+    app.max_index_known = {"mainnet": 0, "testnet": 0}
     try:
         for net in ["mainnet", "testnet"]:
             print(f"Start getting addresses to indexes for {net}.")
@@ -82,6 +83,7 @@ def read_addresses_if_available(app):
                 f"addresses/{net}_addresses_to_indexes.pickle", "rb"
             ) as fp:  # Unpickling
                 app.addresses_to_indexes[net] = pickle.load(fp)
+                app.max_index_known[net] = max(app.addresses_to_indexes[net].values())
     except Exception as error:
         print(f"ERROR getting addresses: {error}")
 

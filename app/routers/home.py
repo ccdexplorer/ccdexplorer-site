@@ -27,7 +27,11 @@ from pydantic import BaseModel
 
 from app.env import environment
 from app.jinja2_helpers import templates
-from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
+from app.state import (
+    get_httpx_client,
+    get_labeled_accounts,
+    get_user_detailsv2,
+)
 from app.utils import (
     ccdexplorer_plotly_template,
     get_url_from_api,
@@ -222,39 +226,74 @@ async def search_all(
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ) -> HTMLResponse:
     if net not in ["mainnet", "testnet"]:
-        return RedirectResponse(url="/mainnet", status_code=302)
+        return RedirectResponse(url="/mainnet", status_code=302)  # type: ignore
 
     user: UserV2 | None = await get_user_detailsv2(request)
-
+    single_urls = {}
     # order: account, block, transaction, module, instance, token
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/accounts/search/{value}",
         httpx_client,
     )
     accounts_list = api_result.return_value if api_result.ok else []
+    for a in accounts_list:
+        single_urls[f"account-{a['account_index']}"] = (
+            f"/{net}/account/{accounts_list[0]['account_index']}"
+        )
+
+    try:
+        value = int(value)
+        if value <= request.app.max_index_known[net]:  # type: ignore
+            return RedirectResponse(url=f"/{net}/account/{value}", status_code=302)  # type: ignore
+    except ValueError:
+        pass
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/block/{value}",
         httpx_client,
     )
-    block_info = CCD_BlockInfo(**api_result.return_value) if api_result.ok else None
+    block_info = CCD_BlockInfo(**api_result.return_value) if api_result.ok else None  # type: ignore
+
+    if block_info:
+        single_urls["block"] = f"/{net}/block/{block_info.height}"
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/transaction/{value}", httpx_client
     )
-    tx = CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None
+    tx = CCD_BlockItemSummary(**api_result.return_value) if api_result.ok else None  # type: ignore
+
+    if tx:
+        single_urls["transaction"] = f"/{net}/transaction/{tx.hash}"
 
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/contract/{value}/0/info",
+        f"{request.app.api_url}/v2/{net}/modules/search/{value}",
         httpx_client,
     )
-    contract = MongoTypeInstance(**api_result.return_value) if api_result.ok else None
+    modules = api_result.return_value if api_result.ok else []
+
+    for m in modules:
+        single_urls[f"module-{m['_id']}"] = f"/{net}/module/{modules[0]['_id']}"
 
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/module/{value}",
+        f"{request.app.api_url}/v2/{net}/tokens/search/{value}",
         httpx_client,
     )
-    module = api_result.return_value if api_result.ok else None
+    tokens = api_result.return_value if api_result.ok else []
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/contracts/search/{value}",
+        httpx_client,
+    )
+    contracts = api_result.return_value if api_result.ok else []
+
+    for c in contracts:
+        single_urls[f"contract-{c['_id']}"] = f"/{net}/contract/{contracts[0]['_id']}"
+
+    for t in tokens:
+        single_urls[f"token-{t['_id']}"] = f"/{net}/tokens/{tokens[0]['_id']}"
+
+    if len(single_urls) == 1:
+        return RedirectResponse(url=single_urls[list(single_urls.keys())[0]], status_code=302)  # type: ignore
 
     html = templates.TemplateResponse(
         "home/search_all.html",
@@ -267,8 +306,9 @@ async def search_all(
             "accounts_list": accounts_list,
             "block_info": block_info,
             "tx": tx,
-            "contract": contract,
-            "module": module,
+            "contracts": contracts,
+            "tokens": tokens,
+            "modules": modules,
             "search_value": value,
         },
     )

@@ -10,38 +10,76 @@
             <table class="table table-borderless">
           <thead>
             <tr class="sm-text">
-              <th>Type</th>
-              <th>Found</th>
+              <th class="text-secondary-emphasis">Type</th>
+              <th class="text-secondary-emphasis">Found</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Account</td>
-              <td>
-                {% for account in accounts_list %}
-                  <a href="/{{net}}/account/{{account.account_index}}">{{account.account_index}}</a>
-                {% endfor %}
-              </td>
-            </tr>
-            <tr>
-              <td>Block</td>
-              <td>
-                {% if block_info %}
-                  <a href="/{{net}}/block/{{block_info.height}}">{{block_info.height}}</a></td>
-                  {% else %}
-                  -{% endif%}
-            </tr>
-            <tr>
-              <td>Transaction</td>
-              <td>
-                {% if tx %}
-                  <a href="/{{net}}/transaction/{{tx.hash}}">{{tx.hash[:4]}}</a>
-                {% else %}
-                -{% endif%}
+            <tr class="sm-text">
+              <td class="text-secondary-emphasis">Account</td>
+              <td class="text-secondary-emphasis">
+                {% if accounts_list|length == 0 %}
+                  -
+                  {% else%}
               
+                {% for account in accounts_list[:10] %}
+                {{account.account_index|account_link(net, user, tags, app=request.app)|safe}}<br/>
+                  
+                {% endfor %}
+                {% endif %}
               </td>
             </tr>
             
+            <tr class="sm-text">
+              <td class="text-secondary-emphasis">Modules</td>
+              <td class="text-secondary-emphasis">
+                {% if modules|length == 0 %}
+                  -
+                  {% else%}
+              
+                {% for module in modules[:10] %}
+                  <a href="/{{net}}/module/{{module._id}}">{{module.module_name}}</a><br/>
+                {% endfor %}
+              {% endif %}
+                
+              </td>
+            </tr>
+            <tr class="sm-text">
+              <td class="text-secondary-emphasis">Contracts</td>
+              <td class="text-secondary-emphasis">
+                {% if contracts|length == 0 %}
+                  -
+                  {% else%}
+              
+                {% for contract in contracts[:10] %}
+                    {% if contract.v0 %}
+                        {% set details = contract.v0 %}
+                    {%else%}
+                        {% set details = contract.v1 %}
+                    {% endif %}
+                  {{contract._id|instance_link_from_str(net, user, tags)|safe}}<br/>
+                {% endfor %}
+              {% endif %}
+                
+              </td>
+            </tr>
+            <tr class="sm-text">
+              <td class="text-secondary-emphasis">Tokens</td>
+              <td class="text-secondary-emphasis">
+                {% if tokens|length == 0 %}
+                  -
+                  {% else%}
+              
+                {% for token in tokens[:10] %}
+                  <a href="/{{net}}/tokens/{{token._id}}">{{token.display_name}}</a><br/>
+                {% endfor %}
+              {% endif %}
+                
+              </td>
+            </tr>
+            <tr class="sm-text">
+              <td class="pt-3 text-secondary-emphasis small"><i>(You can search for block <br/>and tx hashes and will be redirected)</i></td>
+            </tr>
         </tbody>
         </table>
           </div>
