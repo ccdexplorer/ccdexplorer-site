@@ -1,0 +1,15 @@
+<div    
+    class=""
+    hx-ext='json-enc'
+    hx-encoding="json"
+    hx-trigger="update_event from:#update, load, switched-theme from:body" 
+    hx-post="{{hx_post_url}}"
+    hx-vals='js:{
+        theme: document.querySelector("HTML").getAttribute("data-bs-theme"),
+        start_date: document.getElementById("event-start-pretty").innerText,
+        end_date: document.getElementById("event-end-pretty").innerText,
+        filename: "{{filename}}",
+        amount_chosen: document.querySelector("input[name=\"amount_chosen\"]:checked").id,
+        
+        }'
+></div>

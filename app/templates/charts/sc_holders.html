@@ -1,0 +1,8 @@
+{% extends "base/base.html" %}
+{% block content %}
+    {% set hx_post_url = '/' ~ net ~ '/ajax_statistics_standalone/statistics_holders' %}
+    {% set include_dropdown = False %}
+    {% set include_trace_selection = False %}
+    {% include 'charts/holders_chart.html' %}
+    {% include 'charts/download_link.html' %}
+{% endblock %}

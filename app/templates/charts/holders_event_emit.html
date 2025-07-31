@@ -1,0 +1,16 @@
+<script>
+    // If we do need an upload button, unhide it (no d-none class) and add the event listener below
+
+    // document.getElementById('update').addEventListener('click', function() {
+    //   var event = new CustomEvent('update_event');
+    //   this.dispatchEvent(event);
+    // });
+    // Radio group changes
+    
+document.querySelectorAll('input[name="amount_chosen"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        var event = new CustomEvent('update_event');
+        document.getElementById('update').dispatchEvent(event);
+    });
+});
+</script>

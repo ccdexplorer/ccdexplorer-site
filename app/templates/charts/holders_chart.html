@@ -1,0 +1,77 @@
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+{% endblock %}
+{% block content %}
+
+
+<style>
+    .noUi-target {
+  background: #0f0f0f;
+  
+}
+#slider-date-pretty {
+    padding: 0 16px;
+}
+.c-2-color { background: #2485DF }
+
+.noUi-tooltip {
+	display: block;
+	position: absolute;
+	border: 1px solid #D9D9D9;
+  font-size: smaller;
+	border-radius: 4px;
+	background: #0f0f0f;
+	color: #a7acb1;
+	padding: 5px;
+	text-align: center;
+}
+</style>
+{% include 'charts/holders_graph_htmx_div.html' %}
+
+
+<div class="row mt-4">
+    <div class=" col-sm-12">
+      <div class="border curved-border mb-2">
+        {% set title= "Graph Settings" %}{% include 'base/box_title.html' %} 
+        <div class="row">
+        <div class=" col-sm-6">
+          
+        <div class="btn-group-sm" role="group"  id="btnradio_grouping">
+          Chosen Amount:
+          {% for amount_str in ["10K", "20K","50K","100K","500K","1M","2.5M","5M","10M","100M"] %}
+            <input type="radio" class="btn-check" name="amount_chosen" id="{{amount_str}}" autocomplete="off" {% if loop.index==6 %} checked {% endif %}>
+            <label class="btn btn-outline-secondary " for="{{amount_str}}">{{amount_str}}</label>
+          {% endfor %}
+          
+        </div>
+      </div>
+      <div class=" col-sm-6">
+     
+        
+      </div>
+        <div class="row mt-4">
+          <p></p>
+          <div class=" col-sm-12 mt-4">
+            
+            <div class=" ms-3 me-3" id="slider-date-pretty"></div>
+            
+            <span id="event-start-pretty" class="d-none"></span><br/>
+              <span id="event-end-pretty" class="d-none"></span>
+              <button  type="button" id="update" class="d-none ">Update</button>
+      </div>  
+      </div>  
+
+           
+
+        
+        
+
+
+    </div>  
+</div>
+
+{% include 'charts/holders_event_emit.html' %}
+
+{% include 'charts/slider.html' %}
+{% endblock %}
