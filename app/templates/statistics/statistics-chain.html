@@ -10,12 +10,16 @@
 <div class="container my-4">
   {% set title= "Statistics / Charts" %}{% include 'base/box_title.html' %}
   <div class="row">
-    {% for name in ['Chain', 'Accounts', 'Exchanges', 'Staking', 'Validators'] %}
+    {% for name in ['Chain', 'Accounts', 'Exchanges', 'Staking', 'Validators', "Miscellaneous"] %}
     <div class="col-md-4 col-sm-6">
       <div class="card text-center  border-dark" >
               <div class="card-body text-center">
                   <span class="card-title text-center"><br/>{{name}}<br/></span>
+                  {% if loop.index < 6 %}
                       <a class="stretched-link" href="/mainnet/statistics/{{name|lower}}"></a>
+                  {% else %}
+                      <a class="stretched-link" href="/mainnet/charts"></a>
+                  {% endif %}
           </div>
         </div>
       </div>
