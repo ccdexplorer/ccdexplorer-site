@@ -1,5 +1,5 @@
 {% set ccd_tabulator_table ='txsfilter'%}
-{% set tabulator_ajax_filtering_url = '/account_transactions_with_filter/'+net+'/'+account_id +'/'+total_rows|string%}
+{% set tabulator_ajax_filtering_url = '/account_transactions_with_filter/'+net+'/'+account_id%}
 {% set filename='transactions-filtered-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
  {% include 'base/tabulator/tabulator-custom-formatters.html' %}
 <script>

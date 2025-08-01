@@ -1,8 +1,20 @@
-{% set title= "Transactions" %}{% include 'base/box_title.html' %}
-{% include 'base/pagination.html' %}
-{% for classified_tx in transactions %}
-    {% set transaction = classified_tx.dct %}
-    {% set tx = classified_tx.transaction %}
-    {% set events_list= classified_tx.events_list%}
-    {% include "intermediate/transaction.html"%}
-{% endfor %}
+
+          <div class="input-box mt-1 d-flex justify-content-start">
+                <select 
+                  class="form-select form-select-sm search_selector_filter text-end" 
+                  id="tx_type_contents_selector"
+                  name="tx_type_contents_selector">
+                  <option value="all" selected>All</option>
+                  <option value="transfer">Transfers</option>
+                  <option value="smart_contract">Smart Contracts</option>
+                  <option value="identity">Identity</option>
+                  <option value="staking">Staking / Delegation</option>
+                  <option value="rejected">Rejected TXs</option>
+                  <option value="data_registered">Data</option>
+                </select>
+                    
+            </div>
+            <div id="txsfilter"></div>
+            {% set ccd_tabulator_table ='txsfilter'%}
+            {% set filename='transactions-filtered-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
+            {% include 'base/tabulator/tabulator-table-download-link.html' %}

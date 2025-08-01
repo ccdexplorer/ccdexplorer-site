@@ -4,35 +4,50 @@
 <script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
 
 <script>
-let validatorTabLoaded = false;
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = [
+    {
+      btn: '#pills-txsfilter-tab',
+      containerId: 'transactions-tab-content',
+      url:   `/account/transactions-tab-content/{{net}}/{{account_id}}`,
+      init:  () => init_txs_table?.(),
+    },
+    {
+      btn: '#pills-validator-tab',
+      containerId: 'validator-tab-content',
+      url:   `/account/validator-tab-content/{{net}}/{{account_id}}`,
+      init:  () => {
+        init_validator_tally_table?.();
+        init_validator_transactions_table?.();
+      },
+    },
+  ];
 
-document.addEventListener("DOMContentLoaded", function () {
-  const validatorTabButton = document.querySelector('#pills-validator-tab');
+  tabs.forEach(({ btn, containerId, url, init }) => {
+    const tabButton = document.querySelector(btn);
+    if (!tabButton) return;
 
-  validatorTabButton.addEventListener('shown.bs.tab', function () {
-    if (!validatorTabLoaded) {
-      fetch("/account/validator-tab-content/{{ net }}/{{ account_id }}")
-        .then(response => response.text())
+    let loaded = false;
+    const loadTabContent = () => {
+      if (loaded) return;
+      fetch(url)
+        .then(r => r.text())
         .then(html => {
-          const container = document.getElementById('validator-tab-content');
+          const container = document.getElementById(containerId);
           container.innerHTML = html;
-          if (window.htmx) {
-            htmx.process(container);
-          }
-          if (typeof init_validator_tally_table === "function") {
-            init_validator_tally_table();
-          }
-          if (typeof init_validator_transactions_table === "function") {
-            init_validator_transactions_table();
-          }
-          
+          window.htmx && htmx.process(container);
+          init();
         })
-        .catch(err => {
-          document.getElementById('validator-tab-content').innerHTML = "<p class='text-danger'>Failed to load validator tab.</p>";
-          console.error(err);
-        });
+        .catch(console.error);
+      loaded = true;
+    };
 
-      validatorTabLoaded = true;
+    // 1️⃣ Run when the tab becomes active
+    tabButton.addEventListener('shown.bs.tab', loadTabContent);
+
+    // 2️⃣ Also run right away if it’s already active on page load
+    if (tabButton.classList.contains('active')) {
+      loadTabContent();
     }
   });
 });
@@ -314,30 +329,10 @@ if (ref) {
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
         <div class="border curved-border" >
-          <div class="input-box mt-1 d-flex justify-content-start">
-                <select 
-                  class="form-select form-select-sm search_selector_filter text-end" 
-                  id="tx_type_contents_selector"
-                  name="tx_type_contents_selector">
-                  <option value="all" selected>All</option>
-                  <option value="transfer">Transfers</option>
-                  <option value="smart_contract">Smart Contracts</option>
-                  <option value="identity">Identity</option>
-                  <option value="staking">Staking / Delegation</option>
-                  <option value="rejected">Rejected TXs</option>
-                  <option value="data_registered">Data</option>
-                </select>
-                    
-            </div>
-            
-            <div id="txsfilter">
-              {% include "base/tabulator/tabulator-account-filtered-txs.html" %}
-          </div>
-          {% set ccd_tabulator_table ='txsfilter'%}
-          {% include 'base/tabulator/tabulator-table-download-link.html' %}
-          
-        </div>
-      </div>  
+          <div id="transactions-tab-content">Loading...</div> 
+    </div>  
+      
+    </div>
       
     </div>
   </div>
@@ -381,7 +376,7 @@ if (ref) {
   {% endif %}
   {% if account_is_validator %}
   <div class="tab-pane fade show " id="pills-validator" role="tabpanel" aria-labelledby="pills-validator-tab" tabindex="0">
-    <div id="validator-tab-content">Loading...</div>   
+    <div id="validator-tab-content" class="ps-3">Loading...</div>   
     
     
   </div>
@@ -441,6 +436,187 @@ window.addEventListener('load', (event) => {
 
 <!-- Tabulator Tables -->
 {% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+
+<!-- transactions -->
+{% set ccd_tabulator_table ='txsfilter'%}
+{% set tabulator_ajax_filtering_url = '/account_transactions_with_filter/'+net+'/'+account_id%}
+{% set filename='transactions-filtered-'+account_id|string +'-'+range(1000,10000)|random|string+'.csv' %}
+ {% include 'base/tabulator/tabulator-custom-formatters.html' %}
+<script>
+  function init_txs_table() {
+    console.log("Initializing transactions table with Tabulator");
+    const columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "transaction_block_info_slot_time", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: isoDateTimeHumanDiff,
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Primary Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        // maxWidth: 170, 
+        formatter:txTypeFormatter,
+        headerSort: false,
+        
+      },
+      {
+        title: "", field: "type_additional_info", hozAlign: "right", 
+        responsive: 70,
+        minWidth: 200,
+        maxWidth: 200, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
+        headerSort: false,
+        
+      },
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
+        headerSort: false,
+        
+      }
+
+    ];
+  
+  window["{{ccd_tabulator_table}}_columns"] = columns;
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'block_height';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
+
+  // 1) Define your two helper functions first:
+  function updateFilterOnly() {
+    const table  = window["{{ccd_tabulator_table}}_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Filter applied:", select.value);
+  }
+
+  function initialLoad() {
+    const table  = window["{{ccd_tabulator_table}}_table"];
+    const select = document.getElementById("tx_type_contents_selector");
+    table.setFilter("type", "=", select.value);
+    console.log("Initial filter:", select.value);
+    table.setData("{{tabulator_ajax_filtering_url}}");
+    console.log("Data reloaded once at:", "{{tabulator_ajax_filtering_url}}");
+  }
+
+  // 2) Wait for the DOM so your <div> and <select> exist, then build Tabulator:
+  const table = new Tabulator("#{{ccd_tabulator_table}}", {
+    ajaxURL: "{{tabulator_ajax_filtering_url}}",
+    columns:  columns,
+    layout: "fitColumns",
+    responsiveLayout: "hide",
+    paginationMode: "remote",
+    filterMode: "remote",
+    sortMode: "remote",
+    ajaxConfig: "POST",
+    ajaxContentType: "json",
+    paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500],
+    paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[0],
+    paginationButtonCount: 3,
+    pagination: true,
+    paginationDataReceived: { data: "data", total_rows: "total", last_page: (raw, p) => Math.ceil(raw.total/p.size) },
+    paginationCounter: function(ps, cr, cp, tr, tp) {
+        if (tr == null) return `<span class="ccd">${cr.toLocaleString()}</span>`;
+        const humanize = n =>
+          n < 1000
+            ? n.toLocaleString()
+            : new Intl.NumberFormat("en", {
+                notation: "compact",
+                compactDisplay: "short",
+                maximumFractionDigits: 1,
+              }).format(n);
+        const start = ((cp - 1)*ps + 1).toLocaleString();
+        const end   = Math.min(cp*ps, tr).toLocaleString();
+        const total = tr < 5000 ? tr.toLocaleString() : humanize(tr);
+        return `<span class="ccd">${start} – ${end} of ${total}</span>`;
+      },
+    initialSort: [
+      { column: window["{{ccd_tabulator_table}}_default_sort_field"],
+        dir: window["{{ccd_tabulator_table}}_default_sort_field_direction"] }
+    ],
+    rowFormatter(row){ row.getElement().classList.add("sm-text"); },
+
+    // 4) tableBuilt fires once the table DOM is in place
+    tableBuilt(){
+      console.log("Tabulator table built, applying initial filter and data load.");
+      initialLoad();
+    },
+  });
+
+  // 5) Expose and wire up your filter-change listener
+  window["{{ccd_tabulator_table}}_table"] = table;
+  document
+    .getElementById("tx_type_contents_selector")
+    .addEventListener("change", updateFilterOnly);
+
+
+  
+const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      console.log("Adding click listener to txs download button");
+      document.getElementById("transactions-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    table.download(
+      "csv",
+      "{{filename}}",
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+};
+
+</script>
+
+
+
 
 <!-- validator tally -->
 {% set ccd_tabulator_table ='validator_tally_table'%}
