@@ -41,10 +41,12 @@ from app.state import (
 )
 from app.utils import (
     ccdexplorer_plotly_template,
+    create_dict_for_tabulator_display,
     create_dict_for_tabulator_display_for_blocks,
     get_url_from_api,
     millify,
     tx_type_translation,
+    tx_type_translation_for_js,
 )
 
 router = APIRouter()
@@ -604,18 +606,21 @@ async def ajax_last_txs(
 async def ajax_last_txs_own_page(
     request: Request,
     net: str,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
-
+    skip = (page - 1) * size
     user: UserV2 | None = await get_user_detailsv2(request)
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/transactions/last/50", httpx_client
-    # )
-    # latest_blocks = api_result.return_value if api_result.ok else None
-    latest_txs = request.app.transactions_cache.get(net)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/transactions/paginated/{skip}/limit/{size}",
+        httpx_client,
+    )
+    latest_txs = api_result.return_value if api_result.ok else []
+    # latest_txs = request.app.transactions_cache.get(net)
     if not latest_txs:
         error = f"Request error getting the most recent transactions on {net}."
         return templates.TemplateResponse(
@@ -628,45 +633,41 @@ async def ajax_last_txs_own_page(
             },
         )
 
-    made_up_txs = []
-    if len(latest_txs) > 0:
-        for transaction in latest_txs:
-            transaction = CCD_BlockItemSummary(**transaction)
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "httpx_client": httpx_client,
-                    "tags": tags,
-                    "user": user,
-                    "app": request.app,
-                    "requesting_route": RequestingRoute.other,
-                }
+    tb_made_up_txs = []
+
+    for transaction in latest_txs["transactions"]:
+        transaction = CCD_BlockItemSummary(**transaction)
+        makeup_request = MakeUpRequest(
+            **{
+                "net": net,
+                "httpx_client": httpx_client,
+                "tags": tags,
+                "user": user,
+                "app": request.app,
+                "requesting_route": RequestingRoute.block,
+            }
+        )
+
+        classified_tx = await MakeUp(makeup_request=makeup_request).prepare_for_display(
+            transaction, "", False
+        )
+
+        type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+        tb_made_up_txs.append(
+            create_dict_for_tabulator_display(
+                net, classified_tx, type_additional_info, sender
             )
-
-            classified_tx = await MakeUp(
-                makeup_request=makeup_request
-            ).prepare_for_display(transaction, "", False)
-            made_up_txs.append(classified_tx)
-    # result = [CCD_BlockItemSummary(**x) for x in latest_txs]
-    if "last_requests" not in request.state._state:
-        request.state.last_requests = {}
-    html = templates.TemplateResponse(
-        "base/transactions_simple_list.html",
+        )
+    total_rows = latest_txs["total_rows"]
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "request": request,
-            "tx_type_translation": tx_type_translation,
-            "transactions": made_up_txs,
-            "pagination": None,
-            "totals_in_pagination": True,
-            "total_rows": 50,
-            "net": net,
-            "tags": tags,
-            "user": user,
-        },
+            "data": tb_made_up_txs,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
     )
-
-    request.state.last_requests["txs"] = html
-    return html
 
 
 @router.get("/{net}/ajax_last_blocks_own_page", response_class=HTMLResponse)
@@ -731,6 +732,42 @@ async def ajax_last_blocks_since(
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/blocks/newer/than/{since_height}",
+        httpx_client,
+    )
+    blocks_result = api_result.return_value if api_result.ok else {}
+    if not blocks_result:
+        error = f"Request error getting the most recent blocks on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    result = [
+        create_dict_for_tabulator_display_for_blocks(net, x) for x in blocks_result
+    ]
+    if "last_requests" not in request.state._state:
+        request.state.last_requests = {}
+    return JSONResponse(result)
+
+
+@router.get("/{net}/ajax_transactions/new", response_class=HTMLResponse)
+async def ajax_last_transactions_since(
+    request: Request,
+    net: str,
+    height: int = Query(),
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/transactions/newer/than/{height}",
         httpx_client,
     )
     blocks_result = api_result.return_value if api_result.ok else {}
@@ -835,6 +872,8 @@ async def transactions_page(
             "env": request.app.env,
             "request": request,
             "user": user,
+            "tx_type_translation": tx_type_translation,
+            "tx_type_translation_from_python": tx_type_translation_for_js(),
             "net": net,
             "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
         },

@@ -1,52 +1,127 @@
-<div class="mt-4">
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+{% set ccd_tabulator_table ='latest_transactions'%}
 <span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions</span>
-<table class="table ">
-  <thead>
-  <tr  class="account-row sm-text">
-    <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
-    <th class="text-end text-secondary-emphasis">Age</th>
-    <!-- <th class="text-center text-secondary-emphasis"></th> -->
-    <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Cost</span><span class="tab-text-small"></span></th>
-    <th class="text-start text-secondary-emphasis">Type</th>
-    <th class="text-start text-secondary-emphasis"><span class="tab-text-large">Block</span><span class="tab-text-small"></span></th>
-    <th class="text-end text-secondary-emphasis">Sender</th>
-  </tr>
-</thead>
-<tbody class="table-group-divider">
-{% for row in txs %}
-  <tr class="
+<div id="{{ccd_tabulator_table}}" ></div>
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Timestamp", field: "timestamp", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: "html",
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Primary Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        // maxWidth: 170, 
+        formatter:txTypeFormatter,
+        headerSort: false,
+        
+      },
+      {
+        title: "", field: "type_additional_info", hozAlign: "right", 
+        responsive: 70,
+        minWidth: 200,
+        maxWidth: 200, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
+        headerSort: false,
+        
+      },
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
+        headerSort: false,
+        
+      }
 
-  {% if row.account_transaction %}
-          {% if row.account_transaction.outcome == 'success' %}
-            account-row 
-          {%else%}
-            account-row-failed
-          {%endif%}
-  {% else %}
-    account-row 
-  {%endif%}
-  sm-text 
-  ">
-    <td class=""><a class=" " href="/{{net}}/transaction/{{row.hash}}"><span class="ccd">{{row.hash|tx_hash_link(net)|safe}}</span></a></td>
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+
+  window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+  layout: "fitColumns",
+  height: "600px",
+  responsiveLayout: "hide",
+  ajaxURL: "/{{net}}/ajax_last_transactions_own_page",              // your paged endpoint
+  initialSort: [{column:"block_height", dir:"desc"}],
+  paginationSize: 50,                // rows per “page”
+  progressiveLoad: "scroll",         // infinite scroll mode
+  progressiveLoadScrollMargin: 300,  // trigger next load 300px from bottom
+  columns: window["{{ccd_tabulator_table}}_columns"],
+});
+window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
+  document.querySelectorAll(".tabulator-col-title").forEach(el => {
+    el.classList.add("sm-text");
+  });
+});
+async function pollNewTransactions(){
+    const data = window["{{ccd_tabulator_table}}_table"].getData();
+    const since = data.length ? data[0].block_height_since : 0;
     
-    <td class="text-end text-secondary-emphasis">{{row.block_info.slot_time|datetime_delta_format_since}}</td>
-    <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd">
-      {% if row.account_transaction %}
-        {{row.account_transaction.cost|round_x_decimal_with_comma(0) }}
-      {% else %}
-          
-      {%endif%}</span></span><span class="tab-text-small"></span></td>
-    <td class="text-start ">{{row.type.contents|tx_type_translator("icon")|safe}} <span class="text-secondary-emphasis" >{{row.type.contents|tx_type_translator("display")|safe}}</span></td>
-    <td class=""><span class="tab-text-large"><a class=" " href="/{{net}}/block/{{row.block_info.height}}"><span class="ccd">{{row.block_info.height|round_x_decimal_with_comma(0)}}</span></a></span><span class="tab-text-small"></span></td>
-    <td class="text-end text-secondary-emphasis">
-      {% if row.account_transaction %}
-      {{row.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
-      {% else %}
-        Chain  
-      {%endif%}</td>
+    try {
+      const resp = await fetch(`/{{net}}/ajax_transactions/new?height=${since}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      if (!resp.ok) throw new Error(resp.statusText);
+      const newBlocks = await resp.json();
 
-  </tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
+      if (newBlocks.length){
+        await window["{{ccd_tabulator_table}}_table"].addData(newBlocks, true);
+      }
+    } catch (e) {
+      
+    }
+  }
+
+  setInterval(pollNewTransactions, 10_000);
+</script>

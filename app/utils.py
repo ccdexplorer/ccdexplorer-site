@@ -30,6 +30,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_RejectReason,
     CCD_UpdatePayload,
     CCD_BlockInfo,
+    CCD_BlockItemSummary,
 )
 from ccdexplorer_fundamentals.mongodb import Collections, MongoMotor
 from ccdexplorer_fundamentals.user_v2 import UserV2
@@ -305,6 +306,7 @@ def create_dict_for_tabulator_display(
     #     classified_tx.transaction.block_info.slot_time.isoformat()
     # )
     return {
+        "timestamp": f'<span class="ccd">{classified_tx.transaction.block_info.slot_time:%H:%M:%S}</span>',
         "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
         "transaction_account_transaction_cost": (
             classified_tx.transaction.account_transaction.cost
@@ -319,6 +321,8 @@ def create_dict_for_tabulator_display(
         "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
         "type_additional_info": type_additional_info,
         "sender": sender,
+        "tx_index": classified_tx.transaction.index,
+        "block_height_since": classified_tx.transaction.block_info.height,
         # for downloads
         "hash_download": classified_tx.transaction.hash,
         "type_additional_info_download": (
