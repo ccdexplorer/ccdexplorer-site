@@ -1,11 +1,158 @@
 
-<div class="mt-4">
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+{% set ccd_tabulator_table ='latest_accounts'%}
+{% set REFRESH = 20_000%}
+<div class="row">
+  <div class="col">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Accounts</span>
+  </div>
+{% include 'base/tabulator/timer-display.html' %}
+</div>
+<div id="{{ccd_tabulator_table}}" ></div>
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Address", field: "address", 
+        minWidth: 80,
+        responsive: 0,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      
+      {
+        title: "Available Balance", field: "available_balance", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 0,
+        minWidth: 140,
+        maxWidth: 140, 
+        formatter: "html",
+        headerSort: false,
+        
+      },
+      {
+        title: "Age", field: "deployment_tx_slot_time", 
+        minWidth: 120,
+        maxWidth: 120,
+        responsive: 0,
+        formatter: "html",
+        headerSort:false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Staking", field: "staking", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 150,
+        maxWidth: 150, 
+        formatter: "html",
+        headerSort: false,
+        
+      },
+      {
+        title: "ID Provider", field: "identity", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 250,
+        maxWidth: 250, 
+        formatter: "html",
+        headerSort: false,
+        
+      },
+      {
+        title: "Nonce", field: "sequence_number", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        formatter: "html",
+        headerSort: false,
+        
+      },
+     
+
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+
+  window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+  layout: "fitColumns",
+  height: "600px",
+  responsiveLayout: "hide",
+  ajaxURL: "/{{net}}/ajax_last_accounts_own_page",              // your paged endpoint
+  paginationSize: 25,                // rows per “page”
+  progressiveLoad: "scroll",         // infinite scroll mode
+  progressiveLoadScrollMargin: 300,  // trigger next load 300px from bottom
+  columns: window["{{ccd_tabulator_table}}_columns"],
+});
+window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
+  document.querySelectorAll(".tabulator-col-title").forEach(el => {
+    el.classList.add("sm-text");
+  });
+});
+async function pollNewAccounts(){
+    const data = window["{{ccd_tabulator_table}}_table"].getData();
+    const since = data.length ? data[0].account_index : 0;
+    nextRefresh = Date.now() + REFRESH_INTERVAL;
+    try {
+      const resp = await fetch(`/{{net}}/ajax_accounts/new?since_index=${since}`);
+      if (!resp.ok) throw new Error(resp.statusText);
+      const newBlocks = await resp.json();
+
+      if (newBlocks.length){
+        await window["{{ccd_tabulator_table}}_table"].addData(newBlocks, true);
+      }
+    } catch (e) {
+      
+    }
+  }
+
+ 
+</script>
+{% include 'base/tabulator/timer-js.html' %}
+<script>
+  setInterval(pollNewAccounts, {{REFRESH}});
+</script>
+
+
+
+<!-- <div class="mt-4">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Finalized Blocks</span>
+  
+  <table class="table  ">
+    <thead>
+    <tr class="account-row sm-text">
+      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
+      
+      <th class="text-end text-secondary-emphasis">Age</th>
+      <th class="text-end text-secondary-emphasis">Height</th>
+      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Epoch</span><span class="tab-text-small"></span></th>
+      <th class="text-end text-secondary-emphasis">Validator</th>
+      <th class="text-end text-secondary-emphasis">Txs</th>
+      <th class="text-end text-secondary-emphasis"><span class="tab-text-large">Parent Block</span><span class="tab-text-small"></span></th>
+    </tr>
+  </thead>
+    <tbody class="table-group-divider">
+      {% for row in blocks %}
+        <tr class="account-row sm-text">
+          <td class="text-start text-secondary-emphasis"><a href="/{{net}}/block/{{row.hash}}"><span class="ccd" >{{row.hash|block_hash_link(net)|safe}}</a></span></td>
+          <td class="text-end text-secondary-emphasis">{{row.slot_time|datetime_delta_format_since}}</td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd" >{{row.height|round_x_decimal_with_comma(0)}}</span></td>
+          <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><span class="ccd" >{{row.epoch|round_x_decimal_with_comma(0)}}</span></span><span class="tab-text-small"></span></td>
+          <td class="text-end text-secondary-emphasis"><a class="ccd" href="/{{net}}/account/{{row.baker}}">{{row.baker|round_x_decimal_with_comma(0)}}</a></td>
+          <td class="text-end text-secondary-emphasis"><span class="ccd">{{row.transaction_count|round_x_decimal_with_comma(0) }}</span></td>
+          <td class="text-end text-secondary-emphasis"><span class="tab-text-large"><a href="/{{net}}/block/{{row.parent_block}}"><span class="ccd" >{{row.parent_block|block_hash_link(net)|safe}}</a></span></span><span class="tab-text-small"></span></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div> -->
+<!-- <div class="mt-4">
   <span class="text-uppercase sm-text text-secondary-emphasis">Latest Accounts</span>
   
   <table class="table  ">
     <thead>
     <tr class="account-row sm-text">
-      <!-- <th class="text-start text-secondary-emphasis">Index</th> -->
       
       <th class="text-start text-secondary-emphasis">Address</th>
       <th class="text-end text-secondary-emphasis">Available Balance</th>
@@ -13,7 +160,6 @@
       <th class="text-end text-secondary-emphasis"><span class="tab-text-large">ID Provider</span><span class="tab-text-small"></span></th>
       
       <th class="text-end text-secondary-emphasis">Nonce</th>
-      <!-- <th>Amount</th> -->
     </tr>
   </thead>
     <tbody class="table-group-divider">
@@ -23,7 +169,6 @@
       {% set identity=account_result.identity%}
 
         <tr class="account-row sm-text">
-          <!-- <td class="text-start text-secondary-emphasis"><a href="/{{net}}/account/{{account.index}}"><span class="ccd" >{{account.index}}</a></span></td> -->
           <td class="text-start text-secondary-emphasis">
             {% set copy_value = account.address %}
             {% set value_type = "account_address" %}
@@ -39,4 +184,4 @@
       {% endfor %}
     </tbody>
   </table>
-</div>
+</div> -->

@@ -11,7 +11,10 @@ from typing import Any, Optional
 
 import cbor2
 import dateutil
+
 import dateutil.parser
+from dateutil.relativedelta import relativedelta
+
 import httpx
 
 # from app.jinja2_helpers import templates
@@ -280,6 +283,62 @@ tx_type_translation["initial"] = TypeContents(
     category=TypeContentsCategories.identity,
     color=TypeContentsCategoryColors.identity.value[0],
 )
+
+
+def humanize_age(timestamp: dt.datetime, now: dt.datetime | None = None) -> str:
+    """
+    Turn a datetime into “today”, “yesterday”, “2 days ago”, “1 week ago”, etc.
+
+    :param dt:        past datetime to describe
+    :param now:       reference time (defaults to datetime.now() with same tzinfo as dt)
+    :returns:         humanized string
+    """
+    if now is None:
+        now = dt.datetime.now(dt.UTC)
+
+    # if dt is in the future, just show the date
+    if timestamp.astimezone(dt.UTC) > now:
+        return timestamp.strftime("%Y-%m-%d")
+
+    rd = relativedelta(now, timestamp.astimezone(dt.UTC))
+
+    # days/weeks
+    if rd.days == 0:  # and rd.hours == 0 and rd.minutes == 0:
+        return "today"
+    if rd.days == 1:
+        return "yesterday"
+    if rd.days < 7:
+        return f"{rd.days} days ago"
+
+    weeks = rd.days // 7
+    if weeks < 4:
+        return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+
+    # months/years (optional—uncomment if you like)
+    # if rd.months < 12:
+    #     return f"{rd.months} month{'s' if rd.months > 1 else ''} ago"
+    # return f"{rd.years} year{'s' if rd.years > 1 else ''} ago"
+
+    # fallback to a calendar date for anything ≥ 4 weeks out
+    return timestamp.strftime("%Y-%m-%d")
+
+
+def create_dict_for_tabulator_display_for_accounts(net, app, account_dict: dict):
+    return {
+        "address": f'{account_link(account_dict["address"], net, app=app)}',
+        "account_index": account_dict["account_index"],
+        "available_balance": f'<span  >{micro_ccd_no_decimals(account_dict["available_balance"])}</span>',
+        "sequence_number": f'<span class="ccd">{round_x_decimal_with_comma(account_dict["sequence_number"], 0)}</span>',
+        "identity": account_dict.get("identity", ""),
+        "staking": f'{account_dict["staking"] if account_dict.get("staking", None) else ''}</span>',
+        "deployment_tx_slot_time": f'{humanize_age(dateutil.parser.parse(account_dict["deployment_tx_slot_time"]))}',
+        # "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
+        # "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
+        # "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
+        # "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
+        # "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
+        # "block_height_since": block_info.height,
+    }
 
 
 def create_dict_for_tabulator_display_for_blocks(net, block: dict):

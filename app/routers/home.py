@@ -42,6 +42,7 @@ from app.state import (
 from app.utils import (
     ccdexplorer_plotly_template,
     create_dict_for_tabulator_display,
+    create_dict_for_tabulator_display_for_accounts,
     create_dict_for_tabulator_display_for_blocks,
     get_url_from_api,
     millify,
@@ -755,6 +756,43 @@ async def ajax_last_blocks_since(
     return JSONResponse(result)
 
 
+@router.get("/{net}/ajax_accounts/new", response_class=HTMLResponse)
+async def ajax_last_accounts_since(
+    request: Request,
+    net: str,
+    since_index: int = Query(),
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/newer/than/{since_index}",
+        httpx_client,
+    )
+    accounts_result = api_result.return_value if api_result.ok else []
+    if not api_result.ok:
+        error = f"Request error getting the most recent accounts on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    result = [
+        create_dict_for_tabulator_display_for_accounts(net, request.app, x)
+        for x in accounts_result
+    ]
+    if "last_requests" not in request.state._state:
+        request.state.last_requests = {}
+    return JSONResponse(result)
+
+
 @router.get("/{net}/ajax_transactions/new", response_class=HTMLResponse)
 async def ajax_last_transactions_since(
     request: Request,
@@ -818,6 +856,8 @@ async def ajax_last_transactions_since(
 async def ajax_last_accounts_own_page(
     request: Request,
     net: str,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
@@ -825,19 +865,14 @@ async def ajax_last_accounts_own_page(
         return RedirectResponse(url="/mainnet", status_code=302)
 
     user: UserV2 | None = await get_user_detailsv2(request)
-    # print(list(request.app.addresses_to_indexes.get(net).values())[:10])
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/accounts/last/50", httpx_client
-    # )
-    # latest_accounts = api_result.return_value if api_result.ok else None
-    latest_accounts = request.app.accounts_cache.get(net)
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/misc/identity-providers",
-    #     httpx_client,
-    # )
-    # identity_providers = api_result.return_value if api_result.ok else None
-    identity_providers = request.app.identity_providers_cache.get(net)
-    if not latest_accounts:
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/accounts/paginated/skip/{skip}/limit/{size}",
+        httpx_client,
+    )
+    accounts_result: dict = api_result.return_value if api_result.ok else {}
+    accounts = accounts_result.get("accounts", [])
+    if not accounts_result:
         error = f"Request error getting the most recent accounts on {net}."
         return templates.TemplateResponse(
             "base/error.html",
@@ -850,28 +885,20 @@ async def ajax_last_accounts_own_page(
         )
 
     result = [
-        {
-            "account_info": CCD_AccountInfo(**x["account_info"]),
-            "identity": Identity(CCD_AccountInfo(**x["account_info"])),
-            "deployment_tx": CCD_BlockItemSummary(**x["deployment_tx"]),
-        }
-        for x in latest_accounts
+        create_dict_for_tabulator_display_for_accounts(net, request.app, x)
+        for x in accounts
     ]
     if "last_requests" not in request.state._state:
         request.state.last_requests = {}
-    html = templates.TemplateResponse(
-        "home/last_accounts_table_own_page.html",
+    total_rows = accounts_result["total_rows"]
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "request": request,
-            "accounts": result,
-            "net": net,
-            "identity_providers": identity_providers,
-            "tags": tags,
-            "user": user,
-        },
+            "data": result,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
     )
-    request.state.last_requests["blocks"] = html
-    return html
 
 
 @router.get("/{net}/transactions", response_class=HTMLResponse)

@@ -1,0 +1,21 @@
+<script>
+     // ↓ use 10 000 ms instead of 30 000
+  const REFRESH_INTERVAL = {{REFRESH}};
+
+  // schedule our next‐run timestamp
+  let nextRefresh = Date.now() + REFRESH_INTERVAL;
+
+     // countdown updater (every second)
+  const cdEl = document.getElementById("{{ccd_tabulator_table}}-refresh-countdown");
+  setInterval(() => {
+    const msLeft = nextRefresh - Date.now();
+    if (msLeft <= 0) {
+      cdEl.textContent = `0:00`;
+      return;
+    }
+    const totalSec = Math.ceil(msLeft/1000);
+    const min = Math.floor(totalSec/60);
+    const sec = totalSec % 60;
+    cdEl.textContent = `${min}:${sec.toString().padStart(2,"0")}`;
+  }, 1000);
+</script>

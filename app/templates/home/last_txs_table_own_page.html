@@ -1,6 +1,12 @@
 {% include 'base/tabulator/tabulator-custom-formatters.html' %}
 {% set ccd_tabulator_table ='latest_transactions'%}
-<span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions</span>
+{% set REFRESH = 5_000%}
+<div class="row">
+  <div class="col">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions</span>
+  </div>
+{% include 'base/tabulator/timer-display.html' %}
+</div>
 <div id="{{ccd_tabulator_table}}" ></div>
 <script>
   const {{ccd_tabulator_table}}_columns = [
@@ -64,7 +70,7 @@
         maxWidth: 130, 
         formatter: "html",
         accessorDownload: (value, data) => data.block_height_download,
-        headerSort: true,
+        headerSort: false,
         
       },
       {
@@ -104,6 +110,7 @@ window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
 async function pollNewTransactions(){
     const data = window["{{ccd_tabulator_table}}_table"].getData();
     const since = data.length ? data[0].block_height_since : 0;
+    nextRefresh = Date.now() + REFRESH_INTERVAL;
     
     try {
       const resp = await fetch(`/{{net}}/ajax_transactions/new?height=${since}`, {
@@ -122,6 +129,9 @@ async function pollNewTransactions(){
       
     }
   }
-
-  setInterval(pollNewTransactions, 10_000);
+  
+</script>
+{% include 'base/tabulator/timer-js.html' %}
+<script>
+  setInterval(pollNewTransactions, {{REFRESH}});
 </script>
