@@ -29,6 +29,7 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_ContractAddress,
     CCD_RejectReason,
     CCD_UpdatePayload,
+    CCD_BlockInfo,
 )
 from ccdexplorer_fundamentals.mongodb import Collections, MongoMotor
 from ccdexplorer_fundamentals.user_v2 import UserV2
@@ -278,6 +279,23 @@ tx_type_translation["initial"] = TypeContents(
     category=TypeContentsCategories.identity,
     color=TypeContentsCategoryColors.identity.value[0],
 )
+
+
+def create_dict_for_tabulator_display_for_blocks(net, block: dict):
+    # classified_tx.transaction.block_info.slot_time = (
+    #     classified_tx.transaction.block_info.slot_time.isoformat()
+    # )
+    block_info = CCD_BlockInfo(**block)
+    return {
+        "transaction_block_info_slot_time": f'<span class="ccd">{block_info.slot_time:%H:%M:%S}</span>',
+        "hash": f'<a href="/{net}/block/{block_info.hash}"><span class="ccd">{block_hash_link(block_info.hash, net)}</span></a>',
+        "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
+        "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
+        "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
+        "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
+        "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
+        "block_height_since": block_info.height,
+    }
 
 
 def create_dict_for_tabulator_display(

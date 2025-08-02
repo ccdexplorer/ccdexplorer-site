@@ -171,9 +171,10 @@ function isoDateTimeHumanDiff(cell) {
       return `${Math.floor(diff.hours)} hour${diff.hours >= 2 ? 's' : ''}`;
     } else if (diff.minutes >= 1) {
       return `${Math.floor(diff.minutes)} min`;
-    } else {
-      return `just now`;
-    }
+    } else if (diff.seconds >= 1) {
+  return `${Math.floor(diff.seconds)} sec`;
+} else {
+  return `just now`;}
   } catch (err) {
     return "-";
   }

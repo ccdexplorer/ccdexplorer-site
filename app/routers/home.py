@@ -20,9 +20,16 @@ from app.classes.dressingroom import (
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypeInstance,
 )
+import math
 from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    RedirectResponse,
+    Response,
+    JSONResponse,
+)
 from pydantic import BaseModel
 
 from app.env import environment
@@ -34,6 +41,7 @@ from app.state import (
 )
 from app.utils import (
     ccdexplorer_plotly_template,
+    create_dict_for_tabulator_display_for_blocks,
     get_url_from_api,
     millify,
     tx_type_translation,
@@ -665,6 +673,8 @@ async def ajax_last_txs_own_page(
 async def ajax_last_blocks_own_page(
     request: Request,
     net: str,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
@@ -672,8 +682,14 @@ async def ajax_last_blocks_own_page(
         return RedirectResponse(url="/mainnet", status_code=302)
 
     user: UserV2 | None = await get_user_detailsv2(request)
-    latest_blocks = request.app.blocks_cache.get(net)
-    if not latest_blocks:
+    # latest_blocks = request.app.blocks_cache.get(net)
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/blocks/{skip}/{size}",
+        httpx_client,
+    )
+    blocks_result = api_result.return_value if api_result.ok else {}
+    if not blocks_result:
         error = f"Request error getting the most recent blocks on {net}."
         return templates.TemplateResponse(
             "base/error.html",
@@ -685,21 +701,57 @@ async def ajax_last_blocks_own_page(
             },
         )
 
-    result = [CCD_BlockInfo(**x) for x in latest_blocks]
+    result = [
+        create_dict_for_tabulator_display_for_blocks(net, x)
+        for x in blocks_result["blocks"]
+    ]
     if "last_requests" not in request.state._state:
         request.state.last_requests = {}
-    html = templates.TemplateResponse(
-        "home/last_blocks_table_own_page.html",
+    total_rows = blocks_result["total_rows"]
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "request": request,
-            "blocks": result,
-            "net": net,
-            "tags": tags,
-            "user": user,
-        },
+            "data": result,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
     )
-    request.state.last_requests["blocks"] = html
-    return html
+
+
+@router.get("/{net}/ajax_blocks/new", response_class=HTMLResponse)
+async def ajax_last_blocks_since(
+    request: Request,
+    net: str,
+    since_height: int = Query(),
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/blocks/newer/than/{since_height}",
+        httpx_client,
+    )
+    blocks_result = api_result.return_value if api_result.ok else {}
+    if not blocks_result:
+        error = f"Request error getting the most recent blocks on {net}."
+        return templates.TemplateResponse(
+            "base/error.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    result = [
+        create_dict_for_tabulator_display_for_blocks(net, x) for x in blocks_result
+    ]
+    if "last_requests" not in request.state._state:
+        request.state.last_requests = {}
+    return JSONResponse(result)
 
 
 @router.get("/{net}/ajax_last_accounts_own_page", response_class=HTMLResponse)
