@@ -616,7 +616,7 @@ async def ajax_last_txs_own_page(
     skip = (page - 1) * size
     user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/transactions/paginated/{skip}/limit/{size}",
+        f"{request.app.api_url}/v2/{net}/transactions/paginated/skip/{skip}/limit/{size}",
         httpx_client,
     )
     latest_txs = api_result.return_value if api_result.ok else []
@@ -644,7 +644,7 @@ async def ajax_last_txs_own_page(
                 "tags": tags,
                 "user": user,
                 "app": request.app,
-                "requesting_route": RequestingRoute.block,
+                "requesting_route": RequestingRoute.transactions,
             }
         )
 
@@ -763,6 +763,7 @@ async def ajax_last_transactions_since(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    user: UserV2 | None = await get_user_detailsv2(request)
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
@@ -770,8 +771,8 @@ async def ajax_last_transactions_since(
         f"{request.app.api_url}/v2/{net}/transactions/newer/than/{height}",
         httpx_client,
     )
-    blocks_result = api_result.return_value if api_result.ok else {}
-    if not blocks_result:
+    txs_result = api_result.return_value if api_result.ok else []
+    if not api_result.ok:
         error = f"Request error getting the most recent blocks on {net}."
         return templates.TemplateResponse(
             "base/error.html",
@@ -782,13 +783,35 @@ async def ajax_last_transactions_since(
                 "net": net,
             },
         )
+    tb_made_up_txs = []
+    for transaction in txs_result:
+        transaction = CCD_BlockItemSummary(**transaction)
+        makeup_request = MakeUpRequest(
+            **{
+                "net": net,
+                "httpx_client": httpx_client,
+                "tags": tags,
+                "user": user,
+                "app": request.app,
+                "requesting_route": RequestingRoute.block,
+            }
+        )
 
-    result = [
-        create_dict_for_tabulator_display_for_blocks(net, x) for x in blocks_result
-    ]
+        classified_tx = await MakeUp(makeup_request=makeup_request).prepare_for_display(
+            transaction, "", False
+        )
+
+        type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+        tb_made_up_txs.append(
+            create_dict_for_tabulator_display(
+                net, classified_tx, type_additional_info, sender
+            )
+        )
+
     if "last_requests" not in request.state._state:
         request.state.last_requests = {}
-    return JSONResponse(result)
+    return JSONResponse(tb_made_up_txs)
 
 
 @router.get("/{net}/ajax_last_accounts_own_page", response_class=HTMLResponse)
