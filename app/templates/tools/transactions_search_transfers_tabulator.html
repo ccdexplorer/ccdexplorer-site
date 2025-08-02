@@ -1,0 +1,257 @@
+
+
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+<style>
+  .noUi-target {
+background: #0f0f0f;
+
+}
+#slider-ccd-pretty {
+  padding: 0 16px;
+}
+#slider-date-pretty {
+  padding: 0 16px;
+}
+.c-2-color { background: #2485DF }
+
+.noUi-tooltip {
+display: block;
+position: absolute;
+border: 1px solid #D9D9D9;
+font-size: smaller;
+border-radius: 4px;
+background: #0f0f0f;
+color: #a7acb1;
+padding: 5px;
+text-align: center;
+}
+</style>
+<div class="row">
+  {% set title= "Search for transfers" %}{% include 'base/box_title.html' %}
+</div>
+
+<div class="row">
+  <div class="col-md-3 mb-3">
+    <p>Select date range</p>
+  </div>
+  <div class="col-md-9 mb-3">
+    <div id="slider-date-pretty" class="me-5"></div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-3 mb-3">
+    <p>Select value range</p>
+  </div>
+  <div class="col-md-9">
+    <div id="slider-ccd-pretty" class="me-5"></div>
+  </div>
+</div>
+
+<div class="row mb-5">
+  <div class="col-md-3 mt-2">
+    <p>Search for memo</p>
+  </div>
+  <div class="col-md-5">
+    <div class="align-center input-group input-group-sm" id="memo">
+      <input class="form-control" type="search" id="memo_search"
+             name="search" placeholder="">
+    </div>
+  </div>
+</div>
+
+<span id="event-start-pretty" class="d-none"></span>
+<span id="event-end-pretty" class="d-none"></span>
+<span id="event-start-ccd-pretty" class="d-none"></span>
+<span id="event-end-ccd-pretty" class="d-none"></span>
+<button  type="button" id="update" class="d-none">Update</button>
+{% include 'charts/slider.html' %}
+{% include 'charts/slider_ccd.html' %}
+
+<!-- where Tabulator will render -->
+<div id="{{ccd_tabulator_table}}"></div>
+
+<script>
+  // build Tabulator
+   const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "transaction_block_info_slot_time", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 50,
+        formatter: isoDateTimeHumanDiff,
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.transaction_block_info_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        accessorDownload: (value, data) => data.transaction_account_transaction_cost/1000000,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Primary Type", field: "transaction_type_contents", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        // maxWidth: 170, 
+        formatter:txTypeFormatter,
+        headerSort: false,
+        
+      },
+      {
+        title: "Amount", field: "type_additional_info", hozAlign: "right", 
+        responsive: 70,
+        minWidth: 200,
+        maxWidth: 200, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.type_additional_info_download,
+        headerSort: true,
+        
+      },
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.block_height_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Sender", field: "sender", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.sender_download,
+        headerSort: false,
+        
+      }
+
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'block_height';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
+
+  const table = new Tabulator("#{{ccd_tabulator_table}}", {
+    columns: window["{{ccd_tabulator_table}}_columns"],    // your column defs
+    layout: "fitColumns",
+    responsiveLayout: "hide",
+    pagination: true,
+    paginationMode: "remote",
+    sortMode: "remote",
+    ajaxURL: "/{{net}}/ajax_tools/transactions-search/transfer",
+    ajaxConfig: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    },
+    ajaxRequestFunc: function(url, config, params) {
+      // build the exact same JSON body you were sending via HTMX
+      const body = {
+        theme: document.querySelector("html").getAttribute("data-bs-theme"),
+        start_date: document.getElementById("event-start-pretty").innerText,
+        end_date:   document.getElementById("event-end-pretty").innerText,
+        gte:        document.getElementById("event-start-ccd-pretty").innerText,
+        lte:        document.getElementById("event-end-ccd-pretty").innerText,
+        memo:       document.getElementById("memo_search").value,
+        // **Paging parameters the server expects:**
+        page: params.page || 1,
+        size: params.size || this.getPageSize(),
+
+        sort:        params.sort || [], 
+      };
+
+      return fetch(url, {
+        method: config.method,
+        headers: config.headers,
+        body: JSON.stringify(body),
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Network response was not OK");
+        return response.json();
+      });
+    },
+    paginationButtonCount: 3,
+    paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500],
+    paginationSize: (window["{{ccd_tabulator_table}}_size_selector"]||[10,25,50,100,500])[0],
+    initialSort: [
+      {
+        column: window["{{ccd_tabulator_table}}_default_sort_field"],
+        dir:    window["{{ccd_tabulator_table}}_default_sort_field_direction"]
+      }
+    ],
+    rowFormatter: function(row) {
+      row.getElement().classList.add("sm-text");
+    },
+    paginationCounter: function(pageSize, currentRow, currentPage, totalRows, totalPages) {
+      function humanize(n) {
+        if (n < 1000) return n.toLocaleString();
+        return new Intl.NumberFormat("en", {
+          notation: "compact",
+          compactDisplay: "short",
+          maximumFractionDigits: 1,
+        }).format(n);
+      }
+      const start = (currentPage-1)*pageSize + 1;
+      const end   = Math.min(currentPage*pageSize, totalRows);
+      const total = totalRows < 5000 ? totalRows.toLocaleString() : humanize(totalRows);
+      return `<span class="ccd">${start.toLocaleString()} – ${end.toLocaleString()} of ${total}</span>`;
+    },
+  });
+
+  // whenever memo changes, reload
+  document.getElementById("memo_search").addEventListener("input", () => table.setData());
+
+  // debounce helper
+  function debounce(fn, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
+  // create a debounced version of table.setData()
+  const debouncedReload = debounce(() => table.setData(), 500);
+
+  // watch your slider spans for updates, then reload
+  ["event-start-pretty","event-end-pretty","event-start-ccd-pretty","event-end-ccd-pretty"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    const observer = new MutationObserver(() => {
+      debouncedReload();
+    });
+
+    observer.observe(el, { childList: true });
+  });
+
+  // shrink header fonts
+  table.on("renderComplete", () => {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => el.classList.add("sm-text"));
+  });
+</script>

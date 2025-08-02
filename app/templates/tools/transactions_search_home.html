@@ -24,7 +24,10 @@
     <div class="row mt-4">
       <div class=" col-md-12  col-sm-12">
         <div class="border curved-border" >
-          {% include 'tools/transactions_search_transfers.html' %}
+          {% set ccd_tabulator_table ='txs_table_block'%}
+                {% set tabulator_ajax_url = "/{{net}}/ajax_tools/transactions-search/transfer"%}
+                {% set filename='block-transactions-'+account_id|string +'.csv' %}
+          {% include 'tools/transactions_search_transfers_tabulator.html' %}
         </div>
       </div>  
       
