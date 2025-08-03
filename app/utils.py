@@ -359,12 +359,20 @@ def create_dict_for_tabulator_display_for_blocks(net, block: dict):
 
 
 def create_dict_for_tabulator_display(
-    net, classified_tx, type_additional_info: dict, sender: str | None = None
+    net,
+    classified_tx,
+    type_additional_info: str,
+    sender: str | None = None,
+    app: FastAPI | None = None,
+    tags: dict | None = None,
+    wallet_contract_address: str | None = None,
+    public_key: str | None = None,
 ):
     # classified_tx.transaction.block_info.slot_time = (
     #     classified_tx.transaction.block_info.slot_time.isoformat()
     # )
     return {
+        "human_age": f"{humanize_age(classified_tx.transaction.block_info.slot_time)}",
         "timestamp": f'<span class="ccd">{classified_tx.transaction.block_info.slot_time:%H:%M:%S}</span>',
         "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
         "transaction_account_transaction_cost": (
@@ -382,6 +390,12 @@ def create_dict_for_tabulator_display(
         "sender": sender,
         "tx_index": classified_tx.transaction.index,
         "block_height_since": classified_tx.transaction.block_info.height,
+        "public_key": account_link(public_key, net, app=app) if public_key else "",
+        "wallet_contract_address": (
+            instance_link_from_str(wallet_contract_address, net, tags=tags)
+            if wallet_contract_address
+            else ""
+        ),
         # for downloads
         "hash_download": classified_tx.transaction.hash,
         "type_additional_info_download": (

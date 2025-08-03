@@ -1,28 +1,33 @@
-from ccdexplorer_fundamentals.user_v2 import UserV2
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+import math
+from enum import Enum
+
+import httpx
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_BlockItemSummary,
     CCD_ContractAddress,
 )
-from app.jinja2_helpers import templates
-from app.env import environment
+from ccdexplorer_fundamentals.user_v2 import UserV2
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from pydantic import BaseModel
+
 from app.classes.dressingroom import MakeUp, MakeUpRequest, RequestingRoute
-from app.state import get_labeled_accounts, get_user_detailsv2, get_httpx_client
+from app.env import environment
+from app.jinja2_helpers import templates
+from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 from app.utils import (
     PaginationRequest,
     account_link,
-    calculate_skip,
-    pagination_calculator,
-    ccdexplorer_plotly_template,
     add_account_info_to_cache,
+    calculate_skip,
+    ccdexplorer_plotly_template,
     from_address_to_index,
     get_url_from_api,
+    create_dict_for_tabulator_display,
+    pagination_calculator,
     tx_type_translation,
+    tx_type_translation_for_js,
 )
-import httpx
-from pydantic import BaseModel
-from enum import Enum
 
 router = APIRouter()
 
@@ -366,37 +371,35 @@ async def get_smart_wallets_overview_with_txs(
             "tags": tags,
             "user": user,
             "env": environment,
+            "tx_type_translation_from_python": tx_type_translation_for_js(),
             # "smart_wallets": smart_wallets,
         },
     )
 
 
 @router.get(
-    "/{net}/ajax_smart_wallets_txs/{requested_page}/{total_rows}/{api_key}",
+    "/{net}/ajax_smart_wallets_txs",
     response_class=HTMLResponse,
 )
 async def ajax_last_txs_for_smart_wallets(
     request: Request,
     net: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
-    limit = 20
-    requested_page = max(0, requested_page)
-    skip = calculate_skip(requested_page, total_rows, limit)
+    skip = (page - 1) * size
     if net not in ["mainnet", "testnet"]:
         return RedirectResponse(url="/mainnet", status_code=302)
 
     user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/smart-wallets/transactions/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/smart-wallets/transactions/paginated/skip/{skip}/limit/{size}",
         httpx_client,
     )
-    smart_wallet_txs = api_result.return_value if api_result.ok else None
-    if not smart_wallet_txs:
+    smart_wallet_txs = api_result.return_value if api_result.ok else {}
+    if not api_result.ok:
         error = f"Request error getting the most recent transactions for smart wallets on {net}."
         return templates.TemplateResponse(
             "base/error-request.html",
@@ -408,54 +411,119 @@ async def ajax_last_txs_for_smart_wallets(
             },
         )
 
-    made_up_txs = []
-    if len(smart_wallet_txs) > 0:
-        for transaction_plus in smart_wallet_txs.values():
-            transaction = CCD_BlockItemSummary(**transaction_plus["tx"])
-            makeup_request = MakeUpRequest(
-                **{
-                    "net": net,
-                    "httpx_client": httpx_client,
-                    "tags": tags,
-                    "user": user,
-                    "app": request.app,
-                    "requesting_route": RequestingRoute.other,
-                }
+    tb_made_up_txs = []
+
+    for source_transaction in smart_wallet_txs.values():
+        transaction = CCD_BlockItemSummary(**source_transaction["tx"])
+        wallet_contract_address = source_transaction["wallet_contract_address"]
+        public_key = source_transaction["public_key"]
+        makeup_request = MakeUpRequest(
+            **{
+                "net": net,
+                "httpx_client": httpx_client,
+                "tags": tags,
+                "user": user,
+                "app": request.app,
+                "requesting_route": RequestingRoute.transactions,
+            }
+        )
+
+        classified_tx = await MakeUp(makeup_request=makeup_request).prepare_for_display(
+            transaction, "", False
+        )
+
+        type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+        tb_made_up_txs.append(
+            create_dict_for_tabulator_display(
+                net,
+                classified_tx,
+                type_additional_info,
+                sender,
+                request.app,
+                tags,
+                wallet_contract_address,
+                public_key,
             )
-
-            classified_tx = await MakeUp(
-                makeup_request=makeup_request
-            ).prepare_for_display(transaction, "", False)
-            classified_tx.wallet_contract_address = transaction_plus[
-                "wallet_contract_address"
-            ]
-            classified_tx.public_key = transaction_plus["public_key"]
-            made_up_txs.append(classified_tx)
-
-    pagination_request = PaginationRequest(
-        total_txs=limit,
-        no_totals=True,
-        returned_rows=len(made_up_txs),
-        requested_page=requested_page,
-        word="tx",
-        action_string="tx",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.TemplateResponse(
-        "smart_wallets/transactions_sw.html",
+        )
+    total_rows = 100_000  # note this is a placeholder, the actual total rows are very expensive to calculate on the API.
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "request": request,
-            "tx_type_translation": tx_type_translation,
-            "transactions": made_up_txs,
-            "pagination": pagination,
-            "totals_in_pagination": False,
-            "total_rows": 10,
-            "show_wallet_contract_address": True,
-            "net": net,
-            "tags": tags,
-            "user": user,
-        },
+            "data": tb_made_up_txs,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
     )
 
-    return html
+
+@router.get(
+    "/{net}/ajax_smart_wallets/new",
+    response_class=HTMLResponse,
+)
+async def ajax_last_txs_for_smart_wallets_since(
+    request: Request,
+    net: str,
+    height: int = Query(),
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+
+    if net not in ["mainnet", "testnet"]:
+        return RedirectResponse(url="/mainnet", status_code=302)
+
+    user: UserV2 | None = await get_user_detailsv2(request)
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/smart-wallets/transactions/newer/than/{height}",
+        httpx_client,
+    )
+    smart_wallet_txs = api_result.return_value if api_result.ok else {}
+    if not api_result.ok:
+        error = f"Request error getting the most recent transactions for smart wallets on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    tb_made_up_txs = []
+
+    for source_transaction in smart_wallet_txs.values():  # type: ignore
+        transaction = CCD_BlockItemSummary(**source_transaction["tx"])
+        wallet_contract_address = source_transaction["wallet_contract_address"]
+        public_key = source_transaction["public_key"]
+        makeup_request = MakeUpRequest(
+            **{
+                "net": net,
+                "httpx_client": httpx_client,
+                "tags": tags,
+                "user": user,
+                "app": request.app,
+                "requesting_route": RequestingRoute.transactions,
+            }
+        )
+
+        classified_tx = await MakeUp(makeup_request=makeup_request).prepare_for_display(
+            transaction, "", False
+        )
+
+        type_additional_info, sender = await classified_tx.transform_for_tabulator()
+
+        tb_made_up_txs.append(
+            create_dict_for_tabulator_display(
+                net,
+                classified_tx,
+                type_additional_info,
+                sender,
+                request.app,
+                tags,
+                wallet_contract_address,
+                public_key,
+            )
+        )
+    total_rows = 100_000  # note this is a placeholder, the actual total rows are very expensive to calculate on the API.
+    return JSONResponse(tb_made_up_txs)

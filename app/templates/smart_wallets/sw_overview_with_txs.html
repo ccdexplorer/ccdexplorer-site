@@ -1,42 +1,10 @@
+
+
+
 {% extends "base/base.html" %}
-{% block js %}
-<script>
-    async function getTransactions(requested_page, total_rows) {
-      transactions = document.getElementById('sw_txs');
-      url = '/{{net}}/ajax_smart_wallets_txs/' + requested_page + '/' + total_rows + '/' + api_key;
-      transactions.innerHTML = '{% include "base/spinner.html" %}'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          transactions.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-  
-    function prev_txs(requested_page, total_rows) {
-      getTransactions(requested_page, total_rows)
-    };
-    function next_txs(requested_page, total_rows) {
-      getTransactions(requested_page, total_rows)
-    };
-  
-    
-  </script>
-{% endblock %}
+
 {% block content %}
-
-
-{% include 'smart_wallets/search_bar_public_key.html' %}
-<div class="row  mb-4"><span class="text-uppercase mb-6 sm-text text-secondary-emphasis">Latest Transactions from Smart Wallets</span></div>
-    <div class="row  mt-4">
-        
-          <div class="col-lg-12 " hx-get="/{{net}}/ajax_smart_wallets_txs/0/0/0" hx-trigger="load" id="sw_txs"></div>
-          
-    </div>
-        
+{% include 'base/search_bar_non_home_inclusion.html' %}
+{% include 'smart_wallets/transactions_sw.html' %}
     
 {% endblock %}

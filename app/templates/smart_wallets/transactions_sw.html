@@ -1,63 +1,121 @@
 
-{% include 'base/pagination.html' %}
-<table class="table ">
-    <thead>
-    <tr  class="account-row sm-text">
-      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Hash</span></th>
-      <th class="text-end text-secondary-emphasis">Age</th>
-      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">
-        Cost
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+{% set ccd_tabulator_table ='latest_smart_wallets_txs'%}
+{% set REFRESH = 60_000%}
+<div class="row">
+  <div class="col">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Latest Transactions from Smart Wallets</span>
+  </div>
+{% include 'base/tabulator/timer-display.html' %}
+</div>
+<div id="{{ccd_tabulator_table}}" ></div>
+<script>
+  
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Hash", field: "hash", 
+        minWidth: 60,
+        // maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.hash_download,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Age", field: "human_age", 
+        minWidth: 100,
+        maxWidth: 140,
+        responsive: 50,
+        formatter: "html",
+        headerSort:false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Cost", field: "transaction_account_transaction_cost", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 130,
+        minWidth: 100,
+        maxWidth: 100, 
+        sorter: "number",
+        headerSort: false,
+        formatter: microCCDFormatter,
+      },
+      {
+        title: "Public Key", field: "public_key", hozAlign: "left", headerHozAlign: "left", 
+        responsive: 0,
+        minWidth: 170,
+        maxWidth: 170, 
+        formatter:"html",
+        headerSort: false,
+        
+      },
       
-      </th>
-      <th class="text-start text-secondary-emphasis" >Public Key</th>
+      {
+        title: "Block", field: "block_height", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 90,
+        minWidth: 120,
+        maxWidth: 130, 
+        formatter: "html",
+        headerSort: false,
+        
+      },
+      {
+        
+        title: "Smart Wallet", field: "wallet_contract_address", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 120,
+        // maxWidth: 180, 
+        formatter: "html",
+        headerSort: false,
+        
+      }
      
+
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+
+  window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
+  layout: "fitColumns",
+  height: "600px",
+  responsiveLayout: "hide",
+  ajaxURL: "/{{net}}/ajax_smart_wallets_txs",              // your paged endpoint
+  paginationSize: 25,                // rows per “page”
+  progressiveLoad: "scroll",         // infinite scroll mode
+  progressiveLoadScrollMargin: 300,  // trigger next load 300px from bottom
+  columns: window["{{ccd_tabulator_table}}_columns"],
+});
+window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
+  document.querySelectorAll(".tabulator-col-title").forEach(el => {
+    el.classList.add("sm-text");
+  });
+});
+async function pollNewSmarts(){
+    const data = window["{{ccd_tabulator_table}}_table"].getData();
+    const since = data.length ? data[0].block_height_since : 0;
+    nextRefresh = Date.now() + REFRESH_INTERVAL;
+    try {
+      const resp = await fetch(`/{{net}}/ajax_smart_wallets/new?height=${since}`);
+      if (!resp.ok) throw new Error(resp.statusText);
+      const newBlocks = await resp.json();
+
+      if (newBlocks.length){
+        await window["{{ccd_tabulator_table}}_table"].addData(newBlocks, true);
+      }
+    } catch (e) {
       
-      <th class="text-end text-secondary-emphasis d-none d-md-table-cell">Block</th>
-      <th class="text-end text-secondary-emphasis ">
-        Smart Wallet 
-        </th>
-    </tr>
-  </thead>
-  <tbody class="table-group-divider">
-  {% for row in transactions %}
-    <tr class="
-    
-      {% if row.transaction.account_transaction %}
-              {% if row.transaction.account_transaction.outcome == 'success' %}
-                account-row 
-              {%else%}
-                account-row-failed
-              {%endif%}
-      {% else %}
-        account-row 
-      {%endif%}
-      sm-text 
-      ">
-          <td class=""><a class=" " href="/{{net}}/transaction/{{row.transaction.hash}}"><span class="ccd">{{row.transaction.hash|tx_hash_link(net)|safe}}</span></a></td>
-          <td class="text-end text-secondary-emphasis ccd">{{row.transaction.block_info.slot_time|datetime_delta_format_since}}</td>
-          <td class="text-end text-secondary-emphasis d-none d-md-table-cell">
-            <span class="ccd">{{row.transaction.account_transaction.cost|micro_ccd_display|safe }}</span>
-          </td>
-          <td class="text-start ">{{row.public_key|account_link(net,user,tags,request.app)|safe}} <span class="text-secondary-emphasis" ></span></td>
-          
-          <td class="text-end d-none d-md-table-cell"><a class=" " href="/{{net}}/block/{{row.transaction.block_info.height}}"><span class="ccd">{{row.transaction.block_info.height|round_x_decimal_with_comma(0)}}</span></a></td>
-          <td class="text-end text-secondary-emphasis ccd ">
-          
-            {% if row.transaction.account_transaction %}
-            {% if show_wallet_contract_address %}  
-                {{row.wallet_contract_address|instance_link_from_str(net, user, tags)|safe }}
-                {% else %}
-                {{row.transaction.account_transaction.sender|account_link(net,user,tags,request.app)|safe }}
-                {% endif %}
-                
-            
-            {% else %}
-              Chain  
-            {%endif%}
-          
-          </td>
-      
-    </tr>
-  {% endfor %}
-  </tbody>
-  </table>
+    }
+  }
+
+ 
+</script>
+{% include 'base/tabulator/timer-js.html' %}
+<script>
+  setInterval(pollNewSmarts, {{REFRESH}});
+</script>
+
