@@ -29,6 +29,7 @@ templates.env.filters["datetime_delta_format_since"] = (
 templates.env.filters["datetime_delta_format_between_dates"] = (
     datetime_delta_format_between_dates  # noqa: F405
 )
+templates.env.filters["millify"] = millify  # noqa: F405
 templates.env.filters["datetime_delta_format_since_parse"] = (
     datetime_delta_format_since_parse  # noqa: F405
 )

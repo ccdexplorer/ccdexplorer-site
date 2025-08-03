@@ -553,8 +553,8 @@ async def transactions_by_type_page(
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/transaction_types", httpx_client
     )
-    tx_types = api_result.return_value if api_result.ok else None
-
+    tx_type_counts = api_result.return_value if api_result.ok else None
+    tx_type_counts = {x["_id"]: x["count"] for x in tx_type_counts}  # type: ignore
     request.state.api_calls = {}
     request.state.api_calls["Latest Txs"] = (
         f"{request.app.api_url}/docs#/Transactions/get_last_transactions_v2__net__transactions_last__count__get"
@@ -568,6 +568,7 @@ async def transactions_by_type_page(
             "user": user,
             "net": net,
             "requested_page": 1,
+            "tx_type_counts": tx_type_counts,
             "tx_type_translation": tx_type_translation,
             "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
             "tx_type_translation_from_python": tx_type_translation_for_js(),

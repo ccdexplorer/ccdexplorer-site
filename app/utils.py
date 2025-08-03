@@ -619,7 +619,7 @@ def generate_dates_from_start_until_end(start: str, end: str):
 
 
 def millify(n):
-    millnames = ["", " Thousand", " M", " B", " Tr"]
+    millnames = ["", "K", "M", "B", " Tr"]
     if not n:
         return ""
 
