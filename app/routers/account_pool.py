@@ -16,13 +16,10 @@ from app.env import environment
 from app.jinja2_helpers import templates
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
 from app.utils import (
-    PaginationRequest,
     account_link,
-    calculate_skip,
     ccdexplorer_plotly_template,
     from_address_to_index,
     get_url_from_api,
-    pagination_calculator,
 )
 
 router = APIRouter()
@@ -361,62 +358,3 @@ async def get_account_pool_delegators(
     # )
 
     # return html
-
-
-@router.get(
-    "/account/validator-tally/{net}/{account_id}/{requested_page}/{total_rows}/{api_key}",
-    response_class=HTMLResponse,
-)
-async def get_validator_tally(
-    request: Request,
-    net: str,
-    account_id: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
-    # recurring: Recurring = Depends(get_recurring),
-):
-    limit = 7
-    user: UserV2 | None = await get_user_detailsv2(request)
-
-    skip = calculate_skip(requested_page, total_rows, limit)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{limit}",
-        httpx_client,
-    )
-    tally = api_result.return_value if api_result.ok else None
-    if not tally:
-        error = f"Request error getting validator tally for account at {account_id} on {net}."
-        return templates.TemplateResponse(
-            "base/error-request.html",
-            {
-                "request": request,
-                "error": error,
-                "env": environment,
-                "net": net,
-            },
-        )
-
-    tally_data = tally["data"]
-    total_rows = tally["total_row_count"]
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="result",
-        action_string="result",
-        limit=limit,
-    )
-    pagination = pagination_calculator(pagination_request)
-    html = templates.get_template("account/account_validator_tally.html").render(
-        {
-            "data": tally_data,
-            "net": net,
-            "request": request,
-            "pagination": pagination,
-            "totals_in_pagination": True,
-            "total_rows": total_rows,
-        }
-    )
-
-    return html

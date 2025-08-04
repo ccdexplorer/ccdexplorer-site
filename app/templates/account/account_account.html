@@ -445,7 +445,6 @@ window.addEventListener('load', (event) => {
  {% include 'base/tabulator/tabulator-custom-formatters.html' %}
 <script>
   function init_txs_table() {
-    console.log("Initializing transactions table with Tabulator");
     const columns = [
   {
         title: "Hash", field: "hash", 
@@ -600,7 +599,6 @@ window.addEventListener('load', (event) => {
   
 const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
     if (downloadBtn) {
-      console.log("Adding click listener to txs download button");
       document.getElementById("transactions-tab-content").addEventListener("click", e => {
   if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
     table.download(

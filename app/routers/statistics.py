@@ -1332,7 +1332,7 @@ async def statistics_network_summary_accounts_per_day_plotly(
         "account_count"
     ].shift(+1)
 
-    df_per_day = df_per_day.dropna()
+    df_per_day = df_per_day.dropna(subset=["d_count_accounts"])
 
     df_per_day.rename(
         columns={"d_count_accounts": "growth", "account_count": "level"}, inplace=True
