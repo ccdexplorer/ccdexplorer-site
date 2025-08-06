@@ -18,7 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
       url:   `/account/validator-tab-content/{{net}}/{{account_id}}`,
       init:  () => {
         init_validator_tally_table?.();
+        
         init_validator_transactions_table?.();
+        init_validator_rewards_table?.();
       },
     },
   ];
@@ -785,5 +787,77 @@ function init_validator_transactions_table() {
 
 
 <!-- validator transactions -->
+
+
+<!-- validator rewards -->
+ {% set ccd_tabulator_table ='validator_rewards_table'%}
+{% set tabulator_ajax_url = '/account_rewards/'+net+'/'+ account_id%}
+{% set filename='validator_rewards-'+ account_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_validator_rewards_table() {
+  const validator_rewards_table_columns = [
+  
+     {
+        title: "Date", field: "date", 
+        minWidth: 95,
+        // maxWidth: 70,
+        responsive: 0,
+        
+        formatter: ccdClassFormatterForString,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        
+        title: "Rewards", field: "sum_of_rewards", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 250,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => StripHTMLFormatterOnString(data.sum_of_rewards),
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["validator_rewards_table_table"] = new Tabulator("#validator_rewards_table", {
+    ...commonTabulatorOptionsGET,
+    columns: validator_rewards_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["validator_rewards_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      document.getElementById("validator-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    window["validator_rewards_table_table"].download(
+      "csv",
+      window["{{ccd_tabulator_table}}_filename"],
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+}
+</script>
+
+
+<!-- validator rewards -->
+
+
 
 {% endblock content %}

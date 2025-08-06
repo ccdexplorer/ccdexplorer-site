@@ -12,27 +12,102 @@
   </div>
   <div class="col-md-6  col-sm-12 ">
     <div class="border content curved-border ">
-      {% set title= "Account Rewards" %}{% include 'base/box_title.html' %}
+      {% set title= "Staking Rewards Statistics" %}{% include 'base/box_title.html' %}
       {% include "account/account_rewards.html" %}
       {% include "account/account_rewards_download.html" %}
     </div>
   </div>
   
 </div>
-    
-<!--   
 
-  <div class="row mt-4 row-flex">
-    <div class="col-md-6  col-sm-12 ">
-        <div class="border content curved-border " >
-          
-          <div
-          hx-trigger="intersect, switched-theme from:body" 
-          hx-post="/{{net}}/account/apy-graph/{{account_id}}/account"
-          hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
-        ></div>
-
-        </div>
+<div class="row row-flex">
+  <div class="col-md-6  col-sm-12 ">
+    <div class="border content curved-border " >
+      {% set title= "Staking Rewards" %}{% include 'base/box_title.html' %}
+          <div id="delegation_rewards_table">
+            {% set ccd_tabulator_table ='delegation_rewards_table'%}
+          </div>
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
     </div>
+  </div>
+  
+</div>
+
+<!-- Tabulator Tables -->
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<!-- delegation rewards -->
+ {% set ccd_tabulator_table ='delegation_rewards_table'%}
+{% set tabulator_ajax_url = '/account_rewards/'+net+'/'+ account_id%}
+{% set filename='delegation_rewards-'+ account_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_delegation_rewards_table() {
+  const delegation_rewards_table_columns = [
+  
+     {
+        title: "Date", field: "date", 
+        minWidth: 95,
+        // maxWidth: 70,
+        responsive: 0,
+        
+        formatter: ccdClassFormatterForString,
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        
+        title: "Staking Rewards", field: "sum_of_rewards", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 250,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => StripHTMLFormatterOnString(data.sum_of_rewards),
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["delegation_rewards_table_table"] = new Tabulator("#delegation_rewards_table", {
+    ...commonTabulatorOptionsGET,
+    columns: delegation_rewards_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["delegation_rewards_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const downloadBtn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (downloadBtn) {
+      document.getElementById("delegation-tab-content").addEventListener("click", e => {
+  if (e.target.matches("#{{ccd_tabulator_table}}-download-csv")) {
+    window["delegation_rewards_table_table"].download(
+      "csv",
+      window["{{ccd_tabulator_table}}_filename"],
+      { bom: true, downloadDataFormatter: data => data }
+    );
+  }
+});
+  }
+}
+</script>
+
+<script>
+  window.addEventListener('load', (event) => {
+    init_delegation_rewards_table?.();
+  });
     
-  </div> -->
+  
+</script>
+
+<!-- delegation rewards -->

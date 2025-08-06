@@ -341,6 +341,14 @@ def create_dict_for_tabulator_display_for_accounts(net, app, account_dict: dict)
     }
 
 
+def create_dict_for_tabulator_display_for_rewards(net, reward_source: dict):
+    reward = reward_source["reward"]
+    return {
+        "sum_of_rewards": f"{micro_ccd_display(int(reward['transaction_fees']+reward['baker_reward']+reward['finalization_reward']))}</span>",  # type: ignore
+        "date": f'{reward_source["date"]}',
+    }
+
+
 def create_dict_for_tabulator_display_for_blocks(net, block: dict):
     # classified_tx.transaction.block_info.slot_time = (
     #     classified_tx.transaction.block_info.slot_time.isoformat()

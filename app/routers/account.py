@@ -41,10 +41,64 @@ from app.utils import (
     pagination_calculator,
     tx_type_translation_for_js,
     create_dict_for_tabulator_display,
+    create_dict_for_tabulator_display_for_rewards,
 )
 import math
 
 router = APIRouter()
+
+
+@router.get(
+    "/account_rewards/{net}/{account_id}",
+    response_class=HTMLResponse,
+)
+async def get_paginated_account_rewards(
+    request: Request,
+    net: str,
+    account_id: str,
+    page: int = Query(),
+    size: int = Query(),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """ """
+
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/rewards/{skip}/{size}",
+        httpx_client,
+    )
+    rewards_result = api_result.return_value if api_result.ok else None
+
+    if not rewards_result:
+        error = f"Request error getting staking rewards for account at {account_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    rewards_result_data = rewards_result["data"]
+    total_rows = rewards_result["total_rows"]
+    last_page = math.ceil(total_rows / size)
+    tb_made_up_rewards = []
+    for reward in rewards_result_data:
+
+        dct = create_dict_for_tabulator_display_for_rewards(net, reward)
+
+        tb_made_up_rewards.append(dct)
+    return JSONResponse(
+        {
+            "data": tb_made_up_rewards,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
+    )
 
 
 @router.post(
