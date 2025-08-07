@@ -47,10 +47,10 @@
 function init_delegation_rewards_table() {
   const delegation_rewards_table_columns = [
   
-     {
+    {
         title: "Date", field: "date", 
         minWidth: 95,
-        // maxWidth: 70,
+        maxWidth: 95,
         responsive: 0,
         
         formatter: ccdClassFormatterForString,
@@ -61,9 +61,9 @@ function init_delegation_rewards_table() {
       {
         
         title: "Staking Rewards", field: "sum_of_rewards", headerHozAlign:"right", hozAlign: "right", 
-        responsive: 30,
-        minWidth: 250,
-        // maxWidth: 180, 
+        responsive: 0,
+        minWidth: 230,
+        // maxWidth: 230, 
         formatter: "html",
         accessorDownload: (value, data) => StripHTMLFormatterOnString(data.sum_of_rewards),
         headerSort: false,
