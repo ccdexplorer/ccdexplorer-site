@@ -15,7 +15,7 @@
       },
       {
         title: "", field: "message", 
-        minWidth: 120,
+        minWidth: 80,
         // maxWidth: 120,
         responsive: 0,
         accessorDownload: (value, data) => StripHTMLFormatterOnString(data.message),
@@ -28,7 +28,7 @@
         title: "Staked Amount", field: "staked_amount", 
         minWidth: 150,
         maxWidth: 150,
-        responsive: 50,
+        responsive: 0,
         formatter: microCCDFormatterRounded,
         titleDownload:"Staked Amount (CCD)",
         accessorDownload: (value, data) => data.staked_amount/1000000,

@@ -13,12 +13,22 @@ document.addEventListener("DOMContentLoaded", () => {
       init:  () => init_txs_table?.(),
     },
     {
+      btn: '#tokens-pills-tab',
+      containerId: 'tokens-tab-content',
+      url:   `/account/tokens-tab-content/{{net}}/{{account_id}}`,
+      init:  () => {
+        init_tokens_fungible_verified_table?.();
+        init_tokens_non_fungible_verified_table?.();
+        init_tokens_unverified_table?.();
+
+      },
+    },
+    {
       btn: '#pills-validator-tab',
       containerId: 'validator-tab-content',
       url:   `/account/validator-tab-content/{{net}}/{{account_id}}`,
       init:  () => {
         init_validator_tally_table?.();
-        
         init_validator_transactions_table?.();
         init_validator_rewards_table?.();
       },
@@ -44,10 +54,10 @@ document.addEventListener("DOMContentLoaded", () => {
       loaded = true;
     };
 
-    // 1️⃣ Run when the tab becomes active
+    // Run when the tab becomes active
     tabButton.addEventListener('shown.bs.tab', loadTabContent);
 
-    // 2️⃣ Also run right away if it’s already active on page load
+    // Also run right away if it’s already active on page load
     if (tabButton.classList.contains('active')) {
       loadTabContent();
     }
@@ -94,160 +104,6 @@ if (ref) {
 
 </script>
 
-<!-- Get Transactions -->
-<script>
-  async function getTransactions(requested_page, total_rows) {
-    transactions = document.getElementById('txs');
-    var account_id = document.querySelector('.account_id').title;
-    url = '/account_transactions/{{net}}/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-    transactions.innerHTML = '{% include "base/spinner.html" %}'
-    await fetch(url)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        transactions.innerHTML = data;
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
-
-  function prev_txs(requested_page, total_rows) {
-    getTransactions(requested_page, total_rows)
-  };
-  function next_txs(requested_page, total_rows) {
-    getTransactions(requested_page, total_rows)
-  };
-
-  
-</script>
-
-
-<script>
-  async function getFungibleVerifiedTokens(requested_page, total_rows) {
-    try {
-      fungible_verified_tokens = document.getElementById('fungible_verified_tokens');
-      var account_id = document.querySelector('.account_id').title;
-      url = '/ajax_account_tokens/{{net}}/fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      
-      fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          fungible_verified_tokens.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-  catch (error) {
-    
-}
-  }
-
-  function prev_f_v_tokens(requested_page, total_rows) {
-    getFungibleVerifiedTokens(requested_page, total_rows)
-  };
-  function next_f_v_tokens(requested_page, total_rows) {
-    getFungibleVerifiedTokens(requested_page, total_rows)
-  };
-
-
-  async function getNonFungibleVerifiedTokens(requested_page, total_rows) {
-    try {
-      non_fungible_verified_tokens = document.getElementById('non_fungible_verified_tokens');
-      var account_id = document.querySelector('.account_id').title;
-      url = '/ajax_account_tokens/{{net}}/non-fungible-verified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      
-      non_fungible_verified_tokens.innerHTML = '{% include "base/spinner.html" %}'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          non_fungible_verified_tokens.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-  catch (error) {
-    
-}
-  }
-
-  function prev_n_f_v_tokens(requested_page, total_rows) {
-    getNonFungibleVerifiedTokens(requested_page, total_rows)
-  };
-  function next_n_f_v_tokens(requested_page, total_rows) {
-    getNonFungibleVerifiedTokens(requested_page, total_rows)
-  };
-
-  
-  async function getUnVerifiedTokens(requested_page, total_rows) {
-    try {
-      unverified_tokens = document.getElementById('unverified_tokens');
-      var account_id = document.querySelector('.account_id').title;
-      url = '/ajax_account_tokens/{{net}}/unverified/' + account_id + '/' + requested_page + '/' + total_rows + '/' + api_key;
-      
-      unverified_tokens.innerHTML = '{% include "base/spinner.html" %}'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          unverified_tokens.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-  catch (error) {
-    
-}
-  }
-
-  function prev_un_tokens(requested_page, total_rows) {
-    getUnVerifiedTokens(requested_page, total_rows)
-  };
-  function next_un_tokens(requested_page, total_rows) {
-    getUnVerifiedTokens(requested_page, total_rows)
-  };
-
-</script>
-
-
-<script>
-  async function getDelegators(requested_page, total_rows) {
-    try {
-      delegators = document.getElementById('delegators');
-      url = '/account_pool_delegators/{{net}}/{{account_index}}/' + requested_page + '/' + total_rows + '/' + api_key;
-      delegators.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'
-      await fetch(url)
-        .then((response) => {
-          return response.text();
-        })
-        .then((data) => {
-          delegators.innerHTML = data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    } catch (eroor) {}
-  }
-
-  function prev_delegators(requested_page, total_rows) {
-    getDelegators(requested_page, total_rows)
-  };
-  function next_delegators(requested_page, total_rows) {
-    getDelegators(requested_page, total_rows)
-  };
-
-  
-</script>
 
 
 {% include 'base/search_bar_non_home_inclusion.html' %}
@@ -282,7 +138,7 @@ if (ref) {
         {% if tokens_available %}
         <li class="nav-item" role="presentation">
           <button class="nav-link  explorer bg-secondary-subtle" id="tokens-pills-tab" data-bs-toggle="pill" data-bs-target="#pills-tokens" type="button" role="tab" aria-controls="pills-tokens" aria-selected="true">
-            <span class="tab-text-large">Tokens</span><span class="tab-text-small">Tokens</span>
+            <span class="tab-text-large">CIS-2 Tokens</span><span class="tab-text-small">CIS-2</span>
         </button>
         </li>
       {% endif %}  
@@ -350,16 +206,8 @@ if (ref) {
   </div>
   {% if tokens_available %}
   <div class="tab-pane fade show " id="pills-tokens" role="tabpanel" aria-labelledby="pills-tokens-tab" tabindex="0">
-    <div class="row row-flex">
-        <div id="fungible_verified_tokens"></div>
+        <div id="tokens-tab-content">Loading...</div> 
       
-      
-        <div id="non_fungible_verified_tokens"></div>
-      
-      
-        <div id="unverified_tokens"></div>
-      
-    </div>  
       
   </div>
   {% endif %}
@@ -399,41 +247,6 @@ if (ref) {
  
 </div>
 
-<!-- <script>
-  function applyTxTypeFilter() {
-    const table  = window["txsfilter_table"];
-    const select = document.getElementById("tx_type_contents_selector");
-    table.setFilter("type", "=", select.value);
-    console.log("Setting filter to: " + select.value);
-    console.log("Setting data to: " + "{{tabulator_ajax_url}}");
-    table.setData("{{tabulator_ajax__filtering_url}}");
-  }
-
-  window.addEventListener("load", () => {
-    console.log("Applying transaction type filter on load");
-    applyTxTypeFilter();
-    
-  });
-
-  document
-    .getElementById("tx_type_contents_selector")
-    .addEventListener("change", applyTxTypeFilter);
-</script> -->
-
-
-
-<script>
-window.addEventListener('load', (event) => {
-    '{% if account_is_validator %}'
-        
-        // getDelegators(0, 0);
-    '{% endif %}'
-    getFungibleVerifiedTokens(0, 0);
-    getNonFungibleVerifiedTokens(0,0);
-    getUnVerifiedTokens(0,0);
-  });
-    
-</script>
 {% endif %}
 
 <!-- Tabulator Tables -->
@@ -859,5 +672,8 @@ function init_validator_rewards_table() {
 <!-- validator rewards -->
 
 
+<!-- Tokens-->
+
+{% include "base/tabulator/tabulator-cis-2-tokens.html" %}
 
 {% endblock content %}

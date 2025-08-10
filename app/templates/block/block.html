@@ -8,38 +8,6 @@
 
 
 
-<!-- Get Transaction -->
-<script>
-    function getTransactions(requested_page) {
-        transactions = document.getElementById('txs');
-        var block_height = document.getElementById('block_height').title;
-        var block_tx_count = document.getElementById('block_tx_count').title;
-        url =  '/ajax_block_transactions_html_v2/{{net}}/' + block_height + '/' + requested_page + '/' + block_tx_count + '/' + api_key ;
-
-        fetch(url)
-            .then((response) => {
-                return response.text();
-            })
-            .then((data) => {
-                transactions.innerHTML = data;
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-    }
-
-    function prev_txs(requested_page) {
-        getTransactions(requested_page)
-    };
-    function next_txs(requested_page) {
-        getTransactions(requested_page)
-    };
-
-    window.addEventListener('load', (event) => {
-        // getTransactions(0);
-
-    });
-</script>
 <script>
     function getSpecialEvents() {
         se = document.getElementById('special_events');

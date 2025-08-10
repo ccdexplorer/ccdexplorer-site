@@ -41,7 +41,7 @@
           return response.text();
         })
         .then((data) => {
-          console.log("REWARDS:", data);
+          
           rewards.innerHTML = data;
         })
         .catch(function (error) {

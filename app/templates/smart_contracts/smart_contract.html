@@ -6,6 +6,53 @@
 {% block content %}
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = [
+    {
+      btn: '#tokens-pills-tab',
+      containerId: 'tokens-tab-content',
+      url:   `/smart-contract/tokens-tab-content/{{net}}/{{instance_address}}`,
+      init:  () => {
+        init_tokens_fungible_verified_table?.();
+        init_tokens_non_fungible_verified_table?.();
+        init_tokens_unverified_table?.();
+
+      },
+    },
+    
+  ];
+
+  tabs.forEach(({ btn, containerId, url, init }) => {
+    const tabButton = document.querySelector(btn);
+    if (!tabButton) return;
+
+    let loaded = false;
+    const loadTabContent = () => {
+      if (loaded) return;
+      fetch(url)
+        .then(r => r.text())
+        .then(html => {
+          const container = document.getElementById(containerId);
+          container.innerHTML = html;
+          window.htmx && htmx.process(container);
+          init();
+        })
+        .catch(console.error);
+      loaded = true;
+    };
+
+    // Run when the tab becomes active
+    tabButton.addEventListener('shown.bs.tab', loadTabContent);
+
+    // Also run right away if it’s already active on page load
+    if (tabButton.classList.contains('active')) {
+      loadTabContent();
+    }
+  });
+});
+</script>
+
+<script>
     async function getFungibleVerifiedTokens(requested_page, total_rows) {
       try {
         fungible_verified_tokens = document.getElementById('fungible_verified_tokens');
@@ -233,16 +280,7 @@
   </div>
   {% if tokens_available %}
   <div class="tab-pane fade show " id="pills-tokens" role="tabpanel" aria-labelledby="pills-tokens-tab" tabindex="0">
-    <div class="row row-flex">
-        <div id="fungible_verified_tokens"></div>
-      
-      
-        <div id="non_fungible_verified_tokens"></div>
-      
-      
-        <div id="unverified_tokens"></div>
-      
-    </div>  
+    <div id="tokens-tab-content">Loading...</div> 
       
   </div>
   {% endif %}
@@ -311,12 +349,23 @@
 
 {% endif %}  
 <script>
-  window.addEventListener('load', (event) => {
+  
     // getTransactions(0, 0);
-    getFungibleVerifiedTokens(0, 0);
-    getNonFungibleVerifiedTokens(0,0);
-    getUnVerifiedTokens(0,0);
-    });
+    // getFungibleVerifiedTokens(0, 0);
+    // getNonFungibleVerifiedTokens(0,0);
+    // getUnVerifiedTokens(0,0);
+    
       
   </script>
+{% set account_id = instance_address%}
+{% include "base/tabulator/tabulator-cis-2-tokens.html" %}
+<!-- <script>
+  window.addEventListener('load', (event) => {
+    console.log('page is fully loaded');
+  init_tokens_fungible_verified_table();
+  init_tokens_non_fungible_verified_table();
+  init_tokens_unverified_table();
+  });
+</script> -->
+
 {% endblock content %}

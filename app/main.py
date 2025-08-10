@@ -25,10 +25,12 @@ from app.routers import transaction
 from app.routers import block
 from app.routers import account
 from app.routers import account_tab_transactions
+from app.routers import account_tab_tokens
 from app.routers import account_tab_validator
 from app.routers import account_pool
 from app.routers import node
 from app.routers import smart_contracts
+from app.routers import smart_contract_tab_tokens
 from app.routers import tools
 from app.routers import projects
 from app.routers import usersv2
@@ -197,10 +199,12 @@ app.include_router(transaction.router)
 app.include_router(block.router)
 app.include_router(account.router)
 app.include_router(account_tab_transactions.router)
+app.include_router(account_tab_tokens.router)
 app.include_router(account_tab_validator.router)
 app.include_router(account_pool.router)
 app.include_router(node.router)
 app.include_router(smart_contracts.router)
+app.include_router(smart_contract_tab_tokens.router)
 app.include_router(tools.router)
 app.include_router(projects.router)
 app.include_router(usersv2.router)

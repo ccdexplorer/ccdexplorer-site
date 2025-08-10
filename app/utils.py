@@ -323,102 +323,6 @@ def humanize_age(timestamp: dt.datetime, now: dt.datetime | None = None) -> str:
     return timestamp.strftime("%Y-%m-%d")
 
 
-def create_dict_for_tabulator_display_for_accounts(net, app, account_dict: dict):
-    return {
-        "address": f'{account_link(account_dict["address"], net, app=app)}',
-        "account_index": account_dict["account_index"],
-        "available_balance": f'<span  >{micro_ccd_no_decimals(account_dict["available_balance"])}</span>',
-        "sequence_number": f'<span class="ccd">{round_x_decimal_with_comma(account_dict["sequence_number"], 0)}</span>',
-        "identity": account_dict.get("identity", ""),
-        "staking": f'{account_dict["staking"] if account_dict.get("staking", None) else ''}</span>',
-        "deployment_tx_slot_time": f'{humanize_age(dateutil.parser.parse(account_dict["deployment_tx_slot_time"]))}',
-        # "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
-        # "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
-        # "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
-        # "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
-        # "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
-        # "block_height_since": block_info.height,
-    }
-
-
-def create_dict_for_tabulator_display_for_rewards(net, reward_source: dict):
-    reward = reward_source["reward"]
-    return {
-        "sum_of_rewards": f"{micro_ccd_display(int(reward['transaction_fees']+reward['baker_reward']+reward['finalization_reward']))}</span>",  # type: ignore
-        "date": f'{reward_source["date"]}',
-    }
-
-
-def create_dict_for_tabulator_display_for_blocks(net, block: dict):
-    # classified_tx.transaction.block_info.slot_time = (
-    #     classified_tx.transaction.block_info.slot_time.isoformat()
-    # )
-    block_info = CCD_BlockInfo(**block)
-    return {
-        "transaction_block_info_slot_time": f'<span class="ccd">{block_info.slot_time:%H:%M:%S}</span>',
-        "hash": f'<a href="/{net}/block/{block_info.hash}"><span class="ccd">{block_hash_link(block_info.hash, net)}</span></a>',
-        "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
-        "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
-        "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
-        "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
-        "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
-        "block_height_since": block_info.height,
-    }
-
-
-def create_dict_for_tabulator_display(
-    net,
-    classified_tx,
-    type_additional_info: str,
-    sender: str | None = None,
-    app: FastAPI | None = None,
-    tags: dict | None = None,
-    wallet_contract_address: str | None = None,
-    public_key: str | None = None,
-):
-    # classified_tx.transaction.block_info.slot_time = (
-    #     classified_tx.transaction.block_info.slot_time.isoformat()
-    # )
-    return {
-        "human_age": f"{humanize_age(classified_tx.transaction.block_info.slot_time)}",
-        "timestamp": f'<span class="ccd">{classified_tx.transaction.block_info.slot_time:%H:%M:%S}</span>',
-        "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
-        "transaction_account_transaction_cost": (
-            classified_tx.transaction.account_transaction.cost
-            if classified_tx.transaction.account_transaction
-            else 0
-        ),
-        "transaction_type_contents": classified_tx.transaction.type.contents,
-        # "transaction": classified_tx.transaction.model_dump(
-        #     exclude_none=True, warnings=False
-        # ),
-        "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
-        "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
-        "type_additional_info": type_additional_info,
-        "sender": sender,
-        "tx_index": classified_tx.transaction.index,
-        "block_height_since": classified_tx.transaction.block_info.height,
-        "public_key": account_link(public_key, net, app=app) if public_key else "",
-        "wallet_contract_address": (
-            instance_link_from_str(wallet_contract_address, net, tags=tags)
-            if wallet_contract_address
-            else ""
-        ),
-        # for downloads
-        "hash_download": classified_tx.transaction.hash,
-        "type_additional_info_download": (
-            classified_tx.amount / 1000000 if classified_tx.amount else ""
-        ),
-        "block_height_download": classified_tx.transaction.block_info.height,
-        "sender_download": (
-            classified_tx.transaction.account_transaction.sender
-            if classified_tx.transaction.account_transaction
-            else "Chain"
-        ),
-        "transaction_block_info_slot_time_download": f"{dateutil.parser.parse(classified_tx.transaction.block_info.slot_time.isoformat()):%Y-%m-%d %H:%M:%S}",
-    }
-
-
 def tx_type_translation_for_js():
     js_map = {
         k: {
@@ -1404,77 +1308,6 @@ async def get_token_info_from_collection(
     return token_address_as_class
 
 
-# async def extract_token_information(
-#     req, token_tag, single_use_contract, decimals, result, cis_5: bool = False
-# ):
-#     if "token_id" in result.__dict__:
-#         if cis_5:
-#             cis_2_contract_address = CCD_ContractAddress.from_str(
-#                 result.cis2_token_contract_address
-#             )
-#             index = cis_2_contract_address.index
-#             subindex = cis_2_contract_address.subindex
-#         else:
-#             index = req.contract_address.index
-#             subindex = req.contract_address.subindex
-
-#         token_address = f"<{index},{subindex}>-{result.token_id}"
-
-#         tagified_token_address = tagified_token_address = (
-#             f"<a href='/{req.net}/tokens/_/{token_address}'>{token_address}</a>"
-#         )
-
-#         # special case to show the Web23 domain name
-
-#         tagified_token_address = tagified_token_address = (
-#             f"<a  class='ccd' href='/{req.net}/tokens/_/{token_address}'>{result.token_id}</a>"
-#         )
-
-#         try:
-#             response: httpx.Response = await req.httpx_client.get(
-#                 f"{req.app.api_url}/v2/{req.net}/token/{index}/{subindex}{result.token_id}/info"
-#             )
-#             response.raise_for_status()
-#             token_address_as_class = MongoTypeTokenAddress(**response.json())
-#         except httpx.HTTPError:
-#             token_address_as_class = None
-
-#         display_name = ""
-#         if token_address_as_class:
-#             if token_address_as_class.token_metadata:
-#                 if token_address_as_class.token_metadata.name:
-#                     display_name = (
-#                         f"Token name: {token_address_as_class.token_metadata.name}<br/>"
-#                     )
-
-#         if token_tag:
-#             if single_use_contract:
-#                 tagified_token_address = f"<a class='ccd' href='/{req.net}/tokens/{token_tag}'>{token_tag}</a>"
-#             else:
-#                 token_display = f"{token_tag}-{result.token_id[:8]}"
-
-#                 tagified_token_address = f"<a  class='ccd' href='/{req.net}/tokens/{token_tag}/{result.token_id}'>{token_display}</a>"
-#                 # f"{token_tag}-{result.token_id}"
-
-#     if "token_amount" in result.__dict__:
-#         if not decimals:
-#             amount = result.token_amount
-#         else:
-#             amount = token_amount_using_decimals(result.token_amount, decimals)
-
-#         postfix = "s"
-#         if amount == 1:
-#             postfix = ""
-
-#         token_string = f"token{postfix}" if not token_tag else f"{token_tag}"
-#         if token_tag:
-#             if single_use_contract:
-#                 token_string = f"{token_tag}"
-#             else:
-#                 token_string = ""
-#     return tagified_token_address, display_name, amount, token_string
-
-
 def address_link(value, net, user, tags, app):
     if isinstance(user, dict):
         user = UserV2(**user)
@@ -1822,3 +1655,164 @@ def human_readable_uptime(node: dict) -> str | None:
         return (now - delta).isoformat()
     else:
         return None
+
+
+def create_dict_for_tabulator_display_for_accounts(net, app, account_dict: dict):
+    return {
+        "address": f'{account_link(account_dict["address"], net, app=app)}',
+        "account_index": account_dict["account_index"],
+        "available_balance": f'<span  >{micro_ccd_no_decimals(account_dict["available_balance"])}</span>',
+        "sequence_number": f'<span class="ccd">{round_x_decimal_with_comma(account_dict["sequence_number"], 0)}</span>',
+        "identity": account_dict.get("identity", ""),
+        "staking": f'{account_dict["staking"] if account_dict.get("staking", None) else ''}</span>',
+        "deployment_tx_slot_time": f'{humanize_age(dateutil.parser.parse(account_dict["deployment_tx_slot_time"]))}',
+        # "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
+        # "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
+        # "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
+        # "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
+        # "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
+        # "block_height_since": block_info.height,
+    }
+
+
+def create_dict_for_tabulator_display_for_fungible_token(net, row: dict):
+    ai = row["address_information"]
+    vi = row["verified_information"]
+    token_decimals = 0
+    if vi:
+        token_decimals = vi["decimals"]
+    else:
+        if ai:
+            token_decimals = ai["decimals"]
+
+    return {
+        "token_display": f'<img src="{vi["logo_url"]}"  style=" max-width: 16px;max-height: 16px;"  alt=""><a href="/{net}/tokens/{vi["_id"]}"><span class="ccd text-secondary-emphasis">{vi["_id"]}</span></a><br/><span class="ccd_decimals text-secondary-emphasis">{round_x_decimal_with_comma(row["token_value"],token_decimals)} {vi["_id"]}</span>',
+        "token_balance_usd": (
+            f'<span class="ccd text-secondary-emphasis">${round_x_decimal_with_comma(row["token_value_USD"], 0)}</span><br/><span class="ccd_decimals text-secondary-emphasis">@{round_x_decimal_with_comma(ai["exchange_rate"],3)}</span>'
+            if row["token_value_USD"] > 0.0
+            else ""
+        ),
+        "token_display_download": f'{vi["_id"]}',
+        "token_balance_download": f'{row["token_value"]}',
+        "token_balance_usd_download": f'{row["token_value_USD"]}',
+    }
+
+
+def create_dict_for_tabulator_display_for_non_fungible_token(net, row: dict):
+    ai = row["address_information"]
+    vi = row["verified_information"]
+
+    return {
+        "issuer": f'<img src="{vi["logo_url"]}"  style=" max-width: 16px;max-height: 16px;"  alt=""><span class="ccd text-secondary-emphasis">{vi["display_name"]}</span>',
+        "token": (
+            f'<a href="/{net}/tokens/{vi["_id"]}/{row["token_id"]}">{ai["token_metadata"]["name"]}</a>'
+            if ai.get("token_metadata")
+            else f'<a href="/{net}/tokens/{vi["_id"]}/{row["token_id"]}">{row["token_id"]}</a>'
+        ),
+        "balance": f'<span class="ccd_decimals  text-secondary-emphasis">{row["token_amount"]}</span>',
+        "issuer_download": f'{vi["display_name"]}',
+        "token_download": (
+            f'{row["token_id"]}'
+            if not ai.get("token_metadata")
+            else f'{ai["token_metadata"]["name"]}'
+        ),
+        "balance_download": f'{row["token_amount"]}',
+    }
+
+
+def create_dict_for_tabulator_display_for_unverified_token(net, row: dict):
+    ai = row["address_information"]
+    return {
+        "issuer": f'<span class="ccd text-secondary-emphasis">{row["contract"]}</span>',
+        "token": (
+            f'<a href="/{net}/token/{split_into_url_slug(ai["_id"])}">{ai["token_metadata"]["name"]}</a>'
+            if ai.get("token_metadata")
+            else f'<a href="/{net}/token/{split_into_url_slug(ai["_id"])}">{ai["token_id"]}</a>'
+        ),
+        "balance": f'<span class="ccd_decimals  text-secondary-emphasis">{row["token_amount"]}</span>',
+        "issuer_download": f'{row["contract"]}',
+        "token_download": (
+            f'{ai["token_id"]}'
+            if not ai.get("token_metadata")
+            else f'{ai["token_metadata"]["name"]}'
+        ),
+        "balance_download": f'{row["token_amount"]}',
+    }
+
+
+def create_dict_for_tabulator_display_for_rewards(net, reward_source: dict):
+    reward = reward_source["reward"]
+    return {
+        "sum_of_rewards": f"{micro_ccd_display(int(reward['transaction_fees']+reward['baker_reward']+reward['finalization_reward']))}</span>",  # type: ignore
+        "date": f'{reward_source["date"]}',
+    }
+
+
+def create_dict_for_tabulator_display_for_blocks(net, block: dict):
+    # classified_tx.transaction.block_info.slot_time = (
+    #     classified_tx.transaction.block_info.slot_time.isoformat()
+    # )
+    block_info = CCD_BlockInfo(**block)
+    return {
+        "transaction_block_info_slot_time": f'<span class="ccd">{block_info.slot_time:%H:%M:%S}</span>',
+        "hash": f'<a href="/{net}/block/{block_info.hash}"><span class="ccd">{block_hash_link(block_info.hash, net)}</span></a>',
+        "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
+        "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
+        "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
+        "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
+        "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
+        "block_height_since": block_info.height,
+    }
+
+
+def create_dict_for_tabulator_display(
+    net,
+    classified_tx,
+    type_additional_info: str,
+    sender: str | None = None,
+    app: FastAPI | None = None,
+    tags: dict | None = None,
+    wallet_contract_address: str | None = None,
+    public_key: str | None = None,
+):
+    # classified_tx.transaction.block_info.slot_time = (
+    #     classified_tx.transaction.block_info.slot_time.isoformat()
+    # )
+    return {
+        "human_age": f"{humanize_age(classified_tx.transaction.block_info.slot_time)}",
+        "timestamp": f'<span class="ccd">{classified_tx.transaction.block_info.slot_time:%H:%M:%S}</span>',
+        "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
+        "transaction_account_transaction_cost": (
+            classified_tx.transaction.account_transaction.cost
+            if classified_tx.transaction.account_transaction
+            else 0
+        ),
+        "transaction_type_contents": classified_tx.transaction.type.contents,
+        # "transaction": classified_tx.transaction.model_dump(
+        #     exclude_none=True, warnings=False
+        # ),
+        "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
+        "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
+        "type_additional_info": type_additional_info,
+        "sender": sender,
+        "tx_index": classified_tx.transaction.index,
+        "block_height_since": classified_tx.transaction.block_info.height,
+        "public_key": account_link(public_key, net, app=app) if public_key else "",
+        "wallet_contract_address": (
+            instance_link_from_str(wallet_contract_address, net, tags=tags)
+            if wallet_contract_address
+            else ""
+        ),
+        # for downloads
+        "hash_download": classified_tx.transaction.hash,
+        "type_additional_info_download": (
+            classified_tx.amount / 1000000 if classified_tx.amount else ""
+        ),
+        "block_height_download": classified_tx.transaction.block_info.height,
+        "sender_download": (
+            classified_tx.transaction.account_transaction.sender
+            if classified_tx.transaction.account_transaction
+            else "Chain"
+        ),
+        "transaction_block_info_slot_time_download": f"{dateutil.parser.parse(classified_tx.transaction.block_info.slot_time.isoformat()):%Y-%m-%d %H:%M:%S}",
+    }

@@ -102,6 +102,7 @@ async def tokens_fungible_tvl(
     )
 
 
+# @router.get("/{net}/cis-2-tokens")  # type:ignore
 @router.get("/{net}/tokens")  # type:ignore
 async def smart_contracts_tokens_overview(
     request: Request,

@@ -1,0 +1,231 @@
+
+<!-- fungible verified -->
+ {% set ccd_tabulator_table ='fungible_verified_table'%}
+{% set tabulator_ajax_url = '/ajax_account_tokens/'+net+'/fungible-verified/'+ account_id%}
+{% set filename='fungible_verified-'+ account_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_tokens_fungible_verified_table() {
+  const fungible_verified_table_columns = [
+  
+      {
+        title: "Token", field: "token_display", 
+        minWidth: 140,
+        // maxWidth: 140,
+        responsive: 0,
+        accessorDownload: (value, data) => data.token_display_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Token Balance", field: "token_balance_download", 
+        visible: false,
+        download: true,
+        accessorDownload: (value, data) => data.token_balance_download,
+        
+      },
+      {
+        
+        title: "Value (USD)", field: "token_balance_usd", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 0,
+        minWidth: 130,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.token_balance_usd_download,
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["fungible_verified_table_table"] = new Tabulator("#fungible_verified_table", {
+    ...commonTabulatorOptionsGET,
+    columns: fungible_verified_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["fungible_verified_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const btn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (btn) {
+    btn.addEventListener("click", () => {
+        window["{{ccd_tabulator_table}}_table"]?.download(
+        "csv",
+        window["{{ccd_tabulator_table}}_filename"],
+        { bom: true, downloadDataFormatter: (d) => d }
+        );
+    });
+    }
+}
+</script>
+
+
+<!-- fungible verified -->
+
+
+<!-- non fungible verified -->
+ {% set ccd_tabulator_table ='non_fungible_verified_table'%}
+{% set tabulator_ajax_url = '/ajax_account_tokens/'+net+'/non-fungible-verified/'+ account_id%}
+{% set filename='non_fungible_verified-'+ account_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_tokens_non_fungible_verified_table() {
+  const non_fungible_verified_table_columns = [
+  
+      {
+        title: "Issuer", field: "issuer", 
+        minWidth: 140,
+        // maxWidth: 140,
+        responsive: 0,
+        accessorDownload: (value, data) => data.issuer_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+       {
+        title: "Token", field: "token", 
+        minWidth: 140,
+        // maxWidth: 140,
+        responsive: 0,
+        accessorDownload: (value, data) => data.token_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        
+        title: "Balance", field: "balance", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 0,
+        minWidth: 130,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.balance_download,
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["non_fungible_verified_table_table"] = new Tabulator("#non_fungible_verified_table", {
+    ...commonTabulatorOptionsGET,
+    columns: non_fungible_verified_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["non_fungible_verified_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const btn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (btn) {
+    btn.addEventListener("click", () => {
+        window["{{ccd_tabulator_table}}_table"]?.download(
+        "csv",
+        window["{{ccd_tabulator_table}}_filename"],
+        { bom: true, downloadDataFormatter: (d) => d }
+        );
+    });
+    }
+}
+</script>
+
+
+<!-- non fungible verified -->
+
+<!-- non unverified verified -->
+ {% set ccd_tabulator_table ='unverified_table'%}
+{% set tabulator_ajax_url = '/ajax_account_tokens/'+net+'/unverified/'+ account_id%}
+{% set filename='unverified-'+ account_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+function init_tokens_unverified_table() {
+  const unverified_table_columns = [
+  
+      {
+        title: "Issuer", field: "issuer", 
+        minWidth: 140,
+        // maxWidth: 140,
+        responsive: 0,
+        accessorDownload: (value, data) => data.issuer_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+       {
+        title: "Token", field: "token", 
+        minWidth: 140,
+        // maxWidth: 140,
+        responsive: 0,
+        accessorDownload: (value, data) => data.token_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        
+        title: "Balance", field: "balance", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 0,
+        minWidth: 130,
+        maxWidth: 130, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.balance_download,
+        headerSort: false,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["unverified_table_table"] = new Tabulator("#unverified_table", {
+    ...commonTabulatorOptionsGET,
+    columns: unverified_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["unverified_table_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const btn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (btn) {
+    btn.addEventListener("click", () => {
+        window["{{ccd_tabulator_table}}_table"]?.download(
+        "csv",
+        window["{{ccd_tabulator_table}}_filename"],
+        { bom: true, downloadDataFormatter: (d) => d }
+        );
+    });
+    }
+    }
+</script>
+
+
+<!-- unverified verified -->
