@@ -159,47 +159,47 @@ tx_type_translation["baker_configured"] = TypeContents(
     color=TypeContentsCategoryColors.staking.value[0],
 )
 
-tx_type_translation["validator_added"] = TypeContents(
-    display_str="validator added",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_added"] = TypeContents(
+#     display_str="validator added",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_removed"] = TypeContents(
-    display_str="validator removed",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_removed"] = TypeContents(
+#     display_str="validator removed",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_stake_updated"] = TypeContents(
-    display_str="validator updated",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_stake_updated"] = TypeContents(
+#     display_str="validator updated",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_restake_earnings_updated"] = TypeContents(
-    display_str="validator updated",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_restake_earnings_updated"] = TypeContents(
+#     display_str="validator updated",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_restake_earnings_updated"] = TypeContents(
-    display_str="validator updated",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_restake_earnings_updated"] = TypeContents(
+#     display_str="validator updated",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_keys_updated"] = TypeContents(
-    display_str="validator updated",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_keys_updated"] = TypeContents(
+#     display_str="validator updated",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
-tx_type_translation["validator_configured"] = TypeContents(
-    display_str="validator configured",
-    category=TypeContentsCategories.staking,
-    color=TypeContentsCategoryColors.staking.value[0],
-)
+# tx_type_translation["validator_configured"] = TypeContents(
+#     display_str="validator configured",
+#     category=TypeContentsCategories.staking,
+#     color=TypeContentsCategoryColors.staking.value[0],
+# )
 
 tx_type_translation["delegation_configured"] = TypeContents(
     display_str="delegation configured",

@@ -16,22 +16,41 @@
                         id="tx_type_contents_selector"
                         name="tx_type_contents_selector"
                         >
-                        <option disabled>Success</option>
-                        {# First, all non-rejected types #}
+                        <option disabled>Account Creation</option>
+                        <option value="initial">Initial ({{tx_type_counts["initial"]|millify}})</option>
+                        <option value="normal">Normal ({{tx_type_counts["normal"]|millify}})</option>
+                        <option disabled>──────────</option>
+                        <option disabled>Chain Update</option>
                         {% for tx_type in tx_type_translation.keys()|sort %}
-                            {% if tx_type_translation[tx_type].category.name != 'rejected' %}
+                            {% if tx_type_translation[tx_type].category.name == 'chain' %}
                             <option
                                 value="{{ tx_type }}"
-                                {% if tx_type._id == 'account_transfer' %}selected{% endif %}
+                                
                             >
                                 {{ tx_type|replace('_', ' ')|title }} {% if tx_type in tx_type_counts%}({{tx_type_counts[tx_type]|millify}}){%endif%}
                             </option>
                             {% endif %}
                         {% endfor %}
+                        <option disabled>──────────</option>
+                        <option disabled>Account Transaction - Success</option>
+                        
+                        {# First, all non-rejected types #}
+                        {% for tx_type in tx_type_translation.keys()|sort %}
+                            {% if tx_type_translation[tx_type].category.name not in  ['rejected', 'chain'] %}
+                            {% if tx_type not in ['initial', 'normal'] %}
+                                <option
+                                    value="{{ tx_type }}"
+                                    {% if tx_type._id == 'account_transfer' %}selected{% endif %}
+                                >
+                                    {{ tx_type|replace('_', ' ')|title }} {% if tx_type in tx_type_counts%}({{tx_type_counts[tx_type]|millify}}){%endif%}
+                                </option>
+                            {% endif %}
+                        {% endif %}
+                        {% endfor %}
 
                         {# horizontal separator #}
                         <option disabled>──────────</option>
-                        <option disabled>Rejected</option>    
+                        <option disabled>Account Transaction - Rejected</option> 
                         {# Then, all rejected types #}
                         {% for tx_type in tx_type_translation.keys()|sort %}
                             {% if tx_type_translation[tx_type].category.name == 'rejected' %}
