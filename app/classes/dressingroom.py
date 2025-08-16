@@ -989,6 +989,13 @@ class MakeUp:
                                 None,
                             )
 
+                        elif event.baker_resumed is not None:
+                            new_event = EventType(
+                                "Validator Resumed",
+                                f"Validator ID: {event.baker_resumed}",
+                                None,
+                            )
+
                         elif event.baker_stake_increased:
                             new_event = EventType(
                                 f"Validator Stake Increased for validator: {event.baker_stake_increased.baker_id}",
