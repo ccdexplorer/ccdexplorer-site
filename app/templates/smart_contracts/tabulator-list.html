@@ -4,7 +4,7 @@
 {% include 'base/search_bar_non_home_inclusion.html' %}
 <div>
     {% set ccd_tabulator_table ='smart_contracts'%}
-            {% set tabulator_ajax_url = '/smart_contracts_all/'+net+'/'%}
+            {% set tabulator_ajax_url = '/smart_contracts_all/'+net%}
             {% set filename='smart-contracts-'+range(1000,10000)|random|string+'.csv' %}
            {% include 'smart_contracts/contracts_list.html' %}
 </div>
