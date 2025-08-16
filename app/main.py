@@ -126,6 +126,7 @@ async def lifespan(app: FastAPI):
     app.accounts_cache = {"mainnet": [], "testnet": []}
     app.identity_providers_cache = {"mainnet": {}, "testnet": {}}
     app.consensus_cache = {"mainnet": {}, "testnet": {}}
+    app.primed_suspended_cache = {}
     app.staking_pools_cache = {
         "open_for_all": {},
         "closed_for_new": {},
@@ -281,12 +282,27 @@ async def repeated_task_get_accounts_id_providers(app: FastAPI):
 
 @scheduler.scheduled_job("interval", seconds=5 * 60, args=[app])
 async def repeated_task_get_staking_pools(app: FastAPI):
+    temp_dict = {}
     for status in ["open_for_all", "closed_for_new", "closed_for_all"]:
         api_result = await get_url_from_api(
             f"{app.api_url}/v2/mainnet/accounts/paydays/pools/{status}",
             app.httpx_client,
         )
-        app.staking_pools_cache[status] = (
-            api_result.return_value if api_result.ok else {}
-        )
-    print("Staking pools cache updated.")
+
+        temp_dict[status] = api_result.return_value if api_result.ok else {}
+
+    all_pool_with_status = []
+    for status in ["open_for_all", "closed_for_all", "closed_for_new"]:
+        for pool_id, pool in temp_dict.get(status, {}).items():  # use [] if it's a list
+            pool_with_status = {**pool, "status": status}
+            all_pool_with_status.append(pool_with_status)
+
+    app.staking_pools_cache = all_pool_with_status
+
+    api_result = await get_url_from_api(
+        f"{app.api_url}/v2/mainnet/accounts/validators/primed-suspended",
+        app.httpx_client,
+    )
+    app.primed_suspended_cache = api_result.return_value if api_result.ok else {}
+
+    print("Staking pools cache + primed suspended cache updated.")

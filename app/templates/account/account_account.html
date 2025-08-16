@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
 {% set show_tab_list = [] %}
 
 {% endif %}
-<script>
+<!-- <script>
   // Create a new URL object
 let url = new URL(window.location.href);
 
@@ -102,7 +102,7 @@ if (ref) {
 
 }
 
-</script>
+</script> -->
 
 
 
@@ -365,6 +365,8 @@ if (ref) {
     ajaxURL: "{{tabulator_ajax_filtering_url}}",
     columns:  columns,
     layout: "fitColumns",
+    maxHeight: "400px",           // fixed outer height
+    heightGrow: false,
     responsiveLayout: "hide",
     paginationMode: "remote",
     filterMode: "remote",

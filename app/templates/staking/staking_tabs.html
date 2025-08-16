@@ -1,0 +1,273 @@
+{% extends "base/base.html" %}
+
+{% block js %}
+<script src="/node/plotly.js-strict-dist-min/plotly-strict.min.js"></script>
+
+<script>
+  function getPassiveInfo() {
+    passive_info = document.getElementById('passive_info');
+    url =  '/{{net}}/ajax_paydays_passive/';
+
+    fetch(url)
+      .then((response) => {
+        return response.text();
+      })
+      .then((data) => {
+        passive_info.innerHTML = data;
+        const tx_fees = document.getElementById('tx_fees');
+        new bootstrap.Popover(tx_fees, { trigger: 'focus' });
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }
+
+  window.addEventListener('load', (event) => {
+    getPassiveInfo();
+    
+    
+    
+  });
+</script>
+{% endblock %}
+
+{% block ogp %}
+<meta property="og:title" content="Staking Information on Concordium {{net}}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{env.SITE_URL}}/{{net}}/staking" />
+{% endblock %}
+
+{% block content %}
+
+{% if error %}
+<p>An error occured: <b>{{error.errorMessage}}</b></p>
+{% else %}
+
+
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+<h4>Staking</h4>
+<br/>
+    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+        
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active explorer bg-secondary-subtle" id="pills-paydays-tab" data-bs-toggle="pill" data-bs-target="#pills-paydays" type="button" role="tab" aria-controls="pills-paydays" aria-selected="true">
+            <span class="tab-text-large">Paydays</span><span class="tab-text-small">Paydays</span>
+        </button>
+        </li>
+         <li class="nav-item" role="presentation"></li>
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-pools-tab" data-bs-toggle="pill" data-bs-target="#pills-pools" type="button" role="tab" aria-controls="pills-pools" aria-selected="true">
+            <span class="tab-text-large">Staking Pools</span><span class="tab-text-small">Pools</span>
+        </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="pills-passive-tab" data-bs-toggle="pill" data-bs-target="#pills-passive" type="button" role="tab" aria-controls="pills-passive" aria-selected="true">
+            <span class="tab-text-large">Passive Delegation</span><span class="tab-text-small">Passive</span>
+        </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link  explorer bg-secondary-subtle" id="suspended-pills-tab" data-bs-toggle="pill" data-bs-target="#pills-suspended" type="button" role="tab" aria-controls="pills-suspended" aria-selected="true">
+            <span class="tab-text-large">Suspended Validators</span><span class="tab-text-small">Suspended</span>
+        </button>
+        </li>
+       
+</ul>
+
+<div class="tab-content" id="pills-tabContent">
+  <div class="tab-pane fade show " id="pills-pools" role="tabpanel" aria-labelledby="pills-pools-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        <div class="border curved-border" >
+          {% set title= "Staking Pools" %}{% include 'base/box_title.html' %}
+          <div>
+                    <select id="filter-field" class=" form-select form-select-sm small">
+                      <option value="open_for_all" selected>Open for All</option>
+                      <option value="closed_for_all">Closed for All</option>
+                      <option value="closed_for_new">Closed for New</option>
+                    </select>
+
+                    
+                  </div>
+          <div id="staking_pools_table"></div>
+          {% set ccd_tabulator_table ='staking_pools_table'%}
+            {% set tabulator_ajax_url = '/mainnet/ajax_pools'%}
+            {% set filename='staking-pools-'+range(1000,10000)|random|string+'.csv' %}
+          {% include 'staking/staking_pools_tabulator.html' %}
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+    </div>  
+      
+    </div>
+      
+    </div>
+  </div>
+
+  <div class="tab-pane fade show active" id="pills-paydays" role="tabpanel" aria-labelledby="pills-paydays-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        <div class="border curved-border" >
+          {% set title= "Paydays" %}{% include 'base/box_title.html' %}
+          <div id="paydays">
+            {% set ccd_tabulator_table ='paydays_table'%}
+            {% set tabulator_ajax_url = '/'+net+'/ajax_paydays'%}
+            {% set filename='paydays-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-paydays.html" %}
+              
+          </div>  
+    </div>  
+      
+    </div>
+      
+    </div>
+  </div>
+
+  <div class="tab-pane fade show " id="pills-passive" role="tabpanel" aria-labelledby="pills-passive-tab" tabindex="0">
+    <div class="row mt-4 row-flex">
+      <div class=" col-md-6  col-sm-12">
+        <div class="border content curved-border" >
+          {% set title= "Passive Delegators" %}{% include 'base/box_title.html' %}
+          <div id="passive_delegators"><span class="htmx-indicator-c">
+            {% set ccd_tabulator_table ='passive_delegators_table'%}
+            {% set tabulator_ajax_url = '/ajax_passive_delegators/0'%}
+            {% set filename='passive-delegators-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-passive-delegators.html" %}
+          </span></div> 
+        </div>
+        
+      </div>  
+      <div class=" col-md-6  col-sm-12">
+        <div class="border content curved-border" >
+         
+           {% set title= "Passive Delegation Rewards and APY" %}{% include 'base/box_title.html' %}
+      {% include "account/account_rewards.html" %}
+      
+      <div
+          hx-trigger="intersect, switched-theme from:body" 
+          hx-post="/{{net}}/account/apy-graph/passive_delegation/passive_delegation"
+          hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+        ></div>
+      </div>  
+        
+      </div>  
+      
+    </div>
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+         <div class="border curved-border" >
+          {% set title= "Passive Delegation Rates" %}{% include 'base/box_title.html' %}
+      <div id="passive_info">
+        </div>
+        
+        </div>
+      </div>  
+      
+    </div>
+  </div>
+  
+
+   <div class="tab-pane fade show " id="pills-suspended" role="tabpanel" aria-labelledby="pills-suspended-tab" tabindex="0">
+    <div class="row mt-4">
+      <div class=" col-md-12  col-sm-12">
+        <div class="border curved-border" >
+          {% set title= "Suspended Validators" %}{% include 'base/box_title.html' %}
+          {% set filename='suspended-validators-'+range(1000,10000)|random|string+'.csv' %}
+          {% set ccd_tabulator_table ='suspended_validators_table'%}
+            <div id="suspended_validators_table"></div>
+
+          <script>
+            const {{ccd_tabulator_table}}_columns = [
+          {
+        title: "Validator", field: "validator_id", 
+        minWidth: 100,
+        // maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.validator_id_download,
+        headerSort: true,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Since", field: "suspended_since", 
+        minWidth: 100,
+        maxWidth: 100,
+        responsive: 0,
+        // sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.suspended_since_download,
+        headerSort: true,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Age", field: "suspended_days", 
+        minWidth: 150,
+        maxWidth: 150,
+        responsive: 10,
+        // sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.suspended_days_download,
+        headerSort: false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "# Suspensions", field: "count_of_suspension", 
+        minWidth: 150,
+        maxWidth: 150,
+        responsive: 20,
+        // sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.count_of_suspension_download,
+        headerSort: true,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+    {
+        title: "# Primed", field: "count_of_primed", 
+        minWidth: 150,
+        maxWidth: 150,
+        responsive: 130,
+        // sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.count_of_primed_download,
+        headerSort: true,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      
+    ];
+            window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+              window["{{ccd_tabulator_table}}_table"] = new Tabulator("#suspended_validators_table", {
+                layout: "fitColumns",
+                data:{{suspended_data|tojson}},
+               columns:               window["{{ccd_tabulator_table}}_columns"],
+               initialSort:[
+                    {column:"suspended_since", dir:"desc"}, //sort by this first
+                    
+                ], 
+               maxHeight: "400px",           // fixed outer height
+                heightGrow: false,
+                responsiveLayout: "hide",
+                pagination: "local",
+                // rowHeight:20,
+                paginationSize: 10,
+                paginationSizeSelector: [10, 25, 50, 100, 500],
+                paginationCounter: "rows",
+              });
+              window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+          </script>
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+          </div>  
+    </div>  
+      
+    </div>
+      
+    </div>
+  <!-- </div> -->
+
+</div>
+
+{% endif %}
+
+{% endblock content %}

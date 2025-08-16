@@ -1,0 +1,73 @@
+
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+{% set ccd_tabulator_table ='smart_contracts'%}
+<div class="row">
+  <div class="col">
+  <span class="text-uppercase sm-text text-secondary-emphasis">Smart Contracts</span>
+  </div>
+</div>
+<div id="{{ccd_tabulator_table}}" ></div>
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Address", field: "address", 
+        minWidth: 80,
+        responsive: 0,
+        formatter: "html",
+        headerSort: false,
+        accessorDownload: (value, data) => data.address_download,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      
+   {
+        title: "Name", field: "name", 
+        minWidth: 120,
+        responsive: 0,
+        formatter: "html",
+        headerSort: false,
+        accessorDownload: (value, data) => data.name_download,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      
+      {
+        title: "Age", field: "deployment_tx_slot_time", 
+        minWidth: 120,
+        maxWidth: 120,
+        responsive: 0,
+        formatter: "html",
+        headerSort:false,
+        titleDownload:"Timestamp",
+        accessorDownload: (value, data) => data.deployment_tx_slot_time_download,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Creator", field: "creator", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 250,
+        maxWidth: 250, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.creator_download,
+        headerSort: false,
+        
+      },
+      {
+        title: "Module", field: "source_module", hozAlign: "right", headerHozAlign: "right", 
+        responsive: 100,
+        minWidth: 100,
+        maxWidth: 100, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.source_module_download,
+        headerSort: false,
+        
+      },
+      
+    ];
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+   window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+</script>
+  {% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}

@@ -1,11 +1,10 @@
-
 <table class="table table-borderless">
   <thead>
     <tr class="sm-text">
       <th class="small" scope="col"></th>
       <th class="text-secondary-emphasis text-end" scope="col">30d</th>
       <th class="text-secondary-emphasis text-end" scope="col">90d</th>
-      <th class="text-secondary-emphasis text-end" scope="col">180d</th>
+     <th class="text-secondary-emphasis text-end" scope="col">180d</th>
 
     </tr>
   </thead>
@@ -17,17 +16,28 @@
         <i><small><span>{{ (account_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 
+
 {% if "d90" in account_apy_object %}
-      <td class="text-secondary-emphasis text-end"><small>{{(account_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
+
+      <td class="text-secondary-emphasis text-end"><small>
+        {{(account_apy_object.d90.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
           <i><small><span>{{ (account_apy_object.d90.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 {% endif %}
-{% if "d180" in account_apy_object %}
+
+{% set d180 = account_apy_object.get('d180') %}
+
+{% if d180 is defined %}
       <td class="text-secondary-emphasis text-end"><small>
-        
-        {{ (account_apy_object.d180.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
-        <i><small><span>{{ (account_apy_object.d180.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
+        {% set sum_micro = d180['sum_of_rewards'] * 1000000 %}
+        {% set apy_pct  = d180['apy'] * 100 %}
+        <!-- {{sum_micro| micro_ccd_no_decimals | default('')}}
+        {{apy_pct| round_x_decimal_no_comma(2) | default('')}} -->
+        {{sum_micro| micro_ccd_no_decimals | default('')|safe}}<br>
+        <i><small><span>{{apy_pct| round_x_decimal_no_comma(2) | default('')}}%</span></small></i></small>
       </td>
+      {%else%}
+      NO 180
 {% endif %}
     </tr>
 

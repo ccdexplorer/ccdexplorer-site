@@ -5,6 +5,7 @@ import httpx
 from ccdexplorer_fundamentals.mongodb import (
     MongoTypePayday,
 )
+import dateutil
 from dateutil import parser
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from fastapi import APIRouter, Depends, Query, Request
@@ -24,7 +25,9 @@ from app.utils import (
     get_url_from_api,
     pagination_calculator,
     round_x_decimal_with_comma,
+    create_dict_for_tabulator_display_for_pools,
     account_link,
+    humanize_age,
 )
 
 router = APIRouter()
@@ -58,8 +61,44 @@ async def staking(
         f"{request.app.api_url}/docs#/Accounts/get_payday_passive_delegators_v2__net__accounts_paydays_passive_delegators__skip___limit__get"
     )
     if net == "mainnet":
+        all_pools: dict = request.app.staking_pools_cache
+        made_up_pools = []
+        for pool in all_pools:
+            if "baker_id" in pool:
+                made_up_pools.append(
+                    create_dict_for_tabulator_display_for_pools("mainnet", pool)
+                )
+        suspended_data = []
+        for suspended_id, value in request.app.primed_suspended_cache.get(
+            "suspended_validators"
+        ).items():
+            suspended_data.append(
+                {
+                    "validator_id": f'<a class="" href="/{net}/account/{suspended_id}"><i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{suspended_id}</span></a>',
+                    "suspended_since": f'<span class="ccd">{dateutil.parser.parse(value[0]):%Y-%m-%d}</span>',
+                    "suspended_days": f'<span class="ccd">{humanize_age(dateutil.parser.parse(value[0]))}</span>',
+                    "count_of_suspension": f'<span class="ccd">{len(value)}</span>',
+                    "count_of_primed": f'<span class="ccd">{len(
+                        request.app.primed_suspended_cache.get("primed_validators").get(
+                            suspended_id, []
+                        )
+                    )}</span>',
+                    "validator_id_download": suspended_id,
+                    "suspended_since_download": f"{dateutil.parser.parse(value[0]):%Y-%m-%d}",
+                    "suspended_days_download": humanize_age(
+                        dateutil.parser.parse(value[0])
+                    ),
+                    "count_of_suspension_download": len(value),
+                    "count_of_primed_download": len(
+                        request.app.primed_suspended_cache.get("primed_validators").get(
+                            suspended_id, []
+                        )
+                    ),
+                }
+            )
+
         return templates.TemplateResponse(
-            "staking/staking.html",
+            "staking/staking_tabs.html",
             {
                 "env": request.app.env,
                 "net": net,
@@ -67,6 +106,8 @@ async def staking(
                 "delegation": True,
                 "passive_delegation": True,
                 "account_apy_object": account_apy_object,
+                "suspended_data": suspended_data,
+                "all_pools": made_up_pools,
                 # "passive_object": passive_object,
                 # "passive_info_v2": passive_info_v2,
                 "user": user,
@@ -219,34 +260,34 @@ async def get_ajax_paydays_tabulator(
         )
 
 
-@router.get(
-    "/ajax_pools/{status}/{api_key}",
-    response_class=HTMLResponse,
-)
+@router.get("/mainnet/ajax_pools", response_class=HTMLResponse)
 async def get_ajax_pools(
     request: Request,
-    status: str,
-    api_key: str,
+    page: int = Query(),
+    size: int = Query(),
+    sort_key: str = Query(),
+    direction: str = Query(),
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
 
-    user: UserV2 | None = await get_user_detailsv2(request)
+    all_pools: dict = request.app.staking_pools_cache
 
-    enhanced_pools = request.app.staking_pools_cache.get(status, {})
-
-    html = templates.get_template("staking/staking_pools_v2.html").render(
+    made_up_pools = []
+    for pool in all_pools:
+        if "baker_id" in pool:
+            made_up_pools.append(
+                create_dict_for_tabulator_display_for_pools("mainnet", pool)
+            )
+    total_rows = len(made_up_pools)  # type: ignore
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "pools": enhanced_pools,
-            "user": user,
-            "tags": tags,
-            "net": "mainnet",
-            "request": request,
-            "status": status,
-            "PoolStatus": PoolStatus,
+            "data": made_up_pools,
+            "last_page": last_page,
+            "last_row": total_rows,
         }
     )
-    return html
 
 
 @router.get(

@@ -70,7 +70,9 @@
     <div id="results">
             {% set ccd_tabulator_table ='transactions_by_type_table'%}
             {% set tabulator_ajax_url = '/'+net+'/ajax_last_transactions_by_type/'%}
+            {% set filename='transactions-by-type-'+range(1000,10000)|random|string+'.csv' %}
             {% include "base/tabulator/tabulator-txs-by-type.html" %}
+
           </div>
     <script>
         window.addEventListener('load', (event) => {

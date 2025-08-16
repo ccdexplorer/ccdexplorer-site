@@ -6,6 +6,8 @@
 <script>
     window["{{ccd_tabulator_table}}_table"] = new Tabulator("#{{ccd_tabulator_table}}", {
       layout: "fitColumns",
+      maxHeight: "400px",           // fixed outer height
+      heightGrow: false,
       responsiveLayout: "hide",
       pagination: "local",
       // rowHeight:20,

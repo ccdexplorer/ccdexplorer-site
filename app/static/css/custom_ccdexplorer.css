@@ -462,3 +462,8 @@ button.link-style {
 button.link-style:hover {
   text-decoration: none;
 }
+
+.tabulator-cell .tabulator-progress {
+  height: 12px;           /* default is ~20px */
+  border-radius: 4px;     /* keep rounded ends */
+}

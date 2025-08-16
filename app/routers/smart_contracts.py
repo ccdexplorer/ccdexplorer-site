@@ -30,6 +30,7 @@ from app.classes.dressingroom import (
 from app.env import *
 from app.jinja2_helpers import *
 from app.state import get_httpx_client, get_labeled_accounts, get_user_detailsv2
+from app.utils import create_dict_for_tabulator_display_for_contracts
 
 router = APIRouter()
 
@@ -304,6 +305,78 @@ async def smart_contracts_overview(
             "user": user,
             "tags": tags,
         },
+    )
+
+
+@router.get("/{net}/tools/smart-contracts/all")  # type:ignore
+async def smart_contracts_overview_list(
+    request: Request,
+    net: str,
+    tags: dict = Depends(get_labeled_accounts),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+):
+    user: UserV2 | None = await get_user_detailsv2(request)
+    return templates.TemplateResponse(
+        "smart_contracts/tabulator-list.html",
+        {
+            "env": request.app.env,
+            "request": request,
+            "net": net,
+            "user": user,
+            "tags": tags,
+        },
+    )
+
+
+@router.get(
+    "/smart_contracts_all/{net}",
+    response_class=HTMLResponse,
+)
+async def get_paginated_smart_contracts(
+    request: Request,
+    net: str,
+    page: int = Query(),
+    size: int = Query(),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """ """
+    user: UserV2 | None = await get_user_detailsv2(request)
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/contracts/{skip}/{size}",
+        httpx_client,
+    )
+    instances = api_result.return_value if api_result.ok else {}
+    if not instances:
+        error = f"Request error getting smart contracts for {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    total_rows = instances["total_rows"]
+    instances = instances["instances"]
+    last_page = math.ceil(total_rows / size)
+    tb_made_up_rows = []
+
+    for row in instances:
+        tb_made_up_rows.append(
+            create_dict_for_tabulator_display_for_contracts(net, request.app, tags, row)
+        )
+
+    return JSONResponse(
+        {
+            "data": tb_made_up_rows,
+            "last_page": last_page,
+            "last_row": total_rows,
+        }
     )
 
 
@@ -683,88 +756,6 @@ async def get_contract_transactions_for_tabulator(
                 "last_row": total_rows,
             }
         )
-
-
-# @router.get(
-#     "/ajax_instance_txs_html_v2/{net}/{instance_index}/{instance_subindex}/{requested_page}/{total_rows}/{api_key}",
-#     response_class=HTMLResponse,
-# )  # type:ignore
-# async def ajax_instance_txs_html_v2(
-#     request: Request,
-#     net: str,
-#     instance_index: int,
-#     instance_subindex: int,
-#     requested_page: int,
-#     total_rows: int,
-#     api_key: str,
-#     tags: dict = Depends(get_labeled_accounts),
-#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
-# ):
-#     limit = 10
-#     instance_address = f"<{instance_index},{instance_subindex}>"
-#     user: UserV2 | None = await get_user_detailsv2(request)
-#     skip = calculate_skip(requested_page, total_rows, limit)
-#     # note we are using the account api here, as it's also valid for instances.
-#     api_result = await get_url_from_api(
-#         f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions/{skip}/{limit}",
-#         httpx_client,
-#     )
-#     tx_result = api_result.return_value if api_result.ok else None
-#     if not tx_result:
-#         error = f"Request error getting transactions for contract at {instance_address} on {net}."
-#         return templates.TemplateResponse(
-#             "base/error-request.html",
-#             {
-#                 "request": request,
-#                 "error": error,
-#                 "env": environment,
-#                 "net": net,
-#             },
-#         )
-
-#     tx_result_transactions = tx_result["transactions"]
-#     total_rows = tx_result["total_tx_count"]
-#     made_up_txs = []
-#     if len(tx_result_transactions) > 0:
-#         for transaction in tx_result_transactions:
-#             transaction = CCD_BlockItemSummary(**transaction)
-#             makeup_request = MakeUpRequest(
-#                 **{
-#                     "net": net,
-#                     "httpx_client": httpx_client,
-#                     "tags": tags,
-#                     "user": user,
-#                     "app": request.app,
-#                     "requesting_route": RequestingRoute.account,
-#                 }
-#             )
-
-#             classified_tx = await MakeUp(
-#                 makeup_request=makeup_request
-#             ).prepare_for_display(transaction, "", False)
-#             made_up_txs.append(classified_tx)
-#     pagination_request = PaginationRequest(
-#         total_txs=total_rows,
-#         requested_page=requested_page,
-#         word="tx",
-#         action_string="tx",
-#         limit=limit,
-#     )
-#     pagination = pagination_calculator(pagination_request)
-#     html = templates.get_template("base/transactions_simple_list.html").render(
-#         {
-#             "transactions": made_up_txs,  # [CCD_BlockItemSummary(**x) for x in tx_result_transactions],
-#             "tags": tags,
-#             "net": net,
-#             "show_amounts": False,
-#             "request": request,
-#             "pagination": pagination,
-#             "totals_in_pagination": True,
-#             "total_rows": total_rows,
-#         }
-#     )
-
-#     return html
 
 
 @router.get(

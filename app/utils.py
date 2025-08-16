@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import base64
 import datetime as dt
@@ -285,42 +287,61 @@ tx_type_translation["initial"] = TypeContents(
 )
 
 
+UTC = dt.timezone.utc
+
+
 def humanize_age(timestamp: dt.datetime, now: dt.datetime | None = None) -> str:
     """
-    Turn a datetime into “today”, “yesterday”, “2 days ago”, “1 week ago”, etc.
+    Turn a datetime into:
+      today / yesterday / 2 days ago / 3 weeks ago / 5 months ago / 2 years ago
+    Falls back to YYYY-MM-DD for future datetimes.
 
-    :param dt:        past datetime to describe
-    :param now:       reference time (defaults to datetime.now() with same tzinfo as dt)
-    :returns:         humanized string
+    Rules:
+      - < 7 days: "today", "yesterday", "N days ago"
+      - < 28 days: "N week(s) ago"
+      - >= 28 days: months/years via relativedelta on dates
     """
+
+    # Normalize timezone
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=UTC)
     if now is None:
-        now = dt.datetime.now(dt.UTC)
+        now = dt.datetime.now(UTC)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=UTC)
 
-    # if dt is in the future, just show the date
-    if timestamp.astimezone(dt.UTC) > now:
-        return timestamp.strftime("%Y-%m-%d")
+    ts = timestamp.astimezone(UTC)
+    ref = now.astimezone(UTC)
 
-    rd = relativedelta(now, timestamp.astimezone(dt.UTC))
+    # Future -> show date
+    if ts > ref:
+        return ts.strftime("%Y-%m-%d")
 
-    # days/weeks
-    if rd.days == 0:  # and rd.hours == 0 and rd.minutes == 0:
+    # Work in calendar days for short ranges
+    day_diff = (ref.date() - ts.date()).days
+
+    if day_diff == 0:
         return "today"
-    if rd.days == 1:
+    if day_diff == 1:
         return "yesterday"
-    if rd.days < 7:
-        return f"{rd.days} days ago"
+    if day_diff < 7:
+        return f"{day_diff} days ago"
 
-    weeks = rd.days // 7
-    if weeks < 4:
-        return f"{weeks} week{'s' if weeks > 1 else ''} ago"
+    if day_diff < 28:
+        weeks = day_diff // 7
+        return f"{weeks} week{'s' if weeks != 1 else ''} ago"
 
-    # months/years (optional—uncomment if you like)
-    # if rd.months < 12:
-    #     return f"{rd.months} month{'s' if rd.months > 1 else ''} ago"
-    # return f"{rd.years} year{'s' if rd.years > 1 else ''} ago"
+    # Months / years: use relativedelta on dates (avoids residual-day confusion)
+    rd = relativedelta(ref.date(), ts.date())
 
-    # fallback to a calendar date for anything ≥ 4 weeks out
-    return timestamp.strftime("%Y-%m-%d")
+    if rd.years >= 1:
+        return f"{rd.years} year{'s' if rd.years != 1 else ''} ago"
+
+    # rd.years == 0 here
+    months = (
+        rd.months if rd.months > 0 else 1
+    )  # safety: treat 0 months (>=28 days) as 1 month
+    return f"{months} month{'s' if months != 1 else ''} ago"
 
 
 def tx_type_translation_for_js():
@@ -1659,19 +1680,37 @@ def human_readable_uptime(node: dict) -> str | None:
 
 def create_dict_for_tabulator_display_for_accounts(net, app, account_dict: dict):
     return {
-        "address": f'{account_link(account_dict["address"], net, app=app)}',
+        "address": f'<a class="" href="/{net}/account/{account_dict["address"]}"><i class="bi bi-person-bounding-box pe-1"></i><span style="font-family: monospace, monospace;" class="small">{account_dict["address"][:6]}</span></a>',
         "account_index": account_dict["account_index"],
         "available_balance": f'<span  >{micro_ccd_no_decimals(account_dict["available_balance"])}</span>',
         "sequence_number": f'<span class="ccd">{round_x_decimal_with_comma(account_dict["sequence_number"], 0)}</span>',
         "identity": account_dict.get("identity", ""),
         "staking": f'{account_dict["staking"] if account_dict.get("staking", None) else ''}</span>',
         "deployment_tx_slot_time": f'{humanize_age(dateutil.parser.parse(account_dict["deployment_tx_slot_time"]))}',
-        # "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
-        # "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
-        # "validator": f'<a class="" href="/{net}/account/{block_info.baker}"><span class="ccd">{block_info.baker}</span></a>',
-        # "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
-        # "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
-        # "block_height_since": block_info.height,
+    }
+
+
+def create_dict_for_tabulator_display_for_contracts(
+    net, app, tags: dict, contract_dict: dict
+):
+    verified = contract_dict["module_info"].get("verification", {"verified": False})[
+        "verified"
+    ]
+    return {
+        "address": instance_link_from_str(contract_dict["_id"], net),
+        "source_module": f"{'<i class="text-success bi bi-patch-check-fill"> </i>' if verified else ''}<span class='ccd'>{module_link(contract_dict.get("source_module", ""), net)}</span>",
+        "creator": (
+            account_link(contract_dict.get("v1")["owner"], net, app=app, tags=tags)
+            if contract_dict.get("v1")
+            else account_link(contract_dict.get("v0")["owner"], net, app=app, tags=tags)
+        ),
+        "name": f"<span class='ccd'>{contract_dict.get("v1")["name"][5:] if contract_dict.get("v1") else contract_dict.get("v0")["name"][5:]}</span>",
+        "address_download": f'{contract_dict["_id"]}',
+        "source_module_download": f'{contract_dict.get("source_module", "")}',
+        "creator_download": f'{contract_dict.get("v1")["owner"] if contract_dict.get("v1") else contract_dict.get("v0")["owner"]}',
+        "name_download": f'{contract_dict.get("v1")["name"][5:] if contract_dict.get("v1") else contract_dict.get("v0")["name"][5:]}',
+        "deployment_tx_slot_time": f'{humanize_age(dateutil.parser.parse(contract_dict["tx_deployed"]["block_info"]["slot_time"]))}',
+        "deployment_tx_slot_time_download": f'{contract_dict["tx_deployed"]["block_info"]["slot_time"]}',
     }
 
 
@@ -1762,6 +1801,53 @@ def create_dict_for_tabulator_display_for_blocks(net, block: dict):
         "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
         "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
         "block_height_since": block_info.height,
+    }
+
+
+def create_dict_for_tabulator_display_for_pools(net, pool: dict):
+    # classified_tx.transaction.block_info.slot_time = (
+    #     classified_tx.transaction.block_info.slot_time.isoformat()
+    # )
+
+    return {
+        "d180d": (
+            f'<span class="ccd">{round_x_decimal_with_comma(100*pool["d180"]["apy"], 2)}%</span>'
+            if pool.get("d180")
+            else "--"
+        ),
+        "d180d_download": (
+            f'{round_x_decimal_with_comma(100*pool["d180"]["apy"], 2)}%'
+            if pool.get("d180")
+            else "--"
+        ),
+        "block_commission_rate_download": (
+            f'{round_x_decimal_with_comma(100*pool["block_commission_rate"], 2)}%'
+        ),
+        "tx_commission_rate_download": (
+            f'{round_x_decimal_with_comma(100*pool["tx_commission_rate"], 2)}%'
+        ),
+        "block_commission_rate": f'<span class="ccd">{round_x_decimal_with_comma(100*pool["block_commission_rate"], 2)}%</span>',
+        "tx_commission_rate": f'<span class="ccd">{round_x_decimal_with_comma(100*pool["tx_commission_rate"], 2)}%</span>',
+        # "transaction_block_info_slot_time": f'<span class="ccd">{pool.slot_time:%H:%M:%S}</span>',
+        # "hash": f'<a href="/{net}/block/{pool.hash}"><span class="ccd">{block_hash_link(block_info.hash, net)}</span></a>',
+        # "parent_block": f'<a href="/{net}/block/{block_info.parent_block}"><span class="ccd">{block_hash_link(block_info.parent_block, net)}</span></a>',
+        # "block_height": f'<span class="ccd">{round_x_decimal_with_comma(block_info.height, 0)}</span>',
+        "validator": f'<a class="" href="/{net}/account/{pool["baker_id"]}"><span class="ccd">{pool["baker_id"]}</span></a>',
+        "validator_id": pool["baker_id"],
+        "node_name": (
+            f'<span class="ccd">{pool["node_name"]}</span>' if pool["node_name"] else ""
+        ),
+        "node_name_download": (pool["node_name"] if pool["node_name"] else ""),
+        "status": pool["status"],
+        "pool_remaining": f'<span  >{micro_ccd_no_decimals(pool["delegated_capital_cap"]-pool["delegated_capital"])}</span>',
+        "delegated_percentage": pool["delegated_percentage"],
+        "delegated_percentage_remaining": pool["delegated_percentage_remaining"],
+        "delegated_percentage_remaining_format": f'<span class="ccd">{round_x_decimal_with_comma(pool["delegated_percentage_remaining"], 2)}%</span>',
+        "effective_stake": f'<span  >{micro_ccd_no_decimals(pool["effective_stake"])}</span>',
+        "effective_stake_value": pool["effective_stake"] / 1_000_000,
+        # "transaction_count": f'<span class="ccd">{round_x_decimal_with_comma(block_info.transaction_count, 0)}</span>',
+        # "epoch": f'<span class="ccd">{round_x_decimal_with_comma(block_info.epoch, 0)}</span>',
+        # "block_height_since": block_info.height,
     }
 
 

@@ -1,0 +1,180 @@
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<script>
+    var fieldEl = document.getElementById("filter-field");
+function updateFilter(){
+  var filterVal = fieldEl.options[fieldEl.selectedIndex].value;
+  var filterName = fieldEl.options[fieldEl.selectedIndex].text;
+
+  if(filterVal){
+    console.log("Setting filter", "status", "=", filterVal);
+    window["{{ccd_tabulator_table}}_table"].setFilter("status","=", filterVal);
+  }
+}
+    document.getElementById("filter-field").addEventListener("change", updateFilter);
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "status", field: "status", 
+        minWidth: 100,
+        // maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: "html",
+        accessorDownload: (value, data) => data.status,
+        headerSort: true,
+        hozAlign: "left", headerHozAlign: "left",
+        visible:false, download:true
+        
+      },
+  {
+        title: "Validator", field: "validator_id", 
+        minWidth: 100,
+        // maxWidth: 60,
+        responsive: 0,
+        sorter: "number",
+        formatter: function (cell) {
+          const rowData = cell.getData();
+          const visibleText = cell.getValue();
+
+          if (visibleText === null) {
+            return "Not a validator";
+          }
+
+          const link = document.createElement("a");
+          link.href = "/{{net}}/account/" + rowData.validator_id;
+          link.innerHTML = '<span style="font-family: monospace, monospace;" class="small">'+visibleText+'</span>';
+          return link;
+        },
+        accessorDownload: (value, data) => data.validator_id,
+        headerSort: true,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Node Name", field: "node_name", 
+        minWidth: 250,
+        maxWidth: 250,
+        responsive: 50,
+        formatter: "html",
+        headerSort:true,
+        
+        accessorDownload: (value, data) => data.node_name_download,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        
+        title: "Del. 180d APY", field: "d180d", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 150,
+        // maxWidth: 180, 
+        formatter: "html",
+        accessorDownload: (value, data) => data.d180d_download,
+        headerSort: true,
+        
+      },
+      {
+        
+        title: "Block", field: "block_commission_rate", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 150,
+        // maxWidth: 180, 
+        formatter: "html",
+        sorter: "number",
+        accessorDownload: (value, data) => data.block_commission_rate_download,
+        headerSort: false,
+        
+      },
+      {
+        
+        title: "Tx", field: "tx_commission_rate", headerHozAlign:"right", hozAlign: "right", 
+        responsive: 30,
+        minWidth: 150,
+        // maxWidth: 180, 
+        formatter: "html",
+        sorter: "number",
+        accessorDownload: (value, data) => data.tx_commission_rate_download,
+        headerSort: false,
+        
+      },
+      {
+
+        title: "Total Stake", field: "effective_stake_value", headerHozAlign:"right", hozAlign: "right",
+        responsive: 30,
+        minWidth: 150,
+        // maxWidth: 180, 
+        formatter: function (cell) {
+  let micro = Number(cell.getValue());
+  if (!Number.isFinite(micro)) micro = 0;
+  const amount = Math.round(micro );
+  const intWithGrouping = amount.toLocaleString("en-US", {
+    maximumFractionDigits: 0,
+  });
+  return `<span class="ccd">Ͼ${intWithGrouping}</span>`;
+},
+        sorter: "number",
+        accessorDownload: (value, data) => data.effective_stake_value,
+        headerSort: true,
+        
+      },
+      {
+
+        title: "Pool Remaining", field: "delegated_percentage_remaining_format", headerHozAlign:"right", hozAlign: "right",
+        responsive: 30,
+        minWidth: 150,
+        // maxWidth: 180, 
+        formatter:"html",
+        accessorDownload: (value, data) => data.delegated_percentage_remaining,
+        headerSort: false,
+        
+      },
+            {
+
+        title: "", field: "delegated_percentage_remaining", headerHozAlign:"right", hozAlign: "right",
+        responsive: 30,
+        // minWidth: 150,
+        maxWidth: 40, 
+        formatter:"progress", formatterParams:{
+                min:0,
+                max:100,
+                color:  ["#DC5050", "#FBCD29", "#33C364"],
+
+                
+            },
+        accessorDownload: (value, data) => StripHTMLFormatterOnString(data.first_event),
+        headerSort: true,
+        download:false
+        
+      }
+
+      
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+  window["{{ccd_tabulator_table}}_default_sort_field"] = 'validator_id';
+  window["{{ccd_tabulator_table}}_default_sort_field_direction"] = 'desc';
+
+window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+    window["{{ccd_tabulator_table}}_table"] = new Tabulator("#staking_pools_table", {
+    layout: "fitColumns",
+    data:{{all_pools|tojson}},
+    columns:               window["{{ccd_tabulator_table}}_columns"],
+    initialSort:[
+        {column:"d180d", dir:"desc"}, //sort by this first
+        
+    ], 
+    maxHeight: "400px",           // fixed outer height
+    heightGrow: false,
+    responsiveLayout: "hide",
+    pagination: "local",
+    // rowHeight:20,
+    paginationSize: 10,
+    paginationSizeSelector: [10, 25, 50, 100, 500],
+    paginationCounter: "rows",
+    });
+    window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+    window["{{ccd_tabulator_table}}_table"].on("tableBuilt", updateFilter);
+</script>
