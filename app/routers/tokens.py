@@ -1,35 +1,26 @@
 # ruff: noqa: F403, F405, E402, E501, E722, F401
-
-import operator
-from bisect import bisect_right
-from datetime import timedelta
-
-import pandas as pd
-import plotly.express as px
+import requests
 from ccdexplorer_fundamentals.cis import (
-    CIS,
     MongoTypeLoggedEvent,
     MongoTypeTokenAddress,
-    TokenMetaData,
-    transferEvent,
 )
-from ccdexplorer_fundamentals.enums import NET
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import *
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_TokenId,
+    CCD_TokenInfo,
+    CCD_BlockInfo,
+    CCD_BlockItemSummary,
+    CCD_ContractAddress,
+)
+from pydantic import BaseModel
 from ccdexplorer_fundamentals.mongodb import (
     Collections,
 )
-from ccdexplorer_fundamentals.tooter import Tooter, TooterChannel, TooterType
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
-from pymongo import ASCENDING, DESCENDING
-from app.classes.dressingroom import MakeUp, MakeUpRequest, TransactionClassifier
+from fastapi import APIRouter, Depends, Request, Query
+from fastapi.responses import HTMLResponse, JSONResponse
+from pymongo import DESCENDING
+from app.classes.dressingroom import MakeUp, MakeUpRequest, RequestingRoute
 from app.env import *
 from app.jinja2_helpers import *
-from app.routers.statistics import (
-    ccdexplorer_plotly_template,
-    get_all_data_for_analysis_for_token,
-    # get_statistics_date,
-)
 from app.state import *
 
 router = APIRouter()
@@ -37,13 +28,13 @@ router = APIRouter()
 
 class TokenAddress(BaseModel):
     contract: CCD_ContractAddress
-    tokenID: str = None
+    tokenID: str | None = None
 
     def to_str(self):
         return f"{self.contract.to_str()}-{self.tokenID}"
 
     @classmethod
-    def from_str(self, str_repr: str):
+    def from_str(cls, str_repr: str):
         """
         Returns a TokenAddress when the input is formed as '<2350,0>-xxx'.
         """
@@ -59,7 +50,7 @@ class TokenAddress(BaseModel):
         return TokenAddress(**{"contract": c, "tokenID": tokenID_string})
 
     @classmethod
-    def from_index(self, index: int, subindex: int):
+    def from_index(cls, index: int, subindex: int):
         s = CCD_ContractAddress(**{"index": index, "subindex": subindex})
         return s
 
@@ -110,6 +101,12 @@ async def smart_contracts_tokens_overview(
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/plt/overview",
+        request.app.httpx_client,
+    )
+    plts = api_result.return_value if api_result.ok else []
+
     user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/tokens/fungible-tokens/verified",
@@ -143,6 +140,7 @@ async def smart_contracts_tokens_overview(
             "tags": tags,
             "fungible_tokens_verified": fungible_tokens_verified,
             "non_fungible_tokens_verified": non_fungible_tokens_verified,
+            "plts": plts,
         },
     )
 
@@ -534,6 +532,200 @@ async def show_token_address(
     )
 
 
+@router.get(
+    "/ajax_plt_tokens/{net}/{token_id}",
+    response_class=HTMLResponse,
+)
+async def get_plt_token_holders_paginated(
+    request: Request,
+    net: str,
+    token_id: str,
+    page: int = Query(),
+    size: int = Query(),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+    # recurring: Recurring = Depends(get_recurring),
+):
+    user: UserV2 | None = await get_user_detailsv2(request)
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/plt/{token_id}/holders/{skip}/{size}",
+        httpx_client,
+    )
+    holders = api_result.return_value if api_result.ok else {}
+    if not holders:
+        error = f"Request error getting holders for token at {token_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    holders_data = holders["data"]
+
+    tb_made_up_rows = []
+
+    for row in holders_data:
+        sender = account_link(
+            row["account_address"],
+            net,
+            user=user,
+            tags=tags,
+            app=request.app,
+        )
+        tb_made_up_rows.append(
+            create_dict_for_tabulator_display_for_plt_token_holders(net, row, sender)
+        )
+    total_rows = holders["total_row_count"]  # type: ignore
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
+        {
+            "data": tb_made_up_rows,
+            "last_page": max(1, last_page),
+            "last_row": total_rows,
+        }
+    )
+
+
+class SortItem(BaseModel):
+    field: str
+    dir: str
+
+
+class FilterItem(BaseModel):
+    field: str
+    type: str
+    value: str
+
+
+class TabulatorRequest(BaseModel):
+    page: int
+    size: int
+    sort: Optional[list[SortItem]] = []
+    filter: Optional[list[FilterItem]] = []
+
+
+@router.post(
+    "/ajax_plt_token_transactions/{net}/{token_id}",
+    response_class=HTMLResponse,
+)
+async def get_plt_transactions_for_tabulator(
+    request: Request,
+    net: str,
+    token_id: str,
+    body: TabulatorRequest,
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    # recurring: Recurring = Depends(get_recurring),
+    tags: dict = Depends(get_labeled_accounts),
+):
+    """
+    Transactions for plt.
+    """
+
+    user: UserV2 | None = await get_user_detailsv2(request)
+
+    skip = (body.page - 1) * body.size
+
+    if body.sort and len(body.sort) > 0:
+        sort_key = body.sort[0].field
+        direction = body.sort[0].dir
+    else:
+        sort_key = "block_height"
+        direction = "desc"
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/plt/{token_id}/transactions/{skip}/{body.size}/{sort_key}/{direction}",
+        httpx_client,
+    )
+    tx_result = api_result.return_value if api_result.ok else None
+    if not tx_result:
+        error = f"Request error getting transactions for plt at {token_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    else:
+        tb_made_up_txs = []
+        tx_result_transactions = tx_result["transactions"]
+
+        if len(tx_result_transactions) > 0:
+            for transaction in tx_result_transactions:
+                transaction = CCD_BlockItemSummary(**transaction)
+                makeup_request = MakeUpRequest(
+                    **{
+                        "net": net,
+                        "httpx_client": httpx_client,
+                        "tags": tags,
+                        "user": user,
+                        "app": request.app,
+                        "requesting_route": RequestingRoute.account,
+                    }
+                )
+
+                classified_tx = await MakeUp(
+                    makeup_request=makeup_request
+                ).prepare_for_display(transaction, "", False)
+
+                type_additional_info, sender = (
+                    await classified_tx.transform_for_tabulator()
+                )
+
+                tb_made_up_txs.append(
+                    create_dict_for_tabulator_display_plt_transactions(
+                        net, classified_tx, type_additional_info, sender
+                    )
+                )
+        total_rows = tx_result["total_tx_count"]
+        last_page = math.ceil(total_rows / body.size)
+        return JSONResponse(
+            {
+                "data": tb_made_up_txs,
+                "last_page": max(1, last_page),
+                "last_row": total_rows,
+            }
+        )
+
+
+async def show_plt(
+    request: Request,
+    net: str,
+    token_id: str,
+):
+    """Only for PLTs"""
+    user: UserV2 | None = await get_user_detailsv2(request)
+    og_title = f"PLT {token_id} on Concordium {net}"
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/plt/{token_id}/info",
+        request.app.httpx_client,
+    )
+    plt_info = api_result.return_value if api_result.ok else None
+    plt_info = CCD_TokenInfo(**plt_info) if plt_info else None
+
+    template_dict = {
+        "env": request.app.env,
+        "request": request,
+        "net": net,
+        "token_id": token_id,
+        "plt_info": plt_info,
+        "user": user,
+        "ogp_title": og_title,
+        "ogp_url": request.url._url,
+        # "owner_history_list": owner_history_list,
+    }
+
+    return templates.TemplateResponse("tokens/plt/plt_display.html", template_dict)
+
+
 async def show_nft_tag(request: Request, net: str, tag_result: dict):
     """Only for non-fungible tags"""
     user: UserV2 | None = await get_user_detailsv2(request)
@@ -560,6 +752,19 @@ async def tokens_tag_token_id(
     token_id_or_address: Optional[str] = None,
     tags: dict = Depends(get_labeled_accounts),
 ):
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/plt/list-token-ids",
+        request.app.httpx_client,
+    )
+    plts: list[CCD_TokenId] = api_result.return_value if api_result.ok else []  # type: ignore
+    plts = ["eEUR"]
+    if tag in plts:
+        return await show_plt(
+            request,
+            net,
+            tag,
+        )
+
     og_title = ""
     if tag == "_":
         splits = token_id_or_address.split("-")

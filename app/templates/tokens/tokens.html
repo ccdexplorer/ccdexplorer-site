@@ -1,11 +1,41 @@
 {% extends "base/base.html" %}
 {% block ogp %}
-<meta property="og:title" content="Overview of all Verified Fungible and Non-Fungible tokens on Concordium {{net}}" />
+<meta property="og:title" content="Overview of all Protocol-Level Tokens and Verified Fungible and Non-Fungible CIS-2 tokens on Concordium {{net}}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{request.url._url}}" />
 {% endblock %}
 {% block content %}
 {% include 'base/search_bar_non_home_inclusion.html' %}
+
+{% if plts | length > 0 %}
+
+<h4 >Protocol-Level Tokens</h4>
+
+<div class="container my-4">
+        <div class="row">
+    
+    {% for token in plts %}
+        
+        <div class="card  low border-dark m-2 p-2" style="width: 10rem;">
+            <div class="card-body  m-0 p-0 text-center">
+                <span class="card-title text-center">
+                        
+                    <br/>
+                    {{token.token_id}}
+                </span>
+                <a class="stretched-link" href="/{{net}}/tokens/{{token.token_id}}"></a>
+        </div>
+        </div>
+
+      
+
+{% endfor %}
+</div>          
+        
+</div>
+
+{% endif %}
+
 
 <h4 >Verified Fungible Tokens</h4>
 

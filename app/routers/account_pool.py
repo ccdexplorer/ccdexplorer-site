@@ -336,7 +336,7 @@ async def get_account_pool_delegators(
     return JSONResponse(
         {
             "data": made_up_delegators,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )

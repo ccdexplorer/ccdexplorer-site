@@ -407,7 +407,7 @@ async def ajax_tx_search_transfers(
     return JSONResponse(
         {
             "data": made_up_txs,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": txs_result["total_txs"],
         }
     )
@@ -666,7 +666,7 @@ async def get_account_transactions_for_tabulator(
     return JSONResponse(
         {
             "data": tb_made_up_txs,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": latest_txs_result["total_for_type"],
         }
     )

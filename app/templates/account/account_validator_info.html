@@ -152,7 +152,7 @@
                 <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/>
                     </td>
                     
-                    <td  class="text-end text-secondary-emphasis ccd"colspan="2" id="current-payday-stats" hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/current-payday-stats" hx-trigger="intersect once" ></td>
+                    <td  class="text-end text-secondary-emphasis ccd"colspan="2" id="current-payday-stats" hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/current-payday-stats" hx-trigger="every 3s" ></td>
                     
                 </tr>
                 {% endif %}
@@ -164,7 +164,7 @@
                         <img  hx-ext="class-tools" class="breathing" classes="toggle faded:1s" width="10px" src="/static/misc/green_dot.png"/></h2> 
 
                     </td>
-                    <td  class="text-end text-secondary-emphasis ccd" id="earliest-win-time" hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/earliest-win-time" hx-trigger="intersect once" colspan="2" ></td></tr>
+                    <td  class="text-end text-secondary-emphasis ccd" id="earliest-win-time" hx-get="/{{net}}/account/{{account.stake.baker.baker_info.baker_id}}/earliest-win-time" hx-trigger="every 3s" colspan="2" ></td></tr>
                 {% endif %}
             
 

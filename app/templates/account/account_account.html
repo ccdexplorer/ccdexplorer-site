@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
       containerId: 'tokens-tab-content',
       url:   `/account/tokens-tab-content/{{net}}/{{account_id}}`,
       init:  () => {
+        init_plt_tokens_table?.();
         init_tokens_fungible_verified_table?.();
         init_tokens_non_fungible_verified_table?.();
         init_tokens_unverified_table?.();
@@ -138,7 +139,7 @@ if (ref) {
         {% if tokens_available %}
         <li class="nav-item" role="presentation">
           <button class="nav-link  explorer bg-secondary-subtle" id="tokens-pills-tab" data-bs-toggle="pill" data-bs-target="#pills-tokens" type="button" role="tab" aria-controls="pills-tokens" aria-selected="true">
-            <span class="tab-text-large">CIS-2 Tokens</span><span class="tab-text-small">CIS-2</span>
+            <span class="tab-text-large">Tokens (PLT & CIS-2)</span><span class="tab-text-small">Tokens</span>
         </button>
         </li>
       {% endif %}  
@@ -675,7 +676,7 @@ function init_validator_rewards_table() {
 
 
 <!-- Tokens-->
-
+{% include "base/tabulator/tabulator-plt-tokens.html" %}
 {% include "base/tabulator/tabulator-cis-2-tokens.html" %}
 
 {% endblock content %}

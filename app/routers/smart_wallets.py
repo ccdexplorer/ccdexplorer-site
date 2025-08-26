@@ -451,7 +451,7 @@ async def ajax_last_txs_for_smart_wallets(
     return JSONResponse(
         {
             "data": tb_made_up_txs,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )

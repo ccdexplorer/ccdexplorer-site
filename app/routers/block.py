@@ -245,7 +245,11 @@ async def get_ajax_payday_account_rewards_tabulator(
             reward["account_id"] = reward["account_id"][:4]
 
         return JSONResponse(
-            {"data": account_rewards, "last_page": last_page, "last_row": total_rows}
+            {
+                "data": account_rewards,
+                "last_page": max(1, last_page),
+                "last_row": total_rows,
+            }
         )
     else:
         return JSONResponse([])
@@ -288,7 +292,11 @@ async def get_ajax_payday_pool_rewards_tabulator(
                 reward["pool_name"] = "Passive Delegation"
 
         return JSONResponse(
-            {"data": pool_rewards, "last_page": last_page, "last_row": total_rows}
+            {
+                "data": pool_rewards,
+                "last_page": max(1, last_page),
+                "last_row": total_rows,
+            }
         )
     else:
         return JSONResponse([])
@@ -372,7 +380,7 @@ async def get_block_transactions_for_tabulator(
         return JSONResponse(
             {
                 "data": tb_made_up_txs,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )

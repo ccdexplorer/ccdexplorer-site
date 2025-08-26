@@ -457,7 +457,7 @@ async def get_account_validator_transactions(
     return JSONResponse(
         {
             "data": tb_made_up_txs,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -502,7 +502,7 @@ async def get_validator_tally(
     return JSONResponse(
         {
             "data": tally_data,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )

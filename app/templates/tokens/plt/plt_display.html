@@ -1,0 +1,209 @@
+{% extends "base/base.html" %}
+{% block ogp %}
+<meta property="og:title" content="{{ogp_title}}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ogp_url}}" />
+{% endblock %}
+{% block content %}
+
+{% include 'base/search_bar_non_home_inclusion.html' %}
+{% set vi = plt_info.verified_information %}
+
+
+
+
+<div class="row  mt-4">
+  <div class="col">{% include 'tokens/plt/plt_header.html' %}</div>  
+  
+</div>
+
+<!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
+<div class="row mt-4 row-flex">
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Token Info" %}{% include 'base/box_title.html' %}
+          {% include "tokens/plt/plt_info.html" %}</div>
+  </div>
+  <div class="col-md-6  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Current Holders" %}{% include 'base/box_title.html' %}
+          <div id="plt_holders_table"></div>
+          {% set ccd_tabulator_table ='plt_holders_table'%}
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+    </div>
+  </div>
+  </div>  
+
+  <div class="row row-flex">
+    <div class="col-md-12  col-sm-12 ">
+      <div class="border content curved-border " >
+          {% set title= "Transactions" %}{% include 'base/box_title.html' %}
+          <div id="plt_transactions_table"></div>
+          {% set ccd_tabulator_table ='plt_transactions_table'%}
+          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+    </div>
+    </div>
+    
+    <script>
+    //   async function load_media(mediaUrl) {
+    //     console.log(mediaUrl);
+    //     const containerElement = document.getElementById('media-container');
+    //     containerElement.innerHTML = '{% include "base/spinner.html" %}'; // Clear previous content
+    
+    //     try {
+    //         const response = await fetch(mediaUrl);
+    //         const contentType = response.headers.get('Content-Type');
+    //         console.log(contentType);
+    //         if (!contentType || contentType.startsWith('text')) {
+    //             // Handle as text response, assuming it contains the actual media URL
+    //             const data = await response.text();
+    //             if (data.trim().startsWith('http')) {
+    //                 // Assume it's a URL
+    //                 load_media(data.trim());
+    //             } else {
+    //                 console.error('Invalid media URL:', data);
+    //             }
+    //         } else if (contentType.startsWith('image') || contentType === 'application/octet-stream') {
+    //             const blob = await response.blob();
+    //             const imageUrl = URL.createObjectURL(blob);
+    //             const imageElement = new Image();
+    //             imageElement.src = imageUrl;
+    //             {% if md %}imageElement.alt = "{{md.name}}";{% endif %}
+    
+    //             // Set the maximum width and height for the image
+    //             const maxWidth = 250; // Adjust this value as needed
+    //             const maxHeight = 250; // Adjust this value as needed
+    
+    //             // Ensure the image is loaded before calculating dimensions
+    //             // console.log(imageElement.width, imageElement.height);
+    //             imageElement.onload = function () {
+    //               // console.log(imageElement.width, imageElement.height);
+    //               const aspectRatio = imageElement.width / imageElement.height;
+    //                 // console.log(aspectRatio);
+    //                 // Resize the image while maintaining aspect ratio
+    //                 if (imageElement.width > maxWidth) {
+    //                     imageElement.width = maxWidth;
+    //                     imageElement.height = maxWidth / aspectRatio;
+    //                 }
+    
+    //                 if (imageElement.height > maxHeight) {
+    //                     imageElement.height = maxHeight;
+    //                     imageElement.width = maxHeight * aspectRatio;
+    //                 }
+                    
+    //                 // Append the resized image to the container
+    //                 containerElement.innerHTML = '';
+    //                 containerElement.appendChild(imageElement);  
+                  
+    //                 // console.log(imageElement.width, imageElement.height);
+    //             };
+    //         } else if (contentType.startsWith('video')) {
+    //             const blob = await response.blob();
+    //             const videoUrl = URL.createObjectURL(blob);
+    //             const videoElement = document.createElement('video');
+    //             videoElement.src = videoUrl;
+    //             videoElement.controls = true; // Enable default video controls
+    //             videoElement.autoplay = true; // Autoplay the video
+    //             videoElement.style.maxWidth = '350px'; // Limit width to 350px
+    
+    //             // Append the video element to the container
+    //             containerElement.innerHTML = '';
+    //             containerElement.appendChild(videoElement);
+    //         } else {
+    //             console.error('Unsupported media type:', contentType);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error loading media:', error);
+    //     }
+    // }
+    
+      // window.addEventListener('load', (event) => {
+        
+        
+      //   {% if md %}
+      //     {% if md.display %}
+      //       {% set url = md.display.url %}
+      //       {% if md.display.url[:4] == "ipfs" %}
+      //           {% set url = "https://ipfs.io/ipfs/"+metadata.display.url[7:] %}
+      //       {% endif %}
+      //         load_media("{{url}}");
+            
+      //     {% endif %}
+      //   {% endif %}
+
+      //   getHolders(0, 0);
+
+      // });
+
+      </script>
+
+
+
+<!-- PLT holders-->
+ {% set ccd_tabulator_table ='plt_holders_table'%}
+{% set tabulator_ajax_url = '/ajax_plt_tokens/'+net+'/'+ token_id%}
+{% set filename='plt-tokens-for-'+ token_id+'-'+range(1000,10000)|random|string+'.csv' %}
+
+{% include 'base/tabulator/tabulator-common-options-get.html' %}
+
+<script>
+
+  const plt_holders_table_columns = [
+
+      {
+        title: "Account", field: "account", 
+        minWidth: 120,
+        // maxWidth: 120,
+        responsive: 0,
+        accessorDownload: (value, data) => data.account_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Token Balance", field: "token_balance", 
+        hozAlign: "right", headerHozAlign: "right",
+        accessorDownload: (value, data) => data.token_balance_download,
+        
+      }
+      
+    ];
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+
+  window["plt_holders_table"] = new Tabulator("#plt_holders_table", {
+    ...commonTabulatorOptionsGET,
+    columns: plt_holders_table_columns,
+    ajaxURL: "{{tabulator_ajax_url}}",
+    ajaxRequesting: function(url, params){
+    return true; // must return true to allow the request
+  },
+  });
+
+  window["plt_holders_table"].on("renderComplete", function () {
+    document.querySelectorAll(".tabulator-col-title").forEach(el => {
+      el.classList.add("sm-text");
+    });
+  });
+  const btn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
+    if (btn) {
+    btn.addEventListener("click", () => {
+        window["{{ccd_tabulator_table}}_table"]?.download(
+        "csv",
+        window["{{ccd_tabulator_table}}_filename"],
+        { bom: true, downloadDataFormatter: (d) => d }
+        );
+    });
+    }
+
+</script>
+
+
+<!-- PLT holders-->
+
+<!-- PLT transactions-->
+{% include 'base/tabulator/tabulator-plt-txs.html' %}
+<!-- PLT transactions-->
+
+{% endblock %}
+

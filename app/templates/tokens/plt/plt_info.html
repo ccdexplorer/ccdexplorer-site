@@ -1,0 +1,55 @@
+{% set ip = plt_info.tag_information.initialization_parameters %}
+{% set ts = plt_info.token_state %}
+{% set ms = plt_info.token_state.module_state %}
+
+<table class="table table-borderless">
+        <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Token Name</td>
+            <td class="text-end text-secondary-emphasis text-break">
+                    {{ ip.name }}
+                </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Governance Account</td>
+        <td class="text-end text-secondary-emphasis">{{ ms.governance_account.account|account_link(net,user,tags,request.app)|safe}}
+            
+            </td>
+    </tr>
+    
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Initial Supply</td>
+        <td class="text-end text-secondary-emphasis">
+            {{ ip.initial_supply.value|token_amount_using_decimals_rounded(ip.initial_supply.decimals, 0) }}
+            </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Total Supply</td>
+        <td class="text-end text-secondary-emphasis">
+            {{ ts.total_supply.value|token_amount_using_decimals_rounded(ts.total_supply.decimals, 0) }}
+            </td>
+        </tr>
+       
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Allow list?</td>
+        <td class="text-end text-secondary-emphasis">{{ms.allow_list}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Deny list?</td>
+        <td class="text-end text-secondary-emphasis">{{ms.deny_list}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Mintable?</td>
+        <td class="text-end text-secondary-emphasis">{{ms.mintable}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Burnable?</td>
+        <td class="text-end text-secondary-emphasis">{{ms.burnable}}</td>
+    </tr>
+    <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Paused?</td>
+        <td class="text-end text-secondary-emphasis">{{ms.paused}}</td>
+    </tr>
+    
+</tbody>
+</table>
+

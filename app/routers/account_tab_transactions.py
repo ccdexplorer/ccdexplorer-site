@@ -155,7 +155,7 @@ async def get_account_transactions_with_filter_for_tabulator(
         return JSONResponse(
             {
                 "data": tb_made_up_txs,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )

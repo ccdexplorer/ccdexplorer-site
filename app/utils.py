@@ -5,6 +5,7 @@ import base64
 import datetime as dt
 import json
 import math
+import re
 import typing
 from datetime import timedelta
 from enum import Enum
@@ -13,10 +14,7 @@ from typing import Any, Optional
 
 import cbor2
 import dateutil
-
 import dateutil.parser
-from dateutil.relativedelta import relativedelta
-
 import httpx
 
 # from app.jinja2_helpers import templates
@@ -31,15 +29,15 @@ from ccdexplorer_fundamentals.cis import (
 )
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountInfo,
+    CCD_BlockInfo,
     CCD_ContractAddress,
     CCD_RejectReason,
     CCD_UpdatePayload,
-    CCD_BlockInfo,
-    CCD_BlockItemSummary,
 )
 from ccdexplorer_fundamentals.mongodb import Collections, MongoMotor
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from ccdexplorer_schema_parser.Schema import Schema
+from dateutil.relativedelta import relativedelta
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from rich import print
@@ -55,6 +53,7 @@ class TypeContentsCategories(Enum):
     identity = "Identity"
     chain = "Chain"
     rejected = "Rejected"
+    plt = "PLT"
 
 
 class TypeContentsCategoryColors(Enum):
@@ -65,6 +64,7 @@ class TypeContentsCategoryColors(Enum):
     identity = ("#F6DB9A",)
     chain = ("#FFFDE4",)
     rejected = ("#DC5050",)
+    plt = ("#4A90E2",)
 
 
 class TypeContents(BaseModel):
@@ -203,6 +203,19 @@ tx_type_translation["baker_configured"] = TypeContents(
 #     color=TypeContentsCategoryColors.staking.value[0],
 # )
 
+
+tx_type_translation["token_creation"] = TypeContents(
+    display_str="token creation",
+    category=TypeContentsCategories.plt,
+    color=TypeContentsCategoryColors.plt.value[0],
+)
+
+tx_type_translation["token_update_effect"] = TypeContents(
+    display_str="token update",
+    category=TypeContentsCategories.plt,
+    color=TypeContentsCategoryColors.plt.value[0],
+)
+
 tx_type_translation["delegation_configured"] = TypeContents(
     display_str="delegation configured",
     category=TypeContentsCategories.staking,
@@ -263,6 +276,7 @@ payload_translation["mint_distribution_cpv_1_update"] = "mint distribution"
 payload_translation["finalization_committee_parameters_update"] = (
     "finalization committee parameters"
 )
+payload_translation["create_plt_update"] = "create PLT"
 
 
 # update
@@ -374,7 +388,9 @@ def tx_type_translator(tx_type_contents: str, request_type: str) -> str:
             elif result.category == TypeContentsCategories.staking:
                 icon = f'<i  style="color:{result.color};" class="bi bi-bar-chart-line-fill"></i>'
             elif result.category == TypeContentsCategories.rejected:
-                icon = f'<i  style="color:{result.color};" class="bi bi-ban""></i>'
+                icon = f'<i  style="color:{result.color};" class="bi bi-ban"></i>'
+            elif result.category == TypeContentsCategories.plt:
+                icon = f'<i  style="color:{result.color};" class="bi bi-wrench-adjustable-circle"></i>'
             elif result.category == TypeContentsCategories.chain:
                 icon = '<img class="tiny-logo" src="/static/logos/small-logo-grey.png" alt="small-logo" height="16px" width="16px">'
 
@@ -1714,6 +1730,38 @@ def create_dict_for_tabulator_display_for_contracts(
     }
 
 
+def create_dict_for_tabulator_display_for_plt_token(net, row: dict):
+    ti = row["tag_information"]
+    token_decimals = ti["decimals"]
+
+    return {
+        "token_display": f'<img src="{ti.get("logo_url", "")}"  style=" max-width: 16px;max-height: 16px;"  alt=""><a href="/{net}/tokens/{ti["_id"]}"><span class="ccd text-secondary-emphasis">{ti["_id"]}</span></a><br/><span class="ccd_decimals text-secondary-emphasis">{round_x_decimal_with_comma(row["token_value"],token_decimals)} {ti["_id"]}</span>',
+        "token_balance_usd": (
+            f'<span class="ccd text-secondary-emphasis">${round_x_decimal_with_comma(row["token_value_USD"], 0)}</span><br/><span class="ccd_decimals text-secondary-emphasis">@{round_x_decimal_with_comma(row["exchange_rate"],3)}</span>'
+            if row["token_value_USD"] > 0.0
+            else ""
+        ),
+        "token_display_download": f'{ti["_id"]}',
+        "token_balance_download": f'{row["token_value"]}',
+        "token_balance_usd_download": f'{row["token_value_USD"]}',
+    }
+
+
+def create_dict_for_tabulator_display_for_plt_token_holders(
+    net, row: dict, account_address: str
+):
+
+    return {
+        "token_balance": (
+            f'<span class="ccd text-secondary-emphasis">${round_x_decimal_with_comma(row["balance"], 0)}</span>'
+            if row["token_value_USD"] > 0.0
+            else ""
+        ),
+        "account_address": account_address,
+        "token_balance_download": f'{row["balance"]}',
+    }
+
+
 def create_dict_for_tabulator_display_for_fungible_token(net, row: dict):
     ai = row["address_information"]
     vi = row["verified_information"]
@@ -1889,6 +1937,47 @@ def create_dict_for_tabulator_display(
             if wallet_contract_address
             else ""
         ),
+        # for downloads
+        "hash_download": classified_tx.transaction.hash,
+        "type_additional_info_download": (
+            classified_tx.amount / 1000000 if classified_tx.amount else ""
+        ),
+        "block_height_download": classified_tx.transaction.block_info.height,
+        "sender_download": (
+            classified_tx.transaction.account_transaction.sender
+            if classified_tx.transaction.account_transaction
+            else "Chain"
+        ),
+        "transaction_block_info_slot_time_download": f"{dateutil.parser.parse(classified_tx.transaction.block_info.slot_time.isoformat()):%Y-%m-%d %H:%M:%S}",
+    }
+
+
+def create_dict_for_tabulator_display_plt_transactions(
+    net,
+    classified_tx,
+    type_additional_info: str,
+    sender: str | None = None,
+    app: FastAPI | None = None,
+    tags: dict | None = None,
+):
+
+    return {
+        "human_age": f"{humanize_age(classified_tx.transaction.block_info.slot_time)}",
+        "timestamp": f'<span class="ccd">{classified_tx.transaction.block_info.slot_time:%H:%M:%S}</span>',
+        "transaction_block_info_slot_time": classified_tx.transaction.block_info.slot_time.isoformat(),
+        "transaction_account_transaction_cost": (
+            classified_tx.transaction.account_transaction.cost
+            if classified_tx.transaction.account_transaction
+            else 0
+        ),
+        "first_event_str": classified_tx.transaction.type.additional_data,
+        "transaction_type_contents": classified_tx.transaction.type.contents,
+        "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
+        "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
+        "type_additional_info": type_additional_info,
+        "sender": sender,
+        "tx_index": classified_tx.transaction.index,
+        "block_height_since": classified_tx.transaction.block_info.height,
         # for downloads
         "hash_download": classified_tx.transaction.hash,
         "type_additional_info_download": (

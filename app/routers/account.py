@@ -95,7 +95,7 @@ async def get_paginated_account_rewards(
     return JSONResponse(
         {
             "data": tb_made_up_rewards,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -473,12 +473,6 @@ async def get_account(
 
     identity = Identity(account_info)
 
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/account/{account_id}/transactions-count-if-below-display-limit",
-        httpx_client,
-    )
-    tx_count_info = api_result.return_value if api_result.ok else {}
-
     account_link_found = account_link(account_id, net, user, tags, request.app)
 
     delegation_target_address = None
@@ -717,8 +711,6 @@ async def get_account(
             "account_apy_object": account_apy_object,
             "account": account_info,
             "pool": pool,
-            # "earliest_win_time": earliest_win_time,
-            # "node": node,
             "account_is_validator": account_is_validator,
             "cns_domains_list": cns_domains_list,
             "identity": identity,
@@ -732,7 +724,6 @@ async def get_account(
             "tokens_available": tokens_available,
             "year_month": dt.datetime.now().strftime("%Y-%m"),
             "rewards_filename": rewards_filename,
-            "total_rows": tx_count_info.get("tx_count", 0),
             "tx_type_translation_from_python": tx_type_translation_for_js(),
             "tx_types": tx_types,
         },
@@ -955,7 +946,7 @@ async def get_account_transactions_for_tabulator(
         return JSONResponse(
             {
                 "data": tb_made_up_txs,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )

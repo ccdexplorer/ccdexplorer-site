@@ -118,7 +118,7 @@ async def get_ajax_tokens_fungible_verified(
         return JSONResponse(
             {
                 "data": tb_made_up_rows,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )
@@ -173,7 +173,7 @@ async def get_ajax_tokens_non_fungible_verified(
         return JSONResponse(
             {
                 "data": tb_made_up_rows,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )
@@ -228,7 +228,7 @@ async def get_ajax_tokens_unverified(
         return JSONResponse(
             {
                 "data": tb_made_up_rows,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )

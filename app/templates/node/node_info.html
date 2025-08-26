@@ -9,7 +9,7 @@
             {% if node %}
                 <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Finalized Block Height</td><td title="{{node.finalizedBblockHeight}}" class="text-secondary-emphasis ccd align-middle">{{node.finalizedBlockHeight|int|round_x_decimal_with_comma(0) }}</td></tr>
                 <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Uptime</td><td title="{{node.uptime}}" class="text-secondary-emphasis ccd align-middle">{{(node.uptime|int)|datetime_delta_format_uptime }}</td></tr>
-                <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Validator ID</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis ccd  align-middle"><a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a></td></tr>
+                <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Validator ID</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis ccd  align-middle">{% if node.consensusBakerId %}<a href = "/{{net}}/account/{{node.consensusBakerId}}" >{{node.consensusBakerId}}</a>{%else%}None{%endif%}</td></tr>
                 <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Committee Status</td><td title="{{node.consensusBakerId}}" class="text-secondary-emphasis ccd  align-middle">{{node.bakingCommitteeMember}}</td></tr>
                 <tr class="sm-text"><td class=" text-start text-secondary-emphasis">Peers</td><td>
                 {% for peer in node.peersList %}

@@ -49,7 +49,16 @@ function init_tokens_fungible_verified_table() {
     ajaxURL: "{{tabulator_ajax_url}}",
     ajaxRequesting: function(url, params){
     return true; // must return true to allow the request
-  },
+  },ajaxResponse: function (url, params, resp) {
+      const rows = Array.isArray(resp?.data) ? resp.data : [];
+      const last_page = Math.max(1, Number(resp?.last_page ?? 1));
+      const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
+
+      const wrap = document.getElementById("{{ccd_tabulator_table}}_wrapper");
+      if (wrap) wrap.style.display = rows.length ? "" : "none";
+
+      return { data: rows, last_page, last_row };
+    },
   });
 
   window["fungible_verified_table_table"].on("renderComplete", function () {
@@ -123,12 +132,24 @@ function init_tokens_non_fungible_verified_table() {
   window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
 
   window["non_fungible_verified_table_table"] = new Tabulator("#non_fungible_verified_table", {
+    
     ...commonTabulatorOptionsGET,
     columns: non_fungible_verified_table_columns,
     ajaxURL: "{{tabulator_ajax_url}}",
     ajaxRequesting: function(url, params){
+      console.log("ajaxRequesting_tokens_non_fungible_verified_table");
     return true; // must return true to allow the request
   },
+    ajaxResponse: function (url, params, resp) {
+      const rows = Array.isArray(resp?.data) ? resp.data : [];
+      const last_page = Math.max(1, Number(resp?.last_page ?? 1));
+      const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
+
+      const wrap = document.getElementById("{{ccd_tabulator_table}}_wrapper");
+      if (wrap) wrap.style.display = rows.length ? "" : "none";
+
+      return { data: rows, last_page, last_row };
+    },
   });
 
   window["non_fungible_verified_table_table"].on("renderComplete", function () {
@@ -206,7 +227,16 @@ function init_tokens_unverified_table() {
     ajaxURL: "{{tabulator_ajax_url}}",
     ajaxRequesting: function(url, params){
     return true; // must return true to allow the request
-  },
+  },ajaxResponse: function (url, params, resp) {
+      const rows = Array.isArray(resp?.data) ? resp.data : [];
+      const last_page = Math.max(1, Number(resp?.last_page ?? 1));
+      const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
+
+      const wrap = document.getElementById("{{ccd_tabulator_table}}_wrapper");
+      if (wrap) wrap.style.display = rows.length ? "" : "none";
+
+      return { data: rows, last_page, last_row };
+    },
   });
 
   window["unverified_table_table"].on("renderComplete", function () {

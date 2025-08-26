@@ -665,7 +665,7 @@ async def ajax_last_txs_own_page(
     return JSONResponse(
         {
             "data": tb_made_up_txs,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -714,7 +714,7 @@ async def ajax_last_blocks_own_page(
     return JSONResponse(
         {
             "data": result,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -895,7 +895,7 @@ async def ajax_last_accounts_own_page(
     return JSONResponse(
         {
             "data": result,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )

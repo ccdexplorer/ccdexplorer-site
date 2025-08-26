@@ -374,7 +374,7 @@ async def get_paginated_smart_contracts(
     return JSONResponse(
         {
             "data": tb_made_up_rows,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -752,7 +752,7 @@ async def get_contract_transactions_for_tabulator(
         return JSONResponse(
             {
                 "data": tb_made_up_txs,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )
@@ -859,12 +859,6 @@ async def smart_contract_page(
         )
         supports_cis_standards = api_result.return_value if api_result.ok else []
 
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{instance_address}/transactions-count-if-below-display-limit",
-            httpx_client,
-        )
-        tx_count_info = api_result.return_value if api_result.ok else {}
-
         request.state.api_calls["Instance Info"] = (
             f"{request.app.api_url}/docs#/Contract/get_instance_information_v2__net__contract__contract_index___contract_subindex__info_get"
         )
@@ -912,7 +906,6 @@ async def smart_contract_page(
                     "item_ids": item_ids,
                     "filename": filename,
                     "supports_cis_standards": supports_cis_standards,
-                    "total_rows": tx_count_info.get("tx_count", 0),
                     "tx_type_translation_from_python": tx_type_translation_for_js(),
                 },
             )

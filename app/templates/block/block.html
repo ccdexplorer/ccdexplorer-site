@@ -178,11 +178,15 @@
         {% endif %}
         <div class="tab-pane fade col-lg-12  col-sm-12" id="pills-txs" role="tabpanel" 
         aria-labelledby="pills-txs-tab" tabindex="0"><div class="border curved-border" id="txs">
+            <div id="txs_table_block_wrapper">
             {% set ccd_tabulator_table ='txs_table_block'%}
                 {% set tabulator_ajax_url = '/block_transactions/'+net+'/'+block_info.height|string+'/'+total_rows|string%}
                 {% set filename='block-transactions-'+account_id|string +'.csv' %}
                 {% include "base/tabulator/tabulator-txs.html" %}
-
+            </div>
+            <div id="txs_table_block_wrapper_no_rows">
+                No transactions found.
+            </div>
 
         </div></div>
       

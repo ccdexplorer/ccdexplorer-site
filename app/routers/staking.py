@@ -254,7 +254,7 @@ async def get_ajax_paydays_tabulator(
         return JSONResponse(
             {
                 "data": made_up_paydays,
-                "last_page": last_page,
+                "last_page": max(1, last_page),
                 "last_row": total_rows,
             }
         )
@@ -284,7 +284,7 @@ async def get_ajax_pools(
     return JSONResponse(
         {
             "data": made_up_pools,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
@@ -331,7 +331,7 @@ async def get_ajax_passive_delegators(
     return JSONResponse(
         {
             "data": made_up_delegators,
-            "last_page": last_page,
+            "last_page": max(1, last_page),
             "last_row": total_rows,
         }
     )
