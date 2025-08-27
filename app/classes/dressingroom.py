@@ -46,6 +46,7 @@ class TransactionClassifier(Enum):
     Chain = "Chain"
     Failed = "Failed"
     Unclassified = "Unclassified"
+    PLT = "PLT"
 
 
 class TransactionClass(Enum):
@@ -1066,6 +1067,40 @@ class MakeUp:
                                 None,
                             )
 
+                        if new_event:
+                            self.events_list.append(new_event)
+
+                elif effects.token_update_effect:
+                    self.classifier = TransactionClassifier.PLT
+
+                    for event in effects.token_update_effect.events:
+                        if event.transfer_event:
+                            new_event = EventType(
+                                f"Transferred xxx from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                None,
+                                None,
+                            )
+
+                        elif event.mint_event is not None:
+                            new_event = EventType(
+                                f"Minted xxx from {account_link(from_address_to_index(event.mint_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                None,
+                                None,
+                            )
+
+                        elif event.burn_event is not None:
+                            new_event = EventType(
+                                f"Burned xxx from {account_link(from_address_to_index(event.burn_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                None,
+                                None,
+                            )
+
+                        elif event.module_event is not None:
+                            new_event = EventType(
+                                f"Module event:  {event.module_event.type}",
+                                None,
+                                None,
+                            )
                         if new_event:
                             self.events_list.append(new_event)
 
