@@ -126,6 +126,7 @@ async def lifespan(app: FastAPI):
     app.accounts_cache = {"mainnet": [], "testnet": []}
     app.identity_providers_cache = {"mainnet": {}, "testnet": {}}
     app.consensus_cache = {"mainnet": {}, "testnet": {}}
+    app.plt_cache = {"mainnet": {}, "testnet": {}}
     app.primed_suspended_cache = {}
     app.staking_pools_cache = {
         "open_for_all": {},
@@ -282,6 +283,8 @@ async def repeated_task_get_accounts_id_providers(app: FastAPI):
 
 @scheduler.scheduled_job("interval", seconds=5 * 60, args=[app])
 async def repeated_task_get_staking_pools(app: FastAPI):
+    print("Staking pools cache + primed suspended cache...")
+
     temp_dict = {}
     for status in ["open_for_all", "closed_for_new", "closed_for_all"]:
         api_result = await get_url_from_api(
@@ -306,3 +309,16 @@ async def repeated_task_get_staking_pools(app: FastAPI):
     app.primed_suspended_cache = api_result.return_value if api_result.ok else {}
 
     print("Staking pools cache + primed suspended cache updated.")
+
+
+@scheduler.scheduled_job("interval", seconds=1 * 60, args=[app])
+async def repeated_task_get_PLTs(app: FastAPI):
+    print("PLTs cache...")
+
+    for net in ["mainnet", "testnet"]:
+        api_result = await get_url_from_api(
+            f"{app.api_url}/v2/{net}/plt/overview", app.httpx_client
+        )
+        app.plt_cache[net] = api_result.return_value if api_result.ok else None
+        if not api_result.ok:
+            print(f"ERROR: {api_result.return_value}")

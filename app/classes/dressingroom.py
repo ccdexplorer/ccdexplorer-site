@@ -53,6 +53,7 @@ class TransactionClass(Enum):
     AccountTransaction = "account_transaction"
     CredentialDeploymentTransaction = "account_creation"
     UpdateTransaction = "update"
+    TokenCreation = "token_creation"
 
 
 class TransactionClassOLD(Enum):
@@ -572,6 +573,7 @@ class MakeUp:
                             None,
                             logged_events,
                         )
+
                 elif effects.contract_update_issued:
                     if process_events:
                         api_result = await get_url_from_api(
@@ -1074,9 +1076,14 @@ class MakeUp:
                     self.classifier = TransactionClassifier.PLT
 
                     for event in effects.token_update_effect.events:
+                        plt = self.app.plt_cache[self.net].get(event.token_id)
+                        if plt:
+                            decimals = plt.get("decimals", 0)
+                        else:
+                            decimals = 0
                         if event.transfer_event:
                             new_event = EventType(
-                                f"Transferred xxx from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                                f"Transferred {token_amount_using_decimals_rounded(event.transfer_event.amount.value, decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
                                 None,
                                 None,
                             )
@@ -1186,6 +1193,36 @@ class MakeUp:
                             "start_1": f'{dct["start_1"]} <span class="ccd small">(~{(int(ccd_amount/1_000_000) * ccd_historical_rate):,.0f} USD)</span>'
                         }
                     )
+            self.dct = dct
+
+        elif t.type.type == TransactionClass.TokenCreation.value:
+            self.classifier = TransactionClassifier.PLT
+            self.cns_tx_message = None
+            dct = {
+                "start_1": "",
+                "end_1": "",
+                "start_2": f"{datetime_delta_format_since(self.timestamp)} ago",
+                "end_2": "Account Created",
+                "start_3": tx_hash_link(t.hash, self.net),
+                "end_3": cost_html(t.energy_cost, energy=True),
+                "start_4": block_height_link(t.block_info.height, self.net),
+                "end_4": "",
+                "start_5": "",
+                "end_5": "",
+                "show_table": False,
+                "events": None,
+                "memo": "",
+                "csv_memo": "",
+                "schedule": [],
+            }
+
+            new_event = EventType(
+                f"Protocol-Level Token created: {t.token_creation.create_plt.initialization_parameters.name}",
+                None,
+                None,  # f"Index: {shorten_address(t.account_creation.address, address=True)}",
+            )
+            self.events_list.append(new_event)
+
             self.dct = dct
 
         elif t.type.type == TransactionClass.CredentialDeploymentTransaction.value:
