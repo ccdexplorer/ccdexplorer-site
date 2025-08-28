@@ -570,7 +570,7 @@ async def get_plt_token_holders_paginated(
     tb_made_up_rows = []
 
     if token_id in request.app.plt_cache[net]:
-        decimals = request.app.plt_cache[net]["token_id"].get("decimals", 0)
+        decimals = request.app.plt_cache[net][token_id].get("decimals", 0)
     else:
         api_result = await get_url_from_api(
             f"{request.app.api_url}/v2/{net}/plt/{token_id}/info",
