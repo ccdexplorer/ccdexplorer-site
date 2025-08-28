@@ -525,7 +525,7 @@ async def exchange_rates(
     request: Request,
     exchange_rates: dict = Depends(get_exchange_rates),
 ):
-    user: UserV2 = get_user_detailsv2(request)
+    user: UserV2 = await get_user_detailsv2(request)
     return templates.TemplateResponse(
         "tools/exchange_rates.html",
         {

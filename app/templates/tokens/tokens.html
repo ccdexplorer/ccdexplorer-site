@@ -14,7 +14,7 @@
 <div class="container my-4">
         <div class="row">
     
-    {% for token in plts %}
+    {% for token_name, token in plts.items() %}
         
         <div class="card  low border-dark m-2 p-2" style="width: 10rem;">
             <div class="card-body  m-0 p-0 text-center">
@@ -36,6 +36,7 @@
 
 {% endif %}
 
+{% if fungible_tokens_verified%}
 
 <h4 >Verified Fungible Tokens</h4>
 
@@ -82,6 +83,9 @@
 </div>          
         
 </div>
+{% endif %}
+
+{% if non_fungible_tokens_verified %}
 
 <h4 >Verified NFTs</h4>
 
@@ -122,7 +126,7 @@
 </div>          
         
 </div>
-
+{% endif %}
 
 
 {% endblock content %}

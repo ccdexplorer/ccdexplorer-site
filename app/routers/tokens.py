@@ -95,14 +95,14 @@ async def tokens_fungible_tvl(
 
 # @router.get("/{net}/cis-2-tokens")  # type:ignore
 @router.get("/{net}/tokens")  # type:ignore
-async def smart_contracts_tokens_overview(
+async def slash_tokens(
     request: Request,
     net: str,
     tags: dict = Depends(get_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/plt/overview",
+        f"{request.app.api_url}/v2/{net}/plts/overview",
         request.app.httpx_client,
     )
     plts = api_result.return_value if api_result.ok else []
@@ -569,6 +569,17 @@ async def get_plt_token_holders_paginated(
 
     tb_made_up_rows = []
 
+    if token_id in request.app.plt_cache[net]:
+        decimals = request.app.plt_cache[net]["token_id"].get("decimals", 0)
+    else:
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/plt/{token_id}/info",
+            request.app.httpx_client,
+        )
+        plt_info = api_result.return_value if api_result.ok else None
+        plt_info = CCD_TokenInfo(**plt_info) if plt_info else None
+        decimals = plt_info.token_state.decimals if plt_info else 0
+
     for row in holders_data:
         sender = account_link(
             row["account_address"],
@@ -578,7 +589,9 @@ async def get_plt_token_holders_paginated(
             app=request.app,
         )
         tb_made_up_rows.append(
-            create_dict_for_tabulator_display_for_plt_token_holders(net, row, sender)
+            create_dict_for_tabulator_display_for_plt_token_holders(
+                net, user, request.app, tags, row, sender, decimals
+            )
         )
     total_rows = holders["total_row_count"]  # type: ignore
     last_page = math.ceil(total_rows / size)
@@ -720,6 +733,7 @@ async def show_plt(
         "user": user,
         "ogp_title": og_title,
         "ogp_url": request.url._url,
+        "tx_type_translation_from_python": tx_type_translation_for_js(),
         # "owner_history_list": owner_history_list,
     }
 
@@ -757,7 +771,7 @@ async def tokens_tag_token_id(
         request.app.httpx_client,
     )
     plts: list[CCD_TokenId] = api_result.return_value if api_result.ok else []  # type: ignore
-    plts = ["eEUR"]
+
     if tag in plts:
         return await show_plt(
             request,

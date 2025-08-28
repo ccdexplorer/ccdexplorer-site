@@ -174,25 +174,28 @@ class MakeUp:
         type_additional_info = ""
 
         if self.additional_info:
-            if self.additional_info["type"] == "amount":
-                type_additional_info = micro_ccd_no_decimals(
-                    self.additional_info["value"]
-                )
-            elif self.additional_info["type"] == "contract":
-                type_additional_info = instance_link_from_str(
-                    self.additional_info["value"],
-                    self.net,
-                    user=self.user,
-                    tags=self.tags,
-                )
-            elif self.additional_info["type"] == "module":
-                type_additional_info = module_link(
-                    self.additional_info["value"],
-                    self.net,
-                    user=self.user,
-                    tags=self.tags,
-                )
-                # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
+            if "token_id" in self.additional_info:
+                type_additional_info = f'<a href="/{self.net}/tokens/{self.additional_info["token_id"]}">{self.additional_info["token_id"]}</a>'
+            else:
+                if self.additional_info["type"] == "amount":
+                    type_additional_info = micro_ccd_no_decimals(
+                        self.additional_info["value"]
+                    )
+                elif self.additional_info["type"] == "contract":
+                    type_additional_info = instance_link_from_str(
+                        self.additional_info["value"],
+                        self.net,
+                        user=self.user,
+                        tags=self.tags,
+                    )
+                elif self.additional_info["type"] == "module":
+                    type_additional_info = module_link(
+                        self.additional_info["value"],
+                        self.net,
+                        user=self.user,
+                        tags=self.tags,
+                    )
+                    # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
 
         sender = "Chain"
         if self.transaction.account_transaction:
@@ -1074,13 +1077,19 @@ class MakeUp:
 
                 elif effects.token_update_effect:
                     self.classifier = TransactionClassifier.PLT
-
                     for event in effects.token_update_effect.events:
+
                         plt = self.app.plt_cache[self.net].get(event.token_id)
                         if plt:
                             decimals = plt.get("decimals", 0)
                         else:
                             decimals = 0
+
+                        self.additional_info = {
+                            "token_id": event.token_id,
+                            "event_type": self.transaction.type.additional_data,
+                        }
+
                         if event.transfer_event:
                             new_event = EventType(
                                 f"Transferred {token_amount_using_decimals_rounded(event.transfer_event.amount.value, decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
@@ -1197,6 +1206,10 @@ class MakeUp:
 
         elif t.type.type == TransactionClass.TokenCreation.value:
             self.classifier = TransactionClassifier.PLT
+            self.additional_info = {
+                "token_id": t.token_creation.create_plt.token_id,
+                "event_type": "create PLT",
+            }
             self.cns_tx_message = None
             dct = {
                 "start_1": "",

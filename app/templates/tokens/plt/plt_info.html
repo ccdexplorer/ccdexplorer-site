@@ -15,39 +15,40 @@
             
             </td>
     </tr>
-    
+    {% if ip.initial_supply %}
         <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Initial Supply</td>
-        <td class="text-end text-secondary-emphasis">
+        <td class="text-end text-secondary-emphasis ccd">
             {{ ip.initial_supply.value|token_amount_using_decimals_rounded(ip.initial_supply.decimals, 0) }}
             </td>
         </tr>
+    {%endif%}
         <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Total Supply</td>
-        <td class="text-end text-secondary-emphasis">
+        <td class="text-end text-secondary-emphasis ccd">
             {{ ts.total_supply.value|token_amount_using_decimals_rounded(ts.total_supply.decimals, 0) }}
             </td>
         </tr>
        
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Allow list?</td>
-        <td class="text-end text-secondary-emphasis">{{ms.allow_list}}</td>
+        <td class="text-end text-secondary-emphasis">{% if ms.allow_list%}<i style="color:green;" class="bi bi-toggle-on"></i>{% else %}<i class="bi bi-toggle-off"></i>{%endif%}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Deny list?</td>
-        <td class="text-end text-secondary-emphasis">{{ms.deny_list}}</td>
+        <td class="text-end text-secondary-emphasis">{% if ms.deny_list%}<i style="color:green;" class="bi bi-toggle-on"></i>{% else %}<i class="bi bi-toggle-off"></i>{%endif%}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Mintable?</td>
-        <td class="text-end text-secondary-emphasis">{{ms.mintable}}</td>
+        <td class="text-end text-secondary-emphasis">{% if ms.mintable%}<i style="color:green;" class="bi bi-toggle-on"></i>{% else %}<i class="bi bi-toggle-off"></i>{%endif%}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Burnable?</td>
-        <td class="text-end text-secondary-emphasis">{{ms.burnable}}</td>
+        <td class="text-end text-secondary-emphasis">{% if ms.burnable%}<i style="color:green;" class="bi bi-toggle-on"></i>{% else %}<i class="bi bi-toggle-off"></i>{%endif%}</td>
     </tr>
     <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Paused?</td>
-        <td class="text-end text-secondary-emphasis">{{ms.paused}}</td>
+        <td class="text-end text-secondary-emphasis">{% if ms.paused%}<i style="color:green;" class="bi bi-toggle-on"></i>{% else %}<i class="bi bi-toggle-off"></i>{%endif%}</td>
     </tr>
     
 </tbody>

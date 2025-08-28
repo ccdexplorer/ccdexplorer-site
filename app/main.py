@@ -317,7 +317,7 @@ async def repeated_task_get_PLTs(app: FastAPI):
 
     for net in ["mainnet", "testnet"]:
         api_result = await get_url_from_api(
-            f"{app.api_url}/v2/{net}/plt/overview", app.httpx_client
+            f"{app.api_url}/v2/{net}/plts/overview", app.httpx_client
         )
         app.plt_cache[net] = api_result.return_value if api_result.ok else None
         if not api_result.ok:

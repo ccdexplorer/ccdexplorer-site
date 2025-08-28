@@ -204,8 +204,8 @@ tx_type_translation["baker_configured"] = TypeContents(
 # )
 
 
-tx_type_translation["token_creation"] = TypeContents(
-    display_str="token creation",
+tx_type_translation["create_plt"] = TypeContents(
+    display_str="create PLT",
     category=TypeContentsCategories.plt,
     color=TypeContentsCategoryColors.plt.value[0],
 )
@@ -215,6 +215,22 @@ tx_type_translation["token_update_effect"] = TypeContents(
     category=TypeContentsCategories.plt,
     color=TypeContentsCategoryColors.plt.value[0],
 )
+
+for event_type in [
+    "transfer",
+    "mint",
+    "burn",
+    "add allow list",
+    "remove allow list",
+    "pause",
+    "unpause",
+]:
+    tx_type_translation[f"token_update_effect-{event_type}"] = TypeContents(
+        display_str=f"PLT update - {event_type}",
+        category=TypeContentsCategories.plt,
+        color=TypeContentsCategoryColors.plt.value[0],
+    )
+
 
 tx_type_translation["delegation_configured"] = TypeContents(
     display_str="delegation configured",
@@ -300,6 +316,25 @@ tx_type_translation["initial"] = TypeContents(
     color=TypeContentsCategoryColors.identity.value[0],
 )
 
+
+class TxTypeMap(dict):
+    PREFIX = "token_update_effect-"
+
+    def __missing__(self, key):
+        if key.startswith(self.PREFIX):
+            sfx = key[len(self.PREFIX) :]
+            label = sfx.replace("_", " ").replace("-", " ")
+            value = TypeContents(
+                display_str=f"PLT {label}",
+                category=TypeContentsCategories.plt,
+                color=TypeContentsCategoryColors.plt.value[0],
+            )
+            self[key] = value  # cache it
+            return value
+        raise KeyError(key)
+
+
+tx_type_translation = TxTypeMap(tx_type_translation)
 
 UTC = dt.timezone.utc
 
@@ -1748,15 +1783,11 @@ def create_dict_for_tabulator_display_for_plt_token(net, row: dict):
 
 
 def create_dict_for_tabulator_display_for_plt_token_holders(
-    net, row: dict, account_address: str
+    net, user, app, tags: dict, row: dict, account_address: str, decimals: int
 ):
 
     return {
-        "token_balance": (
-            f'<span class="ccd text-secondary-emphasis">${round_x_decimal_with_comma(row["balance"], 0)}</span>'
-            if row["token_value_USD"] > 0.0
-            else ""
-        ),
+        "token_balance": f'<span class="ccd text-secondary-emphasis">{token_amount_using_decimals_rounded(int(row["balance"]), decimals)}</span>',
         "account_address": account_address,
         "token_balance_download": f'{row["balance"]}',
     }
@@ -1921,7 +1952,8 @@ def create_dict_for_tabulator_display(
             if classified_tx.transaction.account_transaction
             else 0
         ),
-        "transaction_type_contents": classified_tx.transaction.type.contents,
+        "transaction_type_contents": f"{classified_tx.transaction.type.contents}{'-'+classified_tx.transaction.type.additional_data if classified_tx.transaction.type.additional_data else ''}",
+        "plt_event": classified_tx.transaction.type.additional_data,
         # "transaction": classified_tx.transaction.model_dump(
         #     exclude_none=True, warnings=False
         # ),
