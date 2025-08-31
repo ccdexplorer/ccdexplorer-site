@@ -316,26 +316,6 @@ tx_type_translation["initial"] = TypeContents(
     color=TypeContentsCategoryColors.identity.value[0],
 )
 
-
-class TxTypeMap(dict):
-    PREFIX = "token_update_effect-"
-
-    def __missing__(self, key):
-        if key.startswith(self.PREFIX):
-            sfx = key[len(self.PREFIX) :]
-            label = sfx.replace("_", " ").replace("-", " ")
-            value = TypeContents(
-                display_str=f"PLT {label}",
-                category=TypeContentsCategories.plt,
-                color=TypeContentsCategoryColors.plt.value[0],
-            )
-            self[key] = value  # cache it
-            return value
-        raise KeyError(key)
-
-
-tx_type_translation = TxTypeMap(tx_type_translation)
-
 UTC = dt.timezone.utc
 
 

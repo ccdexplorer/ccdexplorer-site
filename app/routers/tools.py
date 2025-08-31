@@ -569,7 +569,11 @@ async def transactions_by_type_page(
             "net": net,
             "requested_page": 1,
             "tx_type_counts": tx_type_counts,
-            "tx_type_translation": tx_type_translation,
+            "tx_type_translation": {
+                k: v
+                for k, v in tx_type_translation.items()
+                if "token_update_effect-" not in k
+            },
             "API_KEY": request.app.env["CCDEXPLORER_API_KEY"],
             "tx_type_translation_from_python": tx_type_translation_for_js(),
         },

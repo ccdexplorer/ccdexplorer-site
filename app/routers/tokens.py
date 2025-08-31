@@ -108,21 +108,28 @@ async def slash_tokens(
     plts = api_result.return_value if api_result.ok else []
 
     user: UserV2 | None = await get_user_detailsv2(request)
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/tokens/fungible-tokens/verified",
-        request.app.httpx_client,
-    )
-    fungible_tokens_verified = api_result.return_value if api_result.ok else None
-    if fungible_tokens_verified:
-        fungible_tokens_verified = sorted(
-            fungible_tokens_verified, key=lambda x: x["token_value_USD"], reverse=True
+    fungible_tokens_verified = None
+    non_fungible_tokens_verified = None
+    if net == "mainnet":
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/tokens/fungible-tokens/verified",
+            request.app.httpx_client,
         )
+        fungible_tokens_verified = api_result.return_value if api_result.ok else None
+        if fungible_tokens_verified:
+            fungible_tokens_verified = sorted(
+                fungible_tokens_verified,
+                key=lambda x: x["token_value_USD"],
+                reverse=True,
+            )
 
-    api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/tokens/non-fungible-tokens/verified",
-        request.app.httpx_client,
-    )
-    non_fungible_tokens_verified = api_result.return_value if api_result.ok else None
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/tokens/non-fungible-tokens/verified",
+            request.app.httpx_client,
+        )
+        non_fungible_tokens_verified = (
+            api_result.return_value if api_result.ok else None
+        )
     request.state.api_calls = {}
     request.state.api_calls["Fungible Tokens"] = (
         f"{request.app.api_url}/docs#/Tokens/get_fungible_tokens_verified_v2__net__tokens_fungible_tokens_verified_get"

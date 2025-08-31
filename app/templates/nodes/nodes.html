@@ -101,7 +101,7 @@
           }
           const span = document.createElement("span");
           span.classList.add("small");
-          span.style.fontFamily = "monospace";
+          span.style.fontFamily = "monospace, monospace";
           span.textContent = (value * 100).toFixed(3) + "%";
           return span;
         }
@@ -117,7 +117,7 @@
           }
           const span = document.createElement("span");
           span.classList.add("small");
-          span.style.fontFamily = "monospace";
+          span.style.fontFamily = "monospace, monospace";
           span.textContent = (value).toFixed(1);
           return span;
           
@@ -140,7 +140,7 @@
           }
           const span = document.createElement("span");
           span.classList.add("small");
-          span.style.fontFamily = "monospace";
+          span.style.fontFamily = "monospace, monospace";
           span.textContent = (value).toFixed(0);
           span.textContent = value.toLocaleString();
           return span;
@@ -157,7 +157,7 @@
           }
           const span = document.createElement("span");
           span.classList.add("small");
-          span.style.fontFamily = "monospace";
+          span.style.fontFamily = "monospace, monospace";
           span.textContent = (value);
           
           return span;

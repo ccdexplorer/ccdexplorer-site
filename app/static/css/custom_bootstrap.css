@@ -11920,7 +11920,7 @@ textarea.form-control-lg {
 [data-bs-theme="dark"] .tabulator .tabulator-row {
   background-color: #151515;
   color: var(--bs-secondary-text-emphasis);
-  border: 0px;
+  border-bottom: 1px solid #e0e0e0 !important;
 }
 
 /* [data-bs-theme="dark"] .tabulator .tabulator-row.tabulator-row-even {
