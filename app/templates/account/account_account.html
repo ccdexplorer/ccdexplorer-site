@@ -375,7 +375,7 @@ if (ref) {
     ajaxConfig: "POST",
     ajaxContentType: "json",
     paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500],
-    paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[0],
+    paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[1],
     paginationButtonCount: 3,
     pagination: true,
     paginationDataReceived: { data: "data", total_rows: "total", last_page: (raw, p) => Math.ceil(raw.total/p.size) },

@@ -177,6 +177,8 @@
     ...commonTabulatorOptionsGET,
     columns: plt_holders_table_columns,
     ajaxURL: "{{tabulator_ajax_url}}",
+    maxHeight: "400px",           // fixed outer height
+    heightGrow: false,
     ajaxRequesting: function(url, params){
     return true; // must return true to allow the request
   },

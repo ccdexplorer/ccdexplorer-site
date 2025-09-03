@@ -106,10 +106,11 @@
       ajaxConfig:            "POST",
       ajaxContentType:       "json",
       paginationSizeSelector: window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500],
-      paginationSize:         (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[0],
+      paginationSize:         (window["{{ccd_tabulator_table}}_size_selector"] || [10,25,50,100,500])[1],
       paginationButtonCount:  3,
       pagination:             true,
-
+      maxHeight: "400px",           // fixed outer height
+      heightGrow: false,
       // map your API’s JSON into Tabulator’s pagination fields
       paginationDataReceived: {
         data:       "data",

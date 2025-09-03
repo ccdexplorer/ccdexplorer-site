@@ -1077,48 +1077,7 @@ class MakeUp:
 
                 elif effects.token_update_effect:
                     self.classifier = TransactionClassifier.PLT
-                    for event in effects.token_update_effect.events:
-
-                        plt = self.app.plt_cache[self.net].get(event.token_id)
-                        if plt:
-                            decimals = plt.get("decimals", 0)
-                        else:
-                            decimals = 0
-
-                        self.additional_info = {
-                            "token_id": event.token_id,
-                            "event_type": self.transaction.type.additional_data,
-                        }
-
-                        if event.transfer_event:
-                            new_event = EventType(
-                                f"Transferred {token_amount_using_decimals_rounded(event.transfer_event.amount.value, decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                                None,
-                                None,
-                            )
-
-                        elif event.mint_event is not None:
-                            new_event = EventType(
-                                f"Minted xxx from {account_link(from_address_to_index(event.mint_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                                None,
-                                None,
-                            )
-
-                        elif event.burn_event is not None:
-                            new_event = EventType(
-                                f"Burned xxx from {account_link(from_address_to_index(event.burn_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                                None,
-                                None,
-                            )
-
-                        elif event.module_event is not None:
-                            new_event = EventType(
-                                f"Module event:  {event.module_event.type}",
-                                None,
-                                None,
-                            )
-                        if new_event:
-                            self.events_list.append(new_event)
+                    self.process_plt_events(effects.token_update_effect.events)
 
                 elif effects.delegation_configured:
                     self.classifier = TransactionClassifier.Baking
@@ -1206,6 +1165,8 @@ class MakeUp:
 
         elif t.type.type == TransactionClass.TokenCreation.value:
             self.classifier = TransactionClassifier.PLT
+            if not t.token_creation:
+                raise ValueError("Token creation data missing")
             self.additional_info = {
                 "token_id": t.token_creation.create_plt.token_id,
                 "event_type": "create PLT",
@@ -1230,11 +1191,12 @@ class MakeUp:
             }
 
             new_event = EventType(
-                f"Protocol-Level Token created: {t.token_creation.create_plt.initialization_parameters.name}",
+                f'Protocol-Level Token created: <a href="/{self.net}/tokens/{t.token_creation.create_plt.initialization_parameters.name}"><span class="ccd">{t.token_creation.create_plt.initialization_parameters.name}</span></a>',
                 None,
                 None,  # f"Index: {shorten_address(t.account_creation.address, address=True)}",
             )
             self.events_list.append(new_event)
+            self.process_plt_events(t.token_creation.events)
 
             self.dct = dct
 
@@ -1604,3 +1566,52 @@ class MakeUp:
                 "block_hash": self.transaction.block_info.hash,
             }
         return self
+
+    def process_plt_events(self, events: list[CCD_TokenEvent]):
+        new_event = None
+        for event in events:
+
+            plt = self.app.plt_cache[self.net].get(event.token_id)
+            if plt:
+                decimals = plt.get("decimals", 0)
+            else:
+                decimals = 0
+
+            self.additional_info = {
+                "token_id": event.token_id,
+                "event_type": (
+                    self.transaction.type.additional_data
+                    if self.transaction.type is not None
+                    else ""
+                ),
+            }
+
+            if event.transfer_event:
+                new_event = EventType(
+                    f"Transferred {token_amount_using_decimals_rounded(int(event.transfer_event.amount.value), decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    None,
+                )
+
+            elif event.mint_event is not None:
+                new_event = EventType(
+                    f"Minted {token_amount_using_decimals_rounded(int(event.mint_event.amount.value), decimals)} to {account_link(from_address_to_index(event.mint_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    None,
+                )
+
+            elif event.burn_event is not None:
+                new_event = EventType(
+                    f"Burned {token_amount_using_decimals_rounded(int(event.burn_event.amount.value), decimals)} from {account_link(from_address_to_index(event.burn_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
+                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    None,
+                )
+
+            elif event.module_event is not None:
+                new_event = EventType(
+                    f"Module event:  {event.module_event.type}",
+                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    None,
+                )
+            if new_event:
+                self.events_list.append(new_event)

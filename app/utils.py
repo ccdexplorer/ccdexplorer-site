@@ -226,7 +226,7 @@ for event_type in [
     "unpause",
 ]:
     tx_type_translation[f"token_update_effect-{event_type}"] = TypeContents(
-        display_str=f"PLT update - {event_type}",
+        display_str=f"PLT - {event_type}",
         category=TypeContentsCategories.plt,
         color=TypeContentsCategoryColors.plt.value[0],
     )
@@ -1080,11 +1080,15 @@ def shorten_address(value, address=None):
             return ss
 
 
-def decode_memo(hex):
+def decode_memo(hex: str):
+    raw = bytes.fromhex(hex)
     try:
-        return cbor2.loads(bytes.fromhex(hex))
-    except:  # noqa: E722
-        return "Decoding failure..."
+        return cbor2.loads(raw)
+    except Exception:
+        try:
+            return json.loads(raw.decode("utf-8"))
+        except Exception:
+            return raw
 
 
 def parse_account_or_contract(key, value, net, user, tags, app):
