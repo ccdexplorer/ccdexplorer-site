@@ -2,21 +2,21 @@
   <thead>
     <tr class="sm-text">
       <th class="small" scope="col"></th>
-      <th class="text-secondary-emphasis text-end" scope="col">30d</th>
-      <th class="text-secondary-emphasis text-end" scope="col">90d</th>
-     <th class="text-secondary-emphasis text-end" scope="col">180d</th>
+{% if "d30" in account_apy_object %}<th class="text-secondary-emphasis text-end" scope="col">30d</th> {% endif %}
+{% if "d90" in account_apy_object %}<th class="text-secondary-emphasis text-end" scope="col">90d</th>{% endif %}
+{% if "d180" in account_apy_object %}<th class="text-secondary-emphasis text-end" scope="col">180d</th>{% endif %}
 
     </tr>
   </thead>
   <tbody>
-
+{% if "d30" in account_apy_object %}
     <tr class="sm-text">
       <td class="text-secondary-emphasis text-start">{% if delegation%}Delegator{% else %}Validator{%endif%}<br/>rewards</td>
       <td class="text-secondary-emphasis text-end"><small>{{ (account_apy_object.d30.sum_of_rewards*1000000)|micro_ccd_no_decimals|safe}}<br>
         <i><small><span>{{ (account_apy_object.d30.apy * 100) | round_x_decimal_no_comma(2)}}%</span></small></i></small>
       </td>
 
-
+{% endif %}
 {% if "d90" in account_apy_object %}
 
       <td class="text-secondary-emphasis text-end"><small>

@@ -1222,8 +1222,8 @@ def token_amount_using_decimals_rounded(
 ):
     if not decimals:
         return f"{int(value):,.0f}"
-    if not rounded_decimals:
-        rounded_decimals = 0
+    if rounded_decimals is None:
+        rounded_decimals = decimals
     return f"{(int(value) * (math.pow(10, -decimals))):,.{rounded_decimals}f}"
 
 
