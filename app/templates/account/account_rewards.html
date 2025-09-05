@@ -27,8 +27,8 @@
 
 {% if "d180" in account_apy_object %}
       <td class="text-secondary-emphasis text-end"><small>
-        {% set sum_micro = d180['sum_of_rewards'] * 1000000 %}
-        {% set apy_pct  = d180['apy'] * 100 %}
+        {% set sum_micro = account_apy_object.d180.sum_of_rewards * 1000000 %}
+        {% set apy_pct  = account_apy_object.d180.apy * 100 %}
         <!-- {{sum_micro| micro_ccd_no_decimals | default('')}}
         {{apy_pct| round_x_decimal_no_comma(2) | default('')}} -->
         {{sum_micro| micro_ccd_no_decimals | default('')|safe}}<br>
