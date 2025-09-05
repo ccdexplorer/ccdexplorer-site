@@ -143,6 +143,7 @@ if (ref) {
         </button>
         </li>
       {% endif %}  
+      {% if net=='mainnet' %}  
         {% if delegation %}
         <li class="nav-item" role="presentation"></li>
           <button class="nav-link  explorer bg-secondary-subtle" id="pills-delegation-tab" data-bs-toggle="pill" data-bs-target="#pills-delegation" type="button" role="tab" aria-controls="pills-delegation" aria-selected="true">
@@ -150,7 +151,7 @@ if (ref) {
         </button>
         </li>
         {% endif %}
-        {% if net=='mainnet' %}
+        
           {% if rewards_no_stake %}
           <li class="nav-item" role="presentation"></li>
             <button class="nav-link  explorer bg-secondary-subtle" id="pills-nostake-tab" data-bs-toggle="pill" data-bs-target="#pills-nostake" type="button" role="tab" aria-controls="pills-nostake" aria-selected="true">

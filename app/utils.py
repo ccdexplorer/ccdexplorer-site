@@ -1987,7 +1987,7 @@ def create_dict_for_tabulator_display_plt_transactions(
             else 0
         ),
         "first_event_str": classified_tx.transaction.type.additional_data,
-        "transaction_type_contents": classified_tx.transaction.type.contents,
+        "transaction_type_contents": f"{classified_tx.transaction.type.contents}{'-'+classified_tx.transaction.type.additional_data if classified_tx.transaction.type.additional_data else ''}",
         "hash": f'<a href="/{net}/transaction/{classified_tx.transaction.hash}"><span class="ccd">{tx_hash_link(classified_tx.transaction.hash, net)}</span></a>',
         "block_height": f'<a href="/{net}/block/{classified_tx.transaction.block_info.height}"><span class="ccd">{round_x_decimal_with_comma(classified_tx.transaction.block_info.height, 0)}</span></a>',
         "type_additional_info": type_additional_info,
