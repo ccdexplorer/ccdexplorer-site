@@ -1,0 +1,74 @@
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Account", field: "account_index_made_up", 
+        minWidth: 120,
+        // maxWidth: 120,
+        responsive: 0,
+        accessorDownload: (value, data) => data.account_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "# Installments", field: "count_of_installments", 
+        minWidth: 120,
+        // maxWidth: 120,
+        responsive: 9,
+        accessorDownload: (value, data) => data.account_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Period", field: "period", 
+        minWidth: 120,
+        maxWidth: 150,
+        responsive: 10,
+        accessorDownload: (value, data) => data.account_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      
+      {
+        title: "Unlocked", field: "unlocked", 
+        minWidth: 150,
+        maxWidth: 150,
+        responsive: 5,
+        formatter: microCCDFormatterRounded,
+        titleDownload:"Unlocked Amount (CCD)",
+        accessorDownload: (value, data) => data.unlocked/1000000,
+        headerSort:false,
+        
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      {
+        title: "Total Scheduled", field: "scheduled_total", 
+        minWidth: 150,
+        maxWidth: 150,
+        responsive: 0,
+        formatter: microCCDFormatterRounded,
+        titleDownload:"Scheduled Amount (CCD)",
+        accessorDownload: (value, data) => data.scheduled_total/1000000,
+        headerSort:false,
+        
+        hozAlign: "right", headerHozAlign: "right",
+        
+      },
+      
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+   window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+</script>
+{% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}

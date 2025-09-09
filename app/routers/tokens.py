@@ -696,7 +696,7 @@ async def get_plt_transactions_for_tabulator(
                 ).prepare_for_display(transaction, "", False)
 
                 type_additional_info, sender = (
-                    await classified_tx.transform_for_tabulator()
+                    await classified_tx.transform_for_tabulator(plt_page=True)
                 )
 
                 tb_made_up_txs.append(

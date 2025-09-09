@@ -1,23 +1,18 @@
-{% if accounts|length == 0 %}
-        <p class="text-secondary-emphasis">No accounts found.</p>
+
+{% extends "base/base.html" %}
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+
+{% set ccd_tabulator_table ='scheduled_release_table'%}
+    {% set tabulator_ajax_url = '/'+net+'/ajax_accounts_scheduled_release/'%}
+    {% set filename='scheduled-release-'+range(1000,10000)|random|string+'.csv' %}
+    <div class="row  mt-10">
+        <!-- <div class="border curved-border mb-2 mt-4"> -->
+        <span class="text-uppercase sm-text text-secondary-emphasis">Accounts with Scheduled Release</span>
+          <div class="col-lg-12 "  >
+            {% include 'base/tabulator/tabulator-scheduled-release.html' %}
+          </div>
+        <!-- </div> -->
     </div>
-{% else %}
-<table class="table ">
-    <thead>
-    <tr  class="account-row sm-text">
-      <th class="text-start text-secondary-emphasis"><span style="font-family: monospace, monospace;">Account</span></th>
-      <th class="text-end text-secondary-emphasis">First Timestamp</th>
-      
-    </tr>
-  </thead>
-  <tbody class="table-group-divider">
-  {% for row in accounts %}
-    <tr class="sm-text ">
-          <td class="text-start text-secondary-emphasis "><a href="/{{net}}/account/{{row.account_index}}"><span class="ccd" >{{row.account_index}}</a></td>
-          <td class="text-end text-secondary-emphasis "><span class="ccd">{{row.first_timestamp|datetime_regular}}</span></td>
-          
-    </tr>
-  {% endfor %}
-  </tbody>
-  </table>
-  {% endif %}
+    
+{% endblock %}

@@ -64,7 +64,7 @@
                             <tr class="collapse px-0 sm-text" id="collapseExample">
 
 
-                                <td class="ps-1 text-end text-secondary-emphasis">{{schedule.timestamp | datetime_regular}}</td>
+                                <td class="ps-1 text-end text-secondary-emphasis ccd">{{schedule.timestamp | datetime_regular}}</td>
                                 <td class="text-center text-secondary-emphasis">
                                     {% for tx in schedule.transactions %}
                                         {{tx |tx_hash_link (net)|safe }}  

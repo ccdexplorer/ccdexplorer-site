@@ -168,34 +168,51 @@ class MakeUp:
 
         return self
 
-    async def transform_for_tabulator(self):
+    async def transform_for_tabulator(self, plt_page: bool = False):
 
         # additional info value display str
         type_additional_info = ""
 
         if self.additional_info:
-            if "token_id" in self.additional_info:
-                type_additional_info = f'<a href="/{self.net}/tokens/{self.additional_info["token_id"]}">{self.additional_info["token_id"]}</a>'
-            else:
-                if self.additional_info["type"] == "amount":
-                    type_additional_info = micro_ccd_no_decimals(
-                        self.additional_info["value"]
+
+            if self.additional_info["type"] == "amount":
+                type_additional_info = micro_ccd_no_decimals(
+                    self.additional_info["value"]
+                )
+            elif self.additional_info["type"] == "contract":
+                type_additional_info = instance_link_from_str(
+                    self.additional_info["value"],
+                    self.net,
+                    user=self.user,
+                    tags=self.tags,
+                )
+            elif self.additional_info["type"] == "module":
+                type_additional_info = module_link(
+                    self.additional_info["value"],
+                    self.net,
+                    user=self.user,
+                    tags=self.tags,
+                )
+            elif self.additional_info["type"] == "plt":
+                plt = self.app.plt_cache[self.net].get(self.additional_info["token_id"])
+                if plt:
+                    decimals = plt.get("decimals", 0)
+
+                else:
+                    decimals = 0
+                    display_value = None
+
+                if "amount" in self.additional_info:
+                    display_value = token_amount_using_decimals_rounded(
+                        int(self.additional_info["amount"]), decimals, 0
                     )
-                elif self.additional_info["type"] == "contract":
-                    type_additional_info = instance_link_from_str(
-                        self.additional_info["value"],
-                        self.net,
-                        user=self.user,
-                        tags=self.tags,
-                    )
-                elif self.additional_info["type"] == "module":
-                    type_additional_info = module_link(
-                        self.additional_info["value"],
-                        self.net,
-                        user=self.user,
-                        tags=self.tags,
-                    )
-                    # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
+                    type_additional_info = f'{display_value} <span class="ccd">{self.additional_info["token_id"]}</span>'
+
+                elif "token_id" in self.additional_info:
+                    if not plt_page:
+                        type_additional_info = f'<a href="/{self.net}/tokens/{self.additional_info["token_id"]}"><span class="ccd">{self.additional_info["token_id"]}</span></a>'
+
+                # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
 
         sender = "Chain"
         if self.transaction.account_transaction:
@@ -511,6 +528,7 @@ class MakeUp:
                         None,
                         None,
                     )
+
                 elif effects.contract_initialized:
                     if process_events:
                         api_result = await get_url_from_api(
@@ -1191,7 +1209,7 @@ class MakeUp:
             }
 
             new_event = EventType(
-                f'Protocol-Level Token created: <a href="/{self.net}/tokens/{t.token_creation.create_plt.initialization_parameters.name}"><span class="ccd">{t.token_creation.create_plt.initialization_parameters.name}</span></a>',
+                f'Protocol-Level Token created: <a href="/{self.net}/tokens/{t.token_creation.create_plt.token_id}"><span class="ccd">{t.token_creation.create_plt.initialization_parameters.name} ({t.token_creation.create_plt.token_id})</span></a>',
                 None,
                 None,  # f"Index: {shorten_address(t.account_creation.address, address=True)}",
             )
@@ -1574,10 +1592,13 @@ class MakeUp:
             plt = self.app.plt_cache[self.net].get(event.token_id)
             if plt:
                 decimals = plt.get("decimals", 0)
+                display_name = plt.get("initialization_parameters", {}).get("name", "")
             else:
                 decimals = 0
+                display_name = None
 
             self.additional_info = {
+                "type": "plt",
                 "token_id": event.token_id,
                 "event_type": (
                     self.transaction.type.additional_data
@@ -1585,32 +1606,35 @@ class MakeUp:
                     else ""
                 ),
             }
-
+            plt_string = f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id if not display_name else display_name}</span></a>'
             if event.transfer_event:
+                self.additional_info["amount"] = int(event.transfer_event.amount.value)
                 new_event = EventType(
                     f"Transferred {token_amount_using_decimals_rounded(int(event.transfer_event.amount.value), decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    plt_string,
                     None,
                 )
 
             elif event.mint_event is not None:
+                self.additional_info["amount"] = int(event.mint_event.amount.value)
                 new_event = EventType(
                     f"Minted {token_amount_using_decimals_rounded(int(event.mint_event.amount.value), decimals)} to {account_link(from_address_to_index(event.mint_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    plt_string,
                     None,
                 )
 
             elif event.burn_event is not None:
+                self.additional_info["amount"] = int(event.burn_event.amount.value)
                 new_event = EventType(
                     f"Burned {token_amount_using_decimals_rounded(int(event.burn_event.amount.value), decimals)} from {account_link(from_address_to_index(event.burn_event.target.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
-                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    plt_string,
                     None,
                 )
 
             elif event.module_event is not None:
                 new_event = EventType(
                     f"Module event:  {event.module_event.type}",
-                    f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id}</span></a>',
+                    plt_string,
                     None,
                 )
             if new_event:

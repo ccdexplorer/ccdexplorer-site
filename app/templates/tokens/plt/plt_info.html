@@ -18,15 +18,15 @@
     {% if ip.initial_supply %}
         <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Initial Supply</td>
-        <td class="text-end text-secondary-emphasis ccd">
-            {{ ip.initial_supply.value|token_amount_using_decimals_rounded(ip.initial_supply.decimals, 0) }}
+        <td class="text-end text-secondary-emphasis ">
+            {{ ip.initial_supply.value|token_amount_using_decimals_rounded(ip.initial_supply.decimals, 0) |safe}} <span class="ccd">{{ token_id }}</span>
             </td>
         </tr>
     {%endif%}
         <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Total Supply</td>
-        <td class="text-end text-secondary-emphasis ccd">
-            {{ ts.total_supply.value|token_amount_using_decimals_rounded(ts.total_supply.decimals, 0) }}
+        <td class="text-end text-secondary-emphasis">
+            {{ ts.total_supply.value|token_amount_using_decimals_rounded(ts.total_supply.decimals, 0)|safe }} <span class="ccd">{{ token_id }}</span>
             </td>
         </tr>
        

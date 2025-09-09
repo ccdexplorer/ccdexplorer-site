@@ -7,10 +7,12 @@ import httpx
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountPending,
     CCD_BlockItemSummary,
+    CCD_ReleaseSchedule,
+    CCD_AccountInfo,
 )
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
@@ -36,6 +38,8 @@ from app.utils import (
     post_url_from_api,
     tx_type_translation,
     tx_type_translation_for_js,
+    account_link,
+    datetime_delta_format_until,
 )
 
 router = APIRouter()
@@ -772,7 +776,7 @@ async def accounts_scheduled_release(
     )
 
     return templates.TemplateResponse(
-        "tools/accounts-scheduled-release.html",
+        "tools/accounts-scheduled-release-content.html",
         {
             "env": request.app.env,
             "request": request,
@@ -784,35 +788,72 @@ async def accounts_scheduled_release(
     )
 
 
-@router.get(
-    "/{net}/ajax_accounts_scheduled_release",
-    response_class=HTMLResponse | RedirectResponse,
-)
+@router.get("/{net}/ajax_accounts_scheduled_release", response_class=HTMLResponse)
 async def ajax_accounts_scheduled_release(
     request: Request,
     net: str,
+    page: int = Query(),
+    size: int = Query(),
     tags: dict = Depends(get_labeled_accounts),
     # tags_community: dict = Depends(get_community_labeled_accounts),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
 ):
+    skip = (page - 1) * size
     user: UserV2 | None = await get_user_detailsv2(request)
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/accounts/scheduled-release",
+        f"{request.app.api_url}/v2/{net}/accounts/scheduled-release/{skip}/{size}",
         httpx_client,
     )
-    accounts = api_result.return_value if api_result.ok else []
-    if accounts:
-        accounts = [CCD_AccountPending(**x) for x in accounts]
-    return templates.TemplateResponse(
-        "/tools/accounts-scheduled-release-content.html",
+    accounts = api_result.return_value if api_result.ok else {}
+    if not accounts:
+        error = f"Request error getting scheduled release accounts on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    data = accounts["accounts"]
+    made_up_accounts = []
+    for d in data:
+        dd = {}
+        dd["account_index_made_up"] = account_link(
+            d["account_index"],
+            net,
+            user=user,
+            tags=tags,
+            app=request.app,
+        )
+        release = CCD_ReleaseSchedule(**d["account_schedule"])
+
+        dd["scheduled_total"] = release.total
+        dd["count_of_installments"] = (
+            f"<span class='ccd'>{len(release.schedules)}</span>"
+        )
+        dd["first_release"] = datetime_delta_format_until(
+            release.schedules[0].timestamp
+        )
+        dd["last_release"] = datetime_delta_format_until(
+            release.schedules[-1].timestamp
+        )
+        dd["period"] = (
+            f'<span class="ccd">{dd["first_release"].replace(" days", "")} - {dd["last_release"]}</span>'
+        )
+        dd["unlocked"] = d["account_amount"] - release.total
+        made_up_accounts.append(dd)
+    total_rows = accounts["total_rows"]  # type: ignore
+    last_page = math.ceil(total_rows / size)
+
+    return JSONResponse(
         {
-            "env": environment,
-            "request": request,
-            "user": user,
-            "tags": tags,
-            "accounts": accounts,
-            "net": net,
-        },
+            "data": made_up_accounts,
+            "last_page": max(1, last_page),
+            "last_row": total_rows,
+        }
     )
 
 

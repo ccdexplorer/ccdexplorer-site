@@ -1224,7 +1224,7 @@ def token_amount_using_decimals_rounded(
         return f"{int(value):,.0f}"
     if rounded_decimals is None:
         rounded_decimals = decimals
-    return f"{(int(value) * (math.pow(10, -decimals))):,.{rounded_decimals}f}"
+    return f"<span class='ccd'>{(int(value) * (math.pow(10, -decimals))):,.{rounded_decimals}f}</span>"
 
 
 async def process_event_for_makeup(req: ProcessEventRequest):
@@ -1771,7 +1771,7 @@ def create_dict_for_tabulator_display_for_plt_token_holders(
 ):
 
     return {
-        "token_balance": f'<span class="ccd text-secondary-emphasis">{token_amount_using_decimals_rounded(int(row["balance"]), decimals)}</span>',
+        "token_balance": f'<span class="text-secondary-emphasis">{token_amount_using_decimals_rounded(int(row["balance"]), decimals)}</span> <span class="ccd">{row["token_id"]}</span>',
         "account_address": account_address,
         "token_balance_download": f'{row["balance"]}',
     }
