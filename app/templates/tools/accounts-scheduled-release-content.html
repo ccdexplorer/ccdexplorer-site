@@ -4,7 +4,7 @@
 {% include 'base/search_bar_non_home_inclusion.html' %}
 
 {% set ccd_tabulator_table ='scheduled_release_table'%}
-    {% set tabulator_ajax_url = '/'+net+'/ajax_accounts_scheduled_release/'%}
+    {% set tabulator_ajax_url = '/'+net+'/ajax_accounts_scheduled_release'%}
     {% set filename='scheduled-release-'+range(1000,10000)|random|string+'.csv' %}
     <div class="row  mt-10">
         <!-- <div class="border curved-border mb-2 mt-4"> -->
