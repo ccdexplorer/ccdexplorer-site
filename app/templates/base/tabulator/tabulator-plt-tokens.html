@@ -56,7 +56,10 @@ function init_plt_tokens_table() {
 
       const wrap = document.getElementById("{{ccd_tabulator_table}}_wrapper");
       if (wrap) wrap.style.display = rows.length ? "" : "none";
-
+      const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
+      const pagination = document.querySelector(sel);
+      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
+      
       return { data: rows, last_page, last_row };
     },
   });

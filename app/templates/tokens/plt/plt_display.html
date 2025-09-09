@@ -182,6 +182,16 @@
     ajaxRequesting: function(url, params){
     return true; // must return true to allow the request
   },
+  ajaxResponse: function (url, params, resp) {
+      const rows = Array.isArray(resp?.data) ? resp.data : [];
+      const last_page = Math.max(1, Number(resp?.last_page ?? 1));
+      const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
+      const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
+      const pagination = document.querySelector(sel);
+      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
+      
+      return { data: rows, last_page, last_row };
+    },
   });
 
   window["plt_holders_table"].on("renderComplete", function () {

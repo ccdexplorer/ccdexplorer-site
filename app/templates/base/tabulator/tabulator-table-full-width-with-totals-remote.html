@@ -82,16 +82,19 @@
       const rows = Array.isArray(resp?.data) ? resp.data : [];
       const last_page = Math.max(1, Number(resp?.last_page ?? 1));
       const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
-
       const wrap = document.getElementById("{{ccd_tabulator_table}}_wrapper");
       const wrap_no_rows = document.getElementById("{{ccd_tabulator_table}}_wrapper_no_rows");
+      console.log(rows.length , params.size)
+      const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
+      const pagination = document.querySelector(sel);
+      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
       if (wrap) wrap.style.display = rows.length ? "" : "none";
       if (wrap_no_rows) wrap_no_rows.style.display = rows.length ? "none" : "";
 
       return { data: rows, last_page, last_row };
     },
   });
- 
+
   window["{{ccd_tabulator_table}}_table"].on("renderComplete", function () {
     document.querySelectorAll(".tabulator-col-title").forEach(el => {
       el.classList.add("sm-text");

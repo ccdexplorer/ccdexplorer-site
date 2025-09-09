@@ -13,6 +13,10 @@
       paginationSize: 25,
       // paginationCounter: "rows",
       ajaxResponse: function(url, params, response) {
+        const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
+      const pagination = document.querySelector(sel);
+      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
+      
         if (!response.data || response.data.length === 0) {
           // Stop at previous page, since this page was empty
           this.setMaxPage(params.page - 1);

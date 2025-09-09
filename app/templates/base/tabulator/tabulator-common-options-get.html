@@ -12,7 +12,7 @@ var commonTabulatorOptionsGET = {
     paginationSize: (window["{{ccd_tabulator_table}}_size_selector"] || [10, 25, 50, 100, 500])[1],
     paginationButtonCount:3,
     pagination:true,
-    
+    paginationElement: document.getElementById("{{ccd_tabulator_table}}-paginator"),
     paginationCounter: function(pageSize, currentRow, currentPage, totalRows, totalPages) {
         // Humanize totals with Intl.NumberFormat compact notation
         function humanize(num) {

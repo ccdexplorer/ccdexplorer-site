@@ -230,7 +230,9 @@ text-align: center;
       const wrap_no_rows = document.getElementById("{{ccd_tabulator_table}}_wrapper_no_rows");
       if (wrap) wrap.style.display = rows.length ? "" : "none";
       if (wrap_no_rows) wrap_no_rows.style.display = rows.length ? "none" : "";
-
+      const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
+      const pagination = document.querySelector(sel);
+      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
       return { data: rows, last_page, last_row };
     },
   });
