@@ -269,7 +269,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="border curved-border" >
             <div id="instance-transactions">
                 {% set ccd_tabulator_table ='txs_table_contract'%}
-                {% set tabulator_ajax_url = '/contract_transactions/'+net+'/'+index|string+'/'+subindex|string +'/'+total_rows|string%}
+                
+                {% set tabulator_ajax_url = '/contract_transactions/'+net+'/'+index|string+'/'+subindex|string%}
+                
                 {% set filename='contract-transactions-'+account_id|string +'.csv' %}
                 {% include "base/tabulator/tabulator-txs.html" %}
             </div>

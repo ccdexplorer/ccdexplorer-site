@@ -673,7 +673,7 @@ async def module_module_address(
 
 
 @router.get(
-    "/contract_transactions/{net}/{instance_index}/{instance_subindex}/{total_rows}",
+    "/contract_transactions/{net}/{instance_index}/{instance_subindex}",
     response_class=HTMLResponse,
 )
 async def get_contract_transactions_for_tabulator(
@@ -681,7 +681,6 @@ async def get_contract_transactions_for_tabulator(
     net: str,
     instance_index: int,
     instance_subindex: int,
-    total_rows: int,
     page: int = Query(),
     size: int = Query(),
     sort_key: Optional[str] = Query("block_height"),
@@ -697,7 +696,6 @@ async def get_contract_transactions_for_tabulator(
     user: UserV2 | None = await get_user_detailsv2(request)
     instance_address = f"<{instance_index},{instance_subindex}>"
     skip = (page - 1) * size
-    last_page = math.ceil(total_rows / size)
     sort_key = (
         "block_height" if sort_key == "transaction.block_info.height" else sort_key
     )
@@ -721,7 +719,7 @@ async def get_contract_transactions_for_tabulator(
     else:
         tb_made_up_txs = []
         tx_result_transactions = tx_result["transactions"]
-
+        total_rows = tx_result["total_tx_count"]
         if len(tx_result_transactions) > 0:
             for transaction in tx_result_transactions:
                 transaction = CCD_BlockItemSummary(**transaction)
@@ -749,6 +747,7 @@ async def get_contract_transactions_for_tabulator(
                         net, classified_tx, type_additional_info, sender
                     )
                 )
+        last_page = math.ceil(total_rows / size)
         return JSONResponse(
             {
                 "data": tb_made_up_txs,
