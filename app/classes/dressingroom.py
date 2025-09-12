@@ -175,25 +175,25 @@ class MakeUp:
 
         if self.additional_info:
 
-            if self.additional_info["type"] == "amount":
+            if self.additional_info.get("type") == "amount":
                 type_additional_info = micro_ccd_no_decimals(
                     self.additional_info["value"]
                 )
-            elif self.additional_info["type"] == "contract":
+            elif self.additional_info.get("type") == "contract":
                 type_additional_info = instance_link_from_str(
                     self.additional_info["value"],
                     self.net,
                     user=self.user,
                     tags=self.tags,
                 )
-            elif self.additional_info["type"] == "module":
+            elif self.additional_info.get("type") == "module":
                 type_additional_info = module_link(
                     self.additional_info["value"],
                     self.net,
                     user=self.user,
                     tags=self.tags,
                 )
-            elif self.additional_info["type"] == "plt":
+            elif self.additional_info.get("type") == "plt":
                 plt = self.app.plt_cache[self.net].get(self.additional_info["token_id"])
                 if plt:
                     decimals = plt.get("decimals", 0)
@@ -213,7 +213,8 @@ class MakeUp:
                         type_additional_info = f'<a href="/{self.net}/tokens/{self.additional_info["token_id"]}"><span class="ccd">{self.additional_info["token_id"]}</span></a>'
 
                 # type_additional_info = '<a href="/{{net}}/module/{{row.additional_info["value"]}}" class="module_ref" title="{{row.additional_info["value"]}}"><span style="font-family: monospace, monospace;">{{row.additional_info["value"][:4]|safe}}</span></a>'
-
+            elif self.additional_info.get("contents") == "create_plt":
+                type_additional_info = f'<a href="/{self.net}/tokens/{self.additional_info["token_id"]}"><span class="ccd">{self.additional_info["token_id"]}</span></a>'
         sender = "Chain"
         if self.transaction.account_transaction:
             sender = account_link(
