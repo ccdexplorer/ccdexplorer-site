@@ -292,11 +292,15 @@ payload_translation["mint_distribution_cpv_1_update"] = "mint distribution"
 payload_translation["finalization_committee_parameters_update"] = (
     "finalization committee parameters"
 )
-payload_translation["create_plt_update"] = "create PLT"
+# payload_translation["create_plt_update"] = "create PLT"
 
 
 # update
 for payload in CCD_UpdatePayload.model_fields:
+
+    if payload == "create_plt_update":
+        # covered as an account transaction
+        continue
     tx_type_translation[payload] = TypeContents(
         display_str=payload_translation[payload],
         category=TypeContentsCategories.chain,
