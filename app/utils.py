@@ -1752,9 +1752,14 @@ def create_dict_for_tabulator_display_for_contracts(
 def create_dict_for_tabulator_display_for_plt_token(net, row: dict):
     ti = row["tag_information"]
     token_decimals = ti["decimals"]
-
+    tm = ti.get("token_metadata")
+    logo = (
+        f'<img src="{tm.get("display", "")}"  style=" max-width: 16px;max-height: 16px;"  alt="">'
+        if tm
+        else ""
+    )
     return {
-        "token_display": f'<img src="{ti.get("logo_url", "")}"  style=" max-width: 16px;max-height: 16px;"  alt=""><a href="/{net}/tokens/{ti["_id"]}"><span class="ccd text-secondary-emphasis">{ti["_id"]}</span></a><br/><span class="ccd_decimals text-secondary-emphasis">{round_x_decimal_with_comma(row["token_value"],token_decimals)} {ti["_id"]}</span>',
+        "token_display": f'{logo}<a href="/{net}/tokens/{ti["_id"]}"><span class="ccd text-secondary-emphasis">{ti["_id"]}</span></a><br/><span class="ccd_decimals text-secondary-emphasis">{round_x_decimal_with_comma(row["token_value"],token_decimals)} {ti["_id"]}</span>',
         "token_balance_usd": (
             f'<span class="ccd text-secondary-emphasis">${round_x_decimal_with_comma(row["token_value_USD"], 0)}</span><br/><span class="ccd_decimals text-secondary-emphasis">@{round_x_decimal_with_comma(row["exchange_rate"],3)}</span>'
             if row["token_value_USD"] > 0.0
