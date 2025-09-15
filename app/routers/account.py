@@ -556,6 +556,17 @@ async def get_account(
             httpx_client,
         )
         tokens_value_USD = api_result.return_value if api_result.ok else 0
+    assert isinstance(tokens_value_USD, (int, float))
+
+    plts_value_USD = 0
+    if tokens_available:
+        api_result = await get_url_from_api(
+            f"{request.app.api_url}/v2/{net}/account/{account_id}/plt/USD",
+            httpx_client,
+        )
+        plts_value_USD = api_result.return_value if api_result.ok else 0
+    assert isinstance(plts_value_USD, (int, float))
+    tokens_value_USD += plts_value_USD
 
     ccd_balance_USD = 0
     api_result = await get_url_from_api(
