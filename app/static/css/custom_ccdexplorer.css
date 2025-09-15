@@ -209,6 +209,11 @@ input:focus {
     font-size: smaller;
 }
 
+
+.large {
+    font-size: 250%;
+}
+
 .table-row-line-height {
     line-height: 1;
 }

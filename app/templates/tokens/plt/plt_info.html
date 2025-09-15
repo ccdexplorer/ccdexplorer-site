@@ -10,6 +10,12 @@
                 </td>
         </tr>
         <tr class="table-row-line-height sm-text">
+            <td class="text-start text-secondary-emphasis">Token Symbol</td>
+            <td class="text-end text-secondary-emphasis text-break">
+                    {{ token_id }}
+                </td>
+        </tr>
+        <tr class="table-row-line-height sm-text">
         <td class="text-start text-secondary-emphasis">Governance Account</td>
         <td class="text-end text-secondary-emphasis">{{ ms.governance_account.account|account_link(net,user,tags,request.app)|safe}}
             
@@ -27,6 +33,13 @@
         <td class="text-start text-secondary-emphasis">Total Supply</td>
         <td class="text-end text-secondary-emphasis">
             {{ ts.total_supply.value|token_amount_using_decimals_rounded(ts.total_supply.decimals, 0)|safe }} <span class="ccd">{{ token_id }}</span>
+            </td>
+        </tr>
+
+        <tr class="table-row-line-height sm-text">
+        <td class="text-start text-secondary-emphasis">Decimals</td>
+        <td class="text-end text-secondary-emphasis ccd">
+            {{ ts.decimals|safe }}
             </td>
         </tr>
        

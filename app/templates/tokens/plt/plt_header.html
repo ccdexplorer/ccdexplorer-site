@@ -1,10 +1,16 @@
 
 {% set ip = plt_info.tag_information.initialization_parameters %}
-<div class="row mb-3 ps-3">
+{% set metadata = plt_info.tag_information.token_metadata %}
+<div class="row  ">
     <div class="col-sm-12">
-        Protocol-Level Token
-        <span class="text-end text-secondary-emphasis" ></span>
-        <span class="ms-2 text-success">{{ ip.name }} ({{token_id}})</span>
+        {% if metadata %}<img src="{{ metadata.display }}"  style=" max-width: 32px;max-height: 32px;"  alt="">{% endif %}
+        {% if not metadata %}Protocol-Level Token {% endif %}<b>{{ ip.name }}</b>
+        {% if metadata %}
+        <div >
+            <span class="sm-text">{{ metadata.description }}</span>
+        </div>
+        {% endif %}
+
 
 </div>      
         </div>

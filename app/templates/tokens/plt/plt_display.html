@@ -12,16 +12,19 @@
 
 
 
-<div class="row  mt-4">
-  <div class="col">{% include 'tokens/plt/plt_header.html' %}</div>  
-  
+<div class="row row-flex">
+    <div class="col-md-12  col-sm-12 ">
+      <div class="border content curved-border " >
+        <div class="col">{% include 'tokens/plt/plt_header.html' %}</div>  
+      </div>
+      </div>
 </div>
 
 <!-- https://codepen.io/ondrejsvestka/pen/gWPpPo for equal height columns -->
-<div class="row mt-4 row-flex">
+<div class="row row-flex">
   <div class="col-md-6  col-sm-12 ">
       <div class="border content curved-border " >
-          {% set title= "Token Info" %}{% include 'base/box_title.html' %}
+          {% set title= "Protocol-Level Token Info" %}{% include 'base/box_title.html' %}
           {% include "tokens/plt/plt_info.html" %}</div>
   </div>
   <div class="col-md-6  col-sm-12 ">
