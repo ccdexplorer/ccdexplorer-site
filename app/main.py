@@ -10,15 +10,11 @@ from app.jinja2_helpers import templates
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountInfo,
     CCD_IpInfo,
-    CCD_ArInfo,
 )
 from fastapi.middleware.gzip import GZipMiddleware
 
-# from fastapi_restful.tasks import repeat_every
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-# import asyncio
-# from scheduler.asyncio import Scheduler
 
 from app.routers import home
 from app.routers import transaction
