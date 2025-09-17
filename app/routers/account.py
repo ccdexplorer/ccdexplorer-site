@@ -578,18 +578,20 @@ async def get_account(
     # TODO
     cns_domains_list = None  # cns_domains_registered(account_id)
 
-    token_ids = []
+    cis2_token_ids = []
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{account_id}/token-symbols-for-flow",
         httpx_client,
     )
-    token_ids = api_result.return_value if api_result.ok else []
+    cis2_token_ids = api_result.return_value if api_result.ok else []
 
-    # api_result = await get_url_from_api(
-    #     f"{request.app.api_url}/v2/{net}/account/{account_id}/aliases-in-use",
-    #     httpx_client,
-    # )
-    # aliases_in_use = api_result.return_value if api_result.ok else []
+    plt_ids = []
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/account/{account_id}/plt-symbols-for-flow",
+        httpx_client,
+    )
+    plt_ids = api_result.return_value if api_result.ok else []
+    token_ids = cis2_token_ids + plt_ids  # type: ignore
 
     api_result = await get_url_from_api(
         f"{request.app.api_url}/v2/{net}/account/{account_id}/deployed",
@@ -790,35 +792,58 @@ async def request_sankey(
         sankey.add_txs_for_account(
             txs_for_account, account_rewards_total  # , exchange_rates
         )
-
     else:
+        # tokens
         api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/token/{token}/info",
+            f"{request.app.api_url}/v2/{net}/plt/{token}/info",
             httpx_client,
         )
-        token_tag = (
-            MongoTypeTokensTag(**api_result.return_value) if api_result.ok else None
-        )
-        if not token_tag:
-            return None
+        plt_info = api_result.return_value if api_result.ok else None
+        if plt_info:
+            # PLT
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/account/{account_id}/plt-transactions-for-flow/{token}/{gte}/{start_date}/{end_date}",
+                httpx_client,
+            )
+            txs_for_account = api_result.return_value if api_result.ok else []
 
-        token_id = (
-            f"{token_tag.contracts[0]}-"
-            if token != "CCDOGE"
-            else f"{token_tag.contracts[0]}-01"
-        )
+            sankey.add_plt_txs_for_account(
+                txs_for_account,
+                plt_info["token_state"]["module_state"]["governance_account"][
+                    "account"
+                ],
+            )
+        else:
+            # CIS-2
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/token/{token}/info",
+                httpx_client,
+            )
+            token_tag = (
+                MongoTypeTokensTag(**api_result.return_value) if api_result.ok else None
+            )
+            if not token_tag:
+                return None
 
-        decimals = token_tag.decimals
-        display_name = token_tag.display_name
+            token_id = (
+                f"{token_tag.contracts[0]}-"
+                if token != "CCDOGE"
+                else f"{token_tag.contracts[0]}-01"
+            )
 
-        api_result = await get_url_from_api(
-            f"{request.app.api_url}/v2/{net}/account/{account_id}/token-transactions-for-flow/{token_id}/{gte}/{start_date}/{end_date}",
-            httpx_client,
-        )
-        txs_for_account = api_result.return_value if api_result.ok else []
+            decimals = token_tag.decimals
+            display_name = token_tag.display_name
 
-        sankey.add_txs_for_account_for_token(txs_for_account, decimals, display_name)
-        pass
+            api_result = await get_url_from_api(
+                f"{request.app.api_url}/v2/{net}/account/{account_id}/token-transactions-for-flow/{token_id}/{gte}/{start_date}/{end_date}",
+                httpx_client,
+            )
+            txs_for_account = api_result.return_value if api_result.ok else []
+
+            sankey.add_txs_for_account_for_token(
+                txs_for_account, decimals, display_name
+            )
+
     account_ids_to_lookup = {
         x[:29]: from_address_to_index(x[:29], net, request.app)
         for x in sankey.labels.keys()

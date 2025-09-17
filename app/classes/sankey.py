@@ -7,7 +7,12 @@ from ..utils import (
 )  # , convert_contract_str_to_type
 from ccdexplorer_fundamentals.mongodb import MongoImpactedAddress
 from ccdexplorer_fundamentals.cis import MongoTypeLoggedEventV2
-from ccdexplorer_fundamentals.GRPCClient.CCD_Types import CCD_ContractAddress
+from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
+    CCD_ContractAddress,
+    CCD_TokenSupplyUpdateEvent,
+    CCD_TokenTransferEvent,
+    CCD_AccountAddress,
+)
 import math
 
 
@@ -341,6 +346,84 @@ class SanKey:
         self.amount_sent = sum(
             [x["amount"] / 1_000_000 for x in self.as_sender_dict.values()]
         )
+
+        for node in [v["account_id"] for k, v in self.as_receiver_dict.items()]:
+            self.add_node(node, NodeColors.SENDER_TO_ACCOUNT)
+
+        for _, v in self.as_receiver_dict.items():
+            self.add_link(v, self.account_id, WhoHasLinkInfo.SOURCE)
+
+        for node in [v["account_id"] for k, v in self.as_sender_dict.items()]:
+            self.add_node(node, NodeColors.RECEIVER_FROM_ACCOUNT)
+
+        for _, v in self.as_sender_dict.items():
+            self.add_link(self.account_id, v, WhoHasLinkInfo.TARGET)
+
+    def add_plt_txs_for_account(
+        self,
+        txs_for_account,
+        governance_account: CCD_AccountAddress,  # , exchange_rates
+    ):
+        self.count_txs_as_receiver = 0
+        self.count_txs_as_sender = 0
+        self.as_receiver_dict = {}
+        self.as_sender_dict = {}
+        # add account rewards
+        for ia in txs_for_account:
+            ia = MongoImpactedAddress(**ia)
+            if ia.balance_movement:
+                if ia.balance_movement.plt_transfer_in:
+                    self.count_txs_as_receiver += 1
+                    for ti in ia.balance_movement.plt_transfer_in:
+                        if isinstance(ti.event, CCD_TokenSupplyUpdateEvent):
+                            # mint
+                            self.as_receiver_dict[governance_account[:29]] = {
+                                "amount": self.as_receiver_dict.get(
+                                    governance_account[:29], {"amount": 0}
+                                )["amount"]
+                                + int(ti.event.amount.value)
+                                * (math.pow(10, -ti.event.amount.decimals)),
+                                "account_id": governance_account,
+                            }
+                        if isinstance(ti.event, CCD_TokenTransferEvent):
+                            # transfer
+                            self.as_receiver_dict[ti.event.from_.account[:29]] = {
+                                "amount": self.as_receiver_dict.get(
+                                    ti.event.from_.account[:29], {"amount": 0}
+                                )["amount"]
+                                + int(ti.event.amount.value)
+                                * (math.pow(10, -ti.event.amount.decimals)),
+                                "account_id": ti.event.from_.account,
+                            }
+
+                if ia.balance_movement.plt_transfer_out:
+                    self.count_txs_as_sender += 1
+                    for to in ia.balance_movement.plt_transfer_out:
+                        if isinstance(to.event, CCD_TokenSupplyUpdateEvent):
+                            # burn
+                            self.as_sender_dict[governance_account[:29]] = {
+                                "amount": self.as_sender_dict.get(
+                                    governance_account[:29], {"amount": 0}
+                                )["amount"]
+                                + int(to.event.amount.value)
+                                * (math.pow(10, -to.event.amount.decimals)),
+                                "account_id": governance_account,
+                            }
+                        if isinstance(to.event, CCD_TokenTransferEvent):
+                            # transfer
+                            self.as_sender_dict[to.event.to.account[:29]] = {
+                                "amount": self.as_sender_dict.get(
+                                    to.event.to.account[:29], {"amount": 0}
+                                )["amount"]
+                                + int(to.event.amount.value)
+                                * (math.pow(10, -to.event.amount.decimals)),
+                                "account_id": to.event.to.account,
+                            }
+
+        self.amount_received = sum(
+            [x["amount"] for x in self.as_receiver_dict.values()]
+        )
+        self.amount_sent = sum([x["amount"] for x in self.as_sender_dict.values()])
 
         for node in [v["account_id"] for k, v in self.as_receiver_dict.items()]:
             self.add_node(node, NodeColors.SENDER_TO_ACCOUNT)
