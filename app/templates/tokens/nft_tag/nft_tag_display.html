@@ -59,7 +59,14 @@
     <div class="col-md-12  col-sm-12 ">
       <div class="border content curved-border " >
           {% set title= "Individual Tokens" %}{% include 'base/box_title.html' %}
-          <div id="nft_tokens"></div>
+          <div id="nft_tokens">
+            {% set ccd_tabulator_table ='nft_tokens_table'%}
+            {% set tabulator_ajax_url = '/'+net+'/ajax_nft_tokens_for/'+vi._id %}
+
+            {% set filename='nft_tokens-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-nft-tokens.html" %}
+
+          </div>
     </div>
   </div>
     <script>
@@ -142,7 +149,7 @@
               load_media("{{url}}");
             
         
-              getNFTTokens(0, 0);
+              // getNFTTokens(0, 0);
 
       });
 

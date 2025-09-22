@@ -1609,11 +1609,16 @@ class MakeUp:
             }
             plt_string = f'PLT: <a href="/{self.net}/tokens/{event.token_id}"><span class="ccd">{event.token_id if not display_name else display_name}</span></a>'
             if event.transfer_event:
+                memo = (
+                    f"Memo: {decode_memo(event.transfer_event.memo)}"
+                    if event.transfer_event.memo
+                    else None
+                )
                 self.additional_info["amount"] = int(event.transfer_event.amount.value)
                 new_event = EventType(
                     f"Transferred {token_amount_using_decimals_rounded(int(event.transfer_event.amount.value), decimals)} from {account_link(from_address_to_index(event.transfer_event.from_.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)} to {account_link(from_address_to_index(event.transfer_event.to.account, self.net,app=self.makeup_request.app), self.net,user=self.user,tags=self.tags, app=self.makeup_request.app)}",
                     plt_string,
-                    None,
+                    memo if memo else None,
                 )
 
             elif event.mint_event is not None:

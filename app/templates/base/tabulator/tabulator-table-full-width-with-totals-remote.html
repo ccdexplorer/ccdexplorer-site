@@ -87,7 +87,7 @@
       console.log(rows.length , params.size)
       const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
       const pagination = document.querySelector(sel);
-      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
+      if (pagination) pagination.style.display = (last_page > 1)? "" : "none";
       if (wrap) wrap.style.display = rows.length ? "" : "none";
       if (wrap_no_rows) wrap_no_rows.style.display = rows.length ? "none" : "";
 

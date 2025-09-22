@@ -607,7 +607,10 @@ def none(value):
 
 
 def contract_tag(
-    value: CCD_ContractAddress, user: UserV2 = None, community_labels=None, header=False
+    value: CCD_ContractAddress,
+    user: UserV2 | None = None,
+    community_labels=None,
+    header=False,
 ):
     """ """
 
@@ -1783,6 +1786,54 @@ def create_dict_for_tabulator_display_for_plt_token_holders(
         "token_balance": f'<span class="text-secondary-emphasis">{token_amount_using_decimals_rounded(int(row["balance"]), decimals)}</span> <span class="ccd">{row["token_id"]}</span>',
         "account_address": account_address,
         "token_balance_download": f'{row["balance"]}',
+        "account_download": row["account_address"],
+    }
+
+
+def create_dict_for_tabulator_display_for_cis2_token_holders(
+    net,
+    user,
+    app,
+    tags: dict,
+    row: dict,
+    account_address: str,
+    decimals: int,
+    stored_token_address: dict,
+):
+    token_label = ""
+    if stored_token_address.get("verified_information") is not None:
+        if (
+            stored_token_address.get("verified_information").get("token_type")  # type: ignore
+            == "fungible"
+        ):
+            token_label = f'{stored_token_address["verified_information"]["_id"]}'
+
+    return {
+        "token_balance": f'<span class="text-secondary-emphasis">{token_amount_using_decimals_rounded(int(row["token_holding"]["token_amount"]), decimals)}</span> <span class="ccd">{token_label}</span>',
+        "account_address": account_address,
+        "token_balance_download": f'{row["token_holding"]["token_amount"]}',
+        "account_download": row["account_index"],
+    }
+
+
+def create_dict_for_tabulator_display_for_nft_tokens(
+    net,
+    user,
+    app,
+    tags: dict,
+    row: dict,
+):
+    token_id = ""
+    if row.get("token_metadata"):
+        token_id = f'<a href="/{net}/token/{split_contract_into_url_slug_and_token_id(row["contract"], row["token_id"])}"><span class="ccd text-secondary-emphasis">{row["token_metadata"]["name"]}</span></a>'
+    else:
+        token_id = f'<a href="/{net}/token/{split_contract_into_url_slug_and_token_id(row["contract"], row["token_id"])}"><span class="ccd text-secondary-emphasis">{row["token_id"]}</span></a>'
+    return {
+        "contract": f"<span class='ccd text-secondary-emphasis'>{row['contract']}</span>",
+        "token_id": token_id,
+        "token_id_download": f'{row["token_id"]}',
+        "last_height_processed": f'<a href="/{net}/block/{row["last_height_processed"]}"><span class="ccd">{round_x_decimal_with_comma(row["last_height_processed"], 0)}</span></a>',
+        "last_height_processed_download": row["last_height_processed"],
     }
 
 

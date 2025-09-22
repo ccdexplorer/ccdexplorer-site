@@ -1,0 +1,33 @@
+{% include 'base/tabulator/tabulator-custom-formatters.html' %}
+
+<script>
+  const {{ccd_tabulator_table}}_columns = [
+  {
+        title: "Account", field: "account_address", 
+        minWidth: 120,
+        // maxWidth: 120,
+        responsive: 0,
+        accessorDownload: (value, data) => data.account_download,
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "left", headerHozAlign: "left",
+        
+      },
+      {
+        title: "Balance", field: "token_balance", 
+        formatter: "html",
+        headerSort: false,
+        hozAlign: "right", headerHozAlign: "right",
+        accessorDownload: (value, data) => data.token_balance_download,
+        
+      }
+      
+    ];
+
+  
+  
+  window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
+  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
+</script>
+{% include 'base/tabulator/tabulator-table-full-width-with-totals-remote.html' %}
+{% include 'base/tabulator/tabulator-table-download-link.html' %}

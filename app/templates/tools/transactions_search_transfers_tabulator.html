@@ -232,7 +232,7 @@ text-align: center;
       if (wrap_no_rows) wrap_no_rows.style.display = rows.length ? "none" : "";
       const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
       const pagination = document.querySelector(sel);
-      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
+      if (pagination) pagination.style.display = (last_page > 1)? "" : "none";
       return { data: rows, last_page, last_row };
     },
   });

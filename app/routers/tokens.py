@@ -345,54 +345,111 @@ async def ajax_token_ids_for_tag(
 
 
 @router.get(
-    "/{net}/ajax_nft_tokens_for/{tag}/{requested_page}/{total_rows}/{api_key}",
+    "/{net}/ajax_nft_tokens_for/{tag}",
     response_class=HTMLResponse,
 )
-async def ajax_nft_tokens_for_tag(
+async def get_paginated_cis2_nft_tokens(
     request: Request,
     net: str,
     tag: str,
-    requested_page: int,
-    total_rows: int,
-    api_key: str,
-    tags: dict = Depends(get_labeled_accounts),
+    page: int = Query(),
+    size: int = Query(),
     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+    # recurring: Recurring = Depends(get_recurring),
 ):
-    limit = 10
-    skip = calculate_skip(requested_page, total_rows, limit)
     user: UserV2 | None = await get_user_detailsv2(request)
+    skip = (page - 1) * size
     api_result = await get_url_from_api(
-        f"{request.app.api_url}/v2/{net}/token/tag/{tag}/{skip}/{limit}",
+        f"{request.app.api_url}/v2/{net}/token/tag/{tag}/{skip}/{size}",
         httpx_client,
     )
-    nft_tokens = api_result.return_value if api_result.ok else None
+    nft_tokens_result = api_result.return_value if api_result.ok else None
 
-    pagination_request = PaginationRequest(
-        total_txs=total_rows,
-        requested_page=requested_page,
-        word="token",
-        action_string="nft_token",
-        limit=limit,
-        returned_rows=len(nft_tokens),
-    )
-    pagination = pagination_calculator(pagination_request)
-    request.state.api_calls = {}
-    request.state.api_calls["NFT Tokens"] = (
-        f"{request.app.api_url}/docs#/Token/get_nft_tag_tokens_v2__net__token_tag__tag___skip___limit__get"
-    )
-    html = templates.get_template("tokens/nft_tag/nft_tag_tokens.html").render(
+    if not nft_tokens_result:
+        error = f"Request error getting NFT tokens for tag {tag} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+    total_rows = nft_tokens_result["total_count"]
+    nft_tokens = nft_tokens_result["nft_tokens"]
+
+    tb_made_up_rows = []
+    for row in nft_tokens:
+        tb_made_up_rows.append(
+            create_dict_for_tabulator_display_for_nft_tokens(
+                net,
+                user,
+                request.app,
+                tags,
+                row,
+            )
+        )
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
         {
-            "nft_tokens": nft_tokens,
-            "tags": tags,
-            "tag": tag,
-            "net": net,
-            "request": request,
-            "pagination": pagination,
-            "total_rows": total_rows,
+            "data": tb_made_up_rows,
+            "last_page": max(1, last_page),
+            "last_row": total_rows,
         }
     )
 
-    return html
+
+# @router.get(
+#     "/{net}/ajax_nft_tokens_for/{tag}/{requested_page}/{total_rows}/{api_key}",
+#     response_class=HTMLResponse,
+# )
+# async def ajax_nft_tokens_for_tag(
+#     request: Request,
+#     net: str,
+#     tag: str,
+#     requested_page: int,
+#     total_rows: int,
+#     api_key: str,
+#     tags: dict = Depends(get_labeled_accounts),
+#     httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+# ):
+#     limit = 10
+#     skip = calculate_skip(requested_page, total_rows, limit)
+#     user: UserV2 | None = await get_user_detailsv2(request)
+#     api_result = await get_url_from_api(
+#         f"{request.app.api_url}/v2/{net}/token/tag/{tag}/{skip}/{limit}",
+#         httpx_client,
+#     )
+#     nft_tokens = api_result.return_value if api_result.ok else None
+
+#     pagination_request = PaginationRequest(
+#         total_txs=total_rows,
+#         requested_page=requested_page,
+#         word="token",
+#         action_string="nft_token",
+#         limit=limit,
+#         returned_rows=len(nft_tokens),
+#     )
+#     pagination = pagination_calculator(pagination_request)
+#     request.state.api_calls = {}
+#     request.state.api_calls["NFT Tokens"] = (
+#         f"{request.app.api_url}/docs#/Token/get_nft_tag_tokens_v2__net__token_tag__tag___skip___limit__get"
+#     )
+#     html = templates.get_template("tokens/nft_tag/nft_tag_tokens.html").render(
+#         {
+#             "nft_tokens": nft_tokens,
+#             "tags": tags,
+#             "tag": tag,
+#             "net": net,
+#             "request": request,
+#             "pagination": pagination,
+#             "total_rows": total_rows,
+#         }
+#     )
+
+#     return html
 
 
 # @router.get(
@@ -868,6 +925,112 @@ async def tokens_tag_token_id(
         token_id,
         tags,
         og_title,
+    )
+
+
+@router.get(
+    "/ajax_cis2_tokens/{net}/{contract_index}/{contract_subindex}/{token_id}",
+    response_class=HTMLResponse,
+)
+async def get_cis2_token_holders_paginated(
+    request: Request,
+    net: str,
+    contract_index: int,
+    contract_subindex: int,
+    token_id: str,
+    page: int = Query(),
+    size: int = Query(),
+    httpx_client: httpx.AsyncClient = Depends(get_httpx_client),
+    tags: dict = Depends(get_labeled_accounts),
+    # recurring: Recurring = Depends(get_recurring),
+):
+    user: UserV2 | None = await get_user_detailsv2(request)
+    skip = (page - 1) * size
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/info",
+        request.app.httpx_client,
+    )
+    stored_token_address: dict | None = (
+        api_result.return_value if api_result.ok else None
+    )
+
+    api_result = await get_url_from_api(
+        f"{request.app.api_url}/v2/{net}/token/{contract_index}/{contract_subindex}/{token_id}/holders/{skip}/{size}",
+        httpx_client,
+    )
+    current_holders_with_ids = (
+        api_result.return_value["current_holders"] if api_result.ok else None
+    )
+    total_rows = api_result.return_value["total_count"] if api_result.ok else 0
+    if not current_holders_with_ids:
+        error = f"Request error getting holders for token at {token_id} on {net}."
+        return templates.TemplateResponse(
+            "base/error-request.html",
+            {
+                "request": request,
+                "error": error,
+                "env": environment,
+                "net": net,
+            },
+        )
+
+    current_holders = []
+    for holder in current_holders_with_ids:
+        if "-" in holder["account_address_canonical"]:
+            address_to_lookup = holder["account_address_canonical"].split("-")[1]
+        else:
+            address_to_lookup = holder["account_address_canonical"]
+        holder.update(
+            {
+                "account_index": from_address_to_index(
+                    address_to_lookup, net, request.app
+                )
+            }
+        )
+        current_holders.append(holder)
+
+    tb_made_up_rows = []
+    token_decimals = 0
+    if stored_token_address:
+        md = stored_token_address.get("token_metadata")
+        vi = stored_token_address.get("verified_information")
+        if not md:
+            if not vi:
+                token_decimals = 0
+            else:
+                token_decimals = vi.get("decimals", 0)
+
+        else:
+            token_decimals = md.get("decimals", 0)
+
+    for row in current_holders:
+        sender = account_link(
+            row["account_index"],
+            net,
+            user=user,
+            tags=tags,
+            app=request.app,
+        )
+        tb_made_up_rows.append(
+            create_dict_for_tabulator_display_for_cis2_token_holders(
+                net,
+                user,
+                request.app,
+                tags,
+                row,
+                sender,
+                token_decimals,
+                stored_token_address,
+            )
+        )
+    # total_rows = holders["total_row_count"]  # type: ignore
+    last_page = math.ceil(total_rows / size)
+    return JSONResponse(
+        {
+            "data": tb_made_up_rows,
+            "last_page": max(1, last_page),
+            "last_row": total_rows,
+        }
     )
 
 

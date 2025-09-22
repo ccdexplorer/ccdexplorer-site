@@ -8,37 +8,6 @@
 {% if error %}
 <p>An error occured: <b>{{error.errorMessage}}</b></p>
 {% else %}
-<!-- Get Paydays -->
-<!-- <script>
-  function getPayDays(requested_page, total_rows) {
-    paydays = document.getElementById('paydays');
-    url =  '/{{net}}/ajax_paydays/' + requested_page + '/' + total_rows + '/' + api_key;
-
-    fetch(url)
-      .then((response) => {
-        return response.text();
-      })
-      .then((data) => {
-        paydays.innerHTML = data;
-      })
-      .catch(function (error) {
-        console.log(error);
-      });
-  }
-
-  function prev_paydays(requested_page, total_rows) {
-    getPayDays(requested_page, total_rows)
-  };
-  function next_paydays(requested_page, total_rows) {
-    getPayDays(requested_page, total_rows)
-  };
-
-  window.addEventListener('load', (event) => {
-    getPayDays(0, 0);
-    
-  });
-</script> -->
-
 
 <script>
   function getPassiveInfo() {

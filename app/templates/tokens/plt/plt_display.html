@@ -32,7 +32,9 @@
           {% set title= "Current Holders" %}{% include 'base/box_title.html' %}
           <div id="plt_holders_table"></div>
           {% set ccd_tabulator_table ='plt_holders_table'%}
-          {% include 'base/tabulator/tabulator-table-download-link.html' %}
+          {% set tabulator_ajax_url = '/ajax_plt_tokens/'+net+'/'+ token_id%}
+          {% set filename='plt-tokens-for-'+ token_id+'-'+range(1000,10000)|random|string+'.csv' %}
+            {% include "base/tabulator/tabulator-plt-holders.html" %}
     </div>
   </div>
   </div>  
@@ -141,82 +143,6 @@
       </script>
 
 
-
-<!-- PLT holders-->
- {% set ccd_tabulator_table ='plt_holders_table'%}
-{% set tabulator_ajax_url = '/ajax_plt_tokens/'+net+'/'+ token_id%}
-{% set filename='plt-tokens-for-'+ token_id+'-'+range(1000,10000)|random|string+'.csv' %}
-
-{% include 'base/tabulator/tabulator-common-options-get.html' %}
-
-<script>
-
-  const plt_holders_table_columns = [
-
-      {
-        title: "Account", field: "account_address", 
-        minWidth: 120,
-        // maxWidth: 120,
-        responsive: 0,
-        accessorDownload: (value, data) => data.account_download,
-        formatter: "html",
-        headerSort: false,
-        hozAlign: "left", headerHozAlign: "left",
-        
-      },
-      {
-        title: "Balance", field: "token_balance", 
-        formatter: "html",
-        headerSort: false,
-        hozAlign: "right", headerHozAlign: "right",
-        accessorDownload: (value, data) => data.token_balance_download,
-        
-      }
-      
-    ];
-  window["{{ccd_tabulator_table}}_filename"] = '{{filename}}';
-
-  window["plt_holders_table"] = new Tabulator("#plt_holders_table", {
-    ...commonTabulatorOptionsGET,
-    columns: plt_holders_table_columns,
-    ajaxURL: "{{tabulator_ajax_url}}",
-    maxHeight: "400px",           // fixed outer height
-    heightGrow: false,
-    ajaxRequesting: function(url, params){
-    return true; // must return true to allow the request
-  },
-  ajaxResponse: function (url, params, resp) {
-      const rows = Array.isArray(resp?.data) ? resp.data : [];
-      const last_page = Math.max(1, Number(resp?.last_page ?? 1));
-      const last_row  = Math.max(0, Number(resp?.last_row  ?? rows.length));
-      const sel = `#${CSS.escape("{{ccd_tabulator_table}}")} .tabulator-paginator`;
-      const pagination = document.querySelector(sel);
-      if (pagination) pagination.style.display = (rows.length >= params.size)? "" : "none";
-      
-      return { data: rows, last_page, last_row };
-    },
-  });
-
-  window["plt_holders_table"].on("renderComplete", function () {
-    document.querySelectorAll(".tabulator-col-title").forEach(el => {
-      el.classList.add("sm-text");
-    });
-  });
-  const btn = document.getElementById("{{ccd_tabulator_table}}-download-csv");
-    if (btn) {
-    btn.addEventListener("click", () => {
-        window["{{ccd_tabulator_table}}_table"]?.download(
-        "csv",
-        window["{{ccd_tabulator_table}}_filename"],
-        { bom: true, downloadDataFormatter: (d) => d }
-        );
-    });
-    }
-
-</script>
-
-
-<!-- PLT holders-->
 
 <!-- PLT transactions-->
 {% include 'base/tabulator/tabulator-plt-txs.html' %}
