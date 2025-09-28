@@ -508,6 +508,32 @@ async def statistics_validators(
         )
 
 
+@router.get("/{net}/statistics/plt", response_class=HTMLResponse)
+async def statistics_plt(
+    request: Request,
+    net: str,
+):
+    if net == "mainnet":
+
+        return templates.TemplateResponse(
+            "statistics/statistics-chain-plt.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+    else:
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+
 @router.get("/{net}/statistics-standalone", response_class=HTMLResponse)
 async def statistics_standalone(
     request: Request,
@@ -2654,6 +2680,80 @@ async def statistics_unique_addresses_plotly(
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
         height=350,
     )
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
+
+
+########PLT
+
+
+@router.post(
+    "/{net}/ajax_statistics_plotly_py/statistics_plt_stablecoin_dominance",
+    response_class=HTMLResponse,
+)
+async def statistics_plt_stablecoin_dominance_plotly(
+    request: Request,
+    net: str,
+):
+    theme = await get_theme_from_request(request)
+    analysis = "statistics_plt"
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+    chain_start = dt.date(2025, 9, 22)
+    yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
+    all_data = await get_all_data_for_analysis_limited(
+        analysis, request.app, chain_start, yesterday
+    )
+    d_date = yesterday
+    df = pd.json_normalize(all_data)  # type: ignore
+    x = df["date"]
+    fig = go.Figure()
+    usd_cols = [x for x in df.columns if x.endswith("_USD")]
+    rng = ["#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
+    for index, col in enumerate(usd_cols):
+        token = col.split(".")[1]
+
+        fig.add_trace(
+            go.Scatter(
+                name=token,
+                x=x,
+                y=df[f"tokens.{token}.total_supply_in_USD"],
+                mode="lines",
+                line=dict(width=0.5),
+                stackgroup="one",
+                marker=dict(color=rng[index]),
+                groupnorm="percent",  # sets the normalization for the sum of the stackgroup
+                hovertemplate="date = %{x}<br>TVL% in USD = %{y}<extra></extra>",
+            )
+        )
+    title = "Stablecoin Dominance (TVL)"
+    # fig.update_traces(marker_color="#549FF2")
+    fig.update_layout(
+        showlegend=True,
+        xaxis_type="category",
+        yaxis=dict(type="linear", range=[1, 100], ticksuffix="%"),
+    )
+
+    fig.update_layout(
+        template=ccdexplorer_plotly_template(theme),
+        legend_title_text=None,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=350,
+    )
+    fig.update_xaxes(title=None)
     return fig.to_html(
         config={"responsive": True, "displayModeBar": False},
         full_html=False,
