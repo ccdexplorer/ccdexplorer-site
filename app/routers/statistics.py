@@ -1403,7 +1403,7 @@ async def statistics_network_summary_accounts_per_day_plotly(
     )
     fig.update_xaxes(type="date")
     fig.update_layout(
-        showlegend=False,
+        showlegend=True,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
         template=ccdexplorer_plotly_template(theme),
         height=350,

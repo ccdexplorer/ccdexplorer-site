@@ -121,7 +121,7 @@ function updateFilter(){
 
         title: "Pool Remaining", field: "delegated_percentage_remaining_format", headerHozAlign:"right", hozAlign: "right",
         responsive: 30,
-        minWidth: 150,
+        minWidth: 140,
         // maxWidth: 180, 
         formatter:"html",
         accessorDownload: (value, data) => data.delegated_percentage_remaining,
@@ -171,7 +171,7 @@ window["{{ccd_tabulator_table}}_columns"] = {{ccd_tabulator_table}}_columns;
     responsiveLayout: "hide",
     pagination: "local",
     // rowHeight:20,
-    paginationSize: 10,
+    paginationSize: 25,
     paginationSizeSelector: [10, 25, 50, 100, 500],
     paginationCounter: "rows",
     });
