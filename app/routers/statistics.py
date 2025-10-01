@@ -2722,7 +2722,39 @@ async def statistics_plt_stablecoin_dominance_plotly(
     x = df["date"]
     fig = go.Figure()
     usd_cols = [x for x in df.columns if x.endswith("_USD")]
-    rng = ["#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
+    # rng = ["#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
+    rng = [
+        "#33C364",  # green
+        "#2485DF",  # blue
+        "#7939BA",  # purple
+        "#E87E90",  # red/pink
+        "#F6DB9A",  # yellow
+        "#8BE7AA",  # mint
+        "#2EA856",  # green variant
+        "#1F73C4",  # blue variant
+        "#692F9F",  # purple variant
+        "#D16475",  # red/pink variant
+        "#EFCF7A",  # yellow variant
+        "#71D895",  # mint variant
+        "#52D98B",  # green
+        "#4AA1EC",  # blue
+        "#9559CC",  # purple
+        "#EC9AA9",  # red/pink
+        "#FAE4B5",  # yellow
+        "#A3F0BE",  # mint
+        "#1E7A3D",  # green
+        "#155A91",  # blue
+        "#4E1F75",  # purple
+        "#A84352",  # red/pink
+        "#D6B44F",  # yellow
+        "#4EB872",  # mint
+        "#6EE1A2",  # green
+        "#7FBFF3",  # blue
+        "#B27BD9",  # purple
+        "#F2B8C2",  # red/pink
+        "#FFF0CE",  # yellow
+        "#C5F7D8",  # mint
+    ]
     for index, col in enumerate(usd_cols):
         token = col.split(".")[1]
 
@@ -2743,6 +2775,9 @@ async def statistics_plt_stablecoin_dominance_plotly(
     # fig.update_traces(marker_color="#549FF2")
     fig.update_layout(
         showlegend=True,
+        legend=dict(
+            orientation="h",
+        ),
         xaxis_type="category",
         yaxis=dict(type="linear", range=[1, 100], ticksuffix="%"),
     )
