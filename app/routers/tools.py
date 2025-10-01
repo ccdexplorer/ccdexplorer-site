@@ -918,10 +918,13 @@ async def ajax_accounts_cooldown(
             aggregates[end_time]["count"] += 1
 
     # Convert to list of dicts
-    summary = [
-        {"end_time": k, "total_amount": v["total_amount"], "count": v["count"]}
-        for k, v in aggregates.items()
-    ]
+    summary = sorted(
+        [
+            {"end_time": k, "total_amount": v["total_amount"], "count": v["count"]}
+            for k, v in aggregates.items()
+        ],
+        key=lambda x: dt.datetime.strptime(str(x["end_time"]), "%Y-%m-%dT%H:%M:%SZ"),
+    )
     summary_totals = {
         "total_amount": sum([x["total_amount"] for x in summary]),
         "count": sum([x["count"] for x in summary]),

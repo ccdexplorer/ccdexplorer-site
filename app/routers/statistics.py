@@ -2721,7 +2721,7 @@ async def statistics_plt_stablecoin_dominance_plotly(
     df = pd.json_normalize(all_data)  # type: ignore
     x = df["date"]
     fig = go.Figure()
-    usd_cols = [x for x in df.columns if x.endswith("_USD")]
+    usd_cols = [x for x in df.columns if ".USD.total_supply" in x]
     # rng = ["#33C364", "#2485DF", "#7939BA", "#E87E90", "#F6DB9A", "#8BE7AA"]
     rng = [
         "#33C364",  # green
@@ -2762,17 +2762,22 @@ async def statistics_plt_stablecoin_dominance_plotly(
             go.Scatter(
                 name=token,
                 x=x,
-                y=df[f"tokens.{token}.total_supply_in_USD"],
+                y=df[f"tokens.{token}.USD.total_supply"],
                 mode="lines",
-                line=dict(width=0.5),
+                # line=dict(width=0.5),
                 stackgroup="one",
                 marker=dict(color=rng[index]),
                 groupnorm="percent",  # sets the normalization for the sum of the stackgroup
-                hovertemplate="date = %{x}<br>TVL% in USD = %{y}<extra></extra>",
+                hovertemplate=(
+                    "date = %{x}"
+                    "<br>TVL% in USD = %{y:.1f}%"
+                    "<br>token = %{fullData.name}"
+                    "<extra></extra>"
+                ),
             )
         )
-    title = "Stablecoin Dominance (TVL)"
-    # fig.update_traces(marker_color="#549FF2")
+    title = "Stablecoin Dominance (TVL in USD)"
+
     fig.update_layout(
         showlegend=True,
         legend=dict(

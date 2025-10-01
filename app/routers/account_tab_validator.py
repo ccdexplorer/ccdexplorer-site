@@ -482,7 +482,9 @@ async def get_validator_tally(
         f"{request.app.api_url}/v2/{net}/account/{account_id}/validator-tally/{skip}/{size}",
         httpx_client,
     )
-    tally = api_result.return_value if api_result.ok else None
+    tally = (
+        api_result.return_value if api_result.ok else {"data": [], "total_row_count": 0}
+    )
     if not tally:
         error = f"Request error getting validator tally for account at {account_id} on {net}."
         return templates.TemplateResponse(

@@ -1010,7 +1010,7 @@ class MakeUp:
                         elif event.baker_removed is not None:
                             new_event = EventType(
                                 "Validator Removed",
-                                f"Validator ID: {event.baker_removed}",
+                                f"Validator ID: <span class='ccd'>{event.baker_removed}</span>",
                                 None,
                             )
 
