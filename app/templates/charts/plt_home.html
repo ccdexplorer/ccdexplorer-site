@@ -1,0 +1,14 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+{% include 'base/search_bar_non_home_inclusion.html' %}
+    <div class="row  mt-12">
+        Charts
+        <a href="/{{net}}/charts/plt-transfers" class="btn btn-outline-secondary">PLT Charts</a>
+        <!-- <a href="/{{net}}/charts/transactions-count" class="btn btn-outline-secondary">Transactions Count</a>
+        <a href="/{{net}}/charts/active-addresses" class="btn btn-outline-secondary">Active Addresses</a>
+        <a href="/{{net}}/charts/holders" class="btn btn-outline-secondary">Holders</a> -->
+</div>  
+
+
+{% endblock %}

@@ -15,10 +15,13 @@
       <div class="card text-center  border-dark" >
               <div class="card-body text-center">
                   <span class="card-title text-center"><br/>{{name}}<br/></span>
-                  {% if loop.index < 7 %}
-                      <a class="stretched-link" href="/mainnet/statistics/{{name|lower}}"></a>
+                  {% if name == "Miscellaneous" %}
+                    <a class="stretched-link" href="/mainnet/charts"></a>
+                  {% elif name == "PLT" %}
+                  <a class="stretched-link" href="/mainnet/charts-plt"></a>
+                    
                   {% else %}
-                      <a class="stretched-link" href="/mainnet/charts"></a>
+                    <a class="stretched-link" href="/mainnet/statistics/{{name|lower}}"></a>  
                   {% endif %}
           </div>
         </div>

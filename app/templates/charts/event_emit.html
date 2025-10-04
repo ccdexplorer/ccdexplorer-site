@@ -13,6 +13,12 @@ document.querySelectorAll('input[name="group_by"]').forEach(radio => {
         document.getElementById('update').dispatchEvent(event);
     });
 });
+'{% if include_kpis %}'
+    document.getElementById('kpi_id')?.addEventListener('change', function () {
+  const event = new CustomEvent('update_event');
+  document.getElementById('update')?.dispatchEvent(event);
+});
+'{% endif %}'
 '{% if include_trace_selection %}'
 document.querySelectorAll('input[name="trace_selection"]').forEach(checkbox => {
     checkbox.addEventListener('change', function() {
@@ -29,4 +35,14 @@ document.querySelectorAll('input[name="trace_selection"]').forEach(checkbox => {
     });
 });
 '{% endif %}'
+
+'{% if include_dropdown_fancy %}'
+document.querySelectorAll('input[name="fancy_group"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        var event = new CustomEvent('update_event');
+        document.getElementById('update').dispatchEvent(event);
+    });
+});
+'{% endif %}'
+
 </script>

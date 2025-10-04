@@ -35,21 +35,38 @@
       <div class="border curved-border mb-2">
         {% set title= "Graph Settings" %}{% include 'base/box_title.html' %} 
         <div class="row">
-        <div class=" col-sm-6">
-          
-        <div class="btn-group-sm" role="group"  id="btnradio_grouping">
-          Group By:<input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
-          <label class="btn btn-outline-secondary " for="daily">Daily</label>
-        
-          <input type="radio" class="btn-check" name="group_by" id="weekly" autocomplete="off">
-          <label class="btn btn-outline-secondary " for="weekly">Weekly</label>
-        
-          <input type="radio" class="btn-check" name="group_by" id="monthly" autocomplete="off">
-          <label class="btn btn-outline-secondary" for="monthly">Monthly</label>
-        </div>
-      </div>
+            <div class=" col-sm-6 mb-3">
+              
+            <div class="btn-group-sm" role="group"  id="btnradio_grouping">
+              Group By:<input type="radio" class="btn-check" name="group_by" id="daily" autocomplete="off" checked>
+              <label class="btn btn-outline-secondary " for="daily">Daily</label>
+            
+              <input type="radio" class="btn-check" name="group_by" id="weekly" autocomplete="off">
+              <label class="btn btn-outline-secondary " for="weekly">Weekly</label>
+            
+              <input type="radio" class="btn-check" name="group_by" id="monthly" autocomplete="off">
+              <label class="btn btn-outline-secondary" for="monthly">Monthly</label>
+            </div>
+          </div>
+      
+      {% if include_kpis %}
+      
       <div class=" col-sm-6">
       
+          <div class="d-flex align-items-center gap-1">
+            <label for="kpi_id" class="form-label mb-0" style="white-space: nowrap;">Select KPI:</label>
+            <select name="kpi_name" id="kpi_id" class="form-select form-select-sm">
+                {% for element, element_label in kpi_elements.items() %}
+                  <option value="{{element}}">{{element_label}}</option>
+                {% endfor %}
+              </select>
+          </div>
+     
+      </div>
+      
+       {% endif %} 
+      
+          <div class=" col-sm-6">
       {% if include_dropdown %}
           <label for="dropdown_id" class="small">Select transaction types:</label>
           <select name="dropdown_name" id="dropdown_id" multiple class=" form-select form-select-sm small">
@@ -59,6 +76,8 @@
             {% endfor %}
           </select> 
       {% endif %} 
+
+     
 
       {% if include_trace_selection %}
       <div class="btn-group-sm" role="group" id="btncheckgroup">
@@ -72,6 +91,22 @@
 
         
       </div>
+       {% if include_dropdown_fancy %}
+      <div class="row mt-3">
+        <div class=" col-sm-12">
+          
+        <div class="btn-group-sm" role="group"  id="btnradio_grouping">
+          {{dropdown_label}}:
+          {% for element, element_label in dropdown_elements.items() %}
+          <input type="radio" class="btn-check" name="fancy_group" id="{{element}}" autocomplete="off" {%if element == "EUR"%}checked{%endif%}>
+          <label class="btn btn-outline-secondary " for="{{element}}">{{element_label}}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      </div>  
+      {% endif %} 
+      
         <div class="row mt-4">
           <p></p>
           <div class=" col-sm-12 mt-4">
