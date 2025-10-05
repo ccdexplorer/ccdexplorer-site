@@ -1,0 +1,20 @@
+{% extends "base/base.html" %}
+{% block content %}
+  <h1>Fetch API Results → CSV</h1>
+    <form method="post" action="/fetch-submit">
+      <div style="margin-bottom: 1rem;">
+        <label for="api_url"><strong>Exact API URL</strong></label><br/>
+        <input required type="url" id="api_url" name="api_url" placeholder="https://api.example.com/v1/things?limit=100" class="search-bar-container bg-secondary-subtle border">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label for="header_key"><strong>{API_KEY_HEADER_NAME}</strong></label><br/>
+        <input required type="password" id="header_key" name="header_key" autocomplete="off" class="search-bar-container bg-secondary-subtle border">
+      </div>
+      <button type="submit" style="padding: 0.6rem 1rem;">Fetch & Download CSV</button>
+    </form>
+    <p style="margin-top:1rem; font-size: 0.9rem; color: #555;">
+      Note: Key is only used for this request and isn’t logged or stored.
+    </p>
+  </body>
+</html>
+{% endblock %}

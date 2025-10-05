@@ -1,9 +1,12 @@
+import csv
 import datetime as dt
 import math
-from typing import Optional
+from typing import Any, Mapping, Optional, Sequence
 from collections import defaultdict
 import dateutil
 import httpx
+import pandas as pd
+import os
 from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
     CCD_AccountPending,
     CCD_BlockItemSummary,
@@ -12,8 +15,8 @@ from ccdexplorer_fundamentals.GRPCClient.CCD_Types import (
 )
 from ccdexplorer_fundamentals.user_v2 import UserV2
 from dateutil.relativedelta import relativedelta
-from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Form
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.classes.dressingroom import (
@@ -1006,3 +1009,107 @@ async def ajax_accounts_pre_pre_cooldown(
             "net": net,
         },
     )
+
+
+@router.get("/tools/api-direct", response_class=HTMLResponse, include_in_schema=False)
+async def api_direct(
+    request: Request,
+    tags: dict = Depends(get_labeled_accounts),
+):
+    return templates.TemplateResponse(
+        "/tools/api_direct.html",
+        {
+            "env": environment,
+            "request": request,
+            "tags": tags,
+        },
+    )
+
+
+API_KEY_HEADER_NAME = "x-ccdexplorer-key"
+
+
+def _flatten(
+    obj: Any, prefix: str = "", out: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    if out is None:
+        out = {}
+    if isinstance(obj, Mapping):
+        for k, v in obj.items():
+            _flatten(v, f"{prefix}.{k}" if prefix else str(k), out)
+    elif isinstance(obj, Sequence) and not isinstance(obj, (str, bytes, bytearray)):
+        for i, v in enumerate(obj):
+            _flatten(v, f"{prefix}[{i}]" if prefix else f"[{i}]", out)
+    else:
+        out[prefix] = obj
+    return out
+
+
+def _rows_from_json(data: Any) -> list[dict[str, Any]]:
+    if isinstance(data, list):
+        if all(isinstance(x, Mapping) for x in data):
+            return [_flatten(x) for x in data]  # list of dicts
+        else:
+            return [{"value": data}]  # list of primitives
+    if isinstance(data, Mapping):
+        for key in ("results", "items", "data"):
+            v = data.get(key)
+            if isinstance(v, list) and all(isinstance(x, Mapping) for x in v):
+                return [_flatten(x) for x in v]
+        return [_flatten(data)]
+    return [{"value": data}]
+
+
+def _rows_to_df(rows) -> pd.DataFrame:
+    if not rows:
+        return pd.DataFrame([{"value": None}])
+    if isinstance(rows, list):
+        if all(isinstance(r, dict) for r in rows):
+            return pd.json_normalize(rows, sep=".")
+        else:
+            return pd.DataFrame({"value": rows})
+    if isinstance(rows, dict):
+        return pd.json_normalize([rows], sep=".")
+    return pd.DataFrame([{"value": rows}])
+
+
+@router.post("/fetch-submit", include_in_schema=False)
+async def fetch_submit(api_url: str = Form(...), header_key: str = Form(...)):
+
+    headers = {API_KEY_HEADER_NAME: header_key}
+
+    timeout = httpx.Timeout(30.0, connect=10.0)
+    async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
+        resp = await client.get(api_url, headers=headers)
+    if resp.status_code >= 400:
+        raise HTTPException(
+            status_code=resp.status_code, detail=f"Upstream returned {resp.status_code}"
+        )
+
+    content_type = resp.headers.get("content-type", "")
+    if "application/json" in content_type or resp.text.strip().startswith(("{", "[")):
+        try:
+            data = resp.json()
+        except Exception as e:
+            raise HTTPException(
+                status_code=422, detail=f"Response is not valid JSON: {e}"
+            )
+        rows = _rows_from_json(data)
+    elif "text/csv" in content_type:
+        # passthrough as-is
+        csv_bytes = resp.content
+        fname = f"api_export_{dt.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+        path = f"/tmp/{fname}"
+        with open(path, "wb") as f:
+            f.write(csv_bytes)
+        return FileResponse(path=path, filename=fname, media_type="text/csv")
+    else:
+        rows = [{"value": resp.text}]
+
+    df = _rows_to_df(rows)
+
+    fname = f"api_export_{dt.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')}.csv"
+    path = f"/tmp/{fname}"
+    df.to_csv(path, index=False)
+
+    return FileResponse(path=path, filename=fname, media_type="text/csv")
