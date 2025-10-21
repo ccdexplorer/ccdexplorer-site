@@ -1,0 +1,6 @@
+<div
+    class=""
+    hx-trigger="load, switched-theme from:body" 
+    hx-post="{{env.SITE_URL}}/{{net}}/ajax_statistics_plotly_py/percentage_staked"
+    hx-vals='js:{theme: document.querySelector("HTML").getAttribute("data-bs-theme")}'
+></div>

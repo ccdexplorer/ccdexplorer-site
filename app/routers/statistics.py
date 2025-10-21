@@ -2115,6 +2115,71 @@ async def statistics_ccd_classified_plotly(
     )
 
 
+
+@router.post(
+    "/{net}/ajax_statistics_plotly_py/percentage_staked",
+    response_class=Response,
+)
+async def statistics_percentage_staked_plotly(
+    request: Request,
+    net: str,
+):
+    theme = await get_theme_from_request(request)
+    analysis = "statistics_ccd_classified"
+    if net != "mainnet":
+        return templates.TemplateResponse(
+            "testnet/not-available.html",
+            {
+                "env": request.app.env,
+                "net": net,
+                "request": request,
+            },
+        )
+
+    chain_start = dt.date(2022, 6, 24)
+    yesterday = (dt.datetime.now().astimezone(dt.UTC) - dt.timedelta(days=1)).strftime(
+        "%Y-%m-%d"
+    )
+    all_data = await get_all_data_for_analysis_limited(
+        analysis, request.app, chain_start, yesterday
+    )
+    all_data.reverse()
+    d_date = yesterday
+    
+    all_data = await get_all_data_for_analysis_limited(
+        analysis, request.app, chain_start, yesterday
+    )
+    df = pd.DataFrame(all_data)
+
+    df["percentage_staked"] = (df["staked"] / df["total_supply"])
+    
+    
+
+    rng = ["#E87E90", "#33C364", "#2485DF", "#7939BA"]
+    title = "Percentage of CCD Staked"
+    fig = px.bar(
+        df,
+        x="date",
+        y="percentage_staked",
+        color_discrete_sequence=rng,
+        template=ccdexplorer_plotly_template(theme),
+    )
+    fig.update_layout(
+        legend_title_text=None,
+        title=f"<b>{title}</b><br><sup>{d_date}</sup>",
+        height=350,
+        legend_y=-0.1,
+        legend_orientation="h",
+    )
+    fig.update_xaxes(title=None)
+    return fig.to_html(
+        config={"responsive": True, "displayModeBar": False},
+        full_html=False,
+        include_plotlyjs=False,
+    )
+
+
+
 @router.post(
     "/{net}/ajax_statistics_plotly_py/statistics_network_activity_tps",
     response_class=Response,
