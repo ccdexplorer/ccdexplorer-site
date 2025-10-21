@@ -2171,6 +2171,7 @@ async def statistics_percentage_staked_plotly(
         yaxis=dict(type="linear", range=[0, 100], ticksuffix="%"),
         legend_y=-0.1,
         legend_orientation="h",
+        yaxis_title=None,
     )
     fig.update_xaxes(title=None)
     return fig.to_html(
