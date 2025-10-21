@@ -2151,7 +2151,7 @@ async def statistics_percentage_staked_plotly(
     )
     df = pd.DataFrame(all_data)
 
-    df["percentage_staked"] = (df["staked"] / df["total_supply"])
+    df["percentage_staked"] = (df["staked"] / df["total_supply"])*100
     
     
 
@@ -2168,6 +2168,7 @@ async def statistics_percentage_staked_plotly(
         legend_title_text=None,
         title=f"<b>{title}</b><br><sup>{d_date}</sup>",
         height=350,
+        yaxis=dict(type="linear", range=[0, 100], ticksuffix="%"),
         legend_y=-0.1,
         legend_orientation="h",
     )
